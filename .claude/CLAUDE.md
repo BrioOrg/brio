@@ -75,11 +75,22 @@ See `.claude/rules/` for the enforced backend and web conventions.
 ## Conventions
 
 - **Language**: user-facing copy is French; code, identifiers, comments English.
-- **Git**: one feature branch per change, PR into `main`. Short, single-line
-  commit messages. Keep PRs small and reviewable.
+- **Git**: one feature branch per change, PR into `develop` (see Git workflow
+  below). Keep PRs small and reviewable.
 - **Secrets**: never commit. Use `.env` (gitignored); provide `.env.example`.
 - **Decisions**: significant/architectural choices get an ADR in `docs/adr/`
   (copy `template.md`, next number, status `Proposed` → `Accepted`).
+
+## Git workflow
+
+- Branch from `develop`, **never `main`** (`main` is production).
+- Names: `feature/<issue>-<slug>`, plus `fix/` and `chore/` (same shape).
+- Start one with `scripts/start-feature.sh <issue> "<description>"`.
+- Commits: Conventional Commits with a required issue ref —
+  `<type>(<scope>): <description> (#<issue>)`; types `feat|fix|chore|docs|test|refactor`,
+  scope optional (module name or `web`/`infra`/`ci`).
+- Hooks in `.githooks/` enforce this (`scripts/setup.sh` to enable).
+- **Never push without asking me first.**
 
 ## Don't
 
