@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+#
+# Reject commit messages that don't follow Conventional Commits with a
+# mandatory issue reference:
+#
+#   <type>(<scope>): <description> (#<issue>)
+#
+# - <type>   : feat | fix | chore | docs | test | refactor
+# - (<scope>): optional, e.g. a backend module name or web/infra/ci
+# - (#<issue>): required issue reference
+#
+# Merge and revert commits are allowed through unchanged.
+# Bypass in a pinch with: git commit --no-verify
+set -eu
+
+msg_file="$1"
+
+# First non-empty, non-comment line = the subject we validate.
+subject=""
+while IFS= read -r line; do
+  case "$line" in
+    '#'*) continue ;;
+    '') continue ;;
+    *) subject="$line"; break ;;
+  esac
+done < "$msg_file"
+
+# Let merges and reverts pass without checks.
+case "$subject" in
+  "Merge "*|"Revert "*|'Revert "'*) exit 0 ;;
+esac
+
+pattern='^(feat|fix|chore|docs|test|refactor)(\([a-z0-9/._-]+\))?: .+ \(#[0-9]+\)$'
+
+if printf '%s' "$subject" | grep -Eq "$pattern"; then
+  exit 0
+fi
+
+cat >&2 <<'EOF'
+✗ Invalid commit message.
+
+  Expected Conventional Commits with a mandatory issue reference:
+
+    <type>(<scope>): <description> (#<issue>)
+
+  type   : feat | fix | chore | docs | test | refactor
+  scope  : optional — a backend module name or web/infra/ci
+  #issue : required
+
+  Valid example:
+
+    feat(catalog): add curriculum import endpoint (#42)
+
+  (Merge and revert commits are exempt. Override with --no-verify.)
+EOF
+echo >&2
+echo "  Your message:" >&2
+echo "    $subject" >&2
+exit 1

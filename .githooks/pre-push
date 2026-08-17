@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# Reject direct pushes to protected branches (main, develop).
+# Changes reach these branches through pull requests, never a direct push.
+#
+# If you genuinely need to override (you usually don't), bypass with:
+#   git push --no-verify
+set -eu
+
+protected="main develop"
+
+# git feeds "<local ref> <local sha> <remote ref> <remote sha>" on stdin,
+# one line per ref being pushed.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  [ -z "$remote_ref" ] && continue
+  branch="${remote_ref#refs/heads/}"
+  for p in $protected; do
+    if [ "$branch" = "$p" ]; then
+      cat >&2 <<EOF
+✗ Direct push to "$p" is blocked.
+
+  $p is protected — land changes via a pull request instead.
+
+  Cut a feature branch:  scripts/start-feature.sh <issue> "<description>"
+  If you must override:   git push --no-verify
+EOF
+      exit 1
+    fi
+  done
+done
+
+exit 0
