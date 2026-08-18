@@ -97,3 +97,4 @@ See `.claude/rules/` for the enforced backend and web conventions.
 - Don't add cross-module dependencies that bypass a module's `api`.
 - Don't put secrets or curriculum data in the repo.
 - Don't introduce a new library without a short rationale (ADR or PR note).
+- **No absolute paths in committed files** — hook scripts, settings, CI config, or anything else. Use `$CLAUDE_PROJECT_DIR` (with `$(git rev-parse --show-toplevel)` as fallback) for paths that must be absolute at runtime. An absolute path in a committed file silently breaks on every machine with a different home directory.
