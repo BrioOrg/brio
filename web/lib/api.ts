@@ -9,3 +9,11 @@ export async function getPingStatus() {
   if (error) throw new Error('Ping failed')
   return data
 }
+
+export async function getChapitre(id: string) {
+  const { data, error } = await client.GET('/api/chapitres/{id}', {
+    params: { path: { id } },
+  })
+  if (error) throw new Error(`Chapitre introuvable: ${id}`)
+  return data
+}
