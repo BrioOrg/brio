@@ -12,14 +12,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser
 @Import(TestcontainersConfiguration.class)
 class ChapitreIntegrationTest {
 
@@ -38,7 +40,7 @@ class ChapitreIntegrationTest {
     @Test
     void shouldReturnSeededChapter() throws Exception {
         mockMvc.perform(get("/api/chapitres/theoreme-de-pythagore")
-                        .with(httpBasic("dev", "dev")))
+                        )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("theoreme-de-pythagore"))
                 .andExpect(jsonPath("$.title").exists())
@@ -48,14 +50,14 @@ class ChapitreIntegrationTest {
     @Test
     void shouldReturn404ForUnknownChapter() throws Exception {
         mockMvc.perform(get("/api/chapitres/does-not-exist")
-                        .with(httpBasic("dev", "dev")))
+                        )
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldNeverLeakAnswerFieldsInChapterResponse() throws Exception {
         MvcResult result = mockMvc.perform(get("/api/chapitres/theoreme-de-pythagore")
-                        .with(httpBasic("dev", "dev")))
+                        )
                 .andExpect(status().isOk())
                 .andReturn();
 
