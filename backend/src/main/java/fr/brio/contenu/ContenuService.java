@@ -12,6 +12,7 @@ import fr.brio.contenu.infrastructure.ExerciceRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +61,11 @@ public class ContenuService {
         } catch (Exception e) {
             throw new IllegalStateException("Failed to persist chapter " + chapitreId, e);
         }
+    }
+
+    public Optional<UUID> findExerciceIdByChapitreAndSlug(String chapitreId, String slug) {
+        return exerciceRepository.findByChapitreIdAndSlug(chapitreId, slug)
+                .map(Exercice::getId);
     }
 
     public Optional<JsonNode> findChapitre(String id) {
