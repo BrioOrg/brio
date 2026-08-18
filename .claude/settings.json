@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/prettier-on-edit.py"
+            "command": "python3 /Users/piercebroudin/Desktop/brio/.claude/hooks/prettier-on-edit.py"
           }
         ]
       }
