@@ -57,13 +57,13 @@ Domain modules (not layers), enforced by Spring Modulith. Base package `fr.brio`
 
 | Module        | Responsibility                                  |
 |---------------|-------------------------------------------------|
-| `iam`         | accounts, authentication, roles                 |
-| `catalog`     | courses, curriculum structure                   |
-| `authoring`   | teacher-authored content, publishing            |
-| `tutoring`    | AI-tutor chatbots (RAG over curriculum)         |
-| `exercises`   | exercises + AI correction                       |
+| `identite`    | accounts, authentication, roles                 |
+| `contenu`     | courses, curriculum structure                   |
+| `ia`          | AI-tutor chatbots (RAG over curriculum)         |
+| `exercices`   | exercises + AI correction                       |
 | `progression` | XP, levels, streaks                             |
-| `chat`        | student chat rooms                              |
+| `social`      | student chat rooms                              |
+| `system`      | cross-cutting infrastructure (health, CORS, security) |
 | `shared`      | cross-cutting value types (no domain logic)     |
 
 Rules: modules talk only through published `api` packages or application
