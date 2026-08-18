@@ -1,4 +1,5 @@
 import { createApiClient } from '@brio/api-client'
+import type { ChapitreResponse } from '@/components/chapter-view'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
@@ -8,4 +9,12 @@ export async function getPingStatus() {
   const { data, error } = await client.GET('/api/ping')
   if (error) throw new Error('Ping failed')
   return data
+}
+
+export async function getChapitre(id: string): Promise<ChapitreResponse> {
+  const { data, error } = await client.GET('/api/chapitres/{id}', {
+    params: { path: { id } },
+  })
+  if (error) throw new Error(`Chapitre introuvable: ${id}`)
+  return data as ChapitreResponse
 }

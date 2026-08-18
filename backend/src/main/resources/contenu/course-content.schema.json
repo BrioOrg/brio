@@ -1,0 +1,392 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brio.fr/schema/course-content/v1.json",
+  "title": "brio course content",
+  "description": "Versioned, structured JSON for a chapter of teacher-authored course content. See docs/schema/DESIGN.md for the design rationale and docs/adr/0004 for the decision.",
+  "type": "object",
+  "required": ["schemaVersion", "id", "title", "sections"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "description": "Integer schema version. Bumped only on breaking structural changes; additive changes (new block/exercise types) do not bump it.",
+      "type": "integer",
+      "const": 1
+    },
+    "id": {
+      "$ref": "#/$defs/nodeId",
+      "description": "Author-assigned, human-readable, stable chapter id. Used as the RAG citation anchor."
+    },
+    "title": { "$ref": "#/$defs/plainText" },
+    "subject": {
+      "description": "Free-text discipline label, e.g. 'mathematiques'. Not a controlled taxonomy yet.",
+      "$ref": "#/$defs/plainText"
+    },
+    "level": {
+      "description": "Free-text school level, e.g. '3e', 'seconde'. Not a controlled taxonomy yet.",
+      "$ref": "#/$defs/plainText"
+    },
+    "difficulty": { "$ref": "#/$defs/difficulty" },
+    "estimatedDurationMinutes": { "$ref": "#/$defs/durationMinutes" },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/section" }
+    }
+  },
+
+  "$defs": {
+    "nodeId": {
+      "description": "Readable slug id, unique within the whole chapter document. Stable across edits so RAG citations and cross-references keep resolving.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 128
+    },
+
+    "plainText": {
+      "description": "A short, single-language (French) plain-text string. No markup.",
+      "type": "string",
+      "minLength": 1
+    },
+
+    "richText": {
+      "description": "Inline text that may contain minimal, whitelisted inline markup as a string (e.g. **bold**, *italic*). Kept as a string so it renders identically on web and mobile via one shared inline parser.",
+      "type": "string",
+      "minLength": 1
+    },
+
+    "difficulty": {
+      "description": "Coarse difficulty band. An open enum: renderers must tolerate unknown values.",
+      "type": "string",
+      "enum": ["introduction", "standard", "approfondissement"]
+    },
+
+    "durationMinutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600
+    },
+
+    "competencies": {
+      "description": "Opaque competency references. Free strings for now; a controlled curriculum taxonomy is defined separately later. An empty array is allowed.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/plainText" },
+      "uniqueItems": true
+    },
+
+    "section": {
+      "type": "object",
+      "required": ["id", "title", "kind", "blocks"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "title": { "$ref": "#/$defs/plainText" },
+        "kind": {
+          "description": "Editorial role of the section. 'lesson' sections carry teaching content (and may embed inline exercises); 'exercises' sections are dedicated practice/assessment sets. Open enum: renderers must tolerate unknown kinds.",
+          "type": "string",
+          "enum": ["lesson", "exercises"]
+        },
+        "difficulty": { "$ref": "#/$defs/difficulty" },
+        "estimatedDurationMinutes": { "$ref": "#/$defs/durationMinutes" },
+        "blocks": {
+          "description": "Ordered content stream. Exercise nodes may appear inline anywhere in this stream (typically in 'lesson' sections) or as the whole stream (in 'exercises' sections).",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/block" }
+        }
+      }
+    },
+
+    "block": {
+      "description": "A content block. Discriminated by 'type'. The union is OPEN: unknown types validate against the fallback so adding a new block type needs no migration of existing content.",
+      "type": "object",
+      "required": ["id", "type"],
+      "oneOf": [
+        { "$ref": "#/$defs/proseBlock" },
+        { "$ref": "#/$defs/headingBlock" },
+        { "$ref": "#/$defs/formulaBlock" },
+        { "$ref": "#/$defs/imageBlock" },
+        { "$ref": "#/$defs/calloutBlock" },
+        { "$ref": "#/$defs/codeBlock" },
+        { "$ref": "#/$defs/exerciseBlock" },
+        { "$ref": "#/$defs/unknownBlock" }
+      ]
+    },
+
+    "proseBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "text"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "prose" },
+        "text": { "$ref": "#/$defs/richText" }
+      }
+    },
+
+    "headingBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "text"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "heading" },
+        "level": {
+          "description": "Heading depth within a section. Sections and chapters own their own titles; this is for sub-headings.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 1
+        },
+        "text": { "$ref": "#/$defs/plainText" }
+      }
+    },
+
+    "formulaBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "latex"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "formula" },
+        "latex": {
+          "description": "LaTeX source, rendered by KaTeX/MathJax on web and an equivalent renderer on mobile so the same source displays identically.",
+          "type": "string",
+          "minLength": 1
+        },
+        "display": {
+          "type": "string",
+          "enum": ["inline", "block"],
+          "default": "block"
+        }
+      }
+    },
+
+    "imageBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "asset", "alt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "image" },
+        "asset": {
+          "description": "Opaque asset reference (asset id or path). Asset storage/serving is out of scope for the schema.",
+          "$ref": "#/$defs/plainText"
+        },
+        "alt": {
+          "description": "Accessibility text. Required so content stays accessible on every client.",
+          "$ref": "#/$defs/plainText"
+        },
+        "caption": { "$ref": "#/$defs/richText" }
+      }
+    },
+
+    "calloutBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "variant", "text"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "callout" },
+        "variant": {
+          "description": "Semantic emphasis. Open enum: renderers must tolerate unknown variants and fall back to a neutral style.",
+          "type": "string",
+          "enum": ["note", "tip", "warning", "definition", "example"]
+        },
+        "title": { "$ref": "#/$defs/plainText" },
+        "text": { "$ref": "#/$defs/richText" }
+      }
+    },
+
+    "codeBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "code"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "code" },
+        "language": {
+          "description": "Highlighting hint, e.g. 'python'. Optional and free-text.",
+          "$ref": "#/$defs/plainText"
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+
+    "exerciseBlock": {
+      "description": "An exercise embedded in the content stream. The same shape is used inline in a lesson and inside a dedicated 'exercises' section. 'additionalProperties' is intentionally NOT closed here: type-specific fields are contributed by the allOf branches below, and unknown exercise types may carry their own fields (open union).",
+      "type": "object",
+      "required": ["id", "type", "exerciseType", "prompt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "exercise" },
+        "exerciseType": {
+          "description": "Discriminates the exercise family. Open enum: an unknown exerciseType still validates the shared fields, so new exercise types need no migration.",
+          "type": "string"
+        },
+        "prompt": {
+          "description": "The question statement shown to the student.",
+          "$ref": "#/$defs/richText"
+        },
+        "competencies": { "$ref": "#/$defs/competencies" },
+        "difficulty": { "$ref": "#/$defs/difficulty" },
+        "estimatedDurationMinutes": { "$ref": "#/$defs/durationMinutes" },
+        "explanation": {
+          "description": "Optional worked correction shown after answering. Grounds AI correction feedback.",
+          "$ref": "#/$defs/richText"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "exerciseType": { "const": "multiple-choice" } } },
+          "then": { "$ref": "#/$defs/multipleChoiceFields" }
+        },
+        {
+          "if": { "properties": { "exerciseType": { "const": "short-answer" } } },
+          "then": { "$ref": "#/$defs/shortAnswerFields" }
+        },
+        {
+          "if": { "properties": { "exerciseType": { "const": "numeric" } } },
+          "then": { "$ref": "#/$defs/numericFields" }
+        },
+        {
+          "if": { "properties": { "exerciseType": { "const": "free-text" } } },
+          "then": { "$ref": "#/$defs/freeTextFields" }
+        },
+        {
+          "if": { "properties": { "exerciseType": { "const": "ordering" } } },
+          "then": { "$ref": "#/$defs/orderingFields" }
+        }
+      ]
+    },
+
+    "multipleChoiceFields": {
+      "description": "Extra fields required when exerciseType = 'multiple-choice'.",
+      "type": "object",
+      "required": ["choices"],
+      "properties": {
+        "multiple": {
+          "description": "true if several choices may be correct.",
+          "type": "boolean",
+          "default": false
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text", "correct"],
+            "properties": {
+              "id": { "$ref": "#/$defs/nodeId" },
+              "text": { "$ref": "#/$defs/richText" },
+              "correct": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+
+    "shortAnswerFields": {
+      "description": "Extra fields required when exerciseType = 'short-answer'.",
+      "type": "object",
+      "required": ["acceptedAnswers"],
+      "properties": {
+        "acceptedAnswers": {
+          "description": "Answers counted correct (exact match after normalisation).",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/plainText" },
+          "uniqueItems": true
+        },
+        "caseSensitive": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+
+    "numericFields": {
+      "description": "Extra fields required when exerciseType = 'numeric'. Tolerance lets machine correction accept near-answers.",
+      "type": "object",
+      "required": ["answer"],
+      "properties": {
+        "answer": { "type": "number" },
+        "tolerance": {
+          "description": "Absolute tolerance: an answer is correct if |given - answer| <= tolerance.",
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "unit": {
+          "description": "Optional expected unit label, e.g. 'cm'.",
+          "$ref": "#/$defs/plainText"
+        }
+      }
+    },
+
+    "freeTextFields": {
+      "description": "Extra fields required when exerciseType = 'free-text'. Corrected by the AI against a reference; not auto-gradable by exact match.",
+      "type": "object",
+      "required": ["referenceAnswer"],
+      "properties": {
+        "referenceAnswer": {
+          "description": "Model answer the AI correction is grounded in.",
+          "$ref": "#/$defs/richText"
+        },
+        "rubric": {
+          "description": "Optional grading criteria to ground AI feedback.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/plainText" }
+        }
+      }
+    },
+
+    "orderingFields": {
+      "description": "Extra fields required when exerciseType = 'ordering'. 'items' are given in the CORRECT order; clients shuffle for display.",
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text"],
+            "properties": {
+              "id": { "$ref": "#/$defs/nodeId" },
+              "text": { "$ref": "#/$defs/richText" }
+            }
+          }
+        }
+      }
+    },
+
+    "unknownBlock": {
+      "description": "Forward-compatibility fallback. A block whose 'type' is none of the known ones still validates as long as it carries an id and a string type. This is what makes adding a new block/exercise type additive rather than a migration.",
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": {
+          "type": "string",
+          "not": {
+            "enum": [
+              "prose",
+              "heading",
+              "formula",
+              "image",
+              "callout",
+              "code",
+              "exercise"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
