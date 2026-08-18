@@ -1,6 +1,25 @@
-import type { components } from '@brio/api-client'
+// The OpenAPI spec returns an open JSON object for chapter content
+// (discriminated union of block types); the type is defined locally.
+type Section = {
+  id: string
+  title: string
+  kind: string
+  difficulty?: string
+  estimatedDurationMinutes?: number
+  blocks: Block[]
+}
 
-type ChapitreResponse = components['schemas']['ChapitreResponse']
+export type ChapitreResponse = {
+  schemaVersion?: number
+  id: string
+  title: string
+  subject?: string
+  level?: string
+  difficulty?: string
+  estimatedDurationMinutes?: number
+  sections: Section[]
+}
+
 type Block = Record<string, unknown>
 
 export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
