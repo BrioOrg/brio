@@ -15,6 +15,7 @@ export async function getPingStatus() {
 export async function getChapitre(id: string): Promise<ChapitreResponse> {
   const { data, error } = await client.GET('/api/chapitres/{id}', {
     params: { path: { id } },
+    headers: { Authorization: buildAuthHeader() },
   })
   if (error) throw new Error(`Chapitre introuvable: ${id}`)
   return data as ChapitreResponse
