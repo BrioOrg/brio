@@ -5,13 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.brio.contenu.domain.Chapitre;
+import fr.brio.contenu.domain.Competence;
 import fr.brio.contenu.domain.Exercice;
 import fr.brio.contenu.infrastructure.ChapitreRepository;
+import fr.brio.contenu.infrastructure.CompetenceRepository;
 import fr.brio.contenu.infrastructure.ContentSchemaValidator;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,16 +36,19 @@ public class ContenuService {
 
     private final ChapitreRepository chapitreRepository;
     private final ExerciceRepository exerciceRepository;
+    private final CompetenceRepository competenceRepository;
     private final ContentSchemaValidator validator;
     private final ObjectMapper objectMapper;
 
     ContenuService(
             ChapitreRepository chapitreRepository,
             ExerciceRepository exerciceRepository,
+            CompetenceRepository competenceRepository,
             ContentSchemaValidator validator,
             ObjectMapper objectMapper) {
         this.chapitreRepository = chapitreRepository;
         this.exerciceRepository = exerciceRepository;
+        this.competenceRepository = competenceRepository;
         this.validator = validator;
         this.objectMapper = objectMapper;
     }
@@ -48,6 +56,7 @@ public class ContenuService {
     @Transactional
     public void ingestChapitre(JsonNode rawDocument) {
         validator.validate(rawDocument);
+        assertCompetenciesExist(rawDocument);
 
         String chapitreId = rawDocument.get("id").asText();
         if (chapitreRepository.existsById(chapitreId)) {
@@ -79,6 +88,27 @@ public class ContenuService {
                 throw new IllegalStateException("Stored chapter content is not valid JSON: " + id, e);
             }
         });
+    }
+
+    // Second stage of the two-stage guarantee (ADR 0009; the first is the CI
+    // check script): a chapter referencing a code absent from the referential
+    // is rejected before anything is written.
+    private void assertCompetenciesExist(JsonNode rawDocument) {
+        Set<String> referenced = new TreeSet<>();
+        rawDocument.findValues("competencies")
+                .forEach(array -> array.forEach(code -> referenced.add(code.asText())));
+        if (referenced.isEmpty()) {
+            return;
+        }
+        Set<String> known = competenceRepository.findAllById(referenced).stream()
+                .map(Competence::getCode)
+                .collect(HashSet::new, HashSet::add, HashSet::addAll);
+        Set<String> unknown = new TreeSet<>(referenced);
+        unknown.removeAll(known);
+        if (!unknown.isEmpty()) {
+            throw new InvalidContentException(
+                    "Unknown competency code(s), absent from the referential: " + String.join(", ", unknown));
+        }
     }
 
     private JsonNode buildContentDocument(JsonNode rawDocument, String chapitreId, List<Exercice> exercices) {

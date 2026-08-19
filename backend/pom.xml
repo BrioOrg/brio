@@ -135,6 +135,40 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<!-- The competency referential and its schema live once, at their
+				     canonical locations (content/referentiel/, docs/schema/ — ADR 0008).
+				     They are copied onto the classpath at build time instead of being
+				     committed twice. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-referentiel</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/contenu/referentiel</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../content/referentiel</directory>
+									<includes>
+										<include>*.json</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>${project.basedir}/../docs/schema</directory>
+									<includes>
+										<include>competency.schema.json</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
