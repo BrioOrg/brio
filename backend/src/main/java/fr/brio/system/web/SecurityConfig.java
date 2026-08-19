@@ -15,6 +15,7 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .cors(withDefaults())
             .authorizeHttpRequests(auth -> auth
                 // OpenAPI spec and Swagger UI are accessible without auth (codegen + dev tooling)
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
