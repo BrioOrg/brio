@@ -7,6 +7,7 @@ import fr.brio.contenu.domain.Exercice;
 import fr.brio.contenu.infrastructure.ChapitreRepository;
 import fr.brio.contenu.infrastructure.ContentSchemaValidator;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,7 @@ class ContenuServiceTest {
     }
 
     @Test
-    void shouldStripEvaluationFieldsFromChapterContent() throws Exception {
+    void shouldStripSensitiveEvalFieldsFromChapterContent() throws Exception {
         JsonNode doc = loadSeedDocument();
         service.ingestChapitre(doc);
 
@@ -69,7 +70,60 @@ class ContenuServiceTest {
         verify(chapitreRepository).save(captor.capture());
 
         JsonNode stored = objectMapper.readTree(captor.getValue().getContent());
-        assertNoAnswerFieldsIn(stored);
+        assertSensitiveFieldsAbsent(stored);
+    }
+
+    @Test
+    void shouldStripCorrectFlagFromChoicesButKeepDisplayFields() throws Exception {
+        JsonNode doc = loadSeedDocument();
+        service.ingestChapitre(doc);
+
+        ArgumentCaptor<Chapitre> captor = ArgumentCaptor.forClass(Chapitre.class);
+        verify(chapitreRepository).save(captor.capture());
+
+        JsonNode stored = objectMapper.readTree(captor.getValue().getContent());
+        JsonNode mcBlock = findExerciseBlock(stored, "multiple-choice");
+
+        assertThat(mcBlock.has("choices")).isTrue();
+        JsonNode choices = mcBlock.get("choices");
+        assertThat(choices.isArray()).isTrue();
+        assertThat(choices).hasSizeGreaterThan(0);
+        choices.forEach(choice -> {
+            assertThat(choice.has("correct")).as("'correct' must not appear in chapter choices").isFalse();
+            assertThat(choice.has("text")).as("'text' must be present on every choice").isTrue();
+            assertThat(choice.has("id")).as("'id' must be present on every choice").isTrue();
+        });
+    }
+
+    @Test
+    void shouldKeepMultipleInChapterContent() throws Exception {
+        JsonNode doc = loadSeedDocument();
+        service.ingestChapitre(doc);
+
+        ArgumentCaptor<Chapitre> captor = ArgumentCaptor.forClass(Chapitre.class);
+        verify(chapitreRepository).save(captor.capture());
+
+        JsonNode stored = objectMapper.readTree(captor.getValue().getContent());
+        JsonNode mcBlock = findExerciseBlock(stored, "multiple-choice");
+        assertThat(mcBlock.has("multiple")).as("'multiple' must remain in chapter content for rendering").isTrue();
+    }
+
+    @Test
+    void shouldIncludeExerciceIdInEveryExerciseBlock() throws Exception {
+        JsonNode doc = loadSeedDocument();
+        service.ingestChapitre(doc);
+
+        ArgumentCaptor<Chapitre> captor = ArgumentCaptor.forClass(Chapitre.class);
+        verify(chapitreRepository).save(captor.capture());
+
+        JsonNode stored = objectMapper.readTree(captor.getValue().getContent());
+        List<JsonNode> exerciseBlocks = allExerciseBlocks(stored);
+        assertThat(exerciseBlocks).isNotEmpty();
+        exerciseBlocks.forEach(block -> {
+            assertThat(block.has("exerciceId")).as("exerciceId must be present on every exercise block").isTrue();
+            String uuidStr = block.get("exerciceId").asText();
+            assertThat(uuidStr).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+        });
     }
 
     @Test
@@ -138,12 +192,36 @@ class ContenuServiceTest {
         }
     }
 
-    private void assertNoAnswerFieldsIn(JsonNode node) {
-        ContenuService.EVALUATION_FIELDS.forEach(field ->
+    private void assertSensitiveFieldsAbsent(JsonNode node) {
+        ContenuService.SENSITIVE_EVAL_FIELDS.forEach(field ->
                 assertThat(containsKey(node, field))
-                        .as("Field '%s' must not appear in chapter content served to clients", field)
+                        .as("Sensitive field '%s' must not appear in chapter content served to clients", field)
                         .isFalse()
         );
+    }
+
+    private JsonNode findExerciseBlock(JsonNode chapter, String exerciseType) {
+        for (JsonNode section : chapter.get("sections")) {
+            for (JsonNode block : section.get("blocks")) {
+                if ("exercise".equals(block.path("type").asText())
+                        && exerciseType.equals(block.path("exerciseType").asText())) {
+                    return block;
+                }
+            }
+        }
+        throw new AssertionError("No exercise block of type " + exerciseType + " found");
+    }
+
+    private List<JsonNode> allExerciseBlocks(JsonNode chapter) {
+        List<JsonNode> result = new ArrayList<>();
+        for (JsonNode section : chapter.get("sections")) {
+            for (JsonNode block : section.get("blocks")) {
+                if ("exercise".equals(block.path("type").asText())) {
+                    result.add(block);
+                }
+            }
+        }
+        return result;
     }
 
     private boolean containsKey(JsonNode node, String key) {
