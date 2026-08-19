@@ -22,27 +22,29 @@ export async function getChapitre(id: string): Promise<ChapitreResponse> {
 
 // ---------------------------------------------------------------------------
 // Exercise submission
-// The submission endpoint is not in the committed schema.d.ts yet (regenerate
-// with `pnpm generate:api` once the backend is running to pick it up).
-// Until then this uses a typed fetch wrapper with Zod validation at the
-// boundary — the same pattern as packages/api-client/src/health.ts.
-//
 // Dev-only scaffolding: credentials from env vars, replaced when the identite
 // module ships real auth. Never hardcode credentials in source.
 // ---------------------------------------------------------------------------
 
 const ChoiceFeedbackSchema = z.object({
-  choiceId: z.string(),
-  correct: z.boolean(),
+  choiceId: z.string().optional(),
+  correct: z.boolean().optional(),
 })
 
 export const SoumissionResultSchema = z.object({
-  soumissionId: z.string(),
-  correct: z.boolean(),
-  score: z.number(),
-  choiceFeedback: z.array(ChoiceFeedbackSchema),
-  expectedValue: z.number().nullable(),
-  explanation: z.string().nullable(),
+  soumissionId: z.string().optional(),
+  correct: z.boolean().optional(),
+  score: z.number().optional(),
+  choiceFeedback: z.array(ChoiceFeedbackSchema).optional().default([]),
+  // springdoc marks Double/String as optional rather than nullable; handle both
+  expectedValue: z
+    .number()
+    .nullish()
+    .transform((v) => v ?? null),
+  explanation: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
 })
 
 export type SoumissionResult = z.infer<typeof SoumissionResultSchema>
@@ -57,20 +59,15 @@ export async function soumettre(
   exerciceId: string,
   answer: Record<string, unknown>
 ): Promise<SoumissionResult> {
-  const res = await fetch(`${API_URL}/api/exercices/${exerciceId}/soumissions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: buildAuthHeader(),
-    },
-    body: JSON.stringify({ answer }),
+  const { data, error, response } = await client.POST('/api/exercices/{id}/soumissions', {
+    params: { path: { id: exerciceId } },
+    body: { answer },
+    headers: { Authorization: buildAuthHeader() },
   })
-
-  if (!res.ok) {
-    if (res.status === 401) throw new Error('Non authentifié')
-    if (res.status === 404) throw new Error('Exercice introuvable')
+  if (error) {
+    if (response.status === 401) throw new Error('Non authentifié')
+    if (response.status === 404) throw new Error('Exercice introuvable')
     throw new Error('Erreur lors de la soumission')
   }
-
-  return SoumissionResultSchema.parse(await res.json())
+  return SoumissionResultSchema.parse(data)
 }
