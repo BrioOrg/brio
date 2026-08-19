@@ -62,7 +62,7 @@ class ChapitreIntegrationTest {
                 .andReturn();
 
         JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
-        ContenuService.EVALUATION_FIELDS.forEach(field ->
+        ContenuService.SENSITIVE_EVAL_FIELDS.forEach(field ->
                 assertThat(containsKey(response, field))
                         .as("Field '%s' must never appear in the chapter response served to clients", field)
                         .isFalse()

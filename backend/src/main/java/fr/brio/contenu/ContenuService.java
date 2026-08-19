@@ -19,11 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ContenuService {
 
-    // Fields that must never appear in the chapter jsonb served to clients.
-    // Ingestion strips these from exercise blocks and moves them to contenu.exercices.
-    public static final List<String> EVALUATION_FIELDS = List.of(
-            "choices", "answer", "tolerance", "acceptedAnswers",
-            "caseSensitive", "referenceAnswer", "rubric", "multiple", "items"
+    // Scalar fields that contain grading data and must never appear in the chapter
+    // JSONB served to clients. They are moved wholesale into contenu.exercices.evaluation.
+    // Choices are handled separately: the array is kept in the chapter JSONB but the
+    // per-choice "correct" flag is stripped (see extractExercice).
+    // "multiple" is display-only (radio vs checkbox) and stays in the chapter JSONB.
+    public static final List<String> SENSITIVE_EVAL_FIELDS = List.of(
+            "answer", "tolerance", "acceptedAnswers",
+            "caseSensitive", "referenceAnswer", "rubric", "items"
     );
 
     private final ChapitreRepository chapitreRepository;
@@ -97,13 +100,17 @@ public class ContenuService {
     private ObjectNode extractExercice(JsonNode block, String chapitreId, List<Exercice> exercices) {
         String slug = block.get("id").asText();
         String exerciseType = block.has("exerciseType") ? block.get("exerciseType").asText() : "unknown";
+        UUID exerciceId = UUID.randomUUID();
 
-        // Build evaluation jsonb from the type-specific fields
+        // Build evaluation jsonb: scalar sensitive fields + full choices array (with correct flags).
         ObjectNode evaluation = objectMapper.createObjectNode();
-        for (String field : EVALUATION_FIELDS) {
+        for (String field : SENSITIVE_EVAL_FIELDS) {
             if (block.has(field)) {
                 evaluation.set(field, block.get(field));
             }
+        }
+        if (block.has("choices")) {
+            evaluation.set("choices", block.get("choices"));
         }
 
         // Collect competencies for the denormalised column
@@ -114,16 +121,28 @@ public class ContenuService {
 
         try {
             exercices.add(new Exercice(
-                    chapitreId, slug, exerciseType,
+                    exerciceId, chapitreId, slug, exerciseType,
                     objectMapper.writeValueAsString(evaluation),
                     competencies));
         } catch (Exception e) {
             throw new IllegalStateException("Failed to serialize evaluation for exercise " + slug, e);
         }
 
-        // Return the block with evaluation fields removed
+        // Build the chapter-safe block: strip scalar sensitive fields, strip "correct" from
+        // each choice but keep id/text, keep "multiple" (display-only), add exerciceId.
         ObjectNode stripped = block.deepCopy();
-        EVALUATION_FIELDS.forEach(stripped::remove);
+        SENSITIVE_EVAL_FIELDS.forEach(stripped::remove);
+
+        if (stripped.has("choices") && stripped.get("choices").isArray()) {
+            ArrayNode choices = (ArrayNode) stripped.get("choices");
+            for (int i = 0; i < choices.size(); i++) {
+                ObjectNode choice = choices.get(i).deepCopy();
+                choice.remove("correct");
+                choices.set(i, choice);
+            }
+        }
+
+        stripped.put("exerciceId", exerciceId.toString());
         return stripped;
     }
 }

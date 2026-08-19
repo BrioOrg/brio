@@ -38,7 +38,8 @@ public class Exercice {
 
     protected Exercice() {}
 
-    public Exercice(String chapitreId, String slug, String type, String evaluation, List<String> competencies) {
+    public Exercice(UUID id, String chapitreId, String slug, String type, String evaluation, List<String> competencies) {
+        this.id = id;
         this.chapitreId = chapitreId;
         this.slug = slug;
         this.type = type;
