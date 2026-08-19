@@ -2,22 +2,28 @@ package fr.brio.contenu.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @Table(name = "exercices", schema = "contenu")
-public class Exercice {
+public class Exercice implements Persistable<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    // Hibernate sets this to false via @PostLoad after loading from the DB.
+    // Freshly-constructed entities start as true so Spring Data calls persist()
+    // (INSERT) rather than merge() (UPDATE) even though the ID is already set.
+    @Transient
+    private boolean isNew = true;
 
     @Column(name = "chapitre_id", nullable = false)
     private String chapitreId;
@@ -47,7 +53,13 @@ public class Exercice {
         this.competencies = competencies != null ? competencies : List.of();
     }
 
-    public UUID getId() { return id; }
+    @PostLoad
+    void markNotNew() {
+        this.isNew = false;
+    }
+
+    @Override public boolean isNew() { return isNew; }
+    @Override public UUID getId() { return id; }
     public String getChapitreId() { return chapitreId; }
     public String getSlug() { return slug; }
     public String getType() { return type; }
