@@ -1,5 +1,7 @@
-// The OpenAPI spec returns an open JSON object for chapter content
-// (discriminated union of block types); the type is defined locally.
+import { ExerciceWidget } from '@/components/exercice-widget'
+
+type Choice = { id: string; text: string }
+
 type Section = {
   id: string
   title: string
@@ -20,7 +22,20 @@ export type ChapitreResponse = {
   sections: Section[]
 }
 
-type Block = Record<string, unknown>
+type Block = {
+  id: string
+  type: string
+  // exercise-specific fields
+  exerciceId?: string
+  exerciseType?: string
+  prompt?: string
+  choices?: Choice[]
+  multiple?: boolean
+  unit?: string
+  explanation?: string
+  // other block fields
+  [key: string]: unknown
+}
 
 export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
   return (
@@ -41,7 +56,7 @@ export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
           </h2>
           <div className="space-y-4">
             {section.blocks.map((block, i) => (
-              <BlockRenderer key={(block['id'] as string) ?? i} block={block} />
+              <BlockRenderer key={block.id ?? i} block={block} />
             ))}
           </div>
         </section>
@@ -51,19 +66,17 @@ export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
 }
 
 function BlockRenderer({ block }: { block: Block }) {
-  const type = block['type'] as string
-
-  switch (type) {
+  switch (block.type) {
     case 'prose':
-      return <p className="text-gray-700 leading-relaxed">{block['text'] as string}</p>
+      return <p className="text-gray-700 leading-relaxed">{block.text as string}</p>
 
     case 'heading':
-      return <Heading level={(block['level'] as number) ?? 1} text={block['text'] as string} />
+      return <Heading level={(block.level as number) ?? 1} text={block.text as string} />
 
     case 'formula':
       return (
         <pre className="bg-gray-50 border rounded p-3 font-mono text-sm overflow-x-auto">
-          {block['latex'] as string}
+          {block.latex as string}
         </pre>
       )
 
@@ -73,7 +86,7 @@ function BlockRenderer({ block }: { block: Block }) {
     case 'code':
       return (
         <pre className="bg-gray-900 text-gray-100 rounded p-4 text-sm overflow-x-auto">
-          <code>{block['code'] as string}</code>
+          <code>{block.code as string}</code>
         </pre>
       )
 
@@ -81,22 +94,56 @@ function BlockRenderer({ block }: { block: Block }) {
       return (
         <figure className="my-4">
           <div className="bg-gray-100 rounded p-4 text-center text-sm text-gray-500 italic">
-            [{block['asset'] as string}]
+            [{block.asset as string}]
           </div>
-          {block['caption'] && (
+          {block.caption && (
             <figcaption className="mt-1 text-center text-xs text-gray-500">
-              {block['caption'] as string}
+              {block.caption as string}
             </figcaption>
           )}
         </figure>
       )
 
     case 'exercise':
-      return <ExerciseStatement block={block} />
+      return <ExerciseBlock block={block} />
 
     default:
       return null
   }
+}
+
+function ExerciseBlock({ block }: { block: Block }) {
+  const { exerciceId, exerciseType, prompt, choices, multiple, unit, explanation } = block
+
+  if (exerciceId && prompt && (exerciseType === 'multiple-choice' || exerciseType === 'numeric')) {
+    return (
+      <ExerciceWidget
+        exerciceId={exerciceId}
+        exerciseType={exerciseType}
+        prompt={prompt}
+        choices={choices}
+        multiple={multiple}
+        unit={unit}
+        explanation={explanation}
+      />
+    )
+  }
+
+  // Fallback for unsupported exercise types (short-answer, ordering, free-text)
+  return (
+    <div className="rounded-lg border border-gray-300 bg-white p-4">
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Exercice</p>
+      <p className="text-gray-800">{prompt}</p>
+      {explanation && (
+        <details className="mt-3">
+          <summary className="text-sm text-gray-500 cursor-pointer select-none">
+            Explication
+          </summary>
+          <p className="mt-2 text-sm text-gray-600">{explanation}</p>
+        </details>
+      )}
+    </div>
+  )
 }
 
 function Heading({ level, text }: { level: number; text: string }) {
@@ -107,7 +154,7 @@ function Heading({ level, text }: { level: number; text: string }) {
 }
 
 function Callout({ block }: { block: Block }) {
-  const variant = (block['variant'] as string) ?? 'note'
+  const variant = (block.variant as string) ?? 'note'
   const styles: Record<string, string> = {
     note: 'bg-blue-50 border-blue-200 text-blue-900',
     tip: 'bg-green-50 border-green-200 text-green-900',
@@ -119,25 +166,8 @@ function Callout({ block }: { block: Block }) {
 
   return (
     <div className={`rounded-lg border p-4 ${style}`}>
-      {block['title'] && <p className="font-semibold mb-1">{block['title'] as string}</p>}
-      <p>{block['text'] as string}</p>
-    </div>
-  )
-}
-
-function ExerciseStatement({ block }: { block: Block }) {
-  return (
-    <div className="rounded-lg border border-gray-300 bg-white p-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Exercice</p>
-      <p className="text-gray-800">{block['prompt'] as string}</p>
-      {block['explanation'] && (
-        <details className="mt-3">
-          <summary className="text-sm text-gray-500 cursor-pointer select-none">
-            Explication
-          </summary>
-          <p className="mt-2 text-sm text-gray-600">{block['explanation'] as string}</p>
-        </details>
-      )}
+      {block.title && <p className="font-semibold mb-1">{block.title as string}</p>}
+      <p>{block.text as string}</p>
     </div>
   )
 }

@@ -21,8 +21,14 @@ const SEED_CHAPTER = {
         {
           id: 'e1',
           type: 'exercise',
+          exerciceId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           exerciseType: 'multiple-choice',
           prompt: "Quel côté est l'hypoténuse ?",
+          multiple: false,
+          choices: [
+            { id: 'choice-rs', text: 'Le côté [RS]' },
+            { id: 'choice-rt', text: 'Le côté [RT]' },
+          ],
         },
       ],
     },
@@ -48,7 +54,7 @@ describe('ChapterPage', () => {
     expect(screen.getByText('Le théorème de Pythagore.')).toBeInTheDocument()
   })
 
-  it("affiche la question de l'exercice sans champ de réponse", async () => {
+  it("affiche les choix de l'exercice à choix multiple", async () => {
     const { createApiClient } = await import('@brio/api-client')
     vi.mocked(createApiClient).mockReturnValue({
       GET: vi.fn().mockResolvedValue({ data: SEED_CHAPTER, error: undefined }),
@@ -58,8 +64,8 @@ describe('ChapterPage', () => {
     render(await Page({ params: Promise.resolve({ id: 'theoreme-de-pythagore' }) }))
 
     expect(screen.getByText(/Quel côté est l'hypoténuse/)).toBeInTheDocument()
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('radio')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Vérifier' })).toBeInTheDocument()
   })
 
   it("affiche l'état d'erreur quand le chapitre est introuvable", async () => {
