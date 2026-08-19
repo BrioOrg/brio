@@ -68,9 +68,13 @@
     },
 
     "competencies": {
-      "description": "Opaque competency references. Free strings for now; a controlled curriculum taxonomy is defined separately later. An empty array is allowed.",
+      "description": "References into the controlled competency referential (content/referentiel/, ADR 0009). Code grammar is enforced here; existence in the referential is checked by scripts/check-competencies.mjs and at ingestion. An empty array is allowed.",
       "type": "array",
-      "items": { "$ref": "#/$defs/plainText" },
+      "items": {
+        "type": "string",
+        "pattern": "^c[34]\\.(num|geo|gm|ogd|algo)\\.[a-z0-9]+(?:-[a-z0-9]+)*\\.[a-z0-9]+(?:-[a-z0-9]+)*$",
+        "maxLength": 128
+      },
       "uniqueItems": true
     },
 
