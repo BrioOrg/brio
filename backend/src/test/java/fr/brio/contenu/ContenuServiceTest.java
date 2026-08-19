@@ -3,12 +3,15 @@ package fr.brio.contenu;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.domain.Chapitre;
+import fr.brio.contenu.domain.Competence;
 import fr.brio.contenu.domain.Exercice;
 import fr.brio.contenu.infrastructure.ChapitreRepository;
+import fr.brio.contenu.infrastructure.CompetenceRepository;
 import fr.brio.contenu.infrastructure.ContentSchemaValidator;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +22,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +35,7 @@ class ContenuServiceTest {
 
     @Mock private ChapitreRepository chapitreRepository;
     @Mock private ExerciceRepository exerciceRepository;
+    @Mock private CompetenceRepository competenceRepository;
 
     private ContenuService service;
 
@@ -37,7 +43,14 @@ class ContenuServiceTest {
     void setUp() {
         lenient().when(chapitreRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         lenient().when(exerciceRepository.saveAll(any())).thenAnswer(inv -> inv.getArgument(0));
-        service = new ContenuService(chapitreRepository, exerciceRepository, validator, objectMapper);
+        // By default every referenced code exists in the referential; individual
+        // tests override this to exercise the rejection path.
+        lenient().when(competenceRepository.findAllById(any())).thenAnswer(inv ->
+                StreamSupport.stream(((Iterable<String>) inv.getArgument(0)).spliterator(), false)
+                        .map(code -> new Competence(code, "x", 4, List.of("3e"), "espace-et-geometrie", "BOEN"))
+                        .toList());
+        service = new ContenuService(
+                chapitreRepository, exerciceRepository, competenceRepository, validator, objectMapper);
     }
 
     @Test
@@ -183,6 +196,20 @@ class ContenuServiceTest {
 
         assertThatThrownBy(() -> service.ingestChapitre(invalid))
                 .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectChapterReferencingUnknownCompetencyCode() throws Exception {
+        // doReturn: re-stubbing with when(...) would invoke the setUp answer with a null argument
+        doReturn(List.of()).when(competenceRepository).findAllById(any());
+
+        JsonNode doc = loadSeedDocument();
+        assertThatThrownBy(() -> service.ingestChapitre(doc))
+                .isInstanceOf(InvalidContentException.class)
+                .hasMessageContaining("c4.geo.pythagore.calculer");
+
+        verify(chapitreRepository, never()).save(any());
+        verify(exerciceRepository, never()).saveAll(any());
     }
 
     private JsonNode loadSeedDocument() throws Exception {

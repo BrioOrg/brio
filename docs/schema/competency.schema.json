@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brio.fr/schema/competency/v1.json",
+  "title": "brio competency referential",
+  "description": "Controlled competency referential for one subject, traceable to the official curriculum (BOEN, attendus de fin d'année). Code grammar and freeze policy: docs/adr/0009. Uniqueness of codes and cross-field coherence (code prefix vs cycle/domaine) are enforced by scripts/check-competencies.mjs and at ingestion, not expressible here.",
+  "type": "object",
+  "required": ["schemaVersion", "matiere", "competences"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "description": "Integer schema version. Bumped only on breaking structural changes.",
+      "type": "integer",
+      "const": 1
+    },
+    "matiere": {
+      "description": "Subject slug this referential covers, e.g. 'mathematiques'.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "competences": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/competence" }
+    }
+  },
+
+  "$defs": {
+    "competence": {
+      "type": "object",
+      "required": ["code", "intitule", "cycle", "niveaux", "domaine", "referenceOfficielle"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "Immutable hierarchical identifier: c{cycle}.{domaine}.{theme}.{capacite} (ADR 0009). Engraved in chapters and submissions — never renamed, never reused.",
+          "type": "string",
+          "pattern": "^c[34]\\.(num|geo|gm|ogd|algo)\\.[a-z0-9]+(?:-[a-z0-9]+)*\\.[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "maxLength": 128
+        },
+        "intitule": {
+          "description": "French label of the competency, phrased as an observable capability. May quote the official programme verbatim (Licence Ouverte, source cited in referenceOfficielle).",
+          "type": "string",
+          "minLength": 1
+        },
+        "cycle": {
+          "description": "Official curriculum cycle. Collège only: cycle 3 entries cover the 6e slice, cycle 4 covers 5e/4e/3e.",
+          "type": "integer",
+          "enum": [3, 4]
+        },
+        "niveaux": {
+          "description": "Grade levels where the competency is worked, restricted to collège.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["6e", "5e", "4e", "3e"] }
+        },
+        "domaine": {
+          "description": "Official programme domain (full slug; the code carries its abbreviation — num, geo, gm, ogd, algo).",
+          "type": "string",
+          "enum": [
+            "nombres-et-calculs",
+            "espace-et-geometrie",
+            "grandeurs-et-mesures",
+            "organisation-et-gestion-de-donnees-fonctions",
+            "algorithmique-et-programmation"
+          ]
+        },
+        "referenceOfficielle": {
+          "description": "Citation of the official source grounding this entry: BOEN issue and programme, and/or attendus de fin d'année.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "cycle": { "const": 3 } } },
+          "then": {
+            "properties": {
+              "niveaux": { "items": { "const": "6e" } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "cycle": { "const": 4 } } },
+          "then": {
+            "properties": {
+              "niveaux": { "items": { "enum": ["5e", "4e", "3e"] } }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
