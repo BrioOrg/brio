@@ -96,7 +96,7 @@ function BlockRenderer({ block }: { block: Block }) {
           <div className="bg-gray-100 rounded p-4 text-center text-sm text-gray-500 italic">
             [{block.asset as string}]
           </div>
-          {block.caption && (
+          {block.caption != null && (
             <figcaption className="mt-1 text-center text-xs text-gray-500">
               {block.caption as string}
             </figcaption>
@@ -166,7 +166,7 @@ function Callout({ block }: { block: Block }) {
 
   return (
     <div className={`rounded-lg border p-4 ${style}`}>
-      {block.title && <p className="font-semibold mb-1">{block.title as string}</p>}
+      {block.title != null && <p className="font-semibold mb-1">{block.title as string}</p>}
       <p>{block.text as string}</p>
     </div>
   )
