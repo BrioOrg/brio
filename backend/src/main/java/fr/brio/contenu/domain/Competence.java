@@ -28,8 +28,9 @@ public class Competence implements Persistable<String> {
     @Column(nullable = false)
     private String intitule;
 
+    // short: the column is SMALLINT (V4); Hibernate schema validation rejects an int mapping.
     @Column(nullable = false)
-    private int cycle;
+    private short cycle;
 
     @Column(nullable = false, columnDefinition = "text[]")
     @JdbcTypeCode(SqlTypes.ARRAY)
@@ -60,7 +61,7 @@ public class Competence implements Persistable<String> {
     public void update(String intitule, int cycle, List<String> niveaux,
                        String domaine, String referenceOfficielle) {
         this.intitule = intitule;
-        this.cycle = cycle;
+        this.cycle = (short) cycle;
         this.niveaux = niveaux;
         this.domaine = domaine;
         this.referenceOfficielle = referenceOfficielle;
