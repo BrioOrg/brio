@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -42,6 +43,9 @@ public class Exercice implements Persistable<UUID> {
     @JdbcTypeCode(SqlTypes.ARRAY)
     private List<String> competencies;
 
+    @Column(name = "retired_at")
+    private Instant retiredAt;
+
     protected Exercice() {}
 
     public Exercice(UUID id, String chapitreId, String slug, String type, String evaluation, List<String> competencies) {
@@ -58,6 +62,16 @@ public class Exercice implements Persistable<UUID> {
         this.isNew = false;
     }
 
+    public void update(String type, String evaluation, List<String> competencies) {
+        this.type = type;
+        this.evaluation = evaluation;
+        this.competencies = competencies != null ? competencies : List.of();
+    }
+
+    public void retire() {
+        this.retiredAt = Instant.now();
+    }
+
     @Override public boolean isNew() { return isNew; }
     @Override public UUID getId() { return id; }
     public String getChapitreId() { return chapitreId; }
@@ -65,4 +79,5 @@ public class Exercice implements Persistable<UUID> {
     public String getType() { return type; }
     public String getEvaluation() { return evaluation; }
     public List<String> getCompetencies() { return competencies; }
+    public Instant getRetiredAt() { return retiredAt; }
 }

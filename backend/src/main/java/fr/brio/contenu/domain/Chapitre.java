@@ -38,6 +38,9 @@ public class Chapitre {
     @Column(name = "duree_estimee_minutes", nullable = false)
     private int dureeEstimeeMinutes;
 
+    @Column(name = "content_hash")
+    private String contentHash;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -47,7 +50,7 @@ public class Chapitre {
     protected Chapitre() {}
 
     public Chapitre(String id, String content, String niveauCode, String matiereCode,
-                    int ordre, String statut, String titre, int dureeEstimeeMinutes) {
+                    int ordre, String statut, String titre, int dureeEstimeeMinutes, String contentHash) {
         this.id = id;
         this.content = content;
         this.niveauCode = niveauCode;
@@ -56,8 +59,20 @@ public class Chapitre {
         this.statut = statut;
         this.titre = titre;
         this.dureeEstimeeMinutes = dureeEstimeeMinutes;
+        this.contentHash = contentHash;
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
+    }
+
+    public void update(String content, String contentHash, String titre,
+                       int dureeEstimeeMinutes, String statut, int ordre) {
+        this.content = content;
+        this.contentHash = contentHash;
+        this.titre = titre;
+        this.dureeEstimeeMinutes = dureeEstimeeMinutes;
+        this.statut = statut;
+        this.ordre = ordre;
+        this.updatedAt = Instant.now();
     }
 
     public String getId() { return id; }
@@ -68,4 +83,5 @@ public class Chapitre {
     public String getStatut() { return statut; }
     public String getTitre() { return titre; }
     public int getDureeEstimeeMinutes() { return dureeEstimeeMinutes; }
+    public String getContentHash() { return contentHash; }
 }
