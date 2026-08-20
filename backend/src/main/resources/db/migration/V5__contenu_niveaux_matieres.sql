@@ -30,17 +30,17 @@ INSERT INTO contenu.matieres (code, libelle) VALUES
 ALTER TABLE contenu.chapitres
     ADD COLUMN niveau_code           VARCHAR(16),
     ADD COLUMN matiere_code          VARCHAR(64),
-    ADD COLUMN ordre                 SMALLINT,
+    ADD COLUMN ordre                 INTEGER,
     ADD COLUMN statut                VARCHAR(32)  NOT NULL DEFAULT 'published',
     ADD COLUMN titre                 TEXT,
-    ADD COLUMN duree_estimee_minutes SMALLINT;
+    ADD COLUMN duree_estimee_minutes INTEGER;
 
 UPDATE contenu.chapitres SET
     niveau_code           = content->>'level',
     matiere_code          = content->>'subject',
     ordre                 = 0,
     titre                 = content->>'title',
-    duree_estimee_minutes = (content->>'estimatedDurationMinutes')::SMALLINT
+    duree_estimee_minutes = (content->>'estimatedDurationMinutes')::INTEGER
 WHERE niveau_code IS NULL;
 
 ALTER TABLE contenu.chapitres
