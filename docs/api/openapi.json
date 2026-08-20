@@ -1,0 +1,333 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "title" : "OpenAPI definition",
+    "version" : "v0"
+  },
+  "servers" : [ {
+    "url" : "http://localhost",
+    "description" : "Generated server url"
+  } ],
+  "tags" : [ {
+    "name" : "Contenu",
+    "description" : "Accès aux chapitres de cours"
+  }, {
+    "name" : "Exercices",
+    "description" : "Soumission et évaluation des exercices"
+  }, {
+    "name" : "Système",
+    "description" : "Endpoints techniques exposés par le produit"
+  } ],
+  "paths" : {
+    "/api/exercices/{id}/soumissions" : {
+      "post" : {
+        "tags" : [ "Exercices" ],
+        "summary" : "Soumettre une réponse à un exercice",
+        "description" : "Évalue la réponse et retourne le résultat avec la correction. Requiert une authentification.",
+        "operationId" : "soumettre",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SoumissionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Réponse évaluée",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SoumissionResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Non authentifié",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SoumissionResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Exercice introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SoumissionResponse"
+                }
+              }
+            }
+          },
+          "422" : {
+            "description" : "Format de réponse invalide ou type d'exercice non supporté",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SoumissionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ping" : {
+      "get" : {
+        "tags" : [ "Système" ],
+        "summary" : "Vérifie que l'API est joignable et renvoie les métadonnées de version",
+        "operationId" : "ping",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chapitres/{niveau}/{matiere}/{slug}" : {
+      "get" : {
+        "tags" : [ "Contenu" ],
+        "summary" : "Récupère un chapitre par triplet niveau/matière/slug",
+        "description" : "Retourne le contenu du chapitre. Les réponses correctes des exercices ne sont jamais incluses.",
+        "operationId" : "getChapitreByTriplet",
+        "parameters" : [ {
+          "name" : "niveau",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "matiere",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Chapitre trouvé",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Chapitre introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chapitres/{id}" : {
+      "get" : {
+        "tags" : [ "Contenu" ],
+        "summary" : "Redirige vers le chemin canonique triplet (308)",
+        "description" : "L'ancien endpoint par identifiant émet une redirection 308 permanente vers /api/chapitres/{niveau}/{matiere}/{slug}.",
+        "operationId" : "redirectChapitre",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "308" : {
+            "description" : "Redirection permanente vers le chemin triplet"
+          },
+          "404" : {
+            "description" : "Chapitre introuvable"
+          }
+        }
+      }
+    },
+    "/api/catalogue" : {
+      "get" : {
+        "tags" : [ "Contenu" ],
+        "summary" : "Catalogue des chapitres publiés",
+        "description" : "Retourne l'arbre complet niveau → matière → chapitres. Les données d'évaluation ne sont jamais incluses.",
+        "operationId" : "getCatalogue",
+        "responses" : {
+          "200" : {
+            "description" : "Catalogue retourné",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CatalogueNiveauDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "JsonNode" : { },
+      "SoumissionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "answer" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          }
+        },
+        "required" : [ "answer" ]
+      },
+      "ChoiceFeedback" : {
+        "type" : "object",
+        "properties" : {
+          "choiceId" : {
+            "type" : "string"
+          },
+          "correct" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SoumissionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "soumissionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "correct" : {
+            "type" : "boolean"
+          },
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "choiceFeedback" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ChoiceFeedback"
+            }
+          },
+          "expectedValue" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "explanation" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PingResponse" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "string"
+          },
+          "timestamp" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "status", "timestamp", "version" ]
+      },
+      "CatalogueChapitreDto" : {
+        "type" : "object",
+        "properties" : {
+          "slug" : {
+            "type" : "string"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "dureeEstimeeMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "ordre" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "CatalogueMatiereDto" : {
+        "type" : "object",
+        "properties" : {
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "matiereLibelle" : {
+            "type" : "string"
+          },
+          "chapitres" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CatalogueChapitreDto"
+            }
+          }
+        }
+      },
+      "CatalogueNiveauDto" : {
+        "type" : "object",
+        "properties" : {
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "niveauLibelle" : {
+            "type" : "string"
+          },
+          "matieres" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CatalogueMatiereDto"
+            }
+          }
+        }
+      }
+    }
+  }
+}

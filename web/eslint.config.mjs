@@ -9,6 +9,7 @@ const __dirname = dirname(__filename)
 const compat = new FlatCompat({ baseDirectory: __dirname })
 
 export default [
+  { ignores: ['.next/**', 'next-env.d.ts'] },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   // Must be last: disables all ESLint formatting rules that conflict with Prettier.
   // Prettier runs via the PostToolUse hook — do NOT add eslint-plugin-prettier.

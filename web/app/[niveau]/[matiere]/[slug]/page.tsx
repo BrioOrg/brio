@@ -2,13 +2,19 @@ import { ChapterView } from '@/components/chapter-view'
 import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
 import Link from 'next/link'
 
+export const dynamicParams = true
+
 export async function generateStaticParams() {
-  const catalogue = await getCatalogue()
-  return catalogue.flatMap(({ niveauCode, matieres }) =>
-    matieres.flatMap(({ matiereCode, chapitres }) =>
-      chapitres.map(({ slug }) => ({ niveau: niveauCode, matiere: matiereCode, slug }))
+  try {
+    const catalogue = await getCatalogue()
+    return catalogue.flatMap(({ niveauCode, matieres }) =>
+      matieres.flatMap(({ matiereCode, chapitres }) =>
+        chapitres.map(({ slug }) => ({ niveau: niveauCode, matiere: matiereCode, slug }))
+      )
     )
-  )
+  } catch {
+    return []
+  }
 }
 
 export default async function ChapterPage({
