@@ -3,6 +3,7 @@ package fr.brio;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.ContenuService;
+import fr.brio.contenu.infrastructure.ChapitreIngestor;
 import fr.brio.exercices.infrastructure.SoumissionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ class SoumissionIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired ContenuService contenuService;
+    @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired SoumissionRepository soumissionRepository;
     @Autowired ObjectMapper objectMapper;
 
@@ -38,7 +40,7 @@ class SoumissionIntegrationTest {
         try (var is = getClass().getResourceAsStream(
                 "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
             JsonNode doc = objectMapper.readTree(is);
-            contenuService.ingestChapitre(doc);
+            chapitreIngestor.ingestDocument(doc, "3e", "mathematiques", 0);
         }
     }
 

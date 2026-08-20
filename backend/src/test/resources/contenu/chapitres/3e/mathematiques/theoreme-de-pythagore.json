@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "id": "theoreme-de-pythagore",
+  "title": "Le théorème de Pythagore",
+  "subject": "mathematiques",
+  "level": "3e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "sections": [
+    {
+      "id": "enonce-du-theoreme",
+      "title": "Énoncé du théorème",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-prose",
+          "type": "prose",
+          "text": "Le théorème de Pythagore relie les longueurs des trois côtés d'un **triangle rectangle**. Il permet de calculer une longueur inconnue à partir des deux autres."
+        },
+        {
+          "id": "definition-hypotenuse",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Hypoténuse",
+          "text": "Dans un triangle rectangle, l'*hypoténuse* est le côté opposé à l'angle droit. C'est toujours le côté le plus long."
+        },
+        {
+          "id": "schema-triangle",
+          "type": "image",
+          "asset": "figures/triangle-rectangle-abc.svg",
+          "alt": "Triangle rectangle ABC, l'angle droit est en A et l'hypoténuse est le côté BC.",
+          "caption": "Le triangle rectangle ABC, rectangle en A."
+        },
+        {
+          "id": "formule-pythagore",
+          "type": "formula",
+          "display": "block",
+          "latex": "BC^2 = AB^2 + AC^2"
+        },
+        {
+          "id": "enonce-prose",
+          "type": "prose",
+          "text": "Si un triangle est rectangle, alors le carré de la longueur de l'hypoténuse est égal à la somme des carrés des longueurs des deux autres côtés."
+        },
+        {
+          "id": "ex-reconnaitre-hypotenuse",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans un triangle RST rectangle en S, quel côté est l'hypoténuse ?",
+          "competencies": ["c4.geo.pythagore.reconnaitre-hypotenuse"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choice-rs", "text": "Le côté [RS]", "correct": false },
+            { "id": "choice-st", "text": "Le côté [ST]", "correct": false },
+            { "id": "choice-rt", "text": "Le côté [RT]", "correct": true }
+          ],
+          "explanation": "L'hypoténuse est le côté opposé à l'angle droit. L'angle droit est en S, donc l'hypoténuse est [RT]."
+        }
+      ]
+    },
+    {
+      "id": "calculer-l-hypotenuse",
+      "title": "Calculer la longueur de l'hypoténuse",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "methode-prose",
+          "type": "prose",
+          "text": "Quand on connaît les deux côtés de l'angle droit, on applique directement le théorème pour trouver l'hypoténuse."
+        },
+        {
+          "id": "exemple-callout",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemple",
+          "text": "Dans un triangle rectangle dont les côtés de l'angle droit mesurent 3 cm et 4 cm, l'hypoténuse mesure 5 cm."
+        },
+        {
+          "id": "exemple-formule",
+          "type": "formula",
+          "display": "block",
+          "latex": "BC = \\sqrt{3^2 + 4^2} = \\sqrt{25} = 5"
+        },
+        {
+          "id": "ex-longueur-cotes",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Comment appelle-t-on les deux côtés qui forment l'angle droit dans un triangle rectangle ?",
+          "competencies": ["c4.geo.pythagore.reconnaitre-hypotenuse"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": ["les côtés de l'angle droit", "cotes de l'angle droit", "cathètes"],
+          "caseSensitive": false
+        },
+        {
+          "id": "ex-calcul-hypotenuse",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle est rectangle et les côtés de l'angle droit mesurent 6 cm et 8 cm. Quelle est la longueur de l'hypoténuse, en cm ?",
+          "competencies": ["c4.geo.pythagore.calculer"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 4,
+          "answer": 10,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "BC = racine de (6² + 8²) = racine de 100 = 10 cm."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "ex-etapes-demonstration",
+          "type": "exercise",
+          "exerciseType": "ordering",
+          "prompt": "Remets dans l'ordre les étapes pour calculer l'hypoténuse d'un triangle rectangle.",
+          "competencies": ["c4.geo.pythagore.calculer"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "items": [
+            { "id": "step-verifier", "text": "Vérifier que le triangle est rectangle et identifier l'hypoténuse." },
+            { "id": "step-ecrire", "text": "Écrire l'égalité de Pythagore avec les longueurs connues." },
+            { "id": "step-calculer", "text": "Calculer la somme des carrés des deux côtés de l'angle droit." },
+            { "id": "step-racine", "text": "Prendre la racine carrée du résultat pour obtenir l'hypoténuse." }
+          ]
+        },
+        {
+          "id": "ex-justifier-rectangle",
+          "type": "exercise",
+          "exerciseType": "free-text",
+          "prompt": "Un triangle a pour côtés 5 cm, 12 cm et 13 cm. Explique comment vérifier s'il est rectangle.",
+          "competencies": ["c4.geo.pythagore.reciproque"],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 6,
+          "referenceAnswer": "On compare le carré du plus grand côté à la somme des carrés des deux autres : 13² = 169 et 5² + 12² = 25 + 144 = 169. Comme les deux sont égaux, d'après la réciproque du théorème de Pythagore, le triangle est rectangle.",
+          "rubric": [
+            "Identifie le plus grand côté (13 cm) comme hypoténuse potentielle.",
+            "Calcule 13² d'un côté et 5² + 12² de l'autre.",
+            "Conclut en citant la réciproque du théorème de Pythagore."
+          ]
+        }
+      ]
+    }
+  ]
+}

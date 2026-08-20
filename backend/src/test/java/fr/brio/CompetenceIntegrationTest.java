@@ -3,8 +3,8 @@ package fr.brio;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.brio.contenu.ContenuService;
-import fr.brio.contenu.InvalidContentException;
+import fr.brio.contenu.infrastructure.ChapitreIngestor;
+import fr.brio.contenu.infrastructure.ChapterResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -15,13 +15,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 class CompetenceIntegrationTest {
 
-    @Autowired ContenuService contenuService;
+    @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired JdbcTemplate jdbcTemplate;
     @Autowired ObjectMapper objectMapper;
     @Autowired ApplicationContext context;
@@ -67,9 +66,9 @@ class CompetenceIntegrationTest {
         firstExercise.set("competencies",
                 objectMapper.createArrayNode().add("c4.geo.inexistant.tester"));
 
-        assertThatThrownBy(() -> contenuService.ingestChapitre(doc))
-                .isInstanceOf(InvalidContentException.class)
-                .hasMessageContaining("c4.geo.inexistant.tester");
+        ChapterResult result = chapitreIngestor.ingestDocument(doc, "3e", "mathematiques", 0);
+        assertThat(result.status()).isEqualTo(ChapterResult.Status.FAILED);
+        assertThat(result.message()).contains("c4.geo.inexistant.tester");
 
         Integer chapitres = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM contenu.chapitres WHERE id = ?",
