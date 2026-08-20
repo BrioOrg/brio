@@ -50,7 +50,9 @@ export type Catalogue = z.infer<typeof CatalogueSchema>
 export type CatalogueNiveau = z.infer<typeof CatalogueNiveauSchema>
 
 export async function getCatalogue(): Promise<Catalogue> {
-  const res = await fetch(`${API_URL}/api/catalogue`)
+  const res = await fetch(`${API_URL}/api/catalogue`, {
+    headers: { Authorization: buildAuthHeader() },
+  })
   if (!res.ok) throw new Error('Catalogue unavailable')
   return CatalogueSchema.parse(await res.json())
 }
