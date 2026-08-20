@@ -144,6 +144,24 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>copy-chapitres</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/contenu/chapitres</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../content/chapitres</directory>
+									<includes>
+										<include>**/*.json</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
 						<id>copy-referentiel</id>
 						<phase>generate-resources</phase>
 						<goals>

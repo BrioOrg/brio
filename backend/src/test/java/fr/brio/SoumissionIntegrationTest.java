@@ -35,7 +35,8 @@ class SoumissionIntegrationTest {
 
     @BeforeEach
     void seedChapter() throws Exception {
-        try (var is = getClass().getResourceAsStream("/contenu/seeds/pythagore-3e.json")) {
+        try (var is = getClass().getResourceAsStream(
+                "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
             JsonNode doc = objectMapper.readTree(is);
             contenuService.ingestChapitre(doc);
         }

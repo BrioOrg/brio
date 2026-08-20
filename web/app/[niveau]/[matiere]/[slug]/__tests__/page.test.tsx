@@ -5,6 +5,11 @@ vi.mock('@brio/api-client', () => ({
   createApiClient: vi.fn(),
 }))
 
+vi.mock('@/lib/api', () => ({
+  getCatalogue: vi.fn(),
+  getChapitreByTriplet: vi.fn(),
+}))
+
 const SEED_CHAPTER = {
   schemaVersion: 1,
   id: 'theoreme-de-pythagore',
@@ -42,26 +47,38 @@ describe('ChapterPage', () => {
   })
 
   it('affiche le titre et le contenu du chapitre', async () => {
-    const { createApiClient } = await import('@brio/api-client')
-    vi.mocked(createApiClient).mockReturnValue({
-      GET: vi.fn().mockResolvedValue({ data: SEED_CHAPTER, error: undefined }),
-    } as never)
+    const { getChapitreByTriplet } = await import('@/lib/api')
+    vi.mocked(getChapitreByTriplet).mockResolvedValue(SEED_CHAPTER as never)
 
     const { default: Page } = await import('../page')
-    render(await Page({ params: Promise.resolve({ id: 'theoreme-de-pythagore' }) }))
+    render(
+      await Page({
+        params: Promise.resolve({
+          niveau: '3e',
+          matiere: 'mathematiques',
+          slug: 'theoreme-de-pythagore',
+        }),
+      })
+    )
 
     expect(screen.getByRole('heading', { name: 'Le théorème de Pythagore' })).toBeInTheDocument()
     expect(screen.getByText('Le théorème de Pythagore.')).toBeInTheDocument()
   })
 
   it("affiche les choix de l'exercice à choix multiple", async () => {
-    const { createApiClient } = await import('@brio/api-client')
-    vi.mocked(createApiClient).mockReturnValue({
-      GET: vi.fn().mockResolvedValue({ data: SEED_CHAPTER, error: undefined }),
-    } as never)
+    const { getChapitreByTriplet } = await import('@/lib/api')
+    vi.mocked(getChapitreByTriplet).mockResolvedValue(SEED_CHAPTER as never)
 
     const { default: Page } = await import('../page')
-    render(await Page({ params: Promise.resolve({ id: 'theoreme-de-pythagore' }) }))
+    render(
+      await Page({
+        params: Promise.resolve({
+          niveau: '3e',
+          matiere: 'mathematiques',
+          slug: 'theoreme-de-pythagore',
+        }),
+      })
+    )
 
     expect(screen.getByText(/Quel côté est l'hypoténuse/)).toBeInTheDocument()
     expect(screen.getAllByRole('radio')).toHaveLength(2)
@@ -69,13 +86,15 @@ describe('ChapterPage', () => {
   })
 
   it("affiche l'état d'erreur quand le chapitre est introuvable", async () => {
-    const { createApiClient } = await import('@brio/api-client')
-    vi.mocked(createApiClient).mockReturnValue({
-      GET: vi.fn().mockResolvedValue({ data: undefined, error: { message: 'Not found' } }),
-    } as never)
+    const { getChapitreByTriplet } = await import('@/lib/api')
+    vi.mocked(getChapitreByTriplet).mockRejectedValue(new Error('Chapitre introuvable'))
 
     const { default: Page } = await import('../page')
-    render(await Page({ params: Promise.resolve({ id: 'inconnu' }) }))
+    render(
+      await Page({
+        params: Promise.resolve({ niveau: '3e', matiere: 'mathematiques', slug: 'inconnu' }),
+      })
+    )
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.getByText('Chapitre introuvable')).toBeInTheDocument()

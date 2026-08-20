@@ -9,6 +9,8 @@ import fr.brio.contenu.infrastructure.ChapitreRepository;
 import fr.brio.contenu.infrastructure.CompetenceRepository;
 import fr.brio.contenu.infrastructure.ContentSchemaValidator;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
+import fr.brio.contenu.infrastructure.MatiereRepository;
+import fr.brio.contenu.infrastructure.NiveauRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
@@ -36,6 +38,8 @@ class ContenuServiceTest {
     @Mock private ChapitreRepository chapitreRepository;
     @Mock private ExerciceRepository exerciceRepository;
     @Mock private CompetenceRepository competenceRepository;
+    @Mock private NiveauRepository niveauRepository;
+    @Mock private MatiereRepository matiereRepository;
 
     private ContenuService service;
 
@@ -43,14 +47,17 @@ class ContenuServiceTest {
     void setUp() {
         lenient().when(chapitreRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         lenient().when(exerciceRepository.saveAll(any())).thenAnswer(inv -> inv.getArgument(0));
-        // By default every referenced code exists in the referential; individual
-        // tests override this to exercise the rejection path.
+        // By default every referenced competency code exists in the referential.
         lenient().when(competenceRepository.findAllById(any())).thenAnswer(inv ->
                 StreamSupport.stream(((Iterable<String>) inv.getArgument(0)).spliterator(), false)
                         .map(code -> new Competence(code, "x", 4, List.of("3e"), "espace-et-geometrie", "BOEN"))
                         .toList());
+        // By default the chapter's niveau and matiere are known.
+        lenient().when(niveauRepository.existsById(any())).thenReturn(true);
+        lenient().when(matiereRepository.existsById(any())).thenReturn(true);
         service = new ContenuService(
-                chapitreRepository, exerciceRepository, competenceRepository, validator, objectMapper);
+                chapitreRepository, exerciceRepository, competenceRepository,
+                niveauRepository, matiereRepository, validator, objectMapper);
     }
 
     @Test
@@ -212,9 +219,36 @@ class ContenuServiceTest {
         verify(exerciceRepository, never()).saveAll(any());
     }
 
+    @Test
+    void shouldRejectChapterWithUnknownNiveau() throws Exception {
+        doReturn(false).when(niveauRepository).existsById(any());
+
+        JsonNode doc = loadSeedDocument();
+        assertThatThrownBy(() -> service.ingestChapitre(doc))
+                .isInstanceOf(InvalidContentException.class)
+                .hasMessageContaining("3e");
+
+        verify(chapitreRepository, never()).save(any());
+        verify(exerciceRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void shouldRejectChapterWithUnknownMatiere() throws Exception {
+        doReturn(false).when(matiereRepository).existsById(any());
+
+        JsonNode doc = loadSeedDocument();
+        assertThatThrownBy(() -> service.ingestChapitre(doc))
+                .isInstanceOf(InvalidContentException.class)
+                .hasMessageContaining("mathematiques");
+
+        verify(chapitreRepository, never()).save(any());
+        verify(exerciceRepository, never()).saveAll(any());
+    }
+
     private JsonNode loadSeedDocument() throws Exception {
-        try (var is = getClass().getResourceAsStream("/contenu/seeds/pythagore-3e.json")) {
-            assertThat(is).as("Seed file must be on test classpath").isNotNull();
+        try (var is = getClass().getResourceAsStream(
+                "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
+            assertThat(is).as("Chapter file must be on test classpath").isNotNull();
             return objectMapper.readTree(is);
         }
     }
