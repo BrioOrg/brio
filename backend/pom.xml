@@ -136,31 +136,14 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<!-- The competency referential and its schema live once, at their
+				<!-- The competency referential and its JSON Schema live once, at their
 				     canonical locations (content/referentiel/, docs/schema/ — ADR 0008).
-				     They are copied onto the classpath at build time instead of being
-				     committed twice. -->
+				     They are required at startup across all environments and are copied
+				     onto the classpath at build time. Chapter files are NOT copied here:
+				     they are ingested explicitly via ChapitreIngestor (ADR 0010). -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
-					<execution>
-						<id>copy-chapitres</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.outputDirectory}/contenu/chapitres</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.basedir}/../content/chapitres</directory>
-									<includes>
-										<include>**/*.json</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
 					<execution>
 						<id>copy-referentiel</id>
 						<phase>generate-resources</phase>
