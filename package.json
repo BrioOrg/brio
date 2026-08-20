@@ -8,7 +8,8 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "check:competencies": "node scripts/check-competencies.mjs",
-    "generate:api": "openapi-typescript ${API_BASE_URL:-http://localhost:8080}/v3/api-docs -o packages/api-client/src/generated/schema.d.ts"
+    "generate:api": "openapi-typescript docs/api/openapi.json -o packages/api-client/src/generated/schema.d.ts",
+    "api:refresh": "node scripts/refresh-api.mjs"
   },
   "devDependencies": {
     "openapi-typescript": "^7.4.4",
