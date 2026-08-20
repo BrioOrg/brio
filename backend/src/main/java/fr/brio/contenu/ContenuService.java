@@ -4,20 +4,30 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.brio.contenu.api.CatalogueChapitreDto;
+import fr.brio.contenu.api.CatalogueMatiereDto;
+import fr.brio.contenu.api.CatalogueNiveauDto;
 import fr.brio.contenu.domain.Chapitre;
 import fr.brio.contenu.domain.Competence;
 import fr.brio.contenu.domain.Exercice;
+import fr.brio.contenu.domain.Matiere;
+import fr.brio.contenu.domain.Niveau;
 import fr.brio.contenu.infrastructure.ChapitreRepository;
 import fr.brio.contenu.infrastructure.CompetenceRepository;
 import fr.brio.contenu.infrastructure.ContentSchemaValidator;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
+import fr.brio.contenu.infrastructure.MatiereRepository;
+import fr.brio.contenu.infrastructure.NiveauRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +47,8 @@ public class ContenuService {
     private final ChapitreRepository chapitreRepository;
     private final ExerciceRepository exerciceRepository;
     private final CompetenceRepository competenceRepository;
+    private final NiveauRepository niveauRepository;
+    private final MatiereRepository matiereRepository;
     private final ContentSchemaValidator validator;
     private final ObjectMapper objectMapper;
 
@@ -44,35 +56,99 @@ public class ContenuService {
             ChapitreRepository chapitreRepository,
             ExerciceRepository exerciceRepository,
             CompetenceRepository competenceRepository,
+            NiveauRepository niveauRepository,
+            MatiereRepository matiereRepository,
             ContentSchemaValidator validator,
             ObjectMapper objectMapper) {
         this.chapitreRepository = chapitreRepository;
         this.exerciceRepository = exerciceRepository;
         this.competenceRepository = competenceRepository;
+        this.niveauRepository = niveauRepository;
+        this.matiereRepository = matiereRepository;
         this.validator = validator;
         this.objectMapper = objectMapper;
     }
 
-    @Transactional
     public void ingestChapitre(JsonNode rawDocument) {
+        ingestChapitre(rawDocument, 0);
+    }
+
+    @Transactional
+    public void ingestChapitre(JsonNode rawDocument, int ordre) {
         validator.validate(rawDocument);
         assertCompetenciesExist(rawDocument);
+        assertNiveauAndMatiereExist(rawDocument);
 
         String chapitreId = rawDocument.get("id").asText();
         if (chapitreRepository.existsById(chapitreId)) {
             return;
         }
 
+        String niveauCode = rawDocument.get("level").asText();
+        String matiereCode = rawDocument.get("subject").asText();
+        String titre = rawDocument.get("title").asText();
+        int duree = rawDocument.path("estimatedDurationMinutes").asInt(0);
+
         List<Exercice> exercices = new ArrayList<>();
         JsonNode contentDoc = buildContentDocument(rawDocument, chapitreId, exercices);
 
         try {
             String contentJson = objectMapper.writeValueAsString(contentDoc);
-            chapitreRepository.save(new Chapitre(chapitreId, contentJson));
+            chapitreRepository.save(new Chapitre(
+                    chapitreId, contentJson, niveauCode, matiereCode,
+                    ordre, "published", titre, duree));
             exerciceRepository.saveAll(exercices);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to persist chapter " + chapitreId, e);
         }
+    }
+
+    public List<CatalogueNiveauDto> getCatalogue() {
+        List<Niveau> niveaux = niveauRepository.findAllByOrderByOrdreAsc();
+        Map<String, String> matiereLibelles = matiereRepository.findAll().stream()
+                .collect(Collectors.toMap(Matiere::getCode, Matiere::getLibelle));
+
+        List<Chapitre> published = chapitreRepository
+                .findByStatutOrderByNiveauCodeAscMatiereCodeAscOrdreAsc("published");
+
+        // Group chapters by niveauCode then matiereCode, preserving insertion order
+        Map<String, Map<String, List<CatalogueChapitreDto>>> grouped = new LinkedHashMap<>();
+        for (Chapitre ch : published) {
+            grouped
+                    .computeIfAbsent(ch.getNiveauCode(), k -> new LinkedHashMap<>())
+                    .computeIfAbsent(ch.getMatiereCode(), k -> new ArrayList<>())
+                    .add(new CatalogueChapitreDto(
+                            ch.getId(), ch.getTitre(), ch.getDureeEstimeeMinutes(), ch.getOrdre()));
+        }
+
+        return niveaux.stream()
+                .filter(n -> grouped.containsKey(n.getCode()))
+                .map(n -> new CatalogueNiveauDto(
+                        n.getCode(), n.getLibelle(),
+                        grouped.get(n.getCode()).entrySet().stream()
+                                .map(e -> new CatalogueMatiereDto(
+                                        e.getKey(),
+                                        matiereLibelles.getOrDefault(e.getKey(), e.getKey()),
+                                        e.getValue()))
+                                .toList()))
+                .toList();
+    }
+
+    public Optional<JsonNode> findChapitreByTriplet(String niveauCode, String matiereCode, String slug) {
+        return chapitreRepository.findByNiveauCodeAndMatiereCodeAndId(niveauCode, matiereCode, slug)
+                .map(ch -> {
+                    try {
+                        return objectMapper.readTree(ch.getContent());
+                    } catch (Exception e) {
+                        throw new IllegalStateException(
+                                "Stored chapter content is not valid JSON: " + slug, e);
+                    }
+                });
+    }
+
+    public Optional<ChapitreRef> findChapitreRef(String id) {
+        return chapitreRepository.findById(id)
+                .map(ch -> new ChapitreRef(ch.getNiveauCode(), ch.getMatiereCode(), ch.getId()));
     }
 
     public Optional<UUID> findExerciceIdByChapitreAndSlug(String chapitreId, String slug) {
@@ -108,6 +184,19 @@ public class ContenuService {
         if (!unknown.isEmpty()) {
             throw new InvalidContentException(
                     "Unknown competency code(s), absent from the referential: " + String.join(", ", unknown));
+        }
+    }
+
+    // Validates that the chapter's level and subject fields are registered reference
+    // values (ADR 0011). Rejects before any write occurs.
+    private void assertNiveauAndMatiereExist(JsonNode rawDocument) {
+        String level = rawDocument.path("level").asText();
+        String subject = rawDocument.path("subject").asText();
+        if (!niveauRepository.existsById(level)) {
+            throw new InvalidContentException("Unknown niveau: '" + level + "' — add it to contenu.niveaux first");
+        }
+        if (!matiereRepository.existsById(subject)) {
+            throw new InvalidContentException("Unknown matiere: '" + subject + "' — add it to contenu.matieres first");
         }
     }
 

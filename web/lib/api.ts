@@ -22,6 +22,53 @@ export async function getChapitre(id: string): Promise<ChapitreResponse> {
 }
 
 // ---------------------------------------------------------------------------
+// Catalog — manual Zod wrapper until /api/catalogue appears in the generated
+// OpenAPI schema (requires running `pnpm generate:api` against a live backend).
+// ---------------------------------------------------------------------------
+
+const CatalogueChapitreSchema = z.object({
+  slug: z.string(),
+  titre: z.string(),
+  dureeEstimeeMinutes: z.number(),
+  ordre: z.number(),
+})
+
+const CatalogueMatiereSchema = z.object({
+  matiereCode: z.string(),
+  matiereLibelle: z.string(),
+  chapitres: z.array(CatalogueChapitreSchema),
+})
+
+const CatalogueNiveauSchema = z.object({
+  niveauCode: z.string(),
+  niveauLibelle: z.string(),
+  matieres: z.array(CatalogueMatiereSchema),
+})
+
+export const CatalogueSchema = z.array(CatalogueNiveauSchema)
+export type Catalogue = z.infer<typeof CatalogueSchema>
+export type CatalogueNiveau = z.infer<typeof CatalogueNiveauSchema>
+
+export async function getCatalogue(): Promise<Catalogue> {
+  const res = await fetch(`${API_URL}/api/catalogue`)
+  if (!res.ok) throw new Error('Catalogue unavailable')
+  return CatalogueSchema.parse(await res.json())
+}
+
+export async function getChapitreByTriplet(
+  niveau: string,
+  matiere: string,
+  slug: string
+): Promise<ChapitreResponse> {
+  const res = await fetch(
+    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}`,
+    { headers: { Authorization: buildAuthHeader() } }
+  )
+  if (!res.ok) throw new Error(`Chapitre introuvable: ${slug}`)
+  return res.json() as Promise<ChapitreResponse>
+}
+
+// ---------------------------------------------------------------------------
 // Exercise submission
 // Dev-only scaffolding: credentials from env vars, replaced when the identite
 // module ships real auth. Never hardcode credentials in source.

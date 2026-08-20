@@ -58,7 +58,8 @@ class CompetenceIntegrationTest {
         // Valid seed document, but one exercise pointing at a well-formed code
         // that does not exist in the referential.
         ObjectNode doc;
-        try (var is = getClass().getResourceAsStream("/contenu/seeds/pythagore-3e.json")) {
+        try (var is = getClass().getResourceAsStream(
+                "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
             doc = ((ObjectNode) objectMapper.readTree(is)).deepCopy();
         }
         doc.put("id", "chapitre-code-inconnu");

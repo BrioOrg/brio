@@ -16,6 +16,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,16 +32,16 @@ class ChapitreIntegrationTest {
 
     @BeforeEach
     void seedChapter() throws Exception {
-        try (var is = getClass().getResourceAsStream("/contenu/seeds/pythagore-3e.json")) {
+        try (var is = getClass().getResourceAsStream(
+                "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
             JsonNode doc = objectMapper.readTree(is);
             contenuService.ingestChapitre(doc); // idempotent — skips if already present
         }
     }
 
     @Test
-    void shouldReturnSeededChapter() throws Exception {
-        mockMvc.perform(get("/api/chapitres/theoreme-de-pythagore")
-                        )
+    void shouldReturnChapterByTripletPath() throws Exception {
+        mockMvc.perform(get("/api/chapitres/3e/mathematiques/theoreme-de-pythagore"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("theoreme-de-pythagore"))
                 .andExpect(jsonPath("$.title").exists())
@@ -48,16 +49,40 @@ class ChapitreIntegrationTest {
     }
 
     @Test
-    void shouldReturn404ForUnknownChapter() throws Exception {
-        mockMvc.perform(get("/api/chapitres/does-not-exist")
-                        )
+    void shouldRedirectLegacyIdPathWithPermanentRedirect() throws Exception {
+        mockMvc.perform(get("/api/chapitres/theoreme-de-pythagore"))
+                .andExpect(status().isPermanentRedirect())
+                .andExpect(header().string(
+                        "Location", "/api/chapitres/3e/mathematiques/theoreme-de-pythagore"));
+    }
+
+    @Test
+    void shouldReturn404ForUnknownTriplet() throws Exception {
+        mockMvc.perform(get("/api/chapitres/3e/mathematiques/does-not-exist"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
+    void shouldReturn404ForUnknownLegacyId() throws Exception {
+        mockMvc.perform(get("/api/chapitres/does-not-exist"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnCatalogueWithPublishedChapter() throws Exception {
+        mockMvc.perform(get("/api/catalogue"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].niveauCode").value("3e"))
+                .andExpect(jsonPath("$[0].matieres[0].matiereCode").value("mathematiques"))
+                .andExpect(jsonPath("$[0].matieres[0].chapitres[0].slug")
+                        .value("theoreme-de-pythagore"));
+    }
+
+    @Test
     void shouldNeverLeakAnswerFieldsInChapterResponse() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/chapitres/theoreme-de-pythagore")
-                        )
+        MvcResult result = mockMvc.perform(
+                        get("/api/chapitres/3e/mathematiques/theoreme-de-pythagore"))
                 .andExpect(status().isOk())
                 .andReturn();
 
