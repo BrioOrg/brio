@@ -2,9 +2,15 @@ import Link from 'next/link'
 import { getCatalogue } from '@/lib/api'
 import { notFound } from 'next/navigation'
 
+export const dynamicParams = true
+
 export async function generateStaticParams() {
-  const catalogue = await getCatalogue()
-  return catalogue.map(({ niveauCode }) => ({ niveau: niveauCode }))
+  try {
+    const catalogue = await getCatalogue()
+    return catalogue.map(({ niveauCode }) => ({ niveau: niveauCode }))
+  } catch {
+    return []
+  }
 }
 
 export default async function NiveauPage({ params }: { params: Promise<{ niveau: string }> }) {

@@ -2,11 +2,17 @@ import Link from 'next/link'
 import { getCatalogue } from '@/lib/api'
 import { notFound } from 'next/navigation'
 
+export const dynamicParams = true
+
 export async function generateStaticParams() {
-  const catalogue = await getCatalogue()
-  return catalogue.flatMap(({ niveauCode, matieres }) =>
-    matieres.map(({ matiereCode }) => ({ niveau: niveauCode, matiere: matiereCode }))
-  )
+  try {
+    const catalogue = await getCatalogue()
+    return catalogue.flatMap(({ niveauCode, matieres }) =>
+      matieres.map(({ matiereCode }) => ({ niveau: niveauCode, matiere: matiereCode }))
+    )
+  } catch {
+    return []
+  }
 }
 
 export default async function MatierePage({
