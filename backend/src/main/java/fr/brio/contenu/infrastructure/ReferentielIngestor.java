@@ -16,19 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Projects the competency referential (content/referentiel/, copied onto the
- * classpath by the Maven build) into contenu.competences at startup, upserting
- * by code. Runs in every profile: chapter ingestion validates competency codes
- * against this table, so it must be populated before any chapter is ingested —
- * ApplicationRunners run before ApplicationReadyEvent listeners (the seeder).
- * A missing or invalid referential fails startup: better no boot than a
- * database that silently accepts codes outside the official curriculum.
- */
+// Runs in every profile before chapter ingestion (@Order(2)) so that competency
+// validation in ChapitreIngestionTx always has a populated referential to check against.
+// A missing or invalid referential fails startup: better no boot than a database that
+// silently accepts codes outside the official curriculum.
 @Component
+@Order(1)
 class ReferentielIngestor implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(ReferentielIngestor.class);

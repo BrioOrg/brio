@@ -3,6 +3,7 @@ package fr.brio;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.ContenuService;
+import fr.brio.contenu.infrastructure.ChapitreIngestor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ChapitreIntegrationTest {
 
     @Autowired MockMvc mockMvc;
-    @Autowired ContenuService contenuService;
+    @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired ObjectMapper objectMapper;
 
     @BeforeEach
@@ -35,7 +36,7 @@ class ChapitreIntegrationTest {
         try (var is = getClass().getResourceAsStream(
                 "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
             JsonNode doc = objectMapper.readTree(is);
-            contenuService.ingestChapitre(doc); // idempotent — skips if already present
+            chapitreIngestor.ingestDocument(doc, "3e", "mathematiques", 0);
         }
     }
 
