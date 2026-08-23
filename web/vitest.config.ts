@@ -13,6 +13,7 @@ export default defineConfig({
     alias: {
       // Resolve workspace package to TS source directly — no build step required
       '@brio/api-client': resolve(__dirname, '../packages/api-client/src/index.ts'),
+      '@brio/content': resolve(__dirname, '../packages/content/src/index.ts'),
       '@': resolve(__dirname, '.'),
     },
   },

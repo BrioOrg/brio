@@ -1,4 +1,5 @@
 import katex from 'katex'
+import { parseRichText, type RichTextToken } from '@brio/content'
 
 import { ExerciceWidget } from '@/components/exercice-widget'
 
@@ -70,7 +71,11 @@ export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
 function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case 'prose':
-      return <p className="text-gray-700 leading-relaxed">{block.text as string}</p>
+      return (
+        <p className="text-gray-700 leading-relaxed">
+          <RichTextRenderer text={block.text as string} />
+        </p>
+      )
 
     case 'heading':
       return <Heading level={(block.level as number) ?? 1} text={block.text as string} />
@@ -159,6 +164,37 @@ function ExerciseBlock({ block }: { block: Block }) {
   )
 }
 
+function RichTextRenderer({ text }: { text: string }) {
+  const tokens = parseRichText(text)
+  return (
+    <>
+      {tokens.map((token, i) => (
+        <RichTextSpan key={i} token={token} />
+      ))}
+    </>
+  )
+}
+
+function RichTextSpan({ token }: { token: RichTextToken }) {
+  switch (token.kind) {
+    case 'text':
+      return <>{token.value}</>
+    case 'bold':
+      return <strong>{token.value}</strong>
+    case 'italic':
+      return <em>{token.value}</em>
+    case 'math': {
+      // KaTeX output is trusted: content comes from the reviewed content pipeline, never from user input.
+      const html = katex.renderToString(token.value, {
+        throwOnError: false,
+        output: 'htmlAndMathml',
+        displayMode: false,
+      })
+      return <span dangerouslySetInnerHTML={{ __html: html }} />
+    }
+  }
+}
+
 function Heading({ level, text }: { level: number; text: string }) {
   const className = 'font-semibold text-gray-800 mt-4'
   if (level === 1) return <h3 className={`text-lg ${className}`}>{text}</h3>
@@ -179,8 +215,14 @@ function Callout({ block }: { block: Block }) {
 
   return (
     <div className={`rounded-lg border p-4 ${style}`}>
-      {block.title != null && <p className="font-semibold mb-1">{block.title as string}</p>}
-      <p>{block.text as string}</p>
+      {block.title != null && (
+        <p className="font-semibold mb-1">
+          <RichTextRenderer text={block.title as string} />
+        </p>
+      )}
+      <p>
+        <RichTextRenderer text={block.text as string} />
+      </p>
     </div>
   )
 }
