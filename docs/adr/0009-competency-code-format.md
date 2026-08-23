@@ -44,8 +44,9 @@ normative grammar lives in `docs/schema/competency.schema.json`.
 
 **Granularity** is the sub-competency: fine enough that an exercise can target
 it precisely (a capability, not a whole attendu de fin d'année). Each entry
-carries its `intitule`, `cycle`, `niveaux`, `domaine`, and a
-`referenceOfficielle` pointing at the BOEN programme and/or attendus.
+carries its `intitule`, `cycle`, `niveaux`, `domaine`, a
+`referenceOfficielle` pointing at the BOEN programme and/or attendus, and a
+`programme` field (see below).
 
 **Freeze policy — codes are engraved**: once merged, a code is immutable. It is
 never renamed, never deleted, never reused for a different meaning. If a
@@ -53,6 +54,40 @@ competency was wrong or the programme changes, the code is marked deprecated in
 the referential (and excluded from authoring) but remains resolvable forever,
 because chapters and submissions reference it durably. Fixing a typo in a code
 therefore means deprecating the old code and adding a new one.
+
+**Programme field** — every non-deprecated entry carries a `programme` field in
+the format `cycle{N}-{YYYY}` (e.g. `cycle3-2025`, `cycle4-2020`) identifying
+the official programme text that grounds it. Invariant enforced by
+`check-competencies.mjs`: for any given niveau, all non-deprecated entries must
+share the same `programme` value. This makes it impossible to accidentally author
+content mixing two programme generations for the same level.
+
+**Deprecation mechanism** — three optional fields handle the lifecycle of a code
+when the official programme changes:
+
+| Field | Semantics |
+|---|---|
+| `deprecatedSince` | BO reference of the superseding text; present = deprecated |
+| `remplacePar` | Codes of successors. Absent = mapping not established; `[]` = no successor in new programme; non-empty = explicit successors |
+| `programme` | Identifies the programme the entry belonged to (cycle3-2020, cycle4-2020, …) |
+
+Deprecated codes remain in the JSON and the database forever (freeze policy),
+but `check-competencies.mjs` fails if any content file references one, and
+`ChapitreIngestionTx` rejects chapters referencing deprecated codes at ingestion
+time.
+
+**Two-programme reality (cycle 3, 2025)** — the Arrêté du 10 avril 2025 (BO
+n°16 du 17 avril 2025) replaced the 2020 cycle-3 programme. The referential now
+holds both generations simultaneously: 57 deprecated cycle3-2020 entries and 59
+active cycle3-2025 entries. This is the expected steady state during any
+curriculum transition. The per-niveau programme invariant prevents content from
+mixing them.
+
+The 2025 cycle-3 programme reorganised several themes relative to 2020:
+algebra (`algebre`) is now explicit in 6e, probabilités appear in 6e,
+angles moved from `gm` to `geo`, and solides/patrons/masses were removed from
+6e. New codes therefore live under `c3.num.algebre.*`, `c3.geo.angles.*`,
+`c3.ogd.probabilites.*` etc.; the old `c3.gm.*` angle entries are deprecated.
 
 ## Consequences
 
@@ -72,9 +107,10 @@ therefore means deprecating the old code and adding a new one.
   the whole product is French.
 
 ### Follow-ups
-- `content/referentiel/mathematiques-college.json` — first dataset (this issue).
+- `content/referentiel/mathematiques-college.json` — first dataset; 2025 cycle-3
+  slice implemented in issue #28.
 - `scripts/check-competencies.mjs` + `contenu.competences` projection.
-- A `deprecated` flag in the schema the day the first code must be retired.
+- V7 migration adds `deprecated_since` / `remplace_par` columns (issue #28).
 - The `progression` module will aggregate mastery per code (E8).
 
 ## Alternatives considered
