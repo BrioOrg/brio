@@ -6,1169 +6,2519 @@
       "code": "c3.num.entiers.lire-ecrire",
       "intitule": "Lire, écrire et décomposer des nombres entiers jusqu'au milliard",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.connaitre-valeur-chiffres",
+        "c3.num.decimaux.connaitre-grands-nombres"
+      ]
     },
     {
       "code": "c3.num.entiers.comparer-ranger",
       "intitule": "Comparer, ranger et encadrer des nombres entiers",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.comparer-ordonner"
+      ]
     },
     {
       "code": "c3.num.entiers.reperer-droite",
       "intitule": "Repérer et placer des nombres entiers sur une demi-droite graduée",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.placer-reperer-droite"
+      ]
     },
     {
       "code": "c3.num.fractions.utiliser-partage",
       "intitule": "Utiliser des fractions simples pour rendre compte de partages ou de mesures",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.fractions.sens-quotient"
+      ]
     },
     {
       "code": "c3.num.fractions.quotient",
       "intitule": "Interpréter une fraction comme quotient de deux nombres entiers",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.fractions.sens-quotient"
+      ]
     },
     {
       "code": "c3.num.fractions.reperer-droite",
       "intitule": "Repérer et placer des fractions sur une demi-droite graduée",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.fractions.placer-sur-droite"
+      ]
     },
     {
       "code": "c3.num.fractions.comparer",
       "intitule": "Comparer des fractions entre elles ou à l'unité dans des cas simples",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.fractions.comparer-ordonner"
+      ]
     },
     {
       "code": "c3.num.fractions.decomposer",
       "intitule": "Décomposer une fraction sous la forme d'un entier et d'une fraction inférieure à 1",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.fractions.sens-quotient"
+      ]
     },
     {
       "code": "c3.num.fractions.egalites",
       "intitule": "Reconnaître et produire des fractions égales dans des cas simples",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.fractions.etablir-egalites"
+      ]
     },
     {
       "code": "c3.num.decimaux.fractions-decimales",
       "intitule": "Utiliser les fractions décimales pour passer d'une écriture fractionnaire à une écriture décimale",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.connaitre-ecritures"
+      ]
     },
     {
       "code": "c3.num.decimaux.lire-ecrire",
       "intitule": "Lire, écrire et décomposer des nombres décimaux en utilisant la valeur positionnelle des chiffres",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.connaitre-valeur-chiffres",
+        "c3.num.decimaux.connaitre-ecritures"
+      ]
     },
     {
       "code": "c3.num.decimaux.comparer-ranger",
       "intitule": "Comparer et ranger des nombres décimaux",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.comparer-ordonner"
+      ]
     },
     {
       "code": "c3.num.decimaux.encadrer-intercaler",
       "intitule": "Encadrer un nombre décimal par deux entiers ou deux décimaux, intercaler un nombre entre deux autres",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.arrondir-encadrer"
+      ]
     },
     {
       "code": "c3.num.decimaux.arrondir",
       "intitule": "Donner une valeur approchée ou un arrondi d'un nombre décimal à une précision donnée",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.arrondir-encadrer"
+      ]
     },
     {
       "code": "c3.num.decimaux.reperer-droite",
       "intitule": "Repérer et placer des nombres décimaux sur une demi-droite graduée",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.placer-reperer-droite"
+      ]
     },
     {
       "code": "c3.num.calcul.mental",
       "intitule": "Calculer mentalement avec les quatre opérations sur les nombres entiers et décimaux",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025"
     },
     {
       "code": "c3.num.calcul.pose-addition-soustraction",
       "intitule": "Poser et effectuer des additions et des soustractions de nombres entiers et décimaux",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.additionner-soustraire"
+      ]
     },
     {
       "code": "c3.num.calcul.pose-multiplication",
       "intitule": "Poser et effectuer la multiplication de deux nombres entiers ou décimaux",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.multiplier-decimaux"
+      ]
     },
     {
       "code": "c3.num.calcul.division-euclidienne",
       "intitule": "Effectuer une division euclidienne et interpréter le quotient et le reste",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.division-euclidienne"
+      ]
     },
     {
       "code": "c3.num.calcul.division-decimale",
       "intitule": "Effectuer la division décimale d'un nombre décimal par un nombre entier",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.decimaux.diviser-decimal"
+      ]
     },
     {
       "code": "c3.num.calcul.multiples-diviseurs",
       "intitule": "Reconnaître les multiples et diviseurs d'un nombre et utiliser les critères de divisibilité par 2, 3, 5, 9 et 10",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.num.calcul.ordre-grandeur",
       "intitule": "Estimer un ordre de grandeur pour contrôler la vraisemblance d'un résultat",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025"
     },
     {
       "code": "c3.num.calcul.instrumente",
       "intitule": "Utiliser une calculatrice pour trouver ou vérifier un résultat",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.num.problemes.quatre-operations",
       "intitule": "Résoudre des problèmes en une ou plusieurs étapes relevant des quatre opérations",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.num.proportionnalite.reconnaitre",
       "intitule": "Reconnaître une situation de proportionnalité et mobiliser les propriétés de linéarité",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (proportionnalité) ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (proportionnalité) ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.ogd.proportionnalite.identifier"
+      ]
     },
     {
       "code": "c3.num.proportionnalite.procedures",
       "intitule": "Résoudre un problème de proportionnalité par passage à l'unité ou coefficient de proportionnalité",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (proportionnalité) ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (proportionnalité) ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.ogd.proportionnalite.resoudre"
+      ]
     },
     {
       "code": "c3.num.proportionnalite.pourcentages",
       "intitule": "Appliquer un taux de pourcentage simple (50 %, 25 %, 75 %, 10 %)",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (proportionnalité) ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (proportionnalité) ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.num.pourcentages.comprendre-sens",
+        "c3.num.pourcentages.appliquer"
+      ]
     },
     {
       "code": "c3.num.donnees.lire",
       "intitule": "Lire et interpréter des données présentées en tableaux, diagrammes et graphiques",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (organisation et gestion de données) ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (organisation et gestion de données) ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025"
     },
     {
       "code": "c3.num.donnees.organiser",
       "intitule": "Organiser des données et compléter un tableau ou un diagramme",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (organisation et gestion de données) ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (organisation et gestion de données) ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.ogd.donnees.construire-tableau"
+      ]
     },
     {
       "code": "c3.num.donnees.exploiter",
       "intitule": "Résoudre un problème à partir de données organisées",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (organisation et gestion de données) ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Nombres et calculs (organisation et gestion de données) ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.ogd.donnees.filtrer-critere"
+      ]
     },
     {
       "code": "c3.gm.longueurs.unites",
       "intitule": "Connaître les unités de longueur et effectuer des conversions",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.gm.longueurs.perimetre-polygone",
       "intitule": "Calculer le périmètre d'un polygone",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.gm.longueurs.calculer-perimetre-compose"
+      ]
     },
     {
       "code": "c3.gm.longueurs.perimetre-cercle",
       "intitule": "Connaître et utiliser la formule de la longueur d'un cercle",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.gm.longueurs.calculer-perimetre-disque"
+      ]
     },
     {
       "code": "c3.gm.aires.comparer-mesurer",
       "intitule": "Comparer et mesurer des aires par découpage, pavage ou comptage d'unités",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.gm.aires.unites",
       "intitule": "Connaître les unités d'aire et effectuer des conversions",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.gm.aires.convertir"
+      ]
     },
     {
       "code": "c3.gm.aires.formules",
       "intitule": "Calculer l'aire d'un rectangle ou d'un triangle à l'aide des formules",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.gm.aires.calculer-carre-rectangle"
+      ]
     },
     {
       "code": "c3.gm.aires.distinguer-perimetre",
       "intitule": "Distinguer l'aire et le périmètre d'une figure",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.gm.volumes.contenances",
       "intitule": "Connaître les unités de contenance et de volume et effectuer des conversions",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.gm.volumes.pave-droit",
       "intitule": "Calculer le volume d'un cube ou d'un pavé droit",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.gm.masses.unites",
       "intitule": "Connaître les unités de masse et effectuer des conversions",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.gm.angles.comparer",
       "intitule": "Identifier des angles droits, aigus ou obtus et comparer des angles",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.geo.angles.connaitre-mesurer-construire"
+      ]
     },
     {
       "code": "c3.gm.angles.mesurer",
       "intitule": "Mesurer un angle avec un rapporteur et construire un angle de mesure donnée",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.geo.angles.connaitre-mesurer-construire"
+      ]
     },
     {
       "code": "c3.gm.durees.calculer",
       "intitule": "Calculer des durées et des instants, convertir des unités de durée",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Grandeurs et mesures ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.gm.durees.calculer-horaires",
+        "c3.gm.durees.convertir"
+      ]
     },
     {
       "code": "c3.geo.reperage.se-reperer",
       "intitule": "Se repérer et décrire une position sur un plan, une carte ou un quadrillage",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.geo.reperage.deplacements",
       "intitule": "Coder ou programmer les déplacements d'un personnage ou d'un robot sur un quadrillage ou un écran",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.algo.instructions.programmer"
+      ]
     },
     {
       "code": "c3.geo.figures.vocabulaire",
       "intitule": "Utiliser le vocabulaire et les notations de géométrie : point, segment, droite, demi-droite, milieu, distance",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025"
     },
     {
       "code": "c3.geo.figures.reconnaitre",
       "intitule": "Reconnaître, nommer et décrire les figures usuelles : triangles particuliers, quadrilatères particuliers, cercle",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025"
     },
     {
       "code": "c3.geo.figures.construire",
       "intitule": "Construire des figures usuelles aux instruments (règle graduée, équerre, compas)",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025"
     },
     {
       "code": "c3.geo.figures.reproduire",
       "intitule": "Reproduire une figure à partir d'un modèle ou d'un programme de construction",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025"
     },
     {
       "code": "c3.geo.droites.perpendiculaires",
       "intitule": "Reconnaître et tracer des droites perpendiculaires",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.geo.droites.paralleles",
       "intitule": "Reconnaître et tracer des droites parallèles",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.geo.symetrie.reconnaitre",
       "intitule": "Reconnaître qu'une figure possède un ou plusieurs axes de symétrie",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.geo.symetrie.connaitre-construire"
+      ]
     },
     {
       "code": "c3.geo.symetrie.completer",
       "intitule": "Compléter une figure par symétrie axiale sur quadrillage ou papier pointé",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.geo.symetrie.connaitre-construire"
+      ]
     },
     {
       "code": "c3.geo.symetrie.construire",
       "intitule": "Construire le symétrique d'un point, d'un segment ou d'une figure par rapport à une droite donnée",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.geo.symetrie.connaitre-construire"
+      ]
     },
     {
       "code": "c3.geo.symetrie.proprietes",
       "intitule": "Utiliser les propriétés de conservation de la symétrie axiale (longueurs, angles, aires)",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": [
+        "c3.geo.symetrie.connaitre-construire"
+      ]
     },
     {
       "code": "c3.geo.solides.reconnaitre",
       "intitule": "Reconnaître, nommer et décrire les solides usuels : cube, pavé droit, prisme, pyramide, cylindre, cône, boule",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c3.geo.solides.patrons",
       "intitule": "Reconnaître et construire un patron de cube ou de pavé droit",
       "cycle": 3,
-      "niveaux": ["6e"],
+      "niveaux": [
+        "6e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 3, Espace et géométrie ; attendus de fin d'année de 6e (2019)",
+      "programme": "cycle3-2020",
+      "deprecatedSince": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025",
+      "remplacePar": []
     },
     {
       "code": "c4.num.relatifs.reperer",
       "intitule": "Utiliser les nombres relatifs pour repérer et comparer (droite graduée, repère du plan)",
       "cycle": 4,
-      "niveaux": ["5e"],
+      "niveaux": [
+        "5e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.relatifs.addition-soustraction",
       "intitule": "Additionner et soustraire des nombres relatifs",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.relatifs.multiplication-division",
       "intitule": "Multiplier et diviser des nombres relatifs en appliquant la règle des signes",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.relatifs.enchainements",
       "intitule": "Calculer une expression avec enchaînement d'opérations en respectant les priorités opératoires",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.calcul.mental",
       "intitule": "Pratiquer le calcul mental et estimer un ordre de grandeur sur les nombres rationnels",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.calcul.instrumente",
       "intitule": "Utiliser la calculatrice ou un tableur pour effectuer, vérifier ou automatiser un calcul",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.fractions.egalite-simplifier",
       "intitule": "Reconnaître des écritures fractionnaires égales et simplifier une fraction",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.fractions.comparer",
       "intitule": "Comparer des nombres en écriture fractionnaire",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.fractions.addition-soustraction",
       "intitule": "Additionner et soustraire des nombres en écriture fractionnaire",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.fractions.multiplication-division",
       "intitule": "Multiplier et diviser des nombres en écriture fractionnaire",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.fractions.irreductible",
       "intitule": "Rendre une fraction irréductible",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.puissances.exposants",
       "intitule": "Utiliser les puissances d'exposant entier, positif ou négatif, d'un nombre",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.puissances.dix",
       "intitule": "Utiliser les puissances de 10 d'exposant entier",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.puissances.ecriture-scientifique",
       "intitule": "Utiliser la notation scientifique pour écrire, comparer et calculer avec de très grands ou très petits nombres",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.racines.carree",
       "intitule": "Utiliser la racine carrée d'un nombre positif, notamment pour calculer une longueur",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.arithmetique.nombres-premiers",
       "intitule": "Connaître la notion de nombre premier et reconnaître les nombres premiers inférieurs à 30",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.arithmetique.decomposition",
       "intitule": "Décomposer un nombre entier en produit de facteurs premiers",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.litteral.produire",
       "intitule": "Produire une expression littérale pour traduire une situation ou un programme de calcul",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.litteral.substituer",
       "intitule": "Substituer une valeur numérique à une lettre pour calculer la valeur d'une expression",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.litteral.reduire",
       "intitule": "Réduire une expression littérale",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.litteral.developper",
       "intitule": "Développer une expression à l'aide de la distributivité, simple puis double",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.litteral.factoriser",
       "intitule": "Factoriser une expression dont un facteur commun est apparent",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.litteral.demontrer",
       "intitule": "Utiliser le calcul littéral pour démontrer un résultat général ou valider une conjecture",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.equations.tester",
       "intitule": "Tester si une égalité est vraie pour des valeurs numériques données des lettres",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.equations.premier-degre",
       "intitule": "Résoudre algébriquement une équation du premier degré",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.equations.carre",
       "intitule": "Résoudre une équation du type x² = a",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.num.equations.mettre-en-equation",
       "intitule": "Mettre un problème en équation et le résoudre",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "nombres-et-calculs",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.proportionnalite.reconnaitre",
       "intitule": "Reconnaître une situation de proportionnalité ou de non-proportionnalité (tableau, graphique, énoncé)",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.proportionnalite.coefficient",
       "intitule": "Utiliser le coefficient de proportionnalité ou le passage à l'unité pour résoudre un problème",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.proportionnalite.quatrieme",
       "intitule": "Calculer une quatrième proportionnelle",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.proportionnalite.pourcentages",
       "intitule": "Utiliser un pourcentage : appliquer un taux, déterminer un taux, traiter une augmentation ou une diminution simple",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.proportionnalite.echelles",
       "intitule": "Utiliser une échelle sur un plan, une carte ou un dessin",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.proportionnalite.ratio",
       "intitule": "Utiliser la notion de ratio pour partager une quantité",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs (ratio) ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs (ratio) ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.proportionnalite.graphique",
       "intitule": "Caractériser graphiquement la proportionnalité par une droite passant par l'origine",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.statistiques.recueillir",
       "intitule": "Recueillir, organiser et représenter des données sous forme de tableaux et de diagrammes",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.statistiques.lire",
       "intitule": "Lire, interpréter et commenter des représentations de données en exerçant son esprit critique",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.statistiques.effectifs-frequences",
       "intitule": "Calculer des effectifs et des fréquences",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.statistiques.moyenne",
       "intitule": "Calculer et interpréter une moyenne, y compris pondérée",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.statistiques.mediane",
       "intitule": "Déterminer et interpréter la médiane d'une série de données",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.statistiques.etendue",
       "intitule": "Déterminer et interpréter l'étendue d'une série de données",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.probabilites.vocabulaire",
       "intitule": "Utiliser le vocabulaire des probabilités : expérience aléatoire, issue, événement, probabilité",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.probabilites.proprietes",
       "intitule": "Utiliser les propriétés élémentaires des probabilités : valeurs entre 0 et 1, somme, événement contraire",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.probabilites.calculer",
       "intitule": "Calculer des probabilités dans des situations simples d'équiprobabilité",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.probabilites.frequences",
       "intitule": "Faire le lien entre fréquence observée et probabilité",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.fonctions.notion",
       "intitule": "Comprendre la notion de fonction : image, antécédent, notations f(x)",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.fonctions.representations",
       "intitule": "Passer d'un mode de représentation d'une fonction à un autre : tableau de valeurs, graphique, formule",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.fonctions.lineaires-affines",
       "intitule": "Reconnaître et représenter graphiquement une fonction linéaire ou affine",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.ogd.fonctions.modeliser",
       "intitule": "Modéliser une situation par une fonction, notamment une situation de proportionnalité par une fonction linéaire",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Organisation et gestion de données, fonctions ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.aires-perimetres.calculer",
       "intitule": "Calculer le périmètre et l'aire des figures usuelles, y compris le disque",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.aires-perimetres.composees",
       "intitule": "Calculer le périmètre ou l'aire d'une figure composée par décomposition en figures usuelles",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.volumes.prisme-cylindre",
       "intitule": "Calculer le volume d'un prisme droit ou d'un cylindre",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.volumes.pyramide-cone",
       "intitule": "Calculer le volume d'une pyramide ou d'un cône",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.volumes.boule",
       "intitule": "Calculer le volume d'une boule",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.unites.convertir",
       "intitule": "Convertir des unités de longueur, d'aire, de volume et de contenance",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.grandeurs-composees.vitesse",
       "intitule": "Calculer et utiliser une vitesse moyenne et d'autres grandeurs quotients",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.grandeurs-composees.produits",
       "intitule": "Utiliser des grandeurs produits et des grandeurs composées (énergie, débit, masse volumique) et convertir leurs unités",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.gm.agrandissement.effets",
       "intitule": "Connaître et utiliser l'effet d'un agrandissement ou d'une réduction de rapport k sur les longueurs, les aires et les volumes",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "grandeurs-et-mesures",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Grandeurs et mesures ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.angles.somme-triangle",
       "intitule": "Utiliser la somme des angles d'un triangle pour calculer une mesure manquante",
       "cycle": 4,
-      "niveaux": ["5e"],
+      "niveaux": [
+        "5e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.angles.alternes-internes",
       "intitule": "Utiliser les angles alternes-internes et correspondants pour caractériser le parallélisme de deux droites",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.triangles.inegalite",
       "intitule": "Utiliser l'inégalité triangulaire pour justifier qu'un triangle est constructible ou non",
       "cycle": 4,
-      "niveaux": ["5e"],
+      "niveaux": [
+        "5e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.triangles.construire",
       "intitule": "Construire un triangle à partir de longueurs et de mesures d'angles données",
       "cycle": 4,
-      "niveaux": ["5e"],
+      "niveaux": [
+        "5e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.triangles.egaux",
       "intitule": "Reconnaître des triangles égaux et utiliser les cas d'égalité pour raisonner",
       "cycle": 4,
-      "niveaux": ["4e"],
+      "niveaux": [
+        "4e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.triangles.semblables",
       "intitule": "Reconnaître des triangles semblables et utiliser la proportionnalité des longueurs",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.triangles.droites-remarquables",
       "intitule": "Connaître et utiliser les droites remarquables du triangle : médiatrices et hauteurs",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.parallelogramme.proprietes",
       "intitule": "Connaître et utiliser les propriétés du parallélogramme (côtés opposés, diagonales, centre de symétrie)",
       "cycle": 4,
-      "niveaux": ["5e"],
+      "niveaux": [
+        "5e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.parallelogramme.particuliers",
       "intitule": "Reconnaître et caractériser le rectangle, le losange et le carré comme parallélogrammes particuliers",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.transformations.symetrie-centrale",
       "intitule": "Construire l'image d'une figure par symétrie centrale et utiliser ses propriétés",
       "cycle": 4,
-      "niveaux": ["5e"],
+      "niveaux": [
+        "5e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.transformations.translation",
       "intitule": "Comprendre l'effet d'une translation et construire l'image d'une figure",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.transformations.rotation",
       "intitule": "Comprendre l'effet d'une rotation et construire l'image d'une figure dans des cas simples",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.transformations.homothetie",
       "intitule": "Comprendre l'effet d'une homothétie sur une figure et sur ses grandeurs",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.transformations.conservation",
       "intitule": "Utiliser les propriétés de conservation des transformations du plan pour raisonner sur une figure",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.pythagore.reconnaitre-hypotenuse",
       "intitule": "Identifier l'hypoténuse d'un triangle rectangle et utiliser le vocabulaire associé",
       "cycle": 4,
-      "niveaux": ["4e"],
+      "niveaux": [
+        "4e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.pythagore.calculer",
       "intitule": "Calculer une longueur dans un triangle rectangle à l'aide du théorème de Pythagore",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.pythagore.reciproque",
       "intitule": "Utiliser la réciproque du théorème de Pythagore pour prouver qu'un triangle est rectangle ou ne l'est pas",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.thales.calculer",
       "intitule": "Calculer une longueur à l'aide du théorème de Thalès (configurations triangle et papillon)",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.thales.reciproque",
       "intitule": "Utiliser la réciproque du théorème de Thalès pour prouver que deux droites sont parallèles",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.trigonometrie.rapports",
       "intitule": "Connaître et utiliser les rapports trigonométriques dans le triangle rectangle : cosinus, sinus, tangente",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.trigonometrie.calculer-longueur",
       "intitule": "Calculer une longueur dans un triangle rectangle à l'aide de la trigonométrie",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.trigonometrie.calculer-angle",
       "intitule": "Calculer la mesure d'un angle dans un triangle rectangle à l'aide de la trigonométrie",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.reperage.plan",
       "intitule": "Se repérer dans le plan muni d'un repère orthogonal : lire et placer des coordonnées",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.reperage.espace",
       "intitule": "Se repérer sur un pavé droit ou sur une sphère (parallèles, méridiens, latitude, longitude)",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.espace.representer",
       "intitule": "Représenter des solides et des situations spatiales : perspective cavalière, patrons, vues",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.geo.espace.sections",
       "intitule": "Identifier et représenter des sections planes de solides usuels",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "espace-et-geometrie",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.algo.programmes.ecrire",
       "intitule": "Écrire et mettre au point un programme dans un environnement de programmation par blocs",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "algorithmique-et-programmation",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.algo.programmes.evenements",
       "intitule": "Écrire un programme dont le déroulement dépend d'événements",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "algorithmique-et-programmation",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.algo.programmes.variables",
       "intitule": "Utiliser des variables dans un programme",
       "cycle": 4,
-      "niveaux": ["4e", "3e"],
+      "niveaux": [
+        "4e",
+        "3e"
+      ],
       "domaine": "algorithmique-et-programmation",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.algo.programmes.boucles-conditions",
       "intitule": "Utiliser des boucles et des instructions conditionnelles dans un programme",
       "cycle": 4,
-      "niveaux": ["5e", "4e", "3e"],
+      "niveaux": [
+        "5e",
+        "4e",
+        "3e"
+      ],
       "domaine": "algorithmique-et-programmation",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 5e, 4e et 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 5e, 4e et 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.algo.programmes.decomposer",
       "intitule": "Décomposer un problème en sous-problèmes et écrire les scripts correspondants",
       "cycle": 4,
-      "niveaux": ["3e"],
+      "niveaux": [
+        "3e"
+      ],
       "domaine": "algorithmique-et-programmation",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 3e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 3e (2019)",
+      "programme": "cycle4-2020"
     },
     {
       "code": "c4.algo.deplacements.programmer",
       "intitule": "Programmer des déplacements ou des constructions géométriques",
       "cycle": 4,
-      "niveaux": ["5e", "4e"],
+      "niveaux": [
+        "5e",
+        "4e"
+      ],
       "domaine": "algorithmique-et-programmation",
-      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 5e et 4e (2019)"
+      "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Algorithmique et programmation ; attendus de fin d'année de 5e et 4e (2019)",
+      "programme": "cycle4-2020"
+    },
+    {
+      "code": "c3.num.decimaux.connaitre-valeur-chiffres",
+      "intitule": "Connaitre et utiliser la valeur des chiffres selon leur rang dans l'écriture d'un nombre entier ou décimal ; connaitre les liens entre les unités de numération",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.connaitre-grands-nombres",
+      "intitule": "Connaitre des grands nombres entiers jusqu'à la classe des milliards",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.connaitre-ecritures",
+      "intitule": "Reconnaitre un nombre décimal ; connaitre la définition d'un pourcentage ; associer et utiliser différentes écritures d'un nombre décimal : écriture à virgule, fraction, nombre mixte, pourcentage",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.placer-reperer-droite",
+      "intitule": "Placer sur une demi-droite graduée un point dont l'abscisse est un nombre décimal ; repérer un nombre décimal sur une demi-droite graduée",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.comparer-ordonner",
+      "intitule": "Comparer deux nombres décimaux ; ordonner une liste de nombres décimaux",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.arrondir-encadrer",
+      "intitule": "Donner la valeur arrondie à l'unité, au dixième ou au centième d'un nombre décimal ou non décimal ; encadrer un nombre décimal par deux nombres décimaux",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.additionner-soustraire",
+      "intitule": "Additionner et soustraire des nombres décimaux",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.multiplier-par-fractions",
+      "intitule": "Multiplier un nombre entier ou décimal par 0,1 ; 0,01 ; 0,001 ; connaitre le lien avec la division par 10, 100 et par 1 000",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.multiplier-decimaux",
+      "intitule": "Comprendre le sens de la multiplication de deux nombres décimaux ; calculer le produit de deux nombres décimaux ; contrôler les résultats à l'aide d'ordres de grandeur",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.diviser-decimal",
+      "intitule": "Diviser un nombre décimal par un nombre entier non nul inférieur à 10",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.decimaux.division-euclidienne",
+      "intitule": "Effectuer la division euclidienne d'un nombre entier par un nombre entier inférieur à 100",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les nombres entiers et décimaux"
+    },
+    {
+      "code": "c3.num.fractions.sens-quotient",
+      "intitule": "Relier une fraction au résultat exact de la division de son numérateur par son dénominateur ; connaitre la définition du quotient d'un entier par un entier non nul ; compléter des égalités à trou multiplicatives",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les fractions (sens quotient)"
+    },
+    {
+      "code": "c3.num.fractions.placer-sur-droite",
+      "intitule": "Placer une fraction sur une demi-droite graduée dans des cas simples ; graduer un segment de longueur donnée",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les fractions (sens quotient)"
+    },
+    {
+      "code": "c3.num.fractions.connaitre-nature",
+      "intitule": "Savoir que la fraction a/b peut représenter un nombre entier, un nombre décimal non entier ou un nombre non décimal",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les fractions (sens quotient)"
+    },
+    {
+      "code": "c3.num.fractions.appliquer-operateur",
+      "intitule": "Utiliser une multiplication pour appliquer une fraction à un nombre entier",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Les fractions (fraction comme opérateur multiplicatif)"
+    },
+    {
+      "code": "c3.num.fractions.etablir-egalites",
+      "intitule": "Établir des égalités de fractions ; compléter des égalités à trou du type a/b = ?/c",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Comparer des fractions"
+    },
+    {
+      "code": "c3.num.fractions.comparer-ordonner",
+      "intitule": "Comparer et encadrer des fractions ; ordonner une liste de nombres écrits sous forme de fractions ou de nombres mixtes",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Comparer des fractions"
+    },
+    {
+      "code": "c3.num.fractions.additionner-soustraire",
+      "intitule": "Additionner et soustraire des fractions de même dénominateur ou de dénominateurs multiples l'un de l'autre",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Effectuer des opérations sur les fractions"
+    },
+    {
+      "code": "c3.num.fractions.multiplier-par-entier",
+      "intitule": "Multiplier une fraction par un nombre entier",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Effectuer des opérations sur les fractions"
+    },
+    {
+      "code": "c3.num.fractions.resoudre-problemes",
+      "intitule": "Résoudre et inventer des problèmes mettant en jeu des fractions",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Effectuer des opérations sur les fractions"
+    },
+    {
+      "code": "c3.num.pourcentages.comprendre-sens",
+      "intitule": "Comprendre le sens d'un pourcentage ; calculer une proportion et l'exprimer sous forme de pourcentage dans des cas simples",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Pourcentages"
+    },
+    {
+      "code": "c3.num.pourcentages.appliquer",
+      "intitule": "Appliquer un pourcentage à une grandeur ou à un nombre",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Pourcentages"
+    },
+    {
+      "code": "c3.num.algebre.utiliser-modeles-prealgebriques",
+      "intitule": "Utiliser des modèles pré-algébriques pour résoudre des problèmes mettant en jeu des nombres inconnus",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Algèbre — Résoudre des problèmes mettant en jeu des nombres inconnus"
+    },
+    {
+      "code": "c3.num.algebre.identifier-regularite",
+      "intitule": "Identifier la structure d'un motif évolutif en repérant une régularité et en identifiant une structure",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Nombres, calcul et résolution de problèmes, Algèbre — Résoudre des problèmes mettant en jeu des nombres inconnus"
+    },
+    {
+      "code": "c3.gm.longueurs.calculer-perimetre-disque",
+      "intitule": "Savoir que le périmètre du disque est proportionnel à son diamètre ; connaitre et utiliser la formule du périmètre d'un disque",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Les longueurs"
+    },
+    {
+      "code": "c3.gm.longueurs.calculer-perimetre-compose",
+      "intitule": "Calculer des périmètres de figures composées dont le contour contient des portions de cercles ; résoudre des problèmes impliquant des longueurs",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Les longueurs"
+    },
+    {
+      "code": "c3.gm.aires.convertir",
+      "intitule": "Effectuer des conversions d'aire entre mm², cm², dm², m² et km²",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Les aires"
+    },
+    {
+      "code": "c3.gm.aires.calculer-carre-rectangle",
+      "intitule": "Connaitre les formules de l'aire d'un carré et d'un rectangle ; calculer l'aire d'un carré ou d'un rectangle",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Les aires"
+    },
+    {
+      "code": "c3.gm.volumes.connaitre-cm3",
+      "intitule": "Connaitre l'unité centimètre cube : le cm³ est le volume d'un cube d'arête 1 cm",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Les volumes"
+    },
+    {
+      "code": "c3.gm.volumes.comparer-determiner",
+      "intitule": "Comparer et déterminer le volume d'un assemblage de cubes d'arête 1 cm",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Les volumes"
+    },
+    {
+      "code": "c3.gm.durees.calculer-horaires",
+      "intitule": "Effectuer des calculs sur des horaires et des durées ; résoudre des problèmes impliquant des horaires et des durées",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Le repérage dans le temps et les durées"
+    },
+    {
+      "code": "c3.gm.durees.convertir",
+      "intitule": "Convertir des durées entre jours, heures, minutes et secondes ; connaitre les écritures sexagésimale et décimale d'une durée",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Grandeurs et mesures, Le repérage dans le temps et les durées"
+    },
+    {
+      "code": "c3.geo.distances.connaitre-definition",
+      "intitule": "Connaitre et utiliser la définition de la distance entre deux points",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Distances"
+    },
+    {
+      "code": "c3.geo.distances.construire-milieu",
+      "intitule": "Connaitre et utiliser la définition du milieu d'un segment ; le construire par différents moyens",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Distances"
+    },
+    {
+      "code": "c3.geo.cercles.connaitre-definitions",
+      "intitule": "Connaitre les définitions d'un cercle, d'un disque, d'un rayon, d'un diamètre, d'une corde ; comprendre ces définitions sous la forme d'ensembles de points",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Cercles et disques"
+    },
+    {
+      "code": "c3.geo.cercles.resoudre-distances",
+      "intitule": "Résoudre des problèmes mettant en jeu des distances à un point",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Cercles et disques"
+    },
+    {
+      "code": "c3.geo.mediatrice.connaitre-propriete",
+      "intitule": "Connaitre la définition de la médiatrice d'un segment ; comprendre et utiliser sa propriété caractéristique : ensemble des points équidistants des extrémités",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Médiatrice d'un segment"
+    },
+    {
+      "code": "c3.geo.mediatrice.resoudre-problemes",
+      "intitule": "Résoudre des problèmes en s'appuyant sur la propriété caractéristique de la médiatrice",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Médiatrice d'un segment"
+    },
+    {
+      "code": "c3.geo.angles.connaitre-mesurer-construire",
+      "intitule": "Connaitre et utiliser les angles ainsi que le lexique associé (droit, plat, plein, nul, aigu, obtus, opposés par le sommet, adjacents, supplémentaires) ; mesurer un angle ; construire un angle de mesure donnée",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Angles"
+    },
+    {
+      "code": "c3.geo.bissectrice.connaitre-definition",
+      "intitule": "Connaitre la définition de la bissectrice d'un angle saillant comme droite partageant l'angle en deux angles adjacents égaux",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Bissectrice d'un angle saillant"
+    },
+    {
+      "code": "c3.geo.bissectrice.utiliser-construire",
+      "intitule": "Utiliser la définition de la bissectrice d'un angle pour effectuer des constructions et résoudre des problèmes",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Bissectrice d'un angle saillant"
+    },
+    {
+      "code": "c3.geo.triangles.construire-proprietes",
+      "intitule": "Construire des triangles ; connaitre et utiliser les propriétés angulaires des triangles particuliers (rectangle, isocèle, équilatéral)",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Triangles"
+    },
+    {
+      "code": "c3.geo.triangles.somme-angles",
+      "intitule": "Connaitre et utiliser la somme des mesures des angles d'un triangle pour calculer des angles, effectuer des constructions et résoudre des problèmes",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Triangles"
+    },
+    {
+      "code": "c3.geo.triangles.cercle-circonscrit",
+      "intitule": "Savoir que les médiatrices d'un triangle sont concourantes ; connaitre et construire le cercle circonscrit à un triangle",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Triangles"
+    },
+    {
+      "code": "c3.geo.symetrie.connaitre-construire",
+      "intitule": "Connaitre la définition du symétrique d'un point par rapport à une droite ; connaitre et utiliser les propriétés de conservation de la symétrie axiale ; construire des figures symétriques",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, Étude de configurations planes, Symétrie axiale"
+    },
+    {
+      "code": "c3.geo.espace.visualiser-assemblages",
+      "intitule": "Voir dans l'espace des assemblages de cubes : interpréter des représentations planes et tracer des vues (dessus, face, côté)",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Espace et géométrie, La vision dans l'espace"
+    },
+    {
+      "code": "c3.ogd.donnees.planifier-recueillir",
+      "intitule": "Planifier une enquête, recueillir des données et les consigner dans un tableau ; réaliser des mesures et les représenter dans un repère",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, Organisation et gestion de données"
+    },
+    {
+      "code": "c3.ogd.donnees.construire-tableau",
+      "intitule": "Construire un tableau simple pour présenter des données",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, Organisation et gestion de données"
+    },
+    {
+      "code": "c3.ogd.donnees.filtrer-critere",
+      "intitule": "Faire un choix en filtrant les données d'un tableau selon un critère",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, Organisation et gestion de données"
+    },
+    {
+      "code": "c3.ogd.probabilites.comprendre-echelle",
+      "intitule": "Savoir que la probabilité d'un évènement est un nombre compris entre 0 et 1 ; savoir que la probabilité d'un évènement impossible vaut 0 et celle d'un évènement certain vaut 1",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, Les probabilités"
+    },
+    {
+      "code": "c3.ogd.probabilites.calculer-equiprobabilite",
+      "intitule": "Calculer des probabilités dans des situations simples d'équiprobabilité",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, Les probabilités"
+    },
+    {
+      "code": "c3.ogd.probabilites.comparer-experience",
+      "intitule": "Comparer des résultats d'une expérience aléatoire répétée à une probabilité calculée",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, Les probabilités"
+    },
+    {
+      "code": "c3.ogd.proportionnalite.identifier",
+      "intitule": "Connaitre la définition de la proportionnalité entre deux grandeurs ; identifier si une situation relève du modèle de la proportionnalité",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, La proportionnalité"
+    },
+    {
+      "code": "c3.ogd.proportionnalite.resoudre",
+      "intitule": "Résoudre un problème de proportionnalité en choisissant une procédure adaptée : propriété de linéarité multiplicative ou additive, retour à l'unité",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, La proportionnalité"
+    },
+    {
+      "code": "c3.ogd.proportionnalite.representer",
+      "intitule": "Représenter une situation de proportionnalité à l'aide d'un tableau ou de notations symboliques",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, La proportionnalité"
+    },
+    {
+      "code": "c3.ogd.proportionnalite.echelles",
+      "intitule": "S'initier à la résolution de problèmes d'échelles : utiliser une échelle graphique pour déterminer des longueurs réelles",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Organisation et gestion de données et probabilités, La proportionnalité"
+    },
+    {
+      "code": "c3.algo.instructions.identifier-produire",
+      "intitule": "Identifier une instruction ou une séquence d'instructions ; produire et exécuter une séquence d'instructions",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "algorithmique-et-programmation",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Initiation à la pensée informatique"
+    },
+    {
+      "code": "c3.algo.instructions.repeter",
+      "intitule": "Répéter à la main une séquence d'instructions pour accomplir une tâche imposée",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "algorithmique-et-programmation",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Initiation à la pensée informatique"
+    },
+    {
+      "code": "c3.algo.instructions.programmer",
+      "intitule": "Programmer la construction d'un chemin simple",
+      "cycle": 3,
+      "niveaux": [
+        "6e"
+      ],
+      "domaine": "algorithmique-et-programmation",
+      "programme": "cycle3-2025",
+      "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Initiation à la pensée informatique"
     }
   ]
 }

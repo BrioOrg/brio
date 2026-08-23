@@ -68,6 +68,24 @@
           "description": "Citation of the official source grounding this entry: BOEN issue and programme, and/or attendus de fin d'année.",
           "type": "string",
           "minLength": 1
+        },
+        "programme": {
+          "description": "Which official programme text grounds this entry. Format: cycle{N}-{YYYY}, e.g. 'cycle3-2025', 'cycle4-2020'. Required on all non-deprecated entries; the two-programmes-at-once invariant is enforced by check-competencies.mjs.",
+          "type": "string",
+          "pattern": "^cycle[34]-[0-9]{4}$"
+        },
+        "deprecatedSince": {
+          "description": "Date or BO reference of the text that superseded this entry. Presence of this field means the entry is deprecated and must not be referenced by new content.",
+          "type": "string",
+          "minLength": 1
+        },
+        "remplacePar": {
+          "description": "Codes of successor entries in the current programme. Absent means the mapping has not been established. Empty array means no successor exists (the competency was removed from the programme).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^c[34]\\.(num|geo|gm|ogd|algo)\\.[a-z0-9]+(?:-[a-z0-9]+)*\\.[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
         }
       },
       "allOf": [
