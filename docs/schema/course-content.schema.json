@@ -312,6 +312,7 @@
           "uniqueItems": true
         },
         "caseSensitive": {
+          "description": "Controls case-folding only. NFD normalisation and accent removal always apply regardless of this flag — a student typing on a phone keyboard should not be penalised for missing accents. Use true for answers where letter case is semantically meaningful: variable names (x ≠ X), point labels (M ≠ m). Default false for natural-language answers.",
           "type": "boolean",
           "default": false
         }
