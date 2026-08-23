@@ -123,6 +123,62 @@ class SoumissionIntegrationTest {
                 .andExpect(jsonPath("$.correct").value(false));
     }
 
+    // ---------- short-answer ----------
+
+    @Test
+    void shouldEvaluateCorrectShortAnswer() throws Exception {
+        UUID id = exerciceId("ex-longueur-cotes");
+
+        mockMvc.perform(post("/api/exercices/{id}/soumissions", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"answer": {"text": "les côtés de l'angle droit"}}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correct").value(true))
+                .andExpect(jsonPath("$.score").value(1.0))
+                .andExpect(jsonPath("$.soumissionId").exists());
+    }
+
+    @Test
+    void shouldEvaluateCorrectShortAnswerAfterNormalisation() throws Exception {
+        UUID id = exerciceId("ex-longueur-cotes");
+
+        mockMvc.perform(post("/api/exercices/{id}/soumissions", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"answer": {"text": "Les Cotes De L'Angle Droit."}}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correct").value(true));
+    }
+
+    @Test
+    void shouldEvaluateIncorrectShortAnswer() throws Exception {
+        UUID id = exerciceId("ex-longueur-cotes");
+
+        mockMvc.perform(post("/api/exercices/{id}/soumissions", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"answer": {"text": "l'hypoténuse"}}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.correct").value(false))
+                .andExpect(jsonPath("$.score").value(0.0));
+    }
+
+    @Test
+    void shouldReturn422ForBlankShortAnswer() throws Exception {
+        UUID id = exerciceId("ex-longueur-cotes");
+
+        mockMvc.perform(post("/api/exercices/{id}/soumissions", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"answer": {"text": "   "}}
+                                """))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
     // ---------- error cases ----------
 
     @Test
