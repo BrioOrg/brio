@@ -1,3 +1,5 @@
+import katex from 'katex'
+
 import { ExerciceWidget } from '@/components/exercice-widget'
 
 type Choice = { id: string; text: string }
@@ -73,12 +75,23 @@ function BlockRenderer({ block }: { block: Block }) {
     case 'heading':
       return <Heading level={(block.level as number) ?? 1} text={block.text as string} />
 
-    case 'formula':
-      return (
-        <pre className="bg-gray-50 border rounded p-3 font-mono text-sm overflow-x-auto">
-          {block.latex as string}
-        </pre>
+    case 'formula': {
+      const displayMode = (block.display as string) !== 'inline'
+      // KaTeX output is trusted: input comes from the reviewed content pipeline, never from user input.
+      const html = katex.renderToString(block.latex as string, {
+        throwOnError: false,
+        output: 'htmlAndMathml',
+        displayMode,
+      })
+      return displayMode ? (
+        <div
+          className="my-6 overflow-x-auto text-center"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      ) : (
+        <span dangerouslySetInnerHTML={{ __html: html }} />
       )
+    }
 
     case 'callout':
       return <Callout block={block} />
