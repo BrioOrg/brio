@@ -133,7 +133,13 @@ function BlockRenderer({ block }: { block: Block }) {
 function ExerciseBlock({ block }: { block: Block }) {
   const { exerciceId, exerciseType, prompt, choices, multiple, unit, explanation } = block
 
-  if (exerciceId && prompt && (exerciseType === 'multiple-choice' || exerciseType === 'numeric')) {
+  if (
+    exerciceId &&
+    prompt &&
+    (exerciseType === 'multiple-choice' ||
+      exerciseType === 'numeric' ||
+      exerciseType === 'short-answer')
+  ) {
     return (
       <ExerciceWidget
         exerciceId={exerciceId}
@@ -147,7 +153,7 @@ function ExerciseBlock({ block }: { block: Block }) {
     )
   }
 
-  // Fallback for unsupported exercise types (short-answer, ordering, free-text)
+  // Fallback for unsupported exercise types (ordering, free-text)
   return (
     <div className="rounded-lg border border-gray-300 bg-white p-4">
       <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Exercice</p>
