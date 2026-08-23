@@ -82,17 +82,30 @@ sensible (`answer`, `acceptedAnswers`, `referenceAnswer`, `rubric`, `correct`). 
 
 ### Formules
 
-Toute notation mathématique qui nécessite LaTeX passe par un bloc `formula`. Ne jamais
-écrire `$...$` ou `\(...\)` dans un champ de texte (`prose`, `callout`, `prompt`) :
-l'inline math n'est pas supportée et s'afficherait tel quel, avec les délimiteurs.
+**Bloc `formula`** pour les formules posées sur leur propre ligne (théorème, définition,
+résultat isolé) : `display: "block"` (défaut). `display: "inline"` est candidat à la
+dépréciation depuis l'introduction du math inline ; évite-le.
 
-- `display: "block"` (défaut) : formule centrée, posée sur sa propre ligne. C'est
-  le cas habituel pour un théorème, une définition, un résultat à isoler.
-- `display: "inline"` : pas de centrage, flux normal. À éviter jusqu'à ce que le
-  parseur inline soit disponible — ce cas d'usage est candidat à la dépréciation.
+**Math inline dans la prose** : utilise `$...$` directement dans un champ `richText`
+(`prose.text`, `callout.text`, `callout.title`). Exemple : `"Si $a^2 + b^2 = c^2$, alors..."`.
+Ne jamais utiliser `\(...\)` — seul `$...$` est supporté.
 
-Si la notation est assez simple pour s'écrire en ASCII (`3,15 < 3,9`, `a + b`), préférer
-la prose : un bloc `formula` pour `a + b` est du bruit.
+Si la notation est assez simple pour s'écrire en ASCII (`3,15 < 3,9`, `a + b`), préfère
+la prose sans balisage : un `$a + b$` inline pour une expression simple est du bruit.
+
+**Balisage inline disponible dans les champs `richText` :**
+
+| Syntaxe | Rendu |
+|---|---|
+| `**mot**` | gras |
+| `*mot*` | italique |
+| `$...$` | formule KaTeX inline |
+| `\*` | astérisque littéral |
+| `\$` | dollar littéral |
+
+Un délimiteur non fermé (`**gras`, `$formule`) s'affiche tel quel, délimiteur compris —
+c'est une erreur visible plutôt qu'une perte silencieuse. `node scripts/check-content.mjs`
+détecte ces cas avant le commit.
 
 ### Callouts
 
@@ -135,6 +148,7 @@ Vérifications à faire à la main, dans le navigateur et via l'API :
 
 - [ ] `npx ajv-cli@5 validate --spec=draft2020 -s docs/schema/course-content.schema.json -d "<chemin-du-fichier>.json"` passe.
 - [ ] `node scripts/check-competencies.mjs` passe.
+- [ ] `node scripts/check-content.mjs` passe (délimiteurs richText équilibrés).
 
 ### Ingestion
 
