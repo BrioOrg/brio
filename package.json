@@ -8,6 +8,7 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "check:competencies": "node scripts/check-competencies.mjs",
+    "check:content": "node scripts/check-content.mjs",
     "generate:api": "openapi-typescript docs/api/openapi.json -o packages/api-client/src/generated/schema.d.ts",
     "api:refresh": "node scripts/refresh-api.mjs"
   },
