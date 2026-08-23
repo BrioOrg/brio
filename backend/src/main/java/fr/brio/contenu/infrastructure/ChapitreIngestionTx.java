@@ -143,14 +143,26 @@ class ChapitreIngestionTx {
         if (referenced.isEmpty()) {
             return;
         }
-        Set<String> known = competenceRepository.findAllById(referenced).stream()
+        List<Competence> found = competenceRepository.findAllById(referenced);
+        Set<String> foundCodes = found.stream()
                 .map(Competence::getCode)
                 .collect(HashSet::new, HashSet::add, HashSet::addAll);
+
         Set<String> unknown = new TreeSet<>(referenced);
-        unknown.removeAll(known);
+        unknown.removeAll(foundCodes);
         if (!unknown.isEmpty()) {
             throw new InvalidContentException(
                     "Unknown competency code(s), absent from the referential: " + String.join(", ", unknown));
+        }
+
+        Set<String> deprecated = found.stream()
+                .filter(Competence::isDeprecated)
+                .map(Competence::getCode)
+                .collect(TreeSet::new, TreeSet::add, TreeSet::addAll);
+        if (!deprecated.isEmpty()) {
+            throw new InvalidContentException(
+                    "Deprecated competency code(s) — content must reference only active codes: "
+                    + String.join(", ", deprecated));
         }
     }
 

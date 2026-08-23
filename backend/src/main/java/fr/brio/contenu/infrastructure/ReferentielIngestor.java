@@ -51,29 +51,31 @@ class ReferentielIngestor implements ApplicationRunner {
         List<Competence> toSave = new ArrayList<>();
         for (JsonNode entry : referentiel.get("competences")) {
             String code = entry.get("code").asText();
+            String intitule = entry.get("intitule").asText();
+            int cycle = entry.get("cycle").asInt();
+            String domaine = entry.get("domaine").asText();
+            String referenceOfficielle = entry.get("referenceOfficielle").asText();
+
             List<String> niveaux = new ArrayList<>();
             entry.get("niveaux").forEach(n -> niveaux.add(n.asText()));
 
-            Competence existing = competenceRepository.findById(code).orElse(null);
-            if (existing == null) {
-                toSave.add(new Competence(
-                        code,
-                        entry.get("intitule").asText(),
-                        entry.get("cycle").asInt(),
-                        niveaux,
-                        entry.get("domaine").asText(),
-                        entry.get("referenceOfficielle").asText()));
+            String deprecatedSince = entry.has("deprecatedSince")
+                    ? entry.get("deprecatedSince").asText() : null;
+            List<String> remplacePar = null;
+            if (entry.has("remplacePar")) {
+                remplacePar = new ArrayList<>();
+                for (JsonNode c : entry.get("remplacePar")) remplacePar.add(c.asText());
+            }
+
+            Competence competence = competenceRepository.findById(code).orElse(null);
+            if (competence == null) {
+                competence = new Competence(code, intitule, cycle, niveaux, domaine, referenceOfficielle);
                 created++;
             } else {
-                existing.update(
-                        entry.get("intitule").asText(),
-                        entry.get("cycle").asInt(),
-                        niveaux,
-                        entry.get("domaine").asText(),
-                        entry.get("referenceOfficielle").asText());
-                toSave.add(existing);
                 updated++;
             }
+            competence.update(intitule, cycle, niveaux, domaine, referenceOfficielle, deprecatedSince, remplacePar);
+            toSave.add(competence);
         }
         competenceRepository.saveAll(toSave);
         log.info("Competency referential ingested: {} created, {} updated", created, updated);

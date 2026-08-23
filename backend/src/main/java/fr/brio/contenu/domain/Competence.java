@@ -42,6 +42,13 @@ public class Competence implements Persistable<String> {
     @Column(name = "reference_officielle", nullable = false)
     private String referenceOfficielle;
 
+    @Column(name = "deprecated_since")
+    private String deprecatedSince;
+
+    @Column(name = "remplace_par", columnDefinition = "text[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    private List<String> remplacePar;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -54,17 +61,20 @@ public class Competence implements Persistable<String> {
                       String domaine, String referenceOfficielle) {
         this.code = code;
         this.createdAt = Instant.now();
-        update(intitule, cycle, niveaux, domaine, referenceOfficielle);
+        update(intitule, cycle, niveaux, domaine, referenceOfficielle, null, null);
     }
 
     /** Codes are immutable (ADR 0009); everything else follows the referential file. */
     public void update(String intitule, int cycle, List<String> niveaux,
-                       String domaine, String referenceOfficielle) {
+                       String domaine, String referenceOfficielle,
+                       String deprecatedSince, List<String> remplacePar) {
         this.intitule = intitule;
         this.cycle = (short) cycle;
         this.niveaux = niveaux;
         this.domaine = domaine;
         this.referenceOfficielle = referenceOfficielle;
+        this.deprecatedSince = deprecatedSince;
+        this.remplacePar = remplacePar;
         this.updatedAt = Instant.now();
     }
 
@@ -81,4 +91,7 @@ public class Competence implements Persistable<String> {
     public List<String> getNiveaux() { return niveaux; }
     public String getDomaine() { return domaine; }
     public String getReferenceOfficielle() { return referenceOfficielle; }
+    public String getDeprecatedSince() { return deprecatedSince; }
+    public List<String> getRemplacePar() { return remplacePar; }
+    public boolean isDeprecated() { return deprecatedSince != null; }
 }
