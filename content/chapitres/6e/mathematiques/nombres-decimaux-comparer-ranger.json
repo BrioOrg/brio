@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "id": "nombres-decimaux-comparer-ranger",
+  "title": "Les nombres décimaux : comparer, ranger, encadrer",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 60,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "notation-decimale",
+      "title": "La notation décimale et la valeur des chiffres",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-prose",
+          "type": "prose",
+          "text": "Un nombre décimal est un nombre qui s'écrit avec une virgule. La partie à gauche de la virgule est la **partie entière** ; la partie à droite est la **partie décimale**."
+        },
+        {
+          "id": "def-valeur-chiffres",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Valeur positionnelle des chiffres",
+          "text": "Chaque chiffre occupe un rang qui lui donne sa valeur. À gauche de la virgule : unités, dizaines, centaines… À droite : dixièmes (0,1), centièmes (0,01), millièmes (0,001). Chaque rang vaut dix fois moins que le rang qui le précède."
+        },
+        {
+          "id": "exemple-lecture",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemple : lire 3,47",
+          "text": "3,47 = 3 unités + 4 dixièmes + 7 centièmes. Le chiffre 4 ne vaut pas 4 : il vaut 4 dixièmes, c'est-à-dire 0,4."
+        },
+        {
+          "id": "zeros-inutiles",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Zéros après la virgule",
+          "text": "Ajouter des zéros à droite après la virgule ne change pas la valeur : 3,7 = 3,70 = 3,700. Cette propriété sera essentielle pour comparer des décimaux."
+        }
+      ]
+    },
+    {
+      "id": "comparer-ordonner",
+      "title": "Comparer et ordonner des nombres décimaux",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "methode-comparaison",
+          "type": "prose",
+          "text": "Pour comparer deux nombres décimaux, on compare d'abord les parties entières. Si elles sont égales, on compare les chiffres rang par rang en partant des dixièmes vers les centièmes, puis les millièmes."
+        },
+        {
+          "id": "tip-aligner",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Aligner les rangs",
+          "text": "Pour ne pas se tromper, on complète avec des zéros pour que les deux nombres aient le même nombre de décimales, puis on compare chiffre par chiffre."
+        },
+        {
+          "id": "exemple-comparaison",
+          "type": "callout",
+          "variant": "example",
+          "title": "Comparer 3,15 et 3,9",
+          "text": "On écrit 3,9 = 3,90. Les parties entières sont égales (3 = 3). Au rang des dixièmes : 1 < 9, donc 3,15 < 3,9. Erreur fréquente : croire que 3,15 > 3,9 parce que 15 > 9 — mais 15 et 9 ne sont pas dans le même rang."
+        },
+        {
+          "id": "ex-comparaison-classique",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Lequel de ces deux nombres est le plus grand : 3,15 ou 3,9 ?",
+          "competencies": ["c3.num.decimaux.comparer-ordonner"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-315", "text": "3,15", "correct": false },
+            { "id": "choix-39", "text": "3,9", "correct": true },
+            { "id": "choix-egaux", "text": "Ils sont égaux", "correct": false }
+          ],
+          "explanation": "On écrit 3,9 = 3,90. Au rang des dixièmes : 1 < 9, donc 3,15 < 3,9. Choisir 3,15 est l'erreur classique : comparer 15 et 9 comme des entiers revient à ignorer les rangs — or 15 centièmes (0,15) est bien moins que 9 dixièmes (0,90)."
+        },
+        {
+          "id": "ex-ordre-croissant",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Parmi ces listes, laquelle présente les nombres dans l'ordre croissant ?",
+          "competencies": ["c3.num.decimaux.comparer-ordonner"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-a", "text": "1,5 ; 1,25 ; 1,3", "correct": false },
+            { "id": "choix-b", "text": "1,25 ; 1,3 ; 1,5", "correct": true },
+            { "id": "choix-c", "text": "1,3 ; 1,25 ; 1,5", "correct": false },
+            { "id": "choix-d", "text": "1,25 ; 1,5 ; 1,3", "correct": false }
+          ],
+          "explanation": "1,25 < 1,30 < 1,50 car au rang des dixièmes : 2 < 3 < 5. La liste (a) est l'erreur typique : elle range 25 après 5 en traitant 25 comme un entier supérieur à 5, sans tenir compte des rangs."
+        }
+      ]
+    },
+    {
+      "id": "encadrer-arrondir",
+      "title": "Encadrer et arrondir des nombres décimaux",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "def-encadrement",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Encadrement",
+          "text": "Encadrer un nombre, c'est trouver deux nombres entre lesquels il est situé. Un encadrement par des entiers consécutifs s'écrit : n < x < n+1, où n est la partie entière de x."
+        },
+        {
+          "id": "exemple-encadrement",
+          "type": "callout",
+          "variant": "example",
+          "title": "Encadrer 3,7",
+          "text": "La partie entière de 3,7 est 3. Donc 3 < 3,7 < 4. On dit que 3 et 4 sont deux entiers consécutifs qui encadrent 3,7."
+        },
+        {
+          "id": "ex-borne-inf",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quel est le plus grand entier strictement inférieur à 5,73 ?",
+          "competencies": ["c3.num.decimaux.arrondir-encadrer"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "La partie entière de 5,73 est 5. On a donc 5 < 5,73 < 6. Le plus grand entier strictement inférieur à 5,73 est 5."
+        },
+        {
+          "id": "prose-arrondi",
+          "type": "prose",
+          "text": "Arrondir un nombre, c'est le remplacer par une valeur approchée. On arrondit à une précision donnée : à l'unité, au dixième, au centième."
+        },
+        {
+          "id": "regle-arrondi",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Règle d'arrondi",
+          "text": "On regarde le chiffre du rang immédiatement après la précision voulue. S'il est inférieur à 5 (0, 1, 2, 3 ou 4), on arrondit par défaut : le dernier chiffre gardé reste le même. S'il est supérieur ou égal à 5 (5, 6, 7, 8 ou 9), on arrondit par excès : on augmente le dernier chiffre gardé de 1."
+        },
+        {
+          "id": "exemple-arrondi",
+          "type": "callout",
+          "variant": "example",
+          "title": "Arrondir 4,27 au dixième",
+          "text": "Le chiffre des centièmes est 7 (>= 5) : on arrondit par excès. 4,27 arrondi au dixième donne 4,3."
+        },
+        {
+          "id": "ex-arrondi-unite",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Donne la valeur arrondie de 7,58 à l'unité.",
+          "competencies": ["c3.num.decimaux.arrondir-encadrer"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "Le chiffre des dixièmes est 5 (>= 5) : on arrondit par excès. 7,58 arrondi à l'unité donne 8."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "ex-piege-zeros",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces affirmations est vraie ?",
+          "competencies": ["c3.num.decimaux.comparer-ordonner"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-faux-1", "text": "0,9 < 0,10", "correct": false },
+            { "id": "choix-vrai", "text": "0,10 < 0,9", "correct": true },
+            { "id": "choix-faux-2", "text": "0,9 = 0,10", "correct": false }
+          ],
+          "explanation": "0,10 = 0,1. Au rang des dixièmes : 1 < 9, donc 0,10 < 0,9. L'erreur est de comparer 10 et 9 comme des entiers : 10 chiffres après la virgule ne signifie pas plus grand — seul le rang compte."
+        },
+        {
+          "id": "ex-plus-petit",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Parmi ces quatre nombres, lequel est le plus petit ?",
+          "competencies": ["c3.num.decimaux.comparer-ordonner"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-41", "text": "4,1", "correct": false },
+            { "id": "choix-409", "text": "4,09", "correct": true },
+            { "id": "choix-412", "text": "4,12", "correct": false },
+            { "id": "choix-42", "text": "4,2", "correct": false }
+          ],
+          "explanation": "4,09 = 4,0**9** et 4,1 = 4,10. Au rang des dixièmes : 0 < 1, donc 4,09 < 4,1 < 4,12 < 4,2. L'erreur est de croire que 4,09 est plus grand car 9 > 1 — mais 9 est ici au rang des centièmes, pas des dixièmes."
+        },
+        {
+          "id": "ex-arrondi-dixieme",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Donne la valeur arrondie de 2,34 au dixième.",
+          "competencies": ["c3.num.decimaux.arrondir-encadrer"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 2.3,
+          "tolerance": 0,
+          "unit": "dixième près",
+          "explanation": "Le chiffre des centièmes est 4 (< 5) : on arrondit par défaut. 2,34 arrondi au dixième donne 2,3."
+        },
+        {
+          "id": "ex-borne-sup",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Encadre 6,4 par deux entiers consécutifs. Quel est le plus grand de ces deux entiers ?",
+          "competencies": ["c3.num.decimaux.arrondir-encadrer"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "La partie entière de 6,4 est 6, donc 6 < 6,4 < 7. Le plus grand entier de l'encadrement est 7."
+        }
+      ]
+    }
+  ]
+}
