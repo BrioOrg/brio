@@ -208,6 +208,25 @@ Checked during design: the worked example is **valid**; an unknown block type an
 an unknown exercise type are **valid** (extensibility); a `numeric` exercise missing
 `answer` and an id with an uppercase letter are **rejected**.
 
+## Inline text rendering
+
+The `richText` type documents a convention of minimal inline markup — `**bold**`,
+`*italic*` — parsed by "one shared function reused by web and mobile." That function
+has not been written yet; the web renderer currently emits the raw string including
+asterisks. This is a known bug tracked as a separate issue (inline text renderer).
+
+**Inline math is not supported.** All mathematical notation must go in a standalone
+`formula` block. When the inline text renderer is written, the convention for inline
+math will be `$...$` delimiters — fixing this now prevents three chapters from each
+inventing their own syntax. Do not use `$...$` in `richText` fields before the
+renderer exists; it will display literally.
+
+**`display: "inline"` on a standalone formula block** is a valid schema value today
+but a candidate for deprecation. Its only meaningful use case is a formula embedded
+in running prose — which requires the inline text renderer. Once that renderer exists
+and inline math uses `$...$` in `richText`, standalone formula blocks with
+`display: "inline"` will have no purpose and can be removed.
+
 ## Future extensions
 
 - **Localisation.** Add an optional `lang` at the chapter root and, when
@@ -218,3 +237,5 @@ an unknown exercise type are **valid** (extensibility); a `numeric` exercise mis
   string pattern before a structural change.
 - **New block/exercise types** (e.g. `video`, `matching`, `fill-in-the-blank`)
   land as new union branches per the extensibility rule above.
+- **Inline text renderer.** Parse `**bold**`, `*italic*`, and `$...$` inline math
+  in `richText` fields. Until then, those strings render literally.

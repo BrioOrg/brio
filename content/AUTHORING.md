@@ -49,8 +49,10 @@ sensible (`answer`, `acceptedAnswers`, `referenceAnswer`, `rubric`, `correct`). 
 
 3. **Les contraintes de rendu actives** :
    - Pas d'images ni de figures.
-   - Blocs `formula` au strict minimum : pas de KaTeX installé, le bloc s'affiche tel quel.
-   - Toute notation mathématique simple s'écrit en prose : `3,15 < 3,9`, `a < x < b`.
+   - Les blocs `formula` sont rendus par KaTeX. Toute formule mathématique passe par un
+     bloc `formula` — ne jamais écrire de LaTeX inline dans la prose ou les callouts
+     (l'inline math n'est pas supportée ; voir règle "Formules" ci-dessous).
+   - La notation simple sans LaTeX s'écrit directement en prose : `3,15 < 3,9`, `a < x < b`.
 
 4. **Le niveau et la progression supposée** — ce que l'élève est censé savoir avant d'abrir le
    chapitre, et ce qu'il doit savoir après.
@@ -77,6 +79,20 @@ sensible (`answer`, `acceptedAnswers`, `referenceAnswer`, `rubric`, `correct`). 
   a juste assez de contexte pour l'aborder.
 - **Section finale (exercises)** : exercices de consolidation et d'approfondissement, pas de
   rappels de cours. Minimum 2 exercices par compétence ciblée dans cette section.
+
+### Formules
+
+Toute notation mathématique qui nécessite LaTeX passe par un bloc `formula`. Ne jamais
+écrire `$...$` ou `\(...\)` dans un champ de texte (`prose`, `callout`, `prompt`) :
+l'inline math n'est pas supportée et s'afficherait tel quel, avec les délimiteurs.
+
+- `display: "block"` (défaut) : formule centrée, posée sur sa propre ligne. C'est
+  le cas habituel pour un théorème, une définition, un résultat à isoler.
+- `display: "inline"` : pas de centrage, flux normal. À éviter jusqu'à ce que le
+  parseur inline soit disponible — ce cas d'usage est candidat à la dépréciation.
+
+Si la notation est assez simple pour s'écrire en ASCII (`3,15 < 3,9`, `a + b`), préférer
+la prose : un bloc `formula` pour `a + b` est du bruit.
 
 ### Callouts
 
