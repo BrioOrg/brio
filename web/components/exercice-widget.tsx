@@ -13,6 +13,7 @@ type ExerciceWidgetProps = {
   multiple?: boolean
   unit?: string
   explanation?: string
+  placeholder?: string
 }
 
 export function ExerciceWidget({
@@ -23,9 +24,11 @@ export function ExerciceWidget({
   multiple,
   unit,
   explanation,
+  placeholder,
 }: ExerciceWidgetProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [numericValue, setNumericValue] = useState('')
+  const [shortAnswerText, setShortAnswerText] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<SoumissionResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -55,12 +58,19 @@ export function ExerciceWidget({
         setValidationError('Saisis une valeur numérique.')
         return
       }
+    } else if (exerciseType === 'short-answer') {
+      if (shortAnswerText.trim() === '') {
+        setValidationError('Saisis ta réponse.')
+        return
+      }
     }
 
     const answer: Record<string, unknown> =
       exerciseType === 'multiple-choice'
         ? { choiceIds: selectedIds }
-        : { value: Number(numericValue) }
+        : exerciseType === 'short-answer'
+          ? { text: shortAnswerText }
+          : { value: Number(numericValue) }
 
     setLoading(true)
     try {
@@ -89,6 +99,7 @@ export function ExerciceWidget({
             setResult(null)
             setSelectedIds([])
             setNumericValue('')
+            setShortAnswerText('')
           }}
         />
       ) : (
@@ -144,6 +155,25 @@ export function ExerciceWidget({
             </div>
           )}
 
+          {exerciseType === 'short-answer' && (
+            <div className="mb-4">
+              <label htmlFor="short-answer-input" className="sr-only">
+                Réponse
+              </label>
+              <input
+                id="short-answer-input"
+                type="text"
+                value={shortAnswerText}
+                onChange={(e) => {
+                  setShortAnswerText(e.target.value)
+                  setValidationError(null)
+                }}
+                placeholder={placeholder ?? 'Ta réponse'}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          )}
+
           {validationError && (
             <p role="alert" className="mb-3 text-sm text-red-600">
               {validationError}
@@ -158,7 +188,7 @@ export function ExerciceWidget({
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (exerciseType === 'short-answer' && shortAnswerText.trim() === '')}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
           >
             {loading ? 'Correction…' : 'Vérifier'}
@@ -217,6 +247,14 @@ function ResultPanel({
           })}
         </ul>
       )}
+
+      {exerciseType === 'short-answer' &&
+        !isCorrect &&
+        !(result.explanation ?? staticExplanation) && (
+          <p className="mt-2 text-sm text-gray-700">
+            Ce n&apos;est pas la réponse attendue. Relis la section précédente.
+          </p>
+        )}
 
       {(result.explanation ?? staticExplanation) && (
         <p className="mt-2 text-sm text-gray-700">{result.explanation ?? staticExplanation}</p>

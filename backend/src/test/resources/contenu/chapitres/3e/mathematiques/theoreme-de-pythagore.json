@@ -93,8 +93,9 @@
           "competencies": ["c4.geo.pythagore.reconnaitre-hypotenuse"],
           "difficulty": "introduction",
           "estimatedDurationMinutes": 2,
-          "acceptedAnswers": ["les côtés de l'angle droit", "cotes de l'angle droit", "cathètes"],
-          "caseSensitive": false
+          "acceptedAnswers": ["les côtés de l'angle droit", "cotes de l'angle droit"],
+          "caseSensitive": false,
+          "explanation": "Dans un triangle rectangle, les deux côtés qui forment l'angle droit s'appellent les côtés de l'angle droit (ou les deux jambes du triangle). Le troisième côté, opposé à l'angle droit, est l'hypoténuse."
         },
         {
           "id": "ex-calcul-hypotenuse",

@@ -27,8 +27,37 @@ produirait une "maîtrise" sans acte de l'élève — un bruit qui noierait le s
   une longueur calculée. La borne supérieure ou la conclusion triviale ne méritent pas un
   exercice séparé.
 
-- **`short-answer`**, **`free-text`**, **`ordering`** ne sont pas encore utilisables (pas
-  d'évaluateur ou de rendu) — ne pas les introduire.
+- **`short-answer`** quand la réponse est un mot ou une courte expression avec un ensemble fini
+  de formulations correctes : un nom (« hypoténuse »), une définition courte, un terme technique.
+  Voir ci-dessous pour les règles d'authoring.
+
+- **`free-text`**, **`ordering`** ne sont pas encore utilisables (pas d'évaluateur ou de
+  rendu) — ne pas les introduire.
+
+#### Authoring d'un exercice `short-answer`
+
+L'évaluateur applique un pipeline de normalisation identique à la soumission et à chaque
+`acceptedAnswer` avant de comparer : trim → suppression des accents (NFD) → minuscules (sauf
+`caseSensitive: true`) → suppression de la ponctuation et des espaces finaux (`[\s.!?;]+`).
+
+**`acceptedAnswers`** — liste exhaustive des formulations correctes après normalisation.
+
+- Inclure les variantes avec et sans article si les deux sont acceptables :
+  `"hypoténuse"` et `"l'hypoténuse"`.
+- Inclure les formulations synonymes utilisées dans le cours :
+  `"les côtés de l'angle droit"` et `"cotes de l'angle droit"`.
+- Ne pas inclure de vocabulaire hors programme (belgicismes, helvétismes, termes
+  universitaires) sauf s'ils sont explicitement introduits dans le cours.
+- La virgule n'est pas strippée (séparateur décimal en français) — ne pas en mettre en
+  fin d'`acceptedAnswer`.
+
+**`caseSensitive`** — laisser à `false` sauf si la casse est sémantiquement significative
+(noms de points géométriques, variables). La normalisation des accents s'applique toujours.
+
+**`explanation`** — **obligatoire** sur un `short-answer`. C'est le seul retour disponible
+quand l'élève se trompe ; sans lui, l'interface affiche un message générique qui ne l'aide pas.
+L'explication doit donner la réponse et, si possible, pointer vers la notion du cours qui
+définit le terme.
 
 ### 3. Aucun agent ne publie
 
@@ -44,8 +73,9 @@ sensible (`answer`, `acceptedAnswers`, `referenceAnswer`, `rubric`, `correct`). 
 1. **Les codes de compétences ciblés** — uniquement ceux que les exercices évalueront. Copier
    les `intitule` correspondants depuis `content/referentiel/mathematiques-college.json`.
 
-2. **Les types d'exercices disponibles** — aujourd'hui : `multiple-choice` et `numeric`.
-   Rappeler au modèle que les autres types existent dans le schéma mais ne renderont pas.
+2. **Les types d'exercices disponibles** — aujourd'hui : `multiple-choice`, `numeric`, et
+   `short-answer`. Rappeler au modèle que `free-text` et `ordering` existent dans le schéma
+   mais ne renderont pas.
 
 3. **Les contraintes de rendu actives** :
    - Pas d'images ni de figures.
@@ -171,6 +201,9 @@ Vérifications à faire à la main, dans le navigateur et via l'API :
 - [ ] Chaque exercice `multiple-choice` : soumettre chaque mauvaise réponse → retour incorrect.
 - [ ] Chaque exercice `numeric` : soumettre la valeur exacte → retour correct.
 - [ ] Chaque exercice `numeric` : soumettre une valeur hors tolérance → retour incorrect.
+- [ ] Chaque exercice `short-answer` : soumettre une réponse acceptée → retour correct.
+- [ ] Chaque exercice `short-answer` : soumettre une réponse incorrecte → retour incorrect + explication visible.
+- [ ] Chaque exercice `short-answer` : le bouton « Vérifier » est désactivé tant que le champ est vide.
 - [ ] La réponse de l'API ne contient aucun de ces champs : `answer`, `acceptedAnswers`,
   `referenceAnswer`, `rubric`, `correct`.
 - [ ] À COMPLÉTER APRÈS RELECTURE NAVIGATEUR — exercices qui ont nécessité une correction (numérotation, tolérance, libellé).
