@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -49,7 +50,7 @@ class ChapitreIngestorTest {
         lenient().when(exerciceRepository.findByChapitreId(any())).thenReturn(List.of());
         lenient().when(competenceRepository.findAllById(any())).thenAnswer(inv ->
                 StreamSupport.stream(((Iterable<String>) inv.getArgument(0)).spliterator(), false)
-                        .map(code -> new Competence(code, "x", 4, List.of("3e"), "espace-et-geometrie", "BOEN"))
+                        .map(code -> activeCompetence(code))
                         .toList());
         lenient().when(niveauRepository.existsById(any())).thenReturn(true);
         lenient().when(matiereRepository.existsById(any())).thenReturn(true);
@@ -226,6 +227,33 @@ class ChapitreIngestorTest {
     }
 
     @Test
+    void shouldRejectChapterReferencingDeprecatedCompetencyCode() throws Exception {
+        // Return active codes for everything except c4.geo.pythagore.calculer, which is deprecated.
+        doAnswer(inv -> {
+            Iterable<String> ids = inv.getArgument(0);
+            return StreamSupport.stream(ids.spliterator(), false)
+                    .map(code -> {
+                        Competence c = activeCompetence(code);
+                        if ("c4.geo.pythagore.calculer".equals(code)) {
+                            c.update(c.getIntitule(), c.getCycle(), c.getNiveaux(),
+                                    c.getDomaine(), c.getReferenceOfficielle(),
+                                    "Arrêté du 10 avril 2025, BO n°16", List.of());
+                        }
+                        return c;
+                    })
+                    .toList();
+        }).when(competenceRepository).findAllById(any());
+
+        assertThatThrownBy(() -> tx.ingestDocument(loadFixture(), "3e", "mathematiques", 0))
+                .isInstanceOf(InvalidContentException.class)
+                .hasMessageContaining("c4.geo.pythagore.calculer")
+                .hasMessageContaining("Deprecated");
+
+        verify(chapitreRepository, never()).save(any());
+        verify(exerciceRepository, never()).saveAll(any());
+    }
+
+    @Test
     void shouldRejectChapterWithUnknownNiveau() throws Exception {
         doReturn(false).when(niveauRepository).existsById(any());
 
@@ -255,6 +283,10 @@ class ChapitreIngestorTest {
 
         assertThatThrownBy(() -> tx.ingestDocument(invalid, "3e", "mathematiques", 0))
                 .isInstanceOf(InvalidContentException.class);
+    }
+
+    private static Competence activeCompetence(String code) {
+        return new Competence(code, "x", 4, List.of("3e"), "espace-et-geometrie", "BOEN");
     }
 
     private JsonNode loadFixture() throws Exception {

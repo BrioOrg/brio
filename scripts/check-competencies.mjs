@@ -62,6 +62,10 @@ if (referentialFiles.length === 0) {
 }
 
 const knownCodes = new Set();
+const deprecatedCodes = new Set();
+
+// Map: niveau → Set of programme values seen on non-deprecated entries (for invariant check).
+const programmeByNiveau = {};
 
 for (const file of referentialFiles) {
   const doc = readJson(file);
@@ -76,11 +80,17 @@ for (const file of referentialFiles) {
       fail(file, `malformed code: ${JSON.stringify(code)}`);
       continue;
     }
-    if (knownCodes.has(code)) {
+    if (knownCodes.has(code) || deprecatedCodes.has(code)) {
       fail(file, `duplicate code: ${code}`);
       continue;
     }
-    knownCodes.add(code);
+
+    const isDeprecated = typeof entry.deprecatedSince === "string";
+    if (isDeprecated) {
+      deprecatedCodes.add(code);
+    } else {
+      knownCodes.add(code);
+    }
 
     const [cyclePart, domainAbbrev] = code.split(".");
     if (entry.cycle !== Number(cyclePart.slice(1))) {
@@ -92,6 +102,27 @@ for (const file of referentialFiles) {
         `${code}: domaine '${entry.domaine}' contradicts code segment '${domainAbbrev}' (expected '${DOMAIN_BY_ABBREV[domainAbbrev]}')`,
       );
     }
+
+    if (!isDeprecated) {
+      if (typeof entry.programme !== "string") {
+        fail(file, `${code}: non-deprecated entry is missing 'programme' field`);
+      } else {
+        for (const niveau of (entry.niveaux ?? [])) {
+          if (!programmeByNiveau[niveau]) programmeByNiveau[niveau] = new Set();
+          programmeByNiveau[niveau].add(entry.programme);
+        }
+      }
+    }
+  }
+}
+
+// Invariant: for each niveau, all non-deprecated entries must share one programme value.
+for (const [niveau, programmes] of Object.entries(programmeByNiveau)) {
+  if (programmes.size > 1) {
+    errors.push(
+      `Referential invariant violated: niveau '${niveau}' has entries from multiple programmes (${[...programmes].join(", ")}). ` +
+      "Each niveau must belong to exactly one non-deprecated programme.",
+    );
   }
 }
 
@@ -123,7 +154,9 @@ for (const file of chapterFiles) {
   collectReferences(doc, refs);
   referenceCount += refs.length;
   for (const code of refs) {
-    if (!knownCodes.has(code)) {
+    if (deprecatedCodes.has(code)) {
+      fail(file, `deprecated competency code: ${code} — content must reference only non-deprecated codes`);
+    } else if (!knownCodes.has(code)) {
       fail(file, `unknown competency code: ${code}`);
     }
   }
@@ -138,5 +171,6 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `✓ ${knownCodes.size} competency codes; ${referenceCount} reference(s) in ${chapterFiles.length} content file(s) — all resolved.`,
+  `✓ ${knownCodes.size} active competency codes (${deprecatedCodes.size} deprecated); ` +
+  `${referenceCount} reference(s) in ${chapterFiles.length} content file(s) — all resolved.`,
 );
