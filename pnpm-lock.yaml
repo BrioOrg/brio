@@ -37,11 +37,23 @@ importers:
         specifier: ^5.6.3
         version: 5.9.3
 
+  packages/content:
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)(jsdom@25.0.1)(lightningcss@1.32.0)
+
   web:
     dependencies:
       '@brio/api-client':
         specifier: workspace:*
         version: link:../packages/api-client
+      '@brio/content':
+        specifier: workspace:*
+        version: link:../packages/content
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

@@ -210,22 +210,35 @@ an unknown exercise type are **valid** (extensibility); a `numeric` exercise mis
 
 ## Inline text rendering
 
-The `richText` type documents a convention of minimal inline markup — `**bold**`,
-`*italic*` — parsed by "one shared function reused by web and mobile." That function
-has not been written yet; the web renderer currently emits the raw string including
-asterisks. This is a known bug tracked as a separate issue (inline text renderer).
+The `richText` type supports minimal inline markup parsed by `parseRichText` in
+`packages/content` — a pure tokenizer (no JSX) reused by web and mobile. The web
+renderer calls it in `web/components/chapter-view.tsx`.
 
-**Inline math is not supported.** All mathematical notation must go in a standalone
-`formula` block. When the inline text renderer is written, the convention for inline
-math will be `$...$` delimiters — fixing this now prevents three chapters from each
-inventing their own syntax. Do not use `$...$` in `richText` fields before the
-renderer exists; it will display literally.
+**Supported markup:**
 
-**`display: "inline"` on a standalone formula block** is a valid schema value today
-but a candidate for deprecation. Its only meaningful use case is a formula embedded
-in running prose — which requires the inline text renderer. Once that renderer exists
-and inline math uses `$...$` in `richText`, standalone formula blocks with
-`display: "inline"` will have no purpose and can be removed.
+| Syntax | Result |
+|---|---|
+| `**bold**` | `<strong>` |
+| `*italic*` | `<em>` |
+| `$...$` | Inline KaTeX (web); same AST on mobile |
+
+**Escaping:** `\*` emits a literal asterisk; `\$` emits a literal dollar sign.
+
+**Unclosed delimiters are emitted literally**, including the delimiter characters.
+This matches CommonMark's rule and makes typos visible in content review rather
+than silently dropping characters.
+
+**Tokenisation order:** math spans (`$...$`) are extracted first, so `*` inside
+LaTeX (e.g. `$a * b$`) is never consumed by the emphasis parser.
+
+**`scripts/check-content.mjs`** validates that all `*`, `**`, and `$` delimiters
+are balanced in content files. It runs in the `content` CI job and should be run
+locally before committing: `node scripts/check-content.mjs`.
+
+**`display: "inline"` on a standalone formula block** is a valid schema value but
+a candidate for deprecation. Its only meaningful use case — a formula embedded in
+running prose — is now covered by `$...$` in `richText`. Once existing content is
+migrated, standalone formula blocks with `display: "inline"` can be removed.
 
 ## Future extensions
 
@@ -237,5 +250,6 @@ and inline math uses `$...$` in `richText`, standalone formula blocks with
   string pattern before a structural change.
 - **New block/exercise types** (e.g. `video`, `matching`, `fill-in-the-blank`)
   land as new union branches per the extensibility rule above.
-- **Inline text renderer.** Parse `**bold**`, `*italic*`, and `$...$` inline math
-  in `richText` fields. Until then, those strings render literally.
+- **Inline `display: "inline"` deprecation.** Now that `$...$` in `richText` covers
+  inline math, standalone formula blocks with `display: "inline"` have no purpose
+  and can be removed from the schema and existing content.
