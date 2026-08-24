@@ -3,10 +3,13 @@ package fr.brio;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.brio.contenu.ContenuService;
 import fr.brio.contenu.infrastructure.ChapitreIngestor;
 import fr.brio.contenu.infrastructure.ChapterResult;
 import fr.brio.contenu.infrastructure.IngestReport;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +29,7 @@ class IngestorIntegrationTest {
     private static final Path CONTENT_DIR = Path.of("../content");
 
     @Autowired ChapitreIngestor chapitreIngestor;
+    @Autowired ContenuService contenuService;
     @Autowired ObjectMapper objectMapper;
 
     @Test
@@ -55,7 +59,13 @@ class IngestorIntegrationTest {
         IngestReport firstRun = chapitreIngestor.ingestAll(CONTENT_DIR);
         assertThat(firstRun.hasFailures()).isFalse();
 
-        // Load the fixture and mutate the title so the hash changes.
+        // Collect exercise exerciceIds from the stored chapter content after the first run.
+        JsonNode afterFirstRun = contenuService.findChapitre("theoreme-de-pythagore")
+                .orElseThrow(() -> new AssertionError("Chapter not found after first ingest"));
+        List<String> uuidsBefore = exerciceIds(afterFirstRun);
+        assertThat(uuidsBefore).as("First run must produce exercise UUIDs").isNotEmpty();
+
+        // Mutate the title so the content_hash changes (simulates the image→figure conversion).
         JsonNode original;
         try (var is = getClass().getResourceAsStream(
                 "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
@@ -64,9 +74,27 @@ class IngestorIntegrationTest {
         ObjectNode modified = original.deepCopy();
         modified.put("title", "Titre modifié pour le test");
 
-        // Collect exercise IDs from the first ingest via the chapter content.
         ChapterResult update = chapitreIngestor.ingestDocument(modified, "3e", "mathematiques", 0);
-
         assertThat(update.status()).isEqualTo(ChapterResult.Status.UPDATED);
+
+        // Exercise UUIDs must be identical after the update.
+        JsonNode afterUpdate = contenuService.findChapitre("theoreme-de-pythagore")
+                .orElseThrow(() -> new AssertionError("Chapter not found after update"));
+        List<String> uuidsAfter = exerciceIds(afterUpdate);
+        assertThat(uuidsAfter)
+                .as("Exercise UUIDs must be preserved across a content update")
+                .containsExactlyInAnyOrderElementsOf(uuidsBefore);
+    }
+
+    private List<String> exerciceIds(JsonNode chapter) {
+        List<String> ids = new ArrayList<>();
+        for (JsonNode section : chapter.path("sections")) {
+            for (JsonNode block : section.path("blocks")) {
+                if ("exercise".equals(block.path("type").asText()) && block.has("exerciceId")) {
+                    ids.add(block.get("exerciceId").asText());
+                }
+            }
+        }
+        return ids;
     }
 }

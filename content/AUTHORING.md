@@ -34,6 +34,10 @@ produirait une "maîtrise" sans acte de l'élève — un bruit qui noierait le s
 - **`free-text`**, **`ordering`** ne sont pas encore utilisables (pas d'évaluateur ou de
   rendu) — ne pas les introduire.
 
+- **`figure`** pour toute illustration mathématique. Les figures sont **toujours
+  déclaratives** — ne jamais utiliser le bloc `image` pour des mathématiques (voir
+  ci-dessous).
+
 #### Authoring d'un exercice `short-answer`
 
 L'évaluateur applique un pipeline de normalisation identique à la soumission et à chaque
@@ -109,6 +113,71 @@ sensible (`answer`, `acceptedAnswers`, `referenceAnswer`, `rubric`, `correct`). 
   a juste assez de contexte pour l'aborder.
 - **Section finale (exercises)** : exercices de consolidation et d'approfondissement, pas de
   rappels de cours. Minimum 2 exercices par compétence ciblée dans cette section.
+
+### Figures
+
+Les figures mathématiques sont **toujours déclaratives** : elles spécifient des points
+nommés avec des coordonnées logiques, et un renderer les convertit en SVG. Le bloc `image`
+est réservé aux assets photographiques (photos, schémas scannés) — ne jamais l'utiliser
+pour des figures géométriques ou des droites graduées.
+
+**Pourquoi déclaratif** : un modèle d'IA ne peut pas dessiner un triangle rectangle avec
+des angles précis. Une spécification déclarative, elle, est vérifiable par script — voir
+ADR 0013.
+
+#### Bloc `figure` — structure minimale
+
+```json
+{
+  "id": "fig-triangle-abc",
+  "type": "figure",
+  "alt": "Triangle rectangle ABC avec l'angle droit en A.",
+  "caption": "Le triangle ABC, rectangle en A.",
+  "spec": {
+    "points": [
+      { "name": "A", "x": 0, "y": 0, "label": { "placement": "below-left" } },
+      { "name": "B", "x": 4, "y": 0, "label": { "placement": "below-right" } },
+      { "name": "C", "x": 0, "y": 3, "label": { "placement": "above-left" } }
+    ],
+    "polygons": [{ "vertices": ["A", "B", "C"] }],
+    "angleMarks": [{ "vertex": "A", "from": "B", "to": "C", "right": true }]
+  }
+}
+```
+
+#### Règles d'authoring des figures
+
+- **`alt`** est obligatoire. Une figure sans équivalent textuel est invalide.
+- **`id` de bloc** : préfixe `fig-` + quelques mots descriptifs.
+- **Coordonnées logiques** : choisir des entiers simples quand c'est possible (triangle
+  3-4-5 plutôt qu'une approximation). Les coordonnées sont des faits mathématiques
+  vérifiables par CI.
+- **`coordinateSpace`** : omettre sauf si la vue doit s'étendre au-delà des points
+  déclarés (ex. droite graduée de 0 à 10 avec des marks seulement en 3 et 7).
+- **`angleMarks` droit** : utiliser `"right": true` uniquement quand l'angle est
+  effectivement 90°. `check-content.mjs` vérifie la valeur aux coordonnées données.
+- **`lengthMarks`** : le champ `segment` est la concaténation des noms des deux
+  extrémités (ex. `"AB"` pour le segment de A à B). Les segments partageant le même
+  nombre de traits sont déclarés de même longueur — le script CI le vérifie.
+- **Cercles** : préférer `{ "center": "O", "through": "A" }` (formulation au compas)
+  à `{ "center": "O", "radius": 5 }`. Les deux sont acceptés ; un seul à la fois.
+- **Placement des étiquettes** : valeurs possibles — `auto` (défaut), `above`, `below`,
+  `left`, `right`, `above-left`, `above-right`, `below-left`, `below-right`.
+
+#### Droites graduées
+
+Utiliser l'élément `numberLines` plutôt que d'énumérer des points manuellement :
+
+```json
+"numberLines": [
+  { "from": 0, "to": 10, "step": 1, "labelEvery": 2,
+    "marks": [{ "value": 3.5, "label": "3,5" }] }
+]
+```
+
+`step` : espacement entre deux graduations. `labelEvery` : afficher un label tous les
+N unités (doit être un multiple entier de `step`). `marks` : points d'emphase avec
+label personnalisé (séparateur décimal français : virgule).
 
 ### Formules
 

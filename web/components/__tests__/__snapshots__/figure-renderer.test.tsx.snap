@@ -1,0 +1,93 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
+<figure
+  class="my-4"
+>
+  <div
+    class="overflow-x-auto"
+  >
+    <svg
+      class="mx-auto block max-w-full"
+      role="img"
+      style="max-width: 320px;"
+      viewBox="0 0 320 320"
+    >
+      <title>
+        Triangle rectangle ABC, l'angle droit est en A et l'hypoténuse est le côté BC.
+      </title>
+      <desc>
+        Le triangle rectangle ABC, rectangle en A.
+      </desc>
+      <polygon
+        fill="none"
+        points="61.54,233.85 258.46,233.85 61.54,86.15"
+        stroke="currentColor"
+        stroke-width="1.5"
+      />
+      <polyline
+        fill="none"
+        points="73.54,233.85 73.54,221.85 61.54,221.85"
+        stroke="currentColor"
+        stroke-width="1.5"
+      />
+      <circle
+        cx="61.53846153846155"
+        cy="233.84615384615387"
+        fill="currentColor"
+        r="2"
+      />
+      <circle
+        cx="258.46153846153845"
+        cy="233.84615384615387"
+        fill="currentColor"
+        r="2"
+      />
+      <circle
+        cx="61.53846153846155"
+        cy="86.15384615384613"
+        fill="currentColor"
+        r="2"
+      />
+      <text
+        dominant-baseline="hanging"
+        fill="currentColor"
+        font-family="serif"
+        font-size="13"
+        text-anchor="end"
+        x="47.53846153846155"
+        y="247.84615384615387"
+      >
+        A
+      </text>
+      <text
+        dominant-baseline="hanging"
+        fill="currentColor"
+        font-family="serif"
+        font-size="13"
+        text-anchor="start"
+        x="272.46153846153845"
+        y="247.84615384615387"
+      >
+        B
+      </text>
+      <text
+        dominant-baseline="auto"
+        fill="currentColor"
+        font-family="serif"
+        font-size="13"
+        text-anchor="end"
+        x="47.53846153846155"
+        y="72.15384615384613"
+      >
+        C
+      </text>
+    </svg>
+  </div>
+  <figcaption
+    class="mt-1 text-center text-xs text-gray-500"
+  >
+    Le triangle rectangle ABC, rectangle en A.
+  </figcaption>
+</figure>
+`;
