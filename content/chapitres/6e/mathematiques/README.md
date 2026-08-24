@@ -11,6 +11,7 @@ que les contraintes de rendu (éditeur, exerciseur) se précisent.
 
 - ✅ rédigé — fichier présent, ingestion vérifiée
 - 🔲 prévu — décision prise, pas encore rédigé
+- 🚧 bloqué — dépend d'une fonctionnalité non encore disponible
 
 ---
 
@@ -43,7 +44,7 @@ utilisables. L'ordre pédagogique réel est 1 → 2 → 3.
 | 11 | `angles-bissectrice` | Les angles et la bissectrice | 🔲 |
 | 12 | `triangles` | Les triangles : construction et propriétés | 🔲 |
 | 13 | `symetrie-axiale` | La symétrie axiale | 🔲 |
-| 14 | `espace-solides` | Visualiser l'espace : assemblages et patrons | 🔲 |
+| 14 | `espace-solides` | Visualiser l'espace : assemblages et patrons | 🚧 |
 
 ---
 
@@ -81,3 +82,12 @@ utilisables. L'ordre pédagogique réel est 1 → 2 → 3.
 Chaque chapitre couvre un sous-ensemble des codes du référentiel `cycle3-2025`. La liste complète
 des codes est dans `content/referentiel/mathematiques-college.json`. Le chapitre 2 (rédigé) cible
 `c3.num.decimaux.comparer-ordonner` et `c3.num.decimaux.arrondir-encadrer`.
+
+---
+
+## Note sur les chapitres bloqués
+
+**`espace-solides` (chapitre 14)** reste bloqué : les patrons et les assemblages de
+solides nécessitent des figures 3D ou des représentations en perspective que le bloc
+`figure` (ADR 0013) ne couvre pas. Ce chapitre sera débloqué dans une issue dédiée
+quand le besoin de représentation 3D sera traité.
