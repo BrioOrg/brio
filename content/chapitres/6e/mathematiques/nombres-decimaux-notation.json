@@ -1,0 +1,328 @@
+{
+  "schemaVersion": 1,
+  "id": "nombres-decimaux-notation",
+  "title": "La numération décimale : lire, écrire, placer",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "valeur-positionnelle",
+      "title": "La valeur positionnelle des chiffres",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "intro-numerotation",
+          "type": "prose",
+          "text": "Notre système de numération est **positionnel** : la valeur d'un chiffre dépend de sa place dans le nombre. Vers la gauche de la virgule, chaque rang vaut dix fois plus que le précédent. Vers la droite, chaque rang vaut dix fois moins. C'est le même mécanisme de part et d'autre de la virgule."
+        },
+        {
+          "id": "def-valeur-positionnelle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Valeur positionnelle",
+          "text": "Le **rang** d'un chiffre est sa position dans le nombre. La **valeur** de ce chiffre est le produit du chiffre par la valeur de son rang. Exemple : le chiffre 4 au rang des centièmes vaut 4 × 0,01 = 0,04."
+        },
+        {
+          "id": "tableau-rangs",
+          "type": "callout",
+          "variant": "note",
+          "title": "Les rangs",
+          "text": "À gauche de la virgule (de droite à gauche) : unités — dizaines — centaines — mille — dizaines de mille — centaines de mille — millions — dizaines de millions — centaines de millions — milliards. À droite de la virgule (de gauche à droite) : dixièmes — centièmes — millièmes."
+        },
+        {
+          "id": "exemple-entier",
+          "type": "callout",
+          "variant": "example",
+          "title": "Lire 4 725 039",
+          "text": "4 725 039 = 4 millions + 7 centaines de mille + 2 dizaines de mille + 5 mille + 0 centaines + 3 dizaines + 9 unités. Le chiffre 7 est au rang des centaines de mille ; il vaut 700 000."
+        },
+        {
+          "id": "exemple-decimal",
+          "type": "callout",
+          "variant": "example",
+          "title": "Lire 3,47",
+          "text": "3,47 = 3 unités + 4 dixièmes + 7 centièmes. Le chiffre 4 est au rang des dixièmes : il ne vaut pas 4, il vaut 0,4. Le chiffre 7 est au rang des centièmes : il vaut 0,07."
+        },
+        {
+          "id": "ex-rang-decimal",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Dans le nombre 5,372, quel est le rang du chiffre 7 ?",
+          "competencies": ["c3.num.decimaux.connaitre-valeur-chiffres"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": ["centièmes", "les centièmes", "rang des centièmes", "au rang des centièmes"],
+          "caseSensitive": false,
+          "explanation": "5,372 : le 5 est aux unités, le 3 aux dixièmes, le 7 aux centièmes, le 2 aux millièmes. Le chiffre 7 est au rang des **centièmes** et vaut 0,07."
+        },
+        {
+          "id": "ex-chiffre-centièmes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le nombre 8,053, quel chiffre se trouve au rang des centièmes ?",
+          "competencies": ["c3.num.decimaux.connaitre-valeur-chiffres"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "8,053 : le 0 est aux dixièmes, le 5 aux centièmes, le 3 aux millièmes. Le chiffre au rang des centièmes est 5 — il vaut 0,05."
+        },
+        {
+          "id": "ex-chiffre-ck-mille",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le nombre 4 720 835, quel chiffre se trouve au rang des centaines de mille ?",
+          "competencies": ["c3.num.decimaux.connaitre-grands-nombres"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "On lit de droite à gauche : 5 (unités), 3 (dizaines), 8 (centaines), 0 (mille), 2 (dizaines de mille), 7 (centaines de mille), 4 (millions). Le chiffre 7 est au rang des centaines de mille ; il vaut 700 000."
+        },
+        {
+          "id": "ex-grand-nombre-mc",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel nombre correspond à « deux milliards trois cents millions » ?",
+          "competencies": ["c3.num.decimaux.connaitre-grands-nombres"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-correct", "text": "2 300 000 000", "correct": true },
+            { "id": "choix-3m", "text": "2 003 000 000", "correct": false },
+            { "id": "choix-230m", "text": "230 000 000", "correct": false },
+            { "id": "choix-23g", "text": "23 000 000 000", "correct": false }
+          ],
+          "explanation": "Deux milliards = 2 000 000 000 ; trois cents millions = 300 000 000 ; total = 2 300 000 000. Choisir 2 003 000 000 revient à confondre « millions » avec « mille ». Choisir 230 000 000 revient à oublier le milliard et à lire « deux cent trente millions ». Choisir 23 000 000 000 revient à juxtaposer 2 et 3 comme des chiffres d'un même grand nombre."
+        }
+      ]
+    },
+    {
+      "id": "ecritures",
+      "title": "Différentes écritures d'un nombre décimal",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 10,
+      "blocks": [
+        {
+          "id": "intro-ecritures",
+          "type": "prose",
+          "text": "Un nombre décimal peut s'écrire avec une virgule, mais aussi comme une fraction dont le dénominateur est une puissance de 10. Ces fractions s'appellent des **fractions décimales**."
+        },
+        {
+          "id": "def-fraction-decimale",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Fraction décimale",
+          "text": "Une **fraction décimale** est une fraction dont le dénominateur est 10, 100 ou 1 000. Elle représente le même nombre que l'écriture à virgule correspondante : $\\frac{37}{10} = 3,7$ ; $\\frac{47}{100} = 0,47$ ; $\\frac{125}{1000} = 0,125$."
+        },
+        {
+          "id": "exemple-ecritures",
+          "type": "callout",
+          "variant": "example",
+          "title": "Lire 3,7 comme fraction",
+          "text": "3,7 = 37 dixièmes = $\\frac{37}{10}$. La partie entière (3) contribue au numérateur : 3 unités = $\\frac{30}{10}$, et 7 dixièmes = $\\frac{7}{10}$, soit $\\frac{30 + 7}{10} = \\frac{37}{10}$."
+        },
+        {
+          "id": "ex-ecritures-mc",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions décimales est égale à 3,7 ?",
+          "competencies": ["c3.num.decimaux.connaitre-ecritures"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-37-10", "text": "37/10", "correct": true },
+            { "id": "choix-7-10", "text": "7/10", "correct": false },
+            { "id": "choix-37-100", "text": "37/100", "correct": false },
+            { "id": "choix-3-7", "text": "3/7", "correct": false }
+          ],
+          "explanation": "3,7 = 37 dixièmes = 37/10. Choisir 7/10 revient à ignorer la partie entière (le 3) : 7/10 = 0,7. Choisir 37/100 revient à utiliser le mauvais dénominateur : 37/100 = 0,37. Choisir 3/7 revient à lire la virgule comme une barre de fraction — or la virgule sépare la partie entière des décimales, elle n'est pas un signe de division."
+        },
+        {
+          "id": "ex-decimale-fraction",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Écris 47 centièmes en notation décimale (utilise la virgule).",
+          "competencies": ["c3.num.decimaux.connaitre-ecritures"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": ["0,47"],
+          "caseSensitive": false,
+          "explanation": "47 centièmes = 47/100 = 0,47. Le dénominateur 100 indique deux chiffres après la virgule ; il n'y a pas d'unité entière, donc on écrit 0 avant la virgule."
+        }
+      ]
+    },
+    {
+      "id": "droite-graduee",
+      "title": "Placer et repérer sur une droite graduée",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-droite-graduee",
+          "type": "prose",
+          "text": "Une droite graduée représente les nombres comme des positions sur une droite. Chaque **graduation** correspond à un intervalle de valeur fixe appelé **pas**. Pour repérer l'abscisse d'un point, on compte le nombre de pas depuis l'origine ou depuis la marque entière la plus proche."
+        },
+        {
+          "id": "tip-lire-droite",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Lire une droite graduée",
+          "text": "1. Identifier le pas : valeur entre deux graduations consécutives. 2. Repérer le point et compter les graduations depuis la valeur entière la plus proche à gauche. 3. Calculer : valeur de départ + nombre de pas × valeur du pas."
+        },
+        {
+          "id": "fig-droite-0-1",
+          "type": "figure",
+          "alt": "Droite graduée de 0 à 1 avec un pas de 0,1 et le point A placé à 0,7.",
+          "caption": "Droite graduée de 0 à 1.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 1,
+                "step": 0.1,
+                "labelEvery": 0.2,
+                "marks": [{ "value": 0.7, "label": "A" }]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-lire-point-a",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur la droite graduée ci-dessus, quelle est l'abscisse du point A ?",
+          "competencies": ["c3.num.decimaux.placer-reperer-droite"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.7,
+          "tolerance": 0,
+          "explanation": "Le pas est 0,1. Le point A est à 7 graduations depuis 0 : 7 × 0,1 = 0,7."
+        },
+        {
+          "id": "fig-droite-0-5",
+          "type": "figure",
+          "alt": "Droite graduée de 0 à 5 avec un pas de 0,5 et le point B placé à 3,5.",
+          "caption": "Droite graduée de 0 à 5.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 5,
+                "step": 0.5,
+                "labelEvery": 1,
+                "marks": [{ "value": 3.5, "label": "B" }]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-lire-point-b",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la droite graduée ci-dessus, quelle est l'abscisse du point B ?",
+          "competencies": ["c3.num.decimaux.placer-reperer-droite"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-35", "text": "3,5", "correct": true },
+            { "id": "choix-30", "text": "3,0", "correct": false },
+            { "id": "choix-40", "text": "4,0", "correct": false },
+            { "id": "choix-25", "text": "2,5", "correct": false }
+          ],
+          "explanation": "Le pas est 0,5. Le point B est exactement entre 3 et 4 : 3 + 0,5 = 3,5. Choisir 3,0 ou 4,0 revient à prendre la marque entière la plus proche plutôt que la position exacte. Choisir 2,5 revient à décaler d'une graduation complète vers la gauche."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-valeur-final",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans le nombre 2,46, quelle est la valeur du chiffre 4 ?",
+          "competencies": ["c3.num.decimaux.connaitre-valeur-chiffres"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-04", "text": "0,4", "correct": true },
+            { "id": "choix-4", "text": "4", "correct": false },
+            { "id": "choix-004", "text": "0,04", "correct": false },
+            { "id": "choix-40", "text": "40", "correct": false }
+          ],
+          "explanation": "Le chiffre 4 est au rang des dixièmes : sa valeur est 4 × 0,1 = 0,4. Confondre la valeur et le chiffre (répondre 4) est l'erreur la plus fréquente. Répondre 0,04 revient à placer 4 au rang des centièmes — c'est la valeur du chiffre 6. Répondre 40 revient à placer 4 au rang des dizaines, à gauche de la virgule."
+        },
+        {
+          "id": "ex-grand-nombre-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le nombre 7 380 000, quel chiffre se trouve au rang des millions ?",
+          "competencies": ["c3.num.decimaux.connaitre-grands-nombres"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "7 380 000 = 7 millions + 3 centaines de mille + 8 dizaines de mille. Le chiffre au rang des millions est 7 ; il vaut 7 000 000."
+        },
+        {
+          "id": "ex-ecriture-finale",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "La fraction 83/100 est égale à quel nombre décimal ?",
+          "competencies": ["c3.num.decimaux.connaitre-ecritures"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.83,
+          "tolerance": 0,
+          "explanation": "83/100 = 83 centièmes = 0,83. Le dénominateur 100 indique deux chiffres après la virgule."
+        },
+        {
+          "id": "fig-droite-finale",
+          "type": "figure",
+          "alt": "Droite graduée de 1 à 3 avec un pas de 0,5 et le point C placé à 2,5.",
+          "caption": "Droite graduée.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 1,
+                "to": 3,
+                "step": 0.5,
+                "labelEvery": 1,
+                "marks": [{ "value": 2.5, "label": "C" }]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-droite-final",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la droite graduée ci-dessus, quelle est l'abscisse du point C ?",
+          "competencies": ["c3.num.decimaux.placer-reperer-droite"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-25", "text": "2,5", "correct": true },
+            { "id": "choix-20", "text": "2,0", "correct": false },
+            { "id": "choix-30", "text": "3,0", "correct": false },
+            { "id": "choix-15", "text": "1,5", "correct": false }
+          ],
+          "explanation": "Le pas est 0,5. Le point C est à mi-chemin entre 2 et 3 : 2 + 0,5 = 2,5. Choisir 2,0 ou 3,0 revient à prendre la graduation entière la plus proche. Choisir 1,5 revient à décaler d'une graduation vers la gauche."
+        }
+      ]
+    }
+  ]
+}
