@@ -60,7 +60,7 @@
           "explanation": "5,372 : le 5 est aux unités, le 3 aux dixièmes, le 7 aux centièmes, le 2 aux millièmes. Le chiffre 7 est au rang des **centièmes** et vaut 0,07."
         },
         {
-          "id": "ex-chiffre-centièmes",
+          "id": "ex-chiffre-centiemes",
           "type": "exercise",
           "exerciseType": "numeric",
           "prompt": "Dans le nombre 8,053, quel chiffre se trouve au rang des centièmes ?",
