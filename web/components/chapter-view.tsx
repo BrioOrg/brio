@@ -1,7 +1,8 @@
 import katex from 'katex'
-import { parseRichText, type RichTextToken } from '@brio/content'
+import { parseRichText, type RichTextToken, type FigureSpec } from '@brio/content'
 
 import { ExerciceWidget } from '@/components/exercice-widget'
+import { FigureRenderer } from '@/components/figure-renderer'
 
 type Choice = { id: string; text: string }
 
@@ -120,6 +121,15 @@ function BlockRenderer({ block }: { block: Block }) {
             </figcaption>
           )}
         </figure>
+      )
+
+    case 'figure':
+      return (
+        <FigureRenderer
+          spec={block.spec as FigureSpec}
+          alt={block.alt as string}
+          caption={block.caption as string | undefined}
+        />
       )
 
     case 'exercise':
