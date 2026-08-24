@@ -1,0 +1,412 @@
+{
+  "schemaVersion": 1,
+  "id": "fractions",
+  "title": "Les fractions : sens, écritures, comparaison",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 60,
+  "status": "published",
+  "sections": [
+    {
+      "id": "sens-fraction",
+      "title": "Le sens d'une fraction",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-fraction",
+          "type": "prose",
+          "text": "Une fraction $\\frac{a}{b}$ (avec b non nul) représente le résultat exact de la division de a par b. Le nombre a s'appelle le **numérateur**, et b s'appelle le **dénominateur**."
+        },
+        {
+          "id": "def-fraction",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Fraction comme quotient",
+          "text": "$\\frac{a}{b} = a \\div b$, c'est-à-dire le nombre qui, multiplié par b, donne a. Le dénominateur ne peut pas être nul."
+        },
+        {
+          "id": "exemple-fraction",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemples",
+          "text": "$\\frac{3}{4} = 3 \\div 4 = 0,75$. $\\frac{8}{4} = 8 \\div 4 = 2$ : cette fraction vaut un entier. $\\frac{1}{3} = 1 \\div 3$ : le résultat exact n'est pas un nombre décimal."
+        },
+        {
+          "id": "ex-valeur-entiere",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "La fraction 6/3 est égale à quel entier ?",
+          "competencies": ["c3.num.fractions.sens-quotient"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 2,
+          "tolerance": 0,
+          "explanation": "6/3 = 6 ÷ 3 = 2. Vérification : 3 × 2 = 6."
+        },
+        {
+          "id": "ex-sens-mc",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "La fraction 3/4 représente le résultat de quelle opération ?",
+          "competencies": ["c3.num.fractions.sens-quotient"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-3d4", "text": "3 ÷ 4", "correct": true },
+            { "id": "choix-4d3", "text": "4 ÷ 3", "correct": false },
+            { "id": "choix-3p4", "text": "3 + 4", "correct": false },
+            { "id": "choix-3x4", "text": "3 × 4", "correct": false }
+          ],
+          "explanation": "Par définition, la fraction a/b = a ÷ b. Donc 3/4 = 3 ÷ 4 = 0,75. Choisir 4 ÷ 3 revient à inverser numérateur et dénominateur — c'est 4/3 ≈ 1,33. Les opérations + et × n'ont rien à voir avec une fraction."
+        }
+      ]
+    },
+    {
+      "id": "nature-fraction",
+      "title": "Nature d'une fraction",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 10,
+      "blocks": [
+        {
+          "id": "intro-nature",
+          "type": "prose",
+          "text": "La fraction a/b peut être un entier, un nombre décimal non entier, ou un nombre qui n'est pas décimal. Tout dépend du couple (a, b)."
+        },
+        {
+          "id": "exemple-nature",
+          "type": "callout",
+          "variant": "example",
+          "title": "Les trois cas",
+          "text": "$\\frac{6}{3} = 2$ : entier. $\\frac{3}{4} = 0,75$ : décimal non entier. $\\frac{1}{3} = 0,333\\ldots$ : la division ne se termine jamais — ce n'est pas un nombre décimal."
+        },
+        {
+          "id": "ex-nature-entiere-mc",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions est égale à un nombre entier ?",
+          "competencies": ["c3.num.fractions.connaitre-nature"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-12s4", "text": "12/4", "correct": true },
+            { "id": "choix-5s3", "text": "5/3", "correct": false },
+            { "id": "choix-7s4", "text": "7/4", "correct": false },
+            { "id": "choix-11s5", "text": "11/5", "correct": false }
+          ],
+          "explanation": "12/4 = 12 ÷ 4 = 3 : entier. 5/3 ≈ 1,67 : pas entier. 7/4 = 1,75 : décimal, pas entier. 11/5 = 2,2 : décimal, pas entier. Pour qu'une fraction soit entière, le numérateur doit être un multiple du dénominateur — et 12 est un multiple de 4 (4 × 3 = 12)."
+        },
+        {
+          "id": "ex-nature-decimal-mc",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions donne un nombre décimal exact (la division se termine) ?",
+          "competencies": ["c3.num.fractions.connaitre-nature"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-3s4", "text": "3/4", "correct": true },
+            { "id": "choix-1s3", "text": "1/3", "correct": false },
+            { "id": "choix-2s7", "text": "2/7", "correct": false },
+            { "id": "choix-5s6", "text": "5/6", "correct": false }
+          ],
+          "explanation": "3/4 = 0,75 : la division se termine en deux étapes. 1/3 = 0,333… : infini. 2/7 = 0,285714… : infini. 5/6 = 0,8333… : infini. En posant la division, on remarque que 3/4 donne un reste nul dès le centième."
+        }
+      ]
+    },
+    {
+      "id": "droite-graduee",
+      "title": "Placer une fraction sur une droite graduée",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-placer",
+          "type": "prose",
+          "text": "Pour placer la fraction a/b sur une droite graduée, on divise chaque unité en b parties égales. La fraction a/b se trouve à la a-ième graduation."
+        },
+        {
+          "id": "tip-graduer",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Graduer selon le dénominateur",
+          "text": "Le dénominateur b donne le nombre de parts par unité. Pour 1/4, chaque unité est coupée en 4 : les marques sont à 1/4, 2/4, 3/4, 4/4 = 1. Le numérateur a indique quelle marque choisir."
+        },
+        {
+          "id": "fig-fraction-quarts",
+          "type": "figure",
+          "alt": "Droite graduée de 0 à 1 divisée en quatre parties égales. Le point A est à la troisième graduation, soit 3/4.",
+          "caption": "Droite graduée en quarts.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 1,
+                "step": 0.25,
+                "labelEvery": 0.5,
+                "marks": [{ "value": 0.75, "label": "A" }]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-lire-quarts",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la droite graduée ci-dessus, quelle fraction représente le point A ?",
+          "competencies": ["c3.num.fractions.placer-sur-droite"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-3s4", "text": "3/4", "correct": true },
+            { "id": "choix-1s4", "text": "1/4", "correct": false },
+            { "id": "choix-2s4", "text": "2/4", "correct": false },
+            { "id": "choix-4s4", "text": "4/4", "correct": false }
+          ],
+          "explanation": "L'unité est divisée en 4 parts (dénominateur 4). Le point A est à la 3e graduation depuis 0 : c'est 3/4. 1/4 serait à la 1re graduation, 2/4 à la 2e (milieu de l'unité), 4/4 = 1 serait à la marque de fin d'unité."
+        },
+        {
+          "id": "fig-fraction-demis",
+          "type": "figure",
+          "alt": "Droite graduée de 0 à 2 divisée en demi-unités. Le point B est à la troisième graduation, soit 3/2.",
+          "caption": "Droite graduée en demis.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 2,
+                "step": 0.5,
+                "labelEvery": 1,
+                "marks": [{ "value": 1.5, "label": "B" }]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-lire-demis",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la droite graduée ci-dessus, quelle fraction représente le point B ?",
+          "competencies": ["c3.num.fractions.placer-sur-droite"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-3s2", "text": "3/2", "correct": true },
+            { "id": "choix-1s2", "text": "1/2", "correct": false },
+            { "id": "choix-5s2", "text": "5/2", "correct": false },
+            { "id": "choix-2s3", "text": "2/3", "correct": false }
+          ],
+          "explanation": "Chaque unité est coupée en 2 (dénominateur 2). Le point B est à la 3e demi-unité depuis 0 : c'est 3/2 = 1,5. 1/2 serait à la 1re demi-unité, 5/2 = 2,5 dépasserait la droite affichée. 2/3 n'a pas de sens ici car les graduations sont en demis, pas en tiers."
+        }
+      ]
+    },
+    {
+      "id": "egalites-comparaison",
+      "title": "Égalités et comparaison de fractions",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-egalite",
+          "type": "prose",
+          "text": "Deux fractions sont **égales** si elles représentent le même nombre. On obtient une fraction égale à a/b en multipliant (ou divisant) le numérateur et le dénominateur par un même nombre non nul."
+        },
+        {
+          "id": "def-fractions-egales",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Fractions égales",
+          "text": "$\\frac{a}{b} = \\frac{a \\times k}{b \\times k}$ pour tout entier k non nul. Exemple : $\\frac{2}{3} = \\frac{4}{6} = \\frac{6}{9}$."
+        },
+        {
+          "id": "exemple-egalite",
+          "type": "callout",
+          "variant": "example",
+          "title": "Compléter 1/2 = ?/10",
+          "text": "On cherche k tel que 2 × k = 10 : k = 5. Alors 1 × 5 = 5. Donc $\\frac{1}{2} = \\frac{5}{10}$. Vérification : 1 ÷ 2 = 0,5 et 5 ÷ 10 = 0,5."
+        },
+        {
+          "id": "ex-trou-dix",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Complète : 1/2 = ?/10. Quel est le numérateur manquant ?",
+          "competencies": ["c3.num.fractions.etablir-egalites"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "2 × 5 = 10, donc on multiplie aussi le numérateur par 5 : 1 × 5 = 5. Ainsi 1/2 = 5/10."
+        },
+        {
+          "id": "ex-egale-mc",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions est égale à 2/3 ?",
+          "competencies": ["c3.num.fractions.etablir-egalites"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-4s6", "text": "4/6", "correct": true },
+            { "id": "choix-4s9", "text": "4/9", "correct": false },
+            { "id": "choix-6s4", "text": "6/4", "correct": false },
+            { "id": "choix-3s4", "text": "3/4", "correct": false }
+          ],
+          "explanation": "2/3 = (2×2)/(3×2) = 4/6 : on multiplie numérateur et dénominateur par 2. 4/9 serait 2/3 seulement si 2×2=4 et 3×3=9 — mais le même k=2 ne s'applique pas (2×3=6 ≠ 9). 6/4 = 3/2 ≠ 2/3 (numérateur et dénominateur inversés). 3/4 ≠ 2/3."
+        },
+        {
+          "id": "intro-comparaison",
+          "type": "prose",
+          "text": "Pour **comparer** deux fractions, on peut : ramener les deux au même dénominateur puis comparer les numérateurs ; ou comparer chacune à 1 (fraction > 1 si numérateur > dénominateur) ; ou comparer à 1/2."
+        },
+        {
+          "id": "tip-comparer",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Méthodes de comparaison",
+          "text": "**Même dénominateur** : comparer les numérateurs directement. **Dénominateurs multiples** : 3/4 et 5/8 → écrire 3/4 = 6/8, puis comparer 6/8 et 5/8. **Comparer à 1** : a/b < 1 si a < b. **Comparer à 1/2** : a/b < 1/2 si 2a < b."
+        },
+        {
+          "id": "ex-comparer-deux",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions est la plus grande : 3/4 ou 5/8 ?",
+          "competencies": ["c3.num.fractions.comparer-ordonner"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-3s4", "text": "3/4", "correct": true },
+            { "id": "choix-5s8", "text": "5/8", "correct": false },
+            { "id": "choix-egal", "text": "Elles sont égales", "correct": false },
+            { "id": "choix-impossible", "text": "Impossible à comparer", "correct": false }
+          ],
+          "explanation": "On ramène au même dénominateur : 3/4 = 6/8. On compare 6/8 et 5/8 : 6 > 5, donc 3/4 > 5/8. Croire qu'elles sont égales ou incomparables revient à ignorer la méthode du dénominateur commun."
+        },
+        {
+          "id": "ex-inf-1",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions est inférieure à 1 ?",
+          "competencies": ["c3.num.fractions.comparer-ordonner"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-5s7", "text": "5/7", "correct": true },
+            { "id": "choix-7s5", "text": "7/5", "correct": false },
+            { "id": "choix-8s5", "text": "8/5", "correct": false },
+            { "id": "choix-9s4", "text": "9/4", "correct": false }
+          ],
+          "explanation": "Une fraction est inférieure à 1 quand son numérateur est inférieur à son dénominateur. 5/7 : 5 < 7 → 5/7 < 1. Les autres ont le numérateur supérieur au dénominateur : 7/5, 8/5, 9/4 sont toutes supérieures à 1."
+        },
+        {
+          "id": "ex-inf-demi",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions est inférieure à 1/2 ?",
+          "competencies": ["c3.num.fractions.comparer-ordonner"],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-3s8", "text": "3/8", "correct": true },
+            { "id": "choix-4s7", "text": "4/7", "correct": false },
+            { "id": "choix-3s5", "text": "3/5", "correct": false },
+            { "id": "choix-5s9", "text": "5/9", "correct": false }
+          ],
+          "explanation": "On compare à 1/2 en cherchant si 2 × numérateur < dénominateur. 3/8 : 2 × 3 = 6 < 8 → 3/8 < 1/2 ✓. 4/7 : 2 × 4 = 8 > 7 → 4/7 > 1/2. 3/5 : 2 × 3 = 6 > 5 → 3/5 > 1/2. 5/9 : 2 × 5 = 10 > 9 → 5/9 > 1/2."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "ex-sens-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "La fraction 21/7 est égale à quel entier ?",
+          "competencies": ["c3.num.fractions.sens-quotient"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "explanation": "21/7 = 21 ÷ 7 = 3. Vérification : 7 × 3 = 21."
+        },
+        {
+          "id": "ex-nature-final",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces fractions n'est PAS un nombre décimal exact ?",
+          "competencies": ["c3.num.fractions.connaitre-nature"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-1s3", "text": "1/3", "correct": true },
+            { "id": "choix-1s2", "text": "1/2", "correct": false },
+            { "id": "choix-3s4", "text": "3/4", "correct": false },
+            { "id": "choix-2s5", "text": "2/5", "correct": false }
+          ],
+          "explanation": "1/3 = 0,333… : la division ne se termine pas — ce n'est pas un décimal exact. 1/2 = 0,5, 3/4 = 0,75 et 2/5 = 0,4 sont tous des décimaux exacts."
+        },
+        {
+          "id": "fig-fraction-finale",
+          "type": "figure",
+          "alt": "Droite graduée de 0 à 3 divisée en demi-unités. Le point C est à la cinquième graduation, soit 5/2.",
+          "caption": "Droite graduée.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 3,
+                "step": 0.5,
+                "labelEvery": 1,
+                "marks": [{ "value": 2.5, "label": "C" }]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-droite-final",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la droite graduée ci-dessus, quelle fraction représente le point C ?",
+          "competencies": ["c3.num.fractions.placer-sur-droite"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-5s2", "text": "5/2", "correct": true },
+            { "id": "choix-3s2", "text": "3/2", "correct": false },
+            { "id": "choix-7s2", "text": "7/2", "correct": false },
+            { "id": "choix-2s5", "text": "2/5", "correct": false }
+          ],
+          "explanation": "Chaque unité est divisée en 2 (dénominateur 2). Le point C est à la 5e demi-unité depuis 0 : c'est 5/2 = 2,5. 3/2 = 1,5 serait entre 1 et 2. 7/2 = 3,5 dépasserait la droite. 2/5 serait une fraction avec un dénominateur 5 — sans rapport avec ce graduage en demis."
+        },
+        {
+          "id": "ex-trou-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Complète : 3/4 = ?/12. Quel est le numérateur manquant ?",
+          "competencies": ["c3.num.fractions.etablir-egalites"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "explanation": "4 × 3 = 12, donc on multiplie aussi le numérateur par 3 : 3 × 3 = 9. Ainsi 3/4 = 9/12. Vérification : 3 ÷ 4 = 0,75 et 9 ÷ 12 = 0,75."
+        }
+      ]
+    }
+  ]
+}

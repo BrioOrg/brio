@@ -19,18 +19,18 @@ que les contraintes de rendu (éditeur, exerciseur) se précisent.
 
 | # | Slug prévu | Titre | Statut |
 |---|---|---|---|
-| 1 | `nombres-decimaux-notation` | La numération décimale : lire, écrire, placer | 🔲 |
+| 1 | `nombres-decimaux-notation` | La numération décimale : lire, écrire, placer | ✅ |
 | 2 | `nombres-decimaux-comparer-ranger` | Les nombres décimaux : comparer, ranger, encadrer | ✅ |
-| 3 | `nombres-decimaux-operations` | Les opérations sur les décimaux | 🔲 |
-| 4 | `fractions` | Les fractions : sens, écritures, comparaison | 🔲 |
+| 3 | `nombres-decimaux-operations` | Les quatre opérations : entiers et décimaux | ✅ |
+| 4 | `fractions` | Les fractions : sens, écritures, comparaison | ✅ |
 | 5 | `fractions-operations` | Calculer avec les fractions | 🔲 |
 | 6 | `pourcentages` | Les pourcentages | 🔲 |
 | 7 | `pre-algebre` | Introduction à l'algèbre : modèles et régularités | 🔲 |
 
-**Note sur l'ordre** : le chapitre 2 (comparer/ranger/encadrer) précède le chapitre 1 (notation)
-dans la rédaction car il porte les seuls types d'exercices disponibles (`multiple-choice`,
-`numeric`). La notation décimale sera écrite quand les exercices de type `short-answer` seront
-utilisables. L'ordre pédagogique réel est 1 → 2 → 3.
+**Note sur l'ordre** : le chapitre 1 (notation) a été rédigé en second, après le chapitre 2
+(comparer/ranger/encadrer), car il attendait `short-answer` (disponible depuis issue #36) et
+les droites graduées déclaratives (disponibles depuis issue #37). Les quatre chapitres sont
+désormais rédigés dans l'ordre pédagogique 1 → 2 → 3 → 4.
 
 ---
 

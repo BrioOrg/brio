@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "id": "nombres-decimaux-operations",
+  "title": "Les quatre opérations : entiers et décimaux",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 75,
+  "status": "published",
+  "sections": [
+    {
+      "id": "division-euclidienne",
+      "title": "La division euclidienne",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-div-euclid",
+          "type": "prose",
+          "text": "Diviser un entier par un autre ne donne pas toujours un nombre entier. La **division euclidienne** répond à la question : combien de fois peut-on retrancher le diviseur, et que reste-t-il ?"
+        },
+        {
+          "id": "def-quotient-reste",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Quotient et reste",
+          "text": "Diviser a par b (b non nul) donne un **quotient** q et un **reste** r tels que : a = b × q + r, avec 0 ≤ r < b. Le reste est toujours strictement inférieur au diviseur."
+        },
+        {
+          "id": "exemple-div-euclid",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemple : 84 ÷ 7",
+          "text": "84 = 7 × 12 + 0. Le quotient est 12, le reste est 0. La division est exacte : 84 est un multiple de 7."
+        },
+        {
+          "id": "ex-quotient",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Effectue la division euclidienne de 91 par 7. Quel est le quotient ?",
+          "competencies": ["c3.num.decimaux.division-euclidienne"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 13,
+          "tolerance": 0,
+          "explanation": "91 = 7 × 13 + 0. Le quotient est 13, le reste est 0. Vérification : 7 × 13 = 91."
+        },
+        {
+          "id": "ex-reste",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Effectue la division euclidienne de 47 par 6. Quel est le reste ?",
+          "competencies": ["c3.num.decimaux.division-euclidienne"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "47 = 6 × 7 + 5. Le quotient est 7, le reste est 5. Vérification : 6 × 7 = 42, et 42 + 5 = 47. Le reste (5) est bien inférieur au diviseur (6)."
+        }
+      ]
+    },
+    {
+      "id": "addition-soustraction",
+      "title": "Additionner et soustraire des décimaux",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-add-sub",
+          "type": "prose",
+          "text": "Pour additionner ou soustraire des nombres décimaux, les chiffres de même rang doivent être traités ensemble. La méthode la plus sûre est d'**aligner les virgules** dans la pose."
+        },
+        {
+          "id": "methode-alignement",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Aligner les virgules",
+          "text": "On complète avec des zéros pour que les deux nombres aient le même nombre de décimales, puis on pose l'opération en alignant les virgules. Exemple : 4,7 + 2,35 s'écrit 4,70 + 2,35."
+        },
+        {
+          "id": "exemple-addition",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemple : 4,7 + 2,35",
+          "text": "On écrit 4,7 = 4,70. Centièmes : 0 + 5 = 5. Dixièmes : 7 + 3 = 10, on pose 0 et retient 1. Unités : 4 + 2 + 1 = 7. Résultat : 7,05."
+        },
+        {
+          "id": "ex-addition",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 3,6 + 1,45.",
+          "competencies": ["c3.num.decimaux.additionner-soustraire"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 5.05,
+          "tolerance": 0,
+          "explanation": "3,6 = 3,60. Centièmes : 0 + 5 = 5. Dixièmes : 6 + 4 = 10, on pose 0 et retient 1. Unités : 3 + 1 + 1 = 5. Résultat : 5,05."
+        },
+        {
+          "id": "ex-soustraction",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 7,3 − 2,58.",
+          "competencies": ["c3.num.decimaux.additionner-soustraire"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.72,
+          "tolerance": 0,
+          "explanation": "7,3 = 7,30. Centièmes : 0 − 8 impossible, on emprunte : 10 − 8 = 2, on retient 1. Dixièmes : 3 − 1 (emprunt) − 5 impossible, on emprunte : 13 − 1 − 5 = 7, on retient 1. Unités : 7 − 1 − 2 = 4. Résultat : 4,72."
+        }
+      ]
+    },
+    {
+      "id": "multiplication-fractions-decimales",
+      "title": "Multiplier par 0,1 ; 0,01 ; 0,001",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-mult-fraction",
+          "type": "prose",
+          "text": "Multiplier un nombre par 0,1 revient à le diviser par 10 : la virgule se déplace d'un rang vers la gauche. De même, multiplier par 0,01 revient à diviser par 100 (deux rangs), et multiplier par 0,001 à diviser par 1 000 (trois rangs)."
+        },
+        {
+          "id": "regle-mult-01",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Le lien avec la division",
+          "text": "× 0,1 = ÷ 10 : la virgule avance d'un rang vers la gauche. × 0,01 = ÷ 100 : deux rangs. × 0,001 = ÷ 1 000 : trois rangs."
+        },
+        {
+          "id": "exemple-mult-01",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemples",
+          "text": "4,6 × 0,1 = 0,46 (÷ 10). 4,6 × 0,01 = 0,046 (÷ 100). 4,6 × 0,001 = 0,0046 (÷ 1 000)."
+        },
+        {
+          "id": "ex-mult-01-mc",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Calcule 35 × 0,01.",
+          "competencies": ["c3.num.decimaux.multiplier-par-fractions"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-35", "text": "3,5", "correct": false },
+            { "id": "choix-035", "text": "0,35", "correct": true },
+            { "id": "choix-350", "text": "350", "correct": false },
+            { "id": "choix-0035", "text": "0,035", "correct": false }
+          ],
+          "explanation": "× 0,01 = ÷ 100 : 35 ÷ 100 = 0,35. Choisir 3,5 revient à ne diviser que par 10 (confusion avec × 0,1). Choisir 350 revient à multiplier par 10 — signe inversé. Choisir 0,035 revient à diviser par 1 000 (confusion avec × 0,001)."
+        },
+        {
+          "id": "ex-mult-001",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 6 × 0,001.",
+          "competencies": ["c3.num.decimaux.multiplier-par-fractions"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.006,
+          "tolerance": 0,
+          "explanation": "× 0,001 = ÷ 1 000 : 6 ÷ 1 000 = 0,006. La virgule se déplace de trois rangs vers la gauche : 6 → 0,6 → 0,06 → 0,006."
+        }
+      ]
+    },
+    {
+      "id": "multiplication-decimaux",
+      "title": "Multiplier deux nombres décimaux",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-mult-dec",
+          "type": "prose",
+          "text": "Pour multiplier deux décimaux, on calcule d'abord le produit en ignorant les virgules, puis on place la virgule dans le résultat en comptant le nombre total de décimales des deux facteurs."
+        },
+        {
+          "id": "methode-produit",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Compter les décimales",
+          "text": "Le nombre de décimales du produit est égal à la **somme** des décimales des deux facteurs. Exemple : un facteur avec 1 décimale multiplié par un facteur avec 2 décimales donne un résultat avec 3 décimales."
+        },
+        {
+          "id": "exemple-produit",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemple : 3,4 × 2,5",
+          "text": "On calcule 34 × 25 = 850. Les deux facteurs ont chacun 1 décimale, total 2. On place la virgule deux rangs depuis la droite : 8,50 = 8,5."
+        },
+        {
+          "id": "piege-mult",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Multiplier peut diminuer",
+          "text": "Multiplier par un nombre **inférieur à 1** donne un résultat **plus petit** que le premier facteur. Par exemple : 5 × 0,3 = 1,5, et 1,5 < 5. La multiplication ne « fait pas toujours grandir »."
+        },
+        {
+          "id": "ex-piege-produit",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Calcule 0,3 × 0,4.",
+          "competencies": ["c3.num.decimaux.multiplier-decimaux"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-012", "text": "0,12", "correct": true },
+            { "id": "choix-12", "text": "1,2", "correct": false },
+            { "id": "choix-12entier", "text": "12", "correct": false },
+            { "id": "choix-07", "text": "0,7", "correct": false }
+          ],
+          "explanation": "3 × 4 = 12 ; chacun des facteurs a 1 décimale, total 2 : résultat = 0,12. Choisir 1,2 revient à ne compter qu'une décimale au lieu de deux. Choisir 12 revient à oublier toutes les décimales. Choisir 0,7 revient à additionner au lieu de multiplier (0,3 + 0,4 = 0,7)."
+        },
+        {
+          "id": "ex-calcul-produit",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 1,2 × 3,5.",
+          "competencies": ["c3.num.decimaux.multiplier-decimaux"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.2,
+          "tolerance": 0,
+          "explanation": "12 × 35 = 420. Deux décimales au total (1 + 1) : 4,20 = 4,2."
+        }
+      ]
+    },
+    {
+      "id": "division-decimal",
+      "title": "Diviser un décimal par un entier",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-div-decimal",
+          "type": "prose",
+          "text": "Pour diviser un nombre décimal par un entier non nul, on pose la division comme pour des entiers. Quand on descend le chiffre situé après la virgule du dividende, on place la virgule dans le quotient à ce moment-là."
+        },
+        {
+          "id": "methode-div-decimal",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Poser la virgule dans le quotient",
+          "text": "L'algorithme est identique à la division euclidienne. La seule différence : dès que la virgule du dividende est « franchie », on place la virgule dans le quotient."
+        },
+        {
+          "id": "exemple-div-decimal",
+          "type": "callout",
+          "variant": "example",
+          "title": "Exemple : 8,4 ÷ 4",
+          "text": "On pose 8 ÷ 4 = 2, reste 0. On franchit la virgule et on descend 4 : on place la virgule dans le quotient, puis 4 ÷ 4 = 1. Résultat : 2,1."
+        },
+        {
+          "id": "ex-div-decimal-1",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 6,3 ÷ 9.",
+          "competencies": ["c3.num.decimaux.diviser-decimal"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.7,
+          "tolerance": 0,
+          "explanation": "6 ÷ 9 : 9 ne rentre pas dans 6, quotient partiel 0, reste 6. On place la virgule et on descend 3 : 63 ÷ 9 = 7. Résultat : 0,7."
+        },
+        {
+          "id": "ex-div-decimal-2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 7,8 ÷ 6.",
+          "competencies": ["c3.num.decimaux.diviser-decimal"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 1.3,
+          "tolerance": 0,
+          "explanation": "7 ÷ 6 = 1, reste 1. On place la virgule et on descend 8 : 18 ÷ 6 = 3. Résultat : 1,3."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "ex-reste-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Effectue la division euclidienne de 83 par 9. Quel est le reste ?",
+          "competencies": ["c3.num.decimaux.division-euclidienne"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2,
+          "tolerance": 0,
+          "explanation": "83 = 9 × 9 + 2. Le quotient est 9, le reste est 2. Vérification : 9 × 9 = 81, et 81 + 2 = 83. Le reste (2) est bien inférieur au diviseur (9)."
+        },
+        {
+          "id": "ex-add-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 5,6 + 1,85.",
+          "competencies": ["c3.num.decimaux.additionner-soustraire"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 7.45,
+          "tolerance": 0,
+          "explanation": "5,6 = 5,60. Centièmes : 0 + 5 = 5. Dixièmes : 6 + 8 = 14, on pose 4 et retient 1. Unités : 5 + 1 + 1 = 7. Résultat : 7,45."
+        },
+        {
+          "id": "ex-sub-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 6,04 − 2,7.",
+          "competencies": ["c3.num.decimaux.additionner-soustraire"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3.34,
+          "tolerance": 0,
+          "explanation": "6,04 − 2,70 : centièmes : 4 − 0 = 4. Dixièmes : 0 − 7 impossible, on emprunte : 10 − 7 = 3, on retient 1. Unités : 6 − 1 − 2 = 3. Résultat : 3,34."
+        },
+        {
+          "id": "ex-mult-01-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 4,5 × 0,1.",
+          "competencies": ["c3.num.decimaux.multiplier-par-fractions"],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.45,
+          "tolerance": 0,
+          "explanation": "× 0,1 = ÷ 10 : 4,5 ÷ 10 = 0,45. La virgule se déplace d'un rang vers la gauche."
+        },
+        {
+          "id": "ex-produit-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 2,3 × 1,4.",
+          "competencies": ["c3.num.decimaux.multiplier-decimaux"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3.22,
+          "tolerance": 0,
+          "explanation": "23 × 14 = 322. Deux décimales au total (1 + 1) : 3,22."
+        },
+        {
+          "id": "ex-sens-mult-final",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Calcule 0,4 × 0,5.",
+          "competencies": ["c3.num.decimaux.multiplier-decimaux"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            { "id": "choix-02", "text": "0,2", "correct": true },
+            { "id": "choix-2", "text": "2", "correct": false },
+            { "id": "choix-20", "text": "20", "correct": false },
+            { "id": "choix-09", "text": "0,9", "correct": false }
+          ],
+          "explanation": "4 × 5 = 20 ; deux décimales au total (1 + 1) : 0,20 = 0,2. Choisir 2 revient à oublier une décimale. Choisir 20 revient à les oublier toutes les deux. Choisir 0,9 revient à additionner au lieu de multiplier (0,4 + 0,5 = 0,9)."
+        },
+        {
+          "id": "ex-div-dec-final",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 9,6 ÷ 6.",
+          "competencies": ["c3.num.decimaux.diviser-decimal"],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 1.6,
+          "tolerance": 0,
+          "explanation": "9 ÷ 6 = 1, reste 3. On place la virgule et on descend 6 : 36 ÷ 6 = 6. Résultat : 1,6."
+        }
+      ]
+    }
+  ]
+}

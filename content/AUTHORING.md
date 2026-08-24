@@ -16,6 +16,13 @@ une notion. Si tu veux mesurer une compétence, écris un exercice qui l'évalue
 **Pourquoi** : le module `progression` agrège la maîtrise par code. Un tag sur de la prose
 produirait une "maîtrise" sans acte de l'élève — un bruit qui noierait le signal.
 
+**Affectation d'une compétence à un chapitre** : un code de compétence appartient au chapitre
+dont les exercices évaluent la facette concernée. Quand un code couvre plusieurs facettes
+(ex. `connaitre-ecritures` inclut fractions décimales, nombres mixtes et pourcentages), chaque
+chapitre déclare le code mais n'évalue que sa propre facette. Le code est attribué à chaque
+chapitre qui l'évalue partiellement — pas réservé à un seul. Signale dans la PR description
+si un code est ainsi partagé pour en garder une trace lisible.
+
 ### 2. QCM pour les erreurs diagnostiques, numérique pour les réponses produites
 
 - **`multiple-choice`** quand les mauvaises réponses peuvent incarner des conceptions erronées
@@ -46,10 +53,14 @@ L'évaluateur applique un pipeline de normalisation identique à la soumission e
 
 **`acceptedAnswers`** — liste exhaustive des formulations correctes après normalisation.
 
+- **Ne pas dupliquer les variantes d'accent, de casse ou de ponctuation finale** : la
+  normalisation les neutralise déjà. Lister `"hypoténuse"`, `"hypotenuse"`, `"Hypoténuse"` et
+  `"hypoténuse."` comme quatre réponses distinctes est du travail perdu — seules les
+  **variantes lexicales** méritent une entrée séparée.
 - Inclure les variantes avec et sans article si les deux sont acceptables :
   `"hypoténuse"` et `"l'hypoténuse"`.
 - Inclure les formulations synonymes utilisées dans le cours :
-  `"les côtés de l'angle droit"` et `"cotes de l'angle droit"`.
+  `"les côtés de l'angle droit"` et `"côtés de l'angle droit"`.
 - Ne pas inclure de vocabulaire hors programme (belgicismes, helvétismes, termes
   universitaires) sauf s'ils sont explicitement introduits dans le cours.
 - La virgule n'est pas strippée (séparateur décimal en français) — ne pas en mettre en
@@ -62,6 +73,13 @@ L'évaluateur applique un pipeline de normalisation identique à la soumission e
 quand l'élève se trompe ; sans lui, l'interface affiche un message générique qui ne l'aide pas.
 L'explication doit donner la réponse et, si possible, pointer vers la notion du cours qui
 définit le terme.
+
+**Frontières du type `short-answer`** — ne jamais l'utiliser pour :
+- Une réponse numérique (→ `numeric`) : `answer` + `tolerance` offrent une vérification exacte.
+- Une phrase complète ou une réponse ouverte (→ `free-text`, auto-évalué) : la normalisation
+  ne s'applique pas à des formulations longues.
+`short-answer` convient pour un nom, un rang, un terme technique, une écriture courte avec un
+ensemble fini de formulations acceptables.
 
 ### 3. Aucun agent ne publie
 
@@ -178,6 +196,10 @@ Utiliser l'élément `numberLines` plutôt que d'énumérer des points manuellem
 `step` : espacement entre deux graduations. `labelEvery` : afficher un label tous les
 N unités (doit être un multiple entier de `step`). `marks` : points d'emphase avec
 label personnalisé (séparateur décimal français : virgule).
+
+**Ne jamais énumérer les graduations à la main** : déclare toujours `from`, `to`, `step` —
+le renderer calcule les positions. Lister 101 points pour une droite de 0 à 10 par pas de
+0,1 est une erreur d'authoring.
 
 ### Formules
 
