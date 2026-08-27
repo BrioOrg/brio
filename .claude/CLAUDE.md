@@ -72,6 +72,28 @@ by ID, not by object. A Modulith `verify()` test guards these boundaries.
 
 See `.claude/rules/` for the enforced backend and web conventions.
 
+## Design
+
+- **Visual direction**: `docs/design/visuels/` — the normative reference for the
+  "Arcade" direction. **Frozen: never edit those files.** They are the original
+  the implementation is compared against. Context and rationale:
+  `docs/design/README.md`.
+- **All** colours, fonts, sizes, radii, shadows and durations come from
+  `web/app/tokens.css`. Components use **semantic** tokens only — never
+  primitives, never raw values. (Until the design-foundations issue lands that
+  file does not exist yet: do not style new UI ad hoc, ask first.)
+- Never introduce a colour, font, size, radius, shadow or duration outside
+  tokens. If one is genuinely missing, propose a `tokens.css` change in its
+  **own PR** — never bundled with a feature.
+- Compare any UI change against the `/design` styleguide before opening the PR.
+- No pre-styled component kits (daisyUI, Flowbite, MUI, Tailwind templates).
+  Headless primitives (Radix and the like) are fine with every default style
+  removed.
+- **Never display data the backend does not have.** XP, levels, streaks,
+  completion percentages and chapter locks appear in the mockups but depend on
+  modules that do not exist. No placeholder, no fabricated value — this product
+  is used by minors.
+
 ## Conventions
 
 - **Language**: user-facing copy is French; code, identifiers, comments English.
@@ -98,5 +120,7 @@ See `.claude/rules/` for the enforced backend and web conventions.
 - Don't put secrets or third-party copyrighted content (textbooks, commercial
   annales) in the repo. Official public curriculum data (BOEN programmes,
   attendus — Licence Ouverte) *belongs* in `content/` (ADR 0008).
+- Don't edit `docs/design/visuels/`, or fabricate UI state (XP, streaks,
+  progress) — see Design above.
 - Don't introduce a new library without a short rationale (ADR or PR note).
 - **No absolute paths in committed files** — hook scripts, settings, CI config, or anything else. Use `$CLAUDE_PROJECT_DIR` (with `$(git rev-parse --show-toplevel)` as fallback) for paths that must be absolute at runtime. An absolute path in a committed file silently breaks on every machine with a different home directory.

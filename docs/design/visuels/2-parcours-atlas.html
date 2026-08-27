@@ -1,0 +1,263 @@
+<style>
+  :root {
+    --page: #0a1310;
+    --green: #17c26b; --green-hi: #3ce088; --green-edge: #0b7a43;
+    --green-soft: #12251c; --green-line: #2f6b48; --green-txt: #86f0b1;
+    --flame: #ff9600; --xp: #ffcf3f;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --round: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap {
+    background: radial-gradient(120% 80% at 50% 0%, #14241d, var(--page) 60%);
+    min-height: 100vh; color: #eafff3; font-family: var(--font);
+    padding: 46px 20px 80px; display: flex; flex-direction: column; align-items: center;
+  }
+  .masthead { max-width: 640px; text-align: center; margin-bottom: 30px; }
+  .masthead .kicker { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #4ade9a; font-weight: 800; margin: 0 0 12px; }
+  .masthead h1 { font-family: var(--round); font-weight: 800; font-size: clamp(25px, 5vw, 34px); line-height: 1.08; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .masthead p { color: #9db3aa; font-size: 15px; line-height: 1.6; margin: 0 auto; max-width: 56ch; }
+  .badge-legend { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-top: 14px; }
+  .badge-legend span { font-size: 12px; font-weight: 700; background: #14241d; border: 1px solid #23392f; border-radius: 999px; padding: 4px 11px; color: #bcd6ca; }
+
+  /* ---------- phone ---------- */
+  .phone {
+    --screen: #0e1a16; --topbar: #0b1612; --navbar: #0b1612; --fg: #eafff3; --muted: #7f9a8e;
+    --route: #29463a; --contour: rgba(120,200,160,.045); --line: #16241d; --tile-lock-face: #33453c; --tile-lock-edge: #26332c; --lock-ic: #62786c;
+    width: 100%; max-width: 384px; height: 812px; border-radius: 40px; overflow: hidden;
+    background: var(--screen); position: relative; color: var(--fg);
+    box-shadow: 0 26px 60px -22px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.05);
+    display: flex; flex-direction: column;
+  }
+  .phone.day {
+    --screen: #eef8f0; --topbar: #ffffff; --navbar: #ffffff; --fg: #12211a; --muted: #5f7168;
+    --route: #c9ddd0; --contour: rgba(20,120,70,.05); --line: #dfeae3; --tile-lock-face: #dbe6df; --tile-lock-edge: #c4d2ca; --lock-ic: #9fb2a8;
+  }
+
+  /* top bar */
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 16px 18px 12px; background: var(--topbar); border-bottom: 1px solid var(--line); z-index: 4; }
+  .course-tile { width: 34px; height: 34px; border-radius: 10px; background: var(--green); display: grid; place-items: center; box-shadow: 0 3px 0 var(--green-edge); }
+  .course-tile b { font-family: var(--round); font-weight: 800; color: #06301c; font-size: 18px; }
+  .spacer { flex: 1; }
+  .dn { width: 34px; height: 34px; border-radius: 10px; background: transparent; border: 1.5px solid var(--line); color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+  .dn svg { width: 18px; height: 18px; }
+  .dn .moon { display: block; } .dn .sun { display: none; }
+  .phone.day .dn .moon { display: none; } .phone.day .dn .sun { display: block; }
+  .stat { display: inline-flex; align-items: center; gap: 6px; font-family: var(--round); font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
+  .stat svg { width: 22px; height: 22px; }
+  .stat.f { color: var(--flame); } .stat.x { color: var(--xp); }
+
+  /* scroll area with map background */
+  .scroll {
+    flex: 1; overflow-y: auto; padding: 16px 20px 24px; scrollbar-width: none; position: relative;
+    background-image:
+      repeating-radial-gradient(circle at 22% 12%, transparent 0 30px, var(--contour) 30px 31px, transparent 31px 66px),
+      repeating-radial-gradient(circle at 84% 74%, transparent 0 26px, var(--contour) 26px 27px, transparent 27px 60px);
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* region banner */
+  .banner { background: var(--green); border-radius: 16px; padding: 14px 16px; box-shadow: 0 5px 0 var(--green-edge); display: flex; align-items: center; gap: 12px; }
+  .banner .bt { flex: 1; }
+  .banner .u { font-size: 12px; font-weight: 800; letter-spacing: .08em; color: #bdfdd7; text-transform: uppercase; }
+  .banner .t { font-family: var(--round); font-weight: 800; font-size: 18px; color: #fff; line-height: 1.15; margin-top: 2px; }
+  .banner .compass { width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.16); display: grid; place-items: center; flex: none; }
+  .banner .compass svg { width: 22px; height: 22px; color: #eafff3; }
+
+  /* trail */
+  .path { position: relative; padding: 20px 0 24px; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+  .path::before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 50%; transform: translateX(-1px); border-left: 3px dashed var(--route); z-index: 0; }
+
+  .node { display: flex; justify-content: center; position: relative; z-index: 1; }
+
+  /* signature shape: hexagon tile in relief */
+  .hexwrap { position: relative; width: 80px; height: 76px; background: none; border: none; padding: 0; cursor: pointer; }
+  .hexwrap[disabled] { cursor: default; }
+  .hex-face, .hex-edge {
+    position: absolute; left: 0; right: 0; height: 66px;
+    clip-path: polygon(25% 2%, 75% 2%, 100% 50%, 75% 98%, 25% 98%, 0 50%);
+    display: grid; place-items: center;
+  }
+  .hex-edge { top: 10px; background: var(--green-edge); }
+  .hex-face { top: 0; background: radial-gradient(ellipse at 50% 32%, var(--green-hi), var(--green)); transition: transform .1s ease; }
+  .hex-face svg { width: 30px; height: 30px; color: #fff; filter: drop-shadow(0 1px 0 rgba(0,0,0,.18)); }
+  .hexwrap:not([disabled]):hover .hex-face, .hexwrap:not([disabled]):active .hex-face { transform: translateY(6px); }
+
+  .hexwrap.big { width: 92px; height: 88px; }
+  .hexwrap.big .hex-face, .hexwrap.big .hex-edge { height: 76px; }
+  .hexwrap.big .hex-edge { top: 12px; }
+
+  .hexwrap.locked .hex-face { background: radial-gradient(ellipse at 50% 32%, var(--tile-lock-face), var(--tile-lock-face)); }
+  .hexwrap.locked .hex-edge { background: var(--tile-lock-edge); }
+  .hexwrap.locked .hex-face svg { color: var(--lock-ic); filter: none; }
+
+  /* active node with coach bubble + pulse ring */
+  .stack { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .bubble {
+    position: relative; background: var(--green-soft); border: 2px solid var(--green-line);
+    color: var(--green-txt); font-family: var(--round); font-weight: 800; font-size: 13px; letter-spacing: .06em;
+    padding: 9px 18px; border-radius: 13px; box-shadow: 0 3px 0 rgba(0,0,0,.35); animation: bob 1.2s ease-in-out infinite;
+  }
+  .phone.day .bubble { background: #eafaf1; border-color: #b6e6cb; color: var(--green-edge); }
+  .bubble::after { content: ""; position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%); border: 8px solid transparent; border-top-color: var(--green-line); }
+  .phone.day .bubble::after { border-top-color: #b6e6cb; }
+  .pulse { position: relative; }
+  .pulse::before { content: ""; position: absolute; inset: -6px; clip-path: polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%); border: 0; background: var(--green); opacity: .22; animation: puls 1.6s ease-out infinite; z-index: -1; }
+  @keyframes bob { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-5px);} }
+  @keyframes puls { 0% { transform: scale(1); opacity:.3;} 100% { transform: scale(1.35); opacity:0;} }
+
+  /* mascot — caméléon brio (vectoriel) */
+  .mascot { position: absolute; right: 12px; top: 236px; width: 120px; z-index: 2; filter: drop-shadow(0 8px 10px rgba(0,0,0,.35)); }
+  .mascot svg { width: 100%; height: auto; display: block; }
+
+  /* bottom nav */
+  .nav { display: flex; align-items: center; justify-content: space-around; padding: 10px 8px 14px; background: var(--navbar); border-top: 1px solid var(--line); z-index: 4; }
+  .nav button { background: none; border: none; padding: 8px; border-radius: 12px; cursor: pointer; display: grid; place-items: center; }
+  .nav button svg { width: 26px; height: 26px; color: var(--muted); }
+  .nav button.active { background: color-mix(in oklab, var(--green) 18%, transparent); box-shadow: inset 0 0 0 2px var(--green); }
+  .nav button.active svg { color: var(--green); }
+
+  .tip { max-width: 384px; margin-top: 20px; color: #8ba79b; font-size: 13.5px; text-align: center; line-height: 1.6; }
+  .tip b { color: #cfe9df; }
+
+  @media (prefers-reduced-motion: reduce) { .bubble, .pulse::before { animation: none; } }
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <p class="kicker">brio · le parcours, à notre image</p>
+    <h1>Un atlas à explorer, pas une autoroute.</h1>
+    <p>Notre patte : une <b>carte</b> avec une route en pointillés et des <b>hexagones</b> (nos jalons, pas les ronds de Duolingo), une <b>boussole</b>, un ton <b>coach</b>, pas de vies, et notre mascotte le <b>caméléon</b>. Bouton jour/nuit en haut à gauche — il marche 👇</p>
+    <div class="badge-legend">
+      <span>🗺️ univers atlas</span><span>🔺 hexagones</span><span>🦎 caméléon</span><span>❤️ sans vies</span><span>🌗 jour/nuit</span><span>🤝 amis</span>
+    </div>
+  </div>
+
+  <div class="phone" id="phone">
+    <!-- top bar -->
+    <div class="topbar">
+      <div class="course-tile"><b>b</b></div>
+      <button class="dn" id="dn" aria-label="Basculer jour/nuit" aria-pressed="false">
+        <svg class="moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
+      </button>
+      <div class="spacer"></div>
+      <span class="stat f"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-1 4-2 6s0 4 2 4 3-2 2-5c3 2 5 5 5 8a7 7 0 0 1-14 0c0-4 4-6 5-9 1 1 2 2 2 4 1-2 0-5-0-8z"/></svg>7</span>
+      <span class="stat x"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.4L21 9l-5 4.3L17.5 20 12 16.5 6.5 20 8 13.3 3 9l6.4-.6z"/></svg>1 240</span>
+    </div>
+
+    <!-- scroll -->
+    <div class="scroll">
+      <div class="banner">
+        <div class="bt">
+          <div class="u">Chapitre 1 · Étape 3</div>
+          <div class="t">Le théorème de Pythagore</div>
+        </div>
+        <div class="compass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 13 13l-4.5 2.5L11 11z" fill="currentColor"/></svg></div>
+      </div>
+
+      <div class="path">
+        <!-- done -->
+        <div class="node" style="transform:translateX(38px)">
+          <button class="hexwrap" aria-label="Étape terminée">
+            <span class="hex-edge"></span>
+            <span class="hex-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span>
+          </button>
+        </div>
+        <div class="node" style="transform:translateX(4px)">
+          <button class="hexwrap" aria-label="Étape terminée">
+            <span class="hex-edge"></span>
+            <span class="hex-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span>
+          </button>
+        </div>
+
+        <!-- active -->
+        <div class="node" style="transform:translateX(-30px)">
+          <div class="stack">
+            <div class="bubble">EN ROUTE</div>
+            <button class="hexwrap big pulse" aria-label="Étape à faire — En route">
+              <span class="hex-edge"></span>
+              <span class="hex-face"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.4L21 9l-5 4.3L17.5 20 12 16.5 6.5 20 8 13.3 3 9l6.4-.6z"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- halte / coffre bonus -->
+        <div class="node" style="transform:translateX(-48px)">
+          <button class="hexwrap locked" aria-label="Halte bonus à débloquer" disabled>
+            <span class="hex-edge"></span>
+            <span class="hex-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M4 12h16M12 8v12"/></svg></span>
+          </button>
+        </div>
+        <!-- sommet / défi de chapitre = drapeau -->
+        <div class="node" style="transform:translateX(0)">
+          <button class="hexwrap locked" aria-label="Défi de fin de chapitre — verrouillé" disabled>
+            <span class="hex-edge"></span>
+            <span class="hex-face"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18M6 4h11l-2 3 2 3H6"/></svg></span>
+          </button>
+        </div>
+        <div class="node" style="transform:translateX(40px)">
+          <button class="hexwrap locked" aria-label="Étape verrouillée" disabled>
+            <span class="hex-edge"></span>
+            <span class="hex-face"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.4L21 9l-5 4.3L17.5 20 12 16.5 6.5 20 8 13.3 3 9l6.4-.6z"/></svg></span>
+          </button>
+        </div>
+
+        <!-- mascotte : caméléon brio -->
+        <div class="mascot" aria-hidden="true">
+          <svg viewBox="0 0 128 108">
+            <!-- branche -->
+            <path d="M6 84 C 44 76, 86 78, 122 80 L122 92 C 86 90, 44 88, 6 96 Z" fill="#9c6a3c"/>
+            <path d="M6 84 C 44 76, 86 78, 122 80 L122 83.5 C 86 81.5, 44 79.5, 6 87.5 Z" fill="#b5854f"/>
+            <path d="M96 80 l13 -9" fill="none" stroke="#9c6a3c" stroke-width="6" stroke-linecap="round"/>
+            <!-- queue enroulée -->
+            <path d="M54 62 C 42 66, 38 82, 52 82 C 62 82, 62 70, 53 70 C 47 70, 47 77, 52 77" fill="none" stroke="#2f8a45" stroke-width="8" stroke-linecap="round"/>
+            <!-- pattes -->
+            <path d="M60 62 C 57 72, 54 78, 52 82" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/>
+            <path d="M47 83 l6 4 M57 83 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/>
+            <path d="M86 60 C 89 70, 92 78, 94 83" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/>
+            <path d="M89 84 l6 4 M99 84 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/>
+            <!-- corps -->
+            <path d="M50 60 C 44 40, 62 30, 82 33 C 98 35, 106 43, 104 50 C 102 60, 88 64, 72 64 L58 64 C 52 64, 51 62, 50 60 Z" fill="#46b45f"/>
+            <path d="M58 62 C 70 66, 88 64, 100 54 C 98 62, 84 66, 66 65 C 61 64, 58 63, 58 62 Z" fill="#86e0a0" opacity=".85"/>
+            <!-- crête -->
+            <path d="M56 41 l4 -6 3 6 4 -7 4 7 4 -6 4 6 4 -5 3 5" fill="#2f8a45"/>
+            <!-- casque -->
+            <path d="M92 37 C 89 27, 97 25, 100 33 C 101 36, 98 39, 92 37 Z" fill="#3aa054"/>
+            <!-- tête -->
+            <path d="M92 37 C 108 33, 122 39, 122 47 C 122 55, 110 58, 98 55 C 90 53, 87 41, 92 37 Z" fill="#46b45f"/>
+            <path d="M108 52 C 114 52, 119 50, 121 47" fill="none" stroke="#2b7d40" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- œil -->
+            <circle cx="106" cy="45" r="7" fill="#ff7d1e"/>
+            <circle cx="106" cy="45" r="2.8" fill="#102a18"/>
+            <circle cx="103.6" cy="42.8" r="1.4" fill="#fff"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- bottom nav : amis (pas de ligues) -->
+    <nav class="nav">
+      <button class="active" aria-label="Carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></button>
+      <button aria-label="S'entraîner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9v6M18 9v6M4 11h2M18 11h2M6 12h12"/></svg></button>
+      <button aria-label="Amis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3 2.7-4.6 6-4.6S15 17 15 20"/><path d="M16 5a3 3 0 0 1 0 6M18 20c0-2.4-1-3.8-2.5-4.5"/></svg></button>
+      <button aria-label="Badges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/></svg></button>
+      <button aria-label="Profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.3 3.1-5 7-5s7 1.7 7 5"/></svg></button>
+    </nav>
+  </div>
+
+  <p class="tip">L'hexagone <b>« En route »</b> qui pulse est ta prochaine étape. Les hexagones gris sont <b>verrouillés</b> ; le <b>coffre</b> est une halte bonus, le <b>drapeau</b> est le défi de fin de chapitre. Le <b>caméléon</b> t'accompagne (et on pourra l'habiller 🎩).</p>
+</div>
+
+<script>
+  (function () {
+    var p = document.getElementById('phone');
+    var b = document.getElementById('dn');
+    if (!p || !b) return;
+    b.addEventListener('click', function () {
+      var day = p.classList.toggle('day');
+      b.setAttribute('aria-pressed', String(day));
+    });
+  })();
+</script>
