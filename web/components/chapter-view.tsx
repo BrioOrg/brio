@@ -3,6 +3,7 @@ import { parseRichText, type RichTextToken, type FigureSpec } from '@brio/conten
 
 import { ExerciceWidget } from '@/components/exercice-widget'
 import { FigureRenderer } from '@/components/figure-renderer'
+import { Icon } from '@/components/ui/icon'
 
 type Choice = { id: string; text: string }
 
@@ -43,28 +44,37 @@ type Block = {
 
 export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
   return (
-    <article>
+    <article className="font-prose text-ink">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{chapitre.title}</h1>
-        {(chapitre.subject || chapitre.level) && (
-          <p className="mt-1 text-sm text-gray-500">
-            {[chapitre.subject, chapitre.level].filter(Boolean).join(' · ')}
+        <h1 className="font-display text-3xl font-black leading-[1.1] tracking-tight text-ink text-balance">
+          {chapitre.title}
+        </h1>
+        {(chapitre.subject || chapitre.level || chapitre.estimatedDurationMinutes) && (
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-prose text-sm text-ink-muted">
+            {chapitre.estimatedDurationMinutes != null && (
+              <span className="inline-flex items-center gap-1.5">
+                <Icon name="book-open" size={14} aria-hidden="true" />
+                Lecture ≈ {chapitre.estimatedDurationMinutes} min
+              </span>
+            )}
           </p>
         )}
       </header>
 
-      {chapitre.sections.map((section) => (
-        <section key={section.id} className="mb-10">
-          <h2 className="mb-4 text-xl font-semibold text-gray-800 border-b pb-2">
-            {section.title}
-          </h2>
-          <div className="space-y-4">
-            {section.blocks.map((block, i) => (
-              <BlockRenderer key={block.id ?? i} block={block} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className="flex flex-col gap-12">
+        {chapitre.sections.map((section) => (
+          <section key={section.id} id={section.id} className="scroll-mt-20">
+            <h2 className="mb-4 border-b border-line pb-2 font-display text-xl font-extrabold tracking-tight text-ink">
+              {section.title}
+            </h2>
+            <div className="flex flex-col gap-5">
+              {section.blocks.map((block, i) => (
+                <BlockRenderer key={block.id ?? i} block={block} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </article>
   )
 }
@@ -73,7 +83,7 @@ function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case 'prose':
       return (
-        <p className="text-gray-700 leading-relaxed">
+        <p className="font-prose text-base leading-relaxed text-ink">
           <RichTextRenderer text={block.text as string} />
         </p>
       )
@@ -89,9 +99,10 @@ function BlockRenderer({ block }: { block: Block }) {
         output: 'htmlAndMathml',
         displayMode,
       })
+      // No code-block chrome: the formula sits directly on the page ground.
       return displayMode ? (
         <div
-          className="my-6 overflow-x-auto text-center"
+          className="overflow-x-auto py-1 text-center text-ink"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
@@ -104,19 +115,19 @@ function BlockRenderer({ block }: { block: Block }) {
 
     case 'code':
       return (
-        <pre className="bg-gray-900 text-gray-100 rounded p-4 text-sm overflow-x-auto">
+        <pre className="overflow-x-auto rounded-md border border-line bg-surface-raised p-4 font-mono text-sm text-ink">
           <code>{block.code as string}</code>
         </pre>
       )
 
     case 'image':
       return (
-        <figure className="my-4">
-          <div className="bg-gray-100 rounded p-4 text-center text-sm text-gray-500 italic">
+        <figure className="my-1">
+          <div className="rounded-md border border-line bg-surface-raised p-4 text-center font-prose text-sm italic text-ink-muted">
             [{block.asset as string}]
           </div>
           {block.caption != null && (
-            <figcaption className="mt-1 text-center text-xs text-gray-500">
+            <figcaption className="mt-1.5 text-center font-prose text-xs text-ink-muted">
               {block.caption as string}
             </figcaption>
           )}
@@ -163,17 +174,19 @@ function ExerciseBlock({ block }: { block: Block }) {
     )
   }
 
-  // Fallback for unsupported exercise types (ordering, free-text)
+  // Fallback for unsupported exercise types (ordering, free-text): read-only card.
   return (
-    <div className="rounded-lg border border-gray-300 bg-white p-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Exercice</p>
-      <p className="text-gray-800">{prompt}</p>
+    <div className="rounded-lg border border-line bg-surface-panel p-5">
+      <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+        Exercice
+      </p>
+      <p className="font-prose text-base text-ink">{prompt}</p>
       {explanation && (
         <details className="mt-3">
-          <summary className="text-sm text-gray-500 cursor-pointer select-none">
-            Explication
+          <summary className="cursor-pointer select-none font-prose text-sm text-accent-ink">
+            Voir l&rsquo;explication
           </summary>
-          <p className="mt-2 text-sm text-gray-600">{explanation}</p>
+          <p className="mt-2 font-prose text-sm text-ink-muted">{explanation}</p>
         </details>
       )}
     </div>
@@ -196,7 +209,7 @@ function RichTextSpan({ token }: { token: RichTextToken }) {
     case 'text':
       return <>{token.value}</>
     case 'bold':
-      return <strong>{token.value}</strong>
+      return <strong className="font-bold text-ink">{token.value}</strong>
     case 'italic':
       return <em>{token.value}</em>
     case 'math': {
@@ -212,33 +225,72 @@ function RichTextSpan({ token }: { token: RichTextToken }) {
 }
 
 function Heading({ level, text }: { level: number; text: string }) {
-  const className = 'font-semibold text-gray-800 mt-4'
-  if (level === 1) return <h3 className={`text-lg ${className}`}>{text}</h3>
-  if (level === 2) return <h4 className={`text-base ${className}`}>{text}</h4>
-  return <h5 className={`text-sm ${className}`}>{text}</h5>
+  const base = 'font-display font-extrabold tracking-tight text-ink'
+  if (level === 1) return <h3 className={`text-lg ${base}`}>{text}</h3>
+  if (level === 2) return <h4 className={`text-base ${base}`}>{text}</h4>
+  return <h5 className={`text-sm ${base}`}>{text}</h5>
+}
+
+// Callout variants map to semantic token families — never raw colours.
+const CALLOUT: Record<string, { icon: string; accent: string; surface: string; border: string }> = {
+  note: { icon: 'info', accent: 'text-info', surface: 'bg-info/10', border: 'border-info/30' },
+  tip: {
+    icon: 'lightning',
+    accent: 'text-accent',
+    surface: 'bg-accent-soft',
+    border: 'border-accent/40',
+  },
+  warning: {
+    icon: 'warning-circle',
+    accent: 'text-warning',
+    surface: 'bg-warning/10',
+    border: 'border-warning/30',
+  },
+  definition: {
+    icon: 'book-open',
+    accent: 'text-accent',
+    surface: 'bg-accent-soft',
+    border: 'border-accent/40',
+  },
+  example: {
+    icon: 'sparkle',
+    accent: 'text-info',
+    surface: 'bg-info/10',
+    border: 'border-info/30',
+  },
+}
+
+const CALLOUT_LABEL: Record<string, string> = {
+  note: 'À noter',
+  tip: 'Astuce',
+  warning: 'Attention',
+  definition: 'Définition',
+  example: 'Exemple',
 }
 
 function Callout({ block }: { block: Block }) {
   const variant = (block.variant as string) ?? 'note'
-  const styles: Record<string, string> = {
-    note: 'bg-blue-50 border-blue-200 text-blue-900',
-    tip: 'bg-green-50 border-green-200 text-green-900',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-900',
-    definition: 'bg-purple-50 border-purple-200 text-purple-900',
-    example: 'bg-orange-50 border-orange-200 text-orange-900',
-  }
-  const style = styles[variant] ?? styles['note']
+  const c = CALLOUT[variant] ?? CALLOUT.note
 
   return (
-    <div className={`rounded-lg border p-4 ${style}`}>
-      {block.title != null && (
-        <p className="font-semibold mb-1">
-          <RichTextRenderer text={block.title as string} />
-        </p>
-      )}
-      <p>
-        <RichTextRenderer text={block.text as string} />
-      </p>
+    <div className={`rounded-lg border ${c.border} ${c.surface} p-4`}>
+      <div className="flex items-start gap-3">
+        <span className={`mt-0.5 shrink-0 ${c.accent}`} aria-hidden="true">
+          <Icon name={c.icon} size={18} weight="bold" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className={`mb-1 font-display text-xs font-extrabold uppercase tracking-widest ${c.accent}`}>
+            {block.title != null ? (
+              <RichTextRenderer text={block.title as string} />
+            ) : (
+              (CALLOUT_LABEL[variant] ?? 'À noter')
+            )}
+          </p>
+          <p className="font-prose text-base leading-relaxed text-ink">
+            <RichTextRenderer text={block.text as string} />
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

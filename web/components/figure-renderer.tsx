@@ -12,7 +12,7 @@ export function FigureRenderer({
   const model = buildDrawingModel(spec)
 
   return (
-    <figure className="my-4">
+    <figure className="my-1 text-ink">
       <div className="overflow-x-auto">
         <svg
           viewBox={model.viewBox}
@@ -169,7 +169,9 @@ export function FigureRenderer({
       </div>
 
       {caption && (
-        <figcaption className="mt-1 text-center text-xs text-gray-500">{caption}</figcaption>
+        <figcaption className="mt-1.5 text-center font-prose text-xs text-ink-muted">
+          {caption}
+        </figcaption>
       )}
     </figure>
   )

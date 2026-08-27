@@ -39,7 +39,7 @@ describe('HomePage', () => {
     const { default: Page } = await import('../page')
     render(await Page())
 
-    expect(screen.getByRole('heading', { name: 'brio' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /apprends, progresse/i })).toBeInTheDocument()
     const link = screen.getByRole('link', { name: /troisième/i })
     expect(link).toHaveAttribute('href', '/3e')
   })

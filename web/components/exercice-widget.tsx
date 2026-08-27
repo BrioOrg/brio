@@ -2,6 +2,10 @@
 
 import { useState } from 'react'
 import { soumettre, type SoumissionResult } from '@/lib/api'
+import { OptionRow, type OptionState } from '@/components/ui/option-row'
+import { TextInput } from '@/components/ui/text-input'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 
 type Choice = { id: string; text: string }
 
@@ -15,6 +19,8 @@ type ExerciceWidgetProps = {
   explanation?: string
   placeholder?: string
 }
+
+const MARKERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
 export function ExerciceWidget({
   exerciceId,
@@ -83,117 +89,117 @@ export function ExerciceWidget({
     }
   }
 
-  return (
-    <div className="rounded-lg border border-gray-300 bg-white p-4">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Exercice</p>
-      <p className="text-gray-800 mb-4">{prompt}</p>
+  function reset() {
+    setResult(null)
+    setSelectedIds([])
+    setNumericValue('')
+    setShortAnswerText('')
+    setError(null)
+  }
 
-      {result ? (
+  // Choice state after submission NEVER reveals an un-selected correct option (T0):
+  // only the student's own picks are marked correct/wrong; everything else is muted.
+  function choiceState(choiceId: string): OptionState {
+    if (!result) return selectedIds.includes(choiceId) ? 'selected' : 'idle'
+    if (!selectedIds.includes(choiceId)) return 'muted'
+    const fb = result.choiceFeedback.find((c) => c.choiceId === choiceId)
+    return fb?.correct ? 'correct' : 'wrong'
+  }
+
+  const submitDisabled =
+    loading || (exerciseType === 'short-answer' && shortAnswerText.trim() === '')
+
+  return (
+    <div className="rounded-lg border border-line bg-surface-panel p-5">
+      <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+        Exercice
+      </p>
+      <p className="mb-4 font-prose text-base leading-relaxed text-ink">{prompt}</p>
+
+      <form onSubmit={handleSubmit} noValidate>
+        {exerciseType === 'multiple-choice' && choices && (
+          <fieldset className="mb-4" disabled={result !== null}>
+            <legend className="sr-only">Choix de réponse</legend>
+            <div className="flex flex-col gap-2">
+              {choices.map((choice, i) => (
+                <OptionRow
+                  key={choice.id}
+                  label={choice.text}
+                  marker={MARKERS[i] ?? String(i + 1)}
+                  state={choiceState(choice.id)}
+                  onClick={() => toggleChoice(choice.id)}
+                />
+              ))}
+            </div>
+          </fieldset>
+        )}
+
+        {exerciseType === 'numeric' && (
+          <div className="mb-4 flex items-end gap-3">
+            <TextInput
+              label="Ta réponse"
+              inputMode="decimal"
+              type="number"
+              step="any"
+              value={numericValue}
+              disabled={result !== null}
+              onChange={(e) => {
+                setNumericValue(e.target.value)
+                setValidationError(null)
+              }}
+              placeholder="Ta réponse"
+              className="w-44"
+            />
+            {unit && (
+              <span className="pb-3 font-prose text-base text-ink-muted" aria-hidden="true">
+                {unit}
+              </span>
+            )}
+          </div>
+        )}
+
+        {exerciseType === 'short-answer' && (
+          <div className="mb-4">
+            <TextInput
+              label="Ta réponse"
+              type="text"
+              value={shortAnswerText}
+              disabled={result !== null}
+              onChange={(e) => {
+                setShortAnswerText(e.target.value)
+                setValidationError(null)
+              }}
+              placeholder={placeholder ?? 'Ta réponse'}
+            />
+          </div>
+        )}
+
+        {validationError && (
+          <p role="alert" className="mb-3 font-prose text-sm text-feedback-incorrect">
+            {validationError}
+          </p>
+        )}
+
+        {error && (
+          <p role="alert" className="mb-3 font-prose text-sm text-danger">
+            {error}
+          </p>
+        )}
+
+        {!result && (
+          <Button type="submit" loading={loading} disabled={submitDisabled} className="w-full sm:w-auto">
+            Vérifier
+          </Button>
+        )}
+      </form>
+
+      {result && (
         <ResultPanel
           result={result}
-          choices={choices}
           exerciseType={exerciseType}
-          unit={unit}
           staticExplanation={explanation}
-          onReset={() => {
-            setResult(null)
-            setSelectedIds([])
-            setNumericValue('')
-            setShortAnswerText('')
-          }}
+          onReset={reset}
         />
-      ) : (
-        <form onSubmit={handleSubmit} noValidate>
-          {exerciseType === 'multiple-choice' && choices && (
-            <fieldset className="mb-4">
-              <legend className="sr-only">Choix de réponse</legend>
-              <div className="space-y-2">
-                {choices.map((choice) => {
-                  const inputType = multiple ? 'checkbox' : 'radio'
-                  const inputId = `choice-${choice.id}`
-                  return (
-                    <label
-                      key={choice.id}
-                      htmlFor={inputId}
-                      className="flex items-center gap-3 rounded-md border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
-                    >
-                      <input
-                        type={inputType}
-                        id={inputId}
-                        name="choice"
-                        value={choice.id}
-                        checked={selectedIds.includes(choice.id)}
-                        onChange={() => toggleChoice(choice.id)}
-                        className="accent-blue-600"
-                      />
-                      <span className="text-gray-800">{choice.text}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            </fieldset>
-          )}
-
-          {exerciseType === 'numeric' && (
-            <div className="mb-4 flex items-center gap-2">
-              <label htmlFor="numeric-answer" className="sr-only">
-                Réponse numérique
-              </label>
-              <input
-                id="numeric-answer"
-                type="number"
-                step="any"
-                value={numericValue}
-                onChange={(e) => {
-                  setNumericValue(e.target.value)
-                  setValidationError(null)
-                }}
-                placeholder="Ta réponse"
-                className="w-40 rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-              {unit && <span className="text-gray-600 text-sm">{unit}</span>}
-            </div>
-          )}
-
-          {exerciseType === 'short-answer' && (
-            <div className="mb-4">
-              <label htmlFor="short-answer-input" className="sr-only">
-                Réponse
-              </label>
-              <input
-                id="short-answer-input"
-                type="text"
-                value={shortAnswerText}
-                onChange={(e) => {
-                  setShortAnswerText(e.target.value)
-                  setValidationError(null)
-                }}
-                placeholder={placeholder ?? 'Ta réponse'}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-          )}
-
-          {validationError && (
-            <p role="alert" className="mb-3 text-sm text-red-600">
-              {validationError}
-            </p>
-          )}
-
-          {error && (
-            <p role="alert" className="mb-3 text-sm text-red-600">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || (exerciseType === 'short-answer' && shortAnswerText.trim() === '')}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {loading ? 'Correction…' : 'Vérifier'}
-          </button>
-        </form>
       )}
     </div>
   )
@@ -201,71 +207,65 @@ export function ExerciceWidget({
 
 type ResultPanelProps = {
   result: SoumissionResult
-  choices?: Choice[]
   exerciseType: string
-  unit?: string
   staticExplanation?: string
   onReset: () => void
 }
 
-function ResultPanel({
-  result,
-  choices,
-  exerciseType,
-  unit,
-  staticExplanation,
-  onReset,
-}: ResultPanelProps) {
-  const isCorrect = result.correct
-  const borderColor = isCorrect ? 'border-green-300 bg-green-50' : 'border-red-200 bg-red-50'
-  const labelColor = isCorrect ? 'text-green-800' : 'text-red-800'
+const RESULT_CONFIG = {
+  success: {
+    surface: 'border-accent bg-surface-result-correct',
+    iconBg: 'bg-accent',
+    title: 'text-accent-edge',
+    icon: 'check',
+    heading: 'Bien vu !',
+  },
+  failure: {
+    surface: 'border-feedback-incorrect bg-surface-result-incorrect',
+    iconBg: 'bg-feedback-incorrect',
+    title: 'text-feedback-incorrect-edge',
+    icon: 'x',
+    heading: 'Pas tout à fait…',
+  },
+} as const
+
+function ResultPanel({ result, exerciseType, staticExplanation, onReset }: ResultPanelProps) {
+  const isCorrect = result.correct === true
+  const c = RESULT_CONFIG[isCorrect ? 'success' : 'failure']
+
+  // A wrong answer opens an explanation, never the expected answer (T0).
+  // We surface the author's pedagogical explanation when present; otherwise a
+  // non-punitive nudge — we never echo `expectedValue` or accepted answers.
+  const explanation = result.explanation ?? staticExplanation
+  const fallback =
+    !isCorrect && !explanation
+      ? exerciseType === 'short-answer'
+        ? 'On regarde ensemble : relis la section précédente.'
+        : 'On regarde ensemble : reprends le raisonnement pas à pas.'
+      : null
 
   return (
-    <div className={`rounded-md border p-4 ${borderColor}`} role="status">
-      <p className={`font-semibold ${labelColor}`}>{isCorrect ? '✓ Correct !' : '✗ Incorrect'}</p>
-
-      {exerciseType === 'numeric' && !isCorrect && result.expectedValue !== null && (
-        <p className="mt-1 text-sm text-gray-700">
-          La bonne réponse était{' '}
-          <strong>
-            {result.expectedValue}
-            {unit ? ` ${unit}` : ''}
-          </strong>
-          .
-        </p>
-      )}
-
-      {exerciseType === 'multiple-choice' && result.choiceFeedback.length > 0 && choices && (
-        <ul className="mt-2 space-y-1 text-sm">
-          {result.choiceFeedback.map((fb) => {
-            const choice = choices.find((c) => c.id === fb.choiceId)
-            return (
-              <li key={fb.choiceId} className={fb.correct ? 'text-green-700' : 'text-red-700'}>
-                {fb.correct ? '✓' : '✗'} {choice?.text ?? fb.choiceId}
-              </li>
-            )
-          })}
-        </ul>
-      )}
-
-      {exerciseType === 'short-answer' &&
-        !isCorrect &&
-        !(result.explanation ?? staticExplanation) && (
-          <p className="mt-2 text-sm text-gray-700">
-            Ce n&apos;est pas la réponse attendue. Relis la section précédente.
-          </p>
-        )}
-
-      {(result.explanation ?? staticExplanation) && (
-        <p className="mt-2 text-sm text-gray-700">{result.explanation ?? staticExplanation}</p>
-      )}
-
-      <button
-        onClick={onReset}
-        className="mt-3 text-sm text-blue-600 underline hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-      >
-        Réessayer
-      </button>
+    <div className={`mt-4 rounded-lg border ${c.surface} p-4`} role="status">
+      <div className="flex items-start gap-3">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${c.iconBg}`}
+          aria-hidden="true"
+        >
+          <Icon name={c.icon} weight="bold" size={18} className="text-surface-page" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className={`font-display text-lg font-extrabold ${c.title}`}>{c.heading}</p>
+          {explanation && (
+            <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{explanation}</p>
+          )}
+          {fallback && <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{fallback}</p>}
+          <div className="mt-3">
+            <Button variant="secondary" size="sm" onClick={onReset}>
+              Réessayer
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

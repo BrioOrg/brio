@@ -1,4 +1,4 @@
-import { ThemeToggle } from './theme-toggle'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { OptionRowDemo, ButtonLoadingDemo, ResultSheetDemo } from './kit-interactive'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'

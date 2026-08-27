@@ -37,7 +37,7 @@ describe('NiveauPage', () => {
     const { default: Page } = await import('../page')
     render(await Page({ params: Promise.resolve({ niveau: '3e' }) }))
 
-    expect(screen.getByRole('heading', { name: 'Troisième' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Choisis une matière' })).toBeInTheDocument()
     const link = screen.getByRole('link', { name: /mathématiques/i })
     expect(link).toHaveAttribute('href', '/3e/mathematiques')
   })

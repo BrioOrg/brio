@@ -98,6 +98,52 @@ Correct copy patterns:
    every form field has a `<label>`; ARIA roles are added only when native
    semantics fall short.
 
+## Layout — desktop-first, mobile-adaptable
+
+The mockups are 360 px phone frames; the product is a web app that must work at
+1280 px and adapt down. The layout decided here (issue #49) is the frame every
+future feature slots into — the tutor first.
+
+### The reading page (chapter)
+
+Three columns at the desktop breakpoint (`lg`), in a `max-w-7xl` centred shell:
+
+1. **Left — chapter rail** (`~15.5rem`): the current subject's chapters in
+   catalogue order, the active one marked with `aria-current="page"`. This is
+   the "bureau d'étude" spine — you move between chapters without going back.
+2. **Centre — reading column**: capped at a comfortable measure (`max-w-[68ch]`,
+   ~65–72 characters) because a chapter is long-form reading first. Whatever the
+   arcade energy of the controls, the chapter body stays a quiet reading surface.
+3. **Right — rail reserved from the start** (`~19.5rem`): the on-page summary now,
+   and **the tutor's home later**. Reserving its place now is what stops the
+   tutor from being bolted on. Until the tutor ships it shows an honest "bientôt"
+   teaser — never fabricated state.
+
+**Below `lg`** the two rails fold away, not out: the chapter list becomes a
+native `<details>` disclosure at the top, and the right rail becomes a bottom
+sheet raised by a fixed "Sommaire & tuteur" trigger. Nothing is lost, and there
+is no horizontal page scroll at any width — wide content (figures, long formulas)
+scrolls inside its own `overflow-x-auto` container.
+
+### The navigation pages (`/`, `/[niveau]`, `/[niveau]/[matiere]`)
+
+A responsive tile grid. The subject grid must keep the mockup's property of
+holding six subjects without redesign (`sm:grid-cols-3`). The subject page adopts
+the **parcours** language — chapters as an ordered vertical sequence with
+hexagonal step markers — but carries **only what the catalogue knows**: order,
+title, estimated duration. **No locks, no XP, no percentage, no streak** — that
+data does not exist, and fabricating it in a product for minors is not acceptable.
+
+### Exercise surface
+
+Rebuilt on the kit: prompt, `OptionRow` choices or `TextInput`, a `Vérifier`
+action, and an inline result region (`role="status"`) anchored to the card so it
+reads at every breakpoint. **T0 invariant — a wrong answer never reveals the
+expected answer, in any variant, at any breakpoint**: the numeric `expectedValue`
+is never echoed, and an un-selected correct multiple-choice option is never
+highlighted on a wrong submission (only the student's own picks are marked). A
+wrong answer opens the author's explanation, not the answer.
+
 ## When to use which component
 
 **Button** — any action the user triggers: submitting an answer, continuing,
