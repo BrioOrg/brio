@@ -97,3 +97,55 @@ Correct copy patterns:
 5. **Semantic HTML**: every interactive element is a `<button>` or `<a>`;
    every form field has a `<label>`; ARIA roles are added only when native
    semantics fall short.
+
+## When to use which component
+
+**Button** — any action the user triggers: submitting an answer, continuing,
+navigating to the next exercise. Use `primary` for the single dominant action on
+a screen. Use `secondary` or `ghost` for optional or non-destructive alternatives.
+Use `destructive` only for irreversible account- or content-level deletions — never
+inside an exercise flow. Use `loading` when an async operation is in progress and
+the button must remain visible.
+
+**Panel** — a content container with no interaction of its own. Use `raised` when
+the panel sits on top of another panel or needs visual separation. Do not add click
+handlers to a Panel; wrap it in a Button or a router Link instead.
+
+**OptionRow** — multiple-choice answer options only. One OptionRow per answer
+choice. Do not repurpose it for navigation items, settings toggles, or any
+non-exercise context. State (`idle → selected → correct/wrong/muted`) is managed
+by the exercise widget; OptionRow itself is purely presentational.
+
+**ResultSheet** — shown once per question, after the student has validated their
+answer. One variant per outcome: `success` for correct, `failure` for incorrect.
+Never shown mid-question or used as a generic modal — use a Dialog for that.
+The `xpEarned` prop appears only when the `progression` module provides a real value.
+
+**ProgressBar** — step progress within a single exercise sequence (e.g. "4 of 7
+questions"). Not a completion percentage for a course chapter — that requires data
+from the `progression` module that does not yet exist.
+
+**Chip** — inline metadata labels. Use `citation` for a reference to a course
+passage (info colour family). Use `level` for academic level or subject tags
+(accent colour family). Use `status` for generic state labels. Never use a Chip
+for an interactive action; use a Button instead.
+
+**TextInput** — open-ended answer fields only. The `error` prop surfaces a
+pedagogical hint, never the expected answer. Do not use `error` for server
+validation errors in exercise flows; those belong on the ResultSheet.
+
+**EmptyState** — when a list or content area has nothing to show. Include an
+action only if there is a clear next step the student can take. Do not use
+EmptyState as a loading placeholder; use Skeleton for that.
+
+**Skeleton** — loading placeholders while data is in flight. Match the skeleton's
+shape to the content it replaces (a `rounded-pill` line for text, a tall block for
+a card). Remove it the moment real content is available; never show both at once.
+
+**Chat primitives** — tutor interface only. `StudentBubble` / `AssistantBubble`
+for the conversation thread. `RefusalBubble` (variant `policy`) when the question
+is out of scope; variant `socratic` when the tutor redirects rather than answering.
+`CitationChip` links an assistant message to a specific course passage.
+`SuggestedQuestion` offers follow-up prompts below an assistant turn.
+`TypingIndicator` while the assistant response is streaming. Do not use chat
+primitives outside the tutor panel.
