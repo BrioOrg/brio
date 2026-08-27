@@ -1,0 +1,308 @@
+<style>
+  :root {
+    --bg: #fbfcfb; --panel: #ffffff; --ink: #13221b; --muted: #5f7168; --faint: #8a9a91;
+    --line: #e4ebe7; --line-strong: #cdd8d2;
+    --accent: #12b76a; --accent-ink: #0a7a45; --accent-soft: #eafaf1;
+    --amber: #b5730a; --amber-soft: #fdf3e0; --blue: #2563eb; --blue-soft: #eaf1ff;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .doc { background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.6; }
+  .inner { max-width: 860px; margin: 0 auto; padding: 0 22px; }
+
+  /* header */
+  .head { background: linear-gradient(180deg, #0e2a20, #113a2b); color: #eafff3; padding: 52px 0 40px; }
+  .head .eyebrow { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #6ee7a8; font-weight: 800; margin: 0 0 14px; }
+  .head h1 { font-size: clamp(26px, 4.5vw, 38px); line-height: 1.1; margin: 0 0 14px; letter-spacing: -0.02em; text-wrap: balance; }
+  .head p { color: #b6ccc0; font-size: 16px; margin: 0; max-width: 62ch; }
+  .head .meta { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 999px; background: rgba(255,255,255,.1); color: #d6ffe9; }
+
+  /* how to read */
+  .legend { background: var(--accent-soft); border: 1px solid #c6ecd6; border-radius: 14px; padding: 16px 18px; margin: 28px 0; font-size: 14.5px; }
+  .legend b { color: var(--accent-ink); }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; font-weight: 700; color: var(--ink); }
+  .flow span { background: #fff; border: 1px solid var(--line-strong); border-radius: 9px; padding: 5px 11px; font-size: 13.5px; }
+  .flow .arw { color: var(--accent); border: none; background: none; padding: 0; }
+
+  /* toc */
+  .toc { border: 1px solid var(--line); border-radius: 14px; padding: 8px; margin: 24px 0 40px; background: var(--panel); }
+  .toc a { display: flex; gap: 12px; padding: 9px 12px; border-radius: 9px; text-decoration: none; color: var(--ink); font-size: 14.5px; }
+  .toc a:hover { background: var(--accent-soft); }
+  .toc a b { color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .toc a span { color: var(--muted); }
+
+  section { padding: 30px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 22px; letter-spacing: -0.01em; margin: 0 0 6px; display: flex; align-items: baseline; gap: 10px; }
+  h2 .n { font-size: 14px; font-weight: 800; color: #fff; background: var(--accent); border-radius: 8px; padding: 2px 9px; font-variant-numeric: tabular-nums; }
+  h3 { font-size: 15px; margin: 22px 0 8px; color: var(--accent-ink); text-transform: uppercase; letter-spacing: .04em; }
+  p { margin: 0 0 12px; }
+  .src { font-size: 13.5px; color: var(--muted); margin: 6px 0 16px; }
+  .src b { color: var(--ink); }
+  .modpill { font-size: 12px; font-weight: 700; color: var(--accent-ink); background: var(--accent-soft); border: 1px solid #c6ecd6; border-radius: 999px; padding: 3px 10px; }
+
+  ul { margin: 0 0 14px; padding-left: 20px; }
+  li { margin: 5px 0; }
+  li b { color: var(--ink); }
+  code { font-family: var(--mono); font-size: 12.5px; background: #eef3f0; border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; color: #0e5c3a; }
+
+  /* endpoint list */
+  .eps { display: flex; flex-direction: column; gap: 7px; margin: 12px 0 16px; }
+  .ep { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-family: var(--mono); font-size: 12.5px; flex-wrap: wrap; }
+  .m { font-weight: 800; border-radius: 6px; padding: 2px 8px; font-size: 11px; letter-spacing: .03em; }
+  .m.get { background: var(--accent-soft); color: var(--accent-ink); }
+  .m.post { background: var(--amber-soft); color: var(--amber); }
+  .m.put { background: var(--blue-soft); color: var(--blue); }
+  .ep .path { color: var(--ink); }
+  .ep .desc { font-family: var(--font); color: var(--muted); font-size: 12.5px; margin-left: auto; }
+
+  .tablewrap { overflow-x: auto; margin: 12px 0 16px; border: 1px solid var(--line); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 520px; }
+  th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f3f7f5; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  td code { background: none; border: none; padding: 0; color: #0e5c3a; }
+
+  .callout { border-left: 4px solid var(--amber); background: var(--amber-soft); border-radius: 8px; padding: 13px 16px; margin: 16px 0; font-size: 14px; }
+  .callout.rgpd { border-color: var(--blue); background: var(--blue-soft); }
+  .callout b { color: var(--ink); }
+
+  .decisions li { margin: 9px 0; }
+  .foot { padding: 34px 0 70px; color: var(--faint); font-size: 13px; }
+  a.inline { color: var(--accent-ink); }
+</style>
+
+<div class="doc">
+  <header class="head">
+    <div class="inner">
+      <p class="eyebrow">brio · spécification back-end</p>
+      <h1>Ce que le back-end doit fournir, déduit du front</h1>
+      <p>Pour chaque écran qu'on a dessiné (connexion → choix de la matière → parcours, plus le lecteur de chapitre à venir), voici les données, les règles et les points d'API que le serveur doit exposer. Chaque bloc est rattaché à un module existant du back Spring de brio.</p>
+      <div class="meta">
+        <span class="tag">Version de travail · 25/08/2026</span>
+        <span class="tag">Direction « Arcade »</span>
+        <span class="tag">Classes 6ᵉ → Terminale</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="inner">
+    <div class="legend">
+      Comment lire : chaque section part de <b>ce que l'élève voit</b> en front, puis liste <b>ce que le back doit fournir</b>. Le fil rouge est que <b>tout part du compte</b> — l'élève se connecte, le serveur renvoie sa classe et ses données.
+      <div class="flow">
+        <span>1 · Connexion</span><span class="arw">→</span>
+        <span>2 · Choix matière</span><span class="arw">→</span>
+        <span>3 · Parcours</span><span class="arw">→</span>
+        <span>4 · Chapitre (à venir)</span>
+      </div>
+    </div>
+
+    <nav class="toc">
+      <a href="#s1"><b>1</b> <span>Connexion &amp; comptes — authentification</span></a>
+      <a href="#s2"><b>2</b> <span>Le compte élève — profil &amp; classe</span></a>
+      <a href="#s3"><b>3</b> <span>Choix de la matière</span></a>
+      <a href="#s4"><b>4</b> <span>Le parcours — chapitres, verrous, progression</span></a>
+      <a href="#s5"><b>5</b> <span>Gamification — XP, niveaux, séries</span></a>
+      <a href="#s6"><b>6</b> <span>Le lecteur de chapitre (à venir) — contenu, exercices, tuteur</span></a>
+      <a href="#s7"><b>7</b> <span>Transverse — rôles, RGPD, signalement, sécurité</span></a>
+      <a href="#s8"><b>8</b> <span>Modèle de données — récap</span></a>
+      <a href="#s9"><b>9</b> <span>Points d'API — récap</span></a>
+      <a href="#s10"><b>10</b> <span>Décisions à trancher</span></a>
+    </nav>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2><span class="n">1</span> Connexion &amp; comptes</h2>
+      <p class="src"><b>Écran source :</b> page de connexion (identifiant + mot de passe, « se connecter avec mon établissement », mot de passe oublié, créer un compte). &nbsp; <span class="modpill">module identite</span></p>
+      <h3>Ce que le back doit fournir</h3>
+      <ul>
+        <li><b>Authentification</b> par identifiant/e-mail + mot de passe, avec session (jeton) et rafraîchissement.</li>
+        <li><b>Mot de passe</b> stocké haché (argon2 / bcrypt), jamais en clair ; réinitialisation par e-mail.</li>
+        <li><b>Connexion établissement (SSO)</b> : point d'entrée pour se connecter via l'ENT / le GAR de l'école. À cadrer (voir §10).</li>
+        <li><b>Création de compte</b> : soit auto-inscription, soit comptes importés par l'établissement — c'est là que la <b>classe</b> est renseignée la première fois.</li>
+        <li><b>Anti-abus</b> : limitation du nombre de tentatives, protection contre le forçage.</li>
+      </ul>
+      <div class="eps">
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/login</span><span class="desc">identifiants → jeton + profil</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/refresh</span><span class="desc">prolonger la session</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/logout</span><span class="desc">fermer la session</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/password/forgot</span><span class="desc">envoi e-mail de réinitialisation</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/password/reset</span><span class="desc">nouveau mot de passe via jeton</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/auth/sso/{etablissement}</span><span class="desc">redirection SSO (+ callback)</span></div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2><span class="n">2</span> Le compte élève</h2>
+      <p class="src"><b>Écran source :</b> « Salut Léa · 4ᵉ » — dès la connexion, on connaît qui c'est et sa classe. &nbsp; <span class="modpill">module identite</span></p>
+      <h3>Ce que le back doit fournir</h3>
+      <ul>
+        <li>Un point <code>GET /me</code> qui renvoie tout ce dont le front a besoin après connexion : <b>prénom, classe (niveau), établissement, rôle, préférences</b>.</li>
+        <li>La <b>classe est un attribut du compte</b> (pas un choix de navigation). Elle est posée à la création / par l'établissement, et peut évoluer (passage de classe en fin d'année — voir §10).</li>
+        <li><b>Rôles</b> : élève, enseignant (auteur de contenu), admin établissement, éventuellement parent (§10).</li>
+        <li>Référentiel des <b>niveaux</b> 6ᵉ, 5ᵉ, 4ᵉ, 3ᵉ, 2ᵈᵉ, 1ʳᵉ, Terminale (avec le cycle pour le collège).</li>
+      </ul>
+      <div class="eps">
+        <div class="ep"><span class="m get">GET</span><span class="path">/me</span><span class="desc">profil complet (classe incluse)</span></div>
+        <div class="ep"><span class="m put">PUT</span><span class="path">/me</span><span class="desc">préférences (son, etc.)</span></div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2><span class="n">3</span> Choix de la matière</h2>
+      <p class="src"><b>Écran source :</b> grille de matières — Mathématiques actif, les autres « Bientôt », avec la progression résumée par matière. &nbsp; <span class="modpill">module contenu</span></p>
+      <h3>Ce que le back doit fournir</h3>
+      <ul>
+        <li>La <b>liste des matières</b> proposées pour la classe de l'élève, avec pour chacune : nom, couleur/icône, <b>disponible ou « bientôt »</b>, ordre d'affichage.</li>
+        <li>Un <b>résumé de progression par matière</b> (ex. « Chapitre 4 · 45 % ») pour l'afficher directement sur la carte.</li>
+        <li>Le mapping <b>matière × niveau</b> : quelles matières existent pour quelle classe (les maths d'abord ; la grille doit accepter d'autres matières sans changement de structure).</li>
+      </ul>
+      <div class="eps">
+        <div class="ep"><span class="m get">GET</span><span class="path">/matieres</span><span class="desc">matières de la classe + statut + progression</span></div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2><span class="n">4</span> Le parcours</h2>
+      <p class="src"><b>Écran source :</b> accueil « on reprend où tu t'es arrêtée » — chapitre en cours + barre, chapitre suivant, chapitre verrouillé, XP &amp; série. &nbsp; <span class="modpill">contenu</span> <span class="modpill">progression</span></p>
+      <h3>Ce que le back doit fournir</h3>
+      <ul>
+        <li>La <b>liste ordonnée des chapitres</b> d'une matière pour la classe (ordre = progression annuelle), avec titre et durée estimée.</li>
+        <li>Pour chaque chapitre et pour cet élève : <b>l'état</b> — non commencé / en cours (%) / terminé / <b>verrouillé</b> (tant que le chapitre précédent n'est pas validé).</li>
+        <li>Le <b>chapitre à reprendre</b> (le dernier en cours) pour le mettre en avant.</li>
+        <li>Les <b>règles de verrouillage</b> : un chapitre se débloque quand le QCM de fin du précédent est réussi.</li>
+      </ul>
+      <div class="eps">
+        <div class="ep"><span class="m get">GET</span><span class="path">/matieres/{slug}/chapitres</span><span class="desc">chapitres + état de progression de l'élève</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/me/progression</span><span class="desc">chapitre à reprendre, % global</span></div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2><span class="n">5</span> Gamification</h2>
+      <p class="src"><b>Écran source :</b> « +120 XP », « Niveau 6 », « série 7 jours ». &nbsp; <span class="modpill">module progression</span></p>
+      <h3>Ce que le back doit fournir</h3>
+      <ul>
+        <li><b>XP</b> attribué côté serveur pour des actions (exercice réussi, chapitre terminé, etc.) — le front ne calcule rien.</li>
+        <li><b>Niveau</b> déduit de seuils d'XP.</li>
+        <li><b>Série (streak)</b> : jours consécutifs d'activité ; règle de rupture <b>non culpabilisante</b>.</li>
+        <li>Un point unique qui renvoie XP + niveau + série pour la barre d'accueil.</li>
+      </ul>
+      <div class="eps">
+        <div class="ep"><span class="m get">GET</span><span class="path">/me/stats</span><span class="desc">xp, niveau, série</span></div>
+      </div>
+      <div class="callout">Les <b>montants d'XP, les seuils de niveau et la règle de série</b> sont des règles produit à fixer ensemble (voir §10). Elles vivent côté serveur pour rester cohérentes et non trichables.</div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2><span class="n">6</span> Le lecteur de chapitre <span style="font-size:13px;font-weight:600;color:var(--muted)">(écran à venir)</span></h2>
+      <p class="src">Pas encore dessiné, mais anticipé pour que le back soit prêt : cours + exercices + tuteur IA. &nbsp; <span class="modpill">contenu</span> <span class="modpill">exercices</span> <span class="modpill">ia</span></p>
+      <h3>Contenu du chapitre</h3>
+      <ul>
+        <li>Un chapitre = <b>sections</b> (cours ou exercices) → <b>blocs</b> ordonnés : titre, paragraphe, formule (maths), image (avec <code>alt</code>), encart, code, exercice.</li>
+        <li><b>Aucune donnée d'évaluation</b> (bonne réponse, corrigé) ne doit sortir vers le client tant que l'élève n'a pas soumis.</li>
+      </ul>
+      <h3>Exercices &amp; correction</h3>
+      <ul>
+        <li>Types v1 : <b>QCM</b> (choix unique/multiple) et <b>numérique</b> (avec unité et tolérance).</li>
+        <li>La <b>soumission est évaluée côté serveur</b> ; la réponse renvoie « correct / incorrect / correct à la tolérance près » (+ indice éventuel), et met à jour progression + XP.</li>
+        <li>Le <b>QCM de fin de chapitre</b> porte le verrou : le réussir débloque le chapitre suivant.</li>
+      </ul>
+      <h3>Tuteur IA</h3>
+      <ul>
+        <li>Chat <b>ancré au chapitre</b> (RAG) : le tuteur ne répond qu'à partir du contenu du chapitre, avec <b>citations</b> renvoyant aux sections.</li>
+        <li><b>Refus hors-chapitre</b> et <b>refus de donner la réponse d'un exercice</b> traités comme des réponses normales (ton professoral), pas comme des erreurs.</li>
+      </ul>
+      <div class="eps">
+        <div class="ep"><span class="m get">GET</span><span class="path">/chapitres/{slug}</span><span class="desc">arbre du chapitre (sans corrigés)</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/exercices/{id}/soumission</span><span class="desc">évaluation + maj progression/XP</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/tuteur/messages</span><span class="desc">question ancrée → réponse + citations / refus</span></div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <h2><span class="n">7</span> Transverse</h2>
+      <p class="src">Vrai sur tous les écrans. &nbsp; <span class="modpill">system</span> <span class="modpill">identite</span></p>
+      <h3>Rôles &amp; permissions</h3>
+      <ul>
+        <li>Élève : lit le contenu, soumet, discute avec le tuteur. Enseignant : crée/édite le contenu. Admin établissement : gère les comptes et les classes.</li>
+      </ul>
+      <h3>Signaler une erreur</h3>
+      <ul>
+        <li>Bouton « signaler une erreur » présent sur le contenu → un <b>signalement</b> côté serveur, traité comme un <b>bug prioritaire</b>.</li>
+      </ul>
+      <div class="eps">
+        <div class="ep"><span class="m post">POST</span><span class="path">/signalements</span><span class="desc">erreur de contenu → ticket prioritaire</span></div>
+      </div>
+      <div class="callout rgpd"><b>RGPD — public mineur (11–15 ans et plus).</b> Consentement / cadre parental à prévoir, hébergement des données en UE, journalisation minimale, droit à l'effacement. À cadrer avant la mise en ligne (voir §10).</div>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <h2><span class="n">8</span> Modèle de données — récap</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Entité</th><th>Champs clés</th><th>Module</th></tr></thead>
+          <tbody>
+            <tr><td><b>Utilisateur</b></td><td>identifiant, e-mail, motDePasseHash, prénom, nom, <code>rôle</code>, <code>niveauId</code> (classe), établissementId</td><td>identite</td></tr>
+            <tr><td><b>Établissement</b></td><td>nom, code UAI, type de SSO, config</td><td>identite</td></tr>
+            <tr><td><b>Niveau</b> (classe)</td><td>code (6E…TLE), libellé, cycle</td><td>contenu / shared</td></tr>
+            <tr><td><b>Matière</b></td><td>slug, nom, couleur, icône, <code>disponible</code>, ordre</td><td>contenu</td></tr>
+            <tr><td><b>Chapitre</b></td><td>slug, matièreId, niveauId, titre, ordre, durée, <code>prérequisChapitreId</code>, contenu (sections/blocs)</td><td>contenu</td></tr>
+            <tr><td><b>Exercice</b></td><td>chapitreId, type (QCM/numérique), énoncé, difficulté, <b>données de correction (serveur)</b>, estQcmFinal</td><td>exercices</td></tr>
+            <tr><td><b>Soumission</b></td><td>élèveId, exerciceId, réponse, résultat, date</td><td>exercices</td></tr>
+            <tr><td><b>Progression</b></td><td>élèveId, chapitreId, <code>statut</code>, pourcentage, dateMaj</td><td>progression</td></tr>
+            <tr><td><b>StatsÉlève</b></td><td>élèveId, xp, niveau, sérieJours, dernièreActivité</td><td>progression</td></tr>
+            <tr><td><b>MessageTuteur</b></td><td>élèveId, chapitreId, rôle, contenu, citations, <code>type</code> (réponse/refus)</td><td>ia</td></tr>
+            <tr><td><b>Signalement</b></td><td>élèveId, cible (chapitre/bloc), message, statut, date</td><td>system</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <h2><span class="n">9</span> Points d'API — récap</h2>
+      <div class="eps">
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/login</span><span class="desc">connexion</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/refresh · /auth/logout</span><span class="desc">session</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/auth/password/forgot · /reset</span><span class="desc">mot de passe</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/auth/sso/{etablissement}</span><span class="desc">connexion établissement</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/me</span><span class="desc">profil + classe</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/matieres</span><span class="desc">matières de la classe + progression</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/matieres/{slug}/chapitres</span><span class="desc">chapitres + verrous + état</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/chapitres/{slug}</span><span class="desc">contenu du chapitre</span></div>
+        <div class="ep"><span class="m get">GET</span><span class="path">/me/stats · /me/progression</span><span class="desc">XP, niveau, série, reprise</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/exercices/{id}/soumission</span><span class="desc">correction serveur</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/tuteur/messages</span><span class="desc">tuteur IA ancré</span></div>
+        <div class="ep"><span class="m post">POST</span><span class="path">/signalements</span><span class="desc">signaler une erreur</span></div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <h2><span class="n">10</span> Décisions à trancher</h2>
+      <p>Ce sont des choix produit à faire avant de coder le back, parce qu'ils le changent :</p>
+      <ul class="decisions">
+        <li><b>Connexion établissement :</b> on branche le <b>GAR / ENT</b> (SSO Éducation nationale) dès le début, ou simple identifiant/mot de passe d'abord ?</li>
+        <li><b>Création des comptes :</b> auto-inscription de l'élève, ou import par l'établissement ? Qui renseigne la classe ?</li>
+        <li><b>Parents :</b> rôle prévu en v1 (suivi de progression) ou plus tard ?</li>
+        <li><b>Passage de classe :</b> comment la classe évolue en fin d'année (et ce que devient la progression) ?</li>
+        <li><b>Règles de gamification :</b> combien d'XP par action, seuils de niveau, règle exacte de série.</li>
+        <li><b>Tuteur IA :</b> modèle utilisé, budget, garde-fous (ancrage strict, refus).</li>
+        <li><b>RGPD mineurs :</b> consentement parental, hébergement, durée de conservation.</li>
+        <li><b>Matières après les maths :</b> ordre d'ouverture et qui produit le contenu.</li>
+      </ul>
+    </section>
+
+    <p class="foot">Document de travail brio — dérivé des écrans front « Arcade » (connexion → matière → parcours). À faire évoluer au fur et à mesure des écrans. Modules cités = ceux qui existent déjà dans le back Spring de brio.</p>
+  </div>
+</div>

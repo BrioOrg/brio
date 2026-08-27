@@ -1,0 +1,199 @@
+<style>
+  :root {
+    --page: #0a1310;
+    --screen: #0e1a16; --topbar: #0b1612; --fg: #eafff3; --muted: #85a093; --line: #1a2a22;
+    --green: #17c26b; --green-hi: #3ce088; --green-edge: #0b7a43; --green-soft: #14271d; --green-line: #2f6b48; --green-txt: #86f0b1;
+    --amber: #f0a83a; --amber-edge: #b5730a;
+    --flame: #ff9600; --xp: #ffcf3f;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --round: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap {
+    background: radial-gradient(120% 80% at 50% 0%, #14241d, var(--page) 60%);
+    min-height: 100vh; color: var(--fg); font-family: var(--font);
+    padding: 46px 20px 80px; display: flex; flex-direction: column; align-items: center;
+  }
+  .masthead { max-width: 640px; text-align: center; margin-bottom: 34px; }
+  .masthead .kicker { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #4ade9a; font-weight: 800; margin: 0 0 12px; }
+  .masthead h1 { font-family: var(--round); font-weight: 800; font-size: clamp(25px, 5vw, 34px); line-height: 1.08; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .masthead p { color: #9db3aa; font-size: 15px; line-height: 1.6; margin: 0 auto; max-width: 56ch; }
+
+  .deck { display: grid; gap: 44px 34px; max-width: 1180px; margin: 0 auto; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); justify-items: center; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 360px; }
+  .col .cap { text-align: center; }
+  .col .cap .n { font-family: var(--round); font-weight: 800; font-size: 17px; }
+  .col .cap .d { color: #93a89d; font-size: 13px; margin-top: 4px; }
+
+  /* phone */
+  .phone { width: 100%; height: 740px; border-radius: 38px; overflow: hidden; background: var(--screen); position: relative; box-shadow: 0 24px 54px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.05); display: flex; flex-direction: column; }
+
+  /* lesson header */
+  .lhead { display: flex; align-items: center; gap: 14px; padding: 18px 18px 8px; }
+  .close { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px; }
+  .close svg { width: 24px; height: 24px; }
+  .track { flex: 1; height: 14px; border-radius: 999px; background: #1c2c24; overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--green-hi)); box-shadow: inset 0 -3px 0 rgba(0,0,0,.15); }
+  .frac { font-family: var(--round); font-weight: 800; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* body */
+  .qbody { flex: 1; padding: 14px 20px 0; overflow-y: auto; scrollbar-width: none; }
+  .qbody::-webkit-scrollbar { display: none; }
+  .qkick { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--green-txt); margin: 6px 0 10px; }
+  .q { font-family: var(--round); font-weight: 800; font-size: 22px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .qhint { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; }
+
+  .opts { display: flex; flex-direction: column; gap: 11px; }
+  .opt {
+    display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; cursor: pointer;
+    background: #12211a; border: 2px solid #24382e; border-radius: 15px; padding: 15px 15px; color: var(--fg);
+    box-shadow: 0 3px 0 #0c1712; transition: transform .1s ease, box-shadow .1s ease;
+  }
+  .opt:hover { transform: translateY(-1px); }
+  .opt .hx { width: 26px; height: 26px; flex: none; clip-path: polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%); background: #24382e; display: grid; place-items: center; font-family: var(--round); font-weight: 800; font-size: 13px; color: var(--muted); }
+  .opt .lab { flex: 1; font-size: 15px; }
+  .opt .mark { width: 22px; flex: none; display: grid; place-items: center; }
+  .opt .mark svg { width: 22px; height: 22px; }
+
+  .opt.sel { border-color: var(--green); background: var(--green-soft); box-shadow: 0 3px 0 var(--green-edge); }
+  .opt.sel .hx { background: var(--green); color: #06301c; }
+  .opt.correct { border-color: var(--green); background: #143a25; box-shadow: 0 3px 0 var(--green-edge); }
+  .opt.correct .hx { background: var(--green); color: #06301c; }
+  .opt.correct .mark { color: var(--green-hi); }
+  .opt.wrong { border-color: var(--amber); background: #33260f; box-shadow: 0 3px 0 var(--amber-edge); }
+  .opt.wrong .hx { background: var(--amber); color: #3a2606; }
+  .opt.wrong .mark { color: var(--amber); }
+  .opt.muted { opacity: .5; }
+
+  /* footer / verify */
+  .foot { padding: 16px 20px 22px; border-top: 1px solid var(--line); }
+  .verify {
+    width: 100%; font-family: var(--round); font-weight: 800; font-size: 16px; letter-spacing: .02em; color: #06301c;
+    background: var(--green); border: none; border-radius: 15px; padding: 15px; cursor: pointer; box-shadow: 0 5px 0 var(--green-edge);
+  }
+  .verify[disabled] { background: #223029; color: #4c6155; box-shadow: 0 5px 0 #161f1a; cursor: not-allowed; }
+
+  /* feedback sheet */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 20px 22px; border-radius: 24px 24px 38px 38px; }
+  .sheet.ok { background: #d7f7e4; }
+  .sheet.ko { background: #fdeccc; }
+  .sheet .row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .sheet .icon { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .sheet.ok .icon { background: var(--green); } .sheet.ko .icon { background: var(--amber); }
+  .sheet .icon svg { width: 26px; height: 26px; color: #fff; }
+  .sheet .txt .h { font-family: var(--round); font-weight: 800; font-size: 20px; }
+  .sheet.ok .txt .h { color: #0a6e3e; } .sheet.ko .txt .h { color: #8a5606; }
+  .sheet .txt .s { font-size: 13.5px; margin-top: 2px; }
+  .sheet.ok .txt .s { color: #17663f; } .sheet.ko .txt .s { color: #8a6320; }
+  .sheet .cham { position: absolute; right: 16px; top: -46px; width: 92px; }
+  .sheet .cham svg { width: 100%; height: auto; filter: drop-shadow(0 6px 8px rgba(0,0,0,.3)); }
+  .cont { width: 100%; font-family: var(--round); font-weight: 800; font-size: 16px; color: #fff; border: none; border-radius: 15px; padding: 15px; cursor: pointer; }
+  .sheet.ok .cont { background: var(--green); box-shadow: 0 5px 0 var(--green-edge); }
+  .sheet.ko .cont { background: var(--amber); box-shadow: 0 5px 0 var(--amber-edge); }
+  .xpwin { display: inline-flex; align-items: center; gap: 5px; font-family: var(--round); font-weight: 800; font-size: 13px; color: #0a6e3e; background: rgba(23,194,107,.18); border-radius: 999px; padding: 4px 10px; margin-top: 2px; }
+  .xpwin svg { width: 15px; height: 15px; color: var(--xp); }
+
+  .tip { max-width: 720px; margin-top: 22px; color: #8ba79b; font-size: 13.5px; text-align: center; line-height: 1.6; }
+  .tip b { color: #cfe9df; }
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <p class="kicker">brio · l'écran d'une leçon</p>
+    <h1>On répond, on vérifie, le coach réagit.</h1>
+    <p>Une question à la fois, de gros choix, un bouton « Vérifier ». Le feedback est <b style="color:#cfe9df">encourageant, jamais punitif</b> — même quand c'est faux, on aide à comprendre. Notre patte : hexagones, ton coach, le caméléon qui réagit.</p>
+  </div>
+
+  <div class="deck">
+
+    <!-- ÉTAT 1 : en cours -->
+    <div class="col">
+      <div class="cap"><div class="n">1 · On répond</div><div class="d">Une réponse choisie, prêt à vérifier.</div></div>
+      <div class="phone">
+        <div class="lhead">
+          <button class="close" aria-label="Quitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <div class="track"><i style="width:42%"></i></div>
+          <span class="frac">3/7</span>
+        </div>
+        <div class="qbody">
+          <p class="qkick">Le théorème de Pythagore</p>
+          <h2 class="q">Dans un triangle rectangle, quel côté est l'hypoténuse ?</h2>
+          <p class="qhint">Choisis la bonne réponse.</p>
+          <div class="opts">
+            <button class="opt sel"><span class="hx">A</span><span class="lab">Le côté opposé à l'angle droit</span><span class="mark"></span></button>
+            <button class="opt"><span class="hx">B</span><span class="lab">Le plus petit côté</span><span class="mark"></span></button>
+            <button class="opt"><span class="hx">C</span><span class="lab">Un côté de l'angle droit</span><span class="mark"></span></button>
+            <button class="opt"><span class="hx">D</span><span class="lab">La hauteur issue de l'angle droit</span><span class="mark"></span></button>
+          </div>
+        </div>
+        <div class="foot"><button class="verify">VÉRIFIER</button></div>
+      </div>
+    </div>
+
+    <!-- ÉTAT 2 : juste -->
+    <div class="col">
+      <div class="cap"><div class="n">2 · C'est juste</div><div class="d">Feedback coach + XP, le caméléon félicite.</div></div>
+      <div class="phone">
+        <div class="lhead">
+          <button class="close" aria-label="Quitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <div class="track"><i style="width:56%"></i></div>
+          <span class="frac">4/7</span>
+        </div>
+        <div class="qbody">
+          <p class="qkick">Le théorème de Pythagore</p>
+          <h2 class="q">Dans un triangle rectangle, quel côté est l'hypoténuse ?</h2>
+          <p class="qhint">Choisis la bonne réponse.</p>
+          <div class="opts">
+            <button class="opt correct"><span class="hx">A</span><span class="lab">Le côté opposé à l'angle droit</span><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span></button>
+            <button class="opt muted"><span class="hx">B</span><span class="lab">Le plus petit côté</span><span class="mark"></span></button>
+            <button class="opt muted"><span class="hx">C</span><span class="lab">Un côté de l'angle droit</span><span class="mark"></span></button>
+            <button class="opt muted"><span class="hx">D</span><span class="lab">La hauteur issue de l'angle droit</span><span class="mark"></span></button>
+          </div>
+        </div>
+        <div class="sheet ok">
+          <div class="cham"><svg viewBox="0 0 128 108"><path d="M6 84 C 44 76, 86 78, 122 80 L122 92 C 86 90, 44 88, 6 96 Z" fill="#9c6a3c"/><path d="M96 80 l13 -9" fill="none" stroke="#9c6a3c" stroke-width="6" stroke-linecap="round"/><path d="M54 62 C 42 66, 38 82, 52 82 C 62 82, 62 70, 53 70 C 47 70, 47 77, 52 77" fill="none" stroke="#2f8a45" stroke-width="8" stroke-linecap="round"/><path d="M60 62 C 57 72, 54 78, 52 82" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/><path d="M47 83 l6 4 M57 83 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/><path d="M86 60 C 89 70, 92 78, 94 83" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/><path d="M89 84 l6 4 M99 84 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/><path d="M50 60 C 44 40, 62 30, 82 33 C 98 35, 106 43, 104 50 C 102 60, 88 64, 72 64 L58 64 C 52 64, 51 62, 50 60 Z" fill="#46b45f"/><path d="M58 62 C 70 66, 88 64, 100 54 C 98 62, 84 66, 66 65 C 61 64, 58 63, 58 62 Z" fill="#86e0a0" opacity=".85"/><path d="M56 41 l4 -6 3 6 4 -7 4 7 4 -6 4 6 4 -5 3 5" fill="#2f8a45"/><path d="M92 37 C 89 27, 97 25, 100 33 C 101 36, 98 39, 92 37 Z" fill="#3aa054"/><path d="M92 37 C 108 33, 122 39, 122 47 C 122 55, 110 58, 98 55 C 90 53, 87 41, 92 37 Z" fill="#46b45f"/><path d="M108 52 C 114 52, 119 50, 121 47" fill="none" stroke="#2b7d40" stroke-width="2.5" stroke-linecap="round"/><circle cx="106" cy="45" r="7" fill="#ff7d1e"/><circle cx="106" cy="45" r="2.8" fill="#102a18"/><circle cx="103.6" cy="42.8" r="1.4" fill="#fff"/></svg></div>
+          <div class="row">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span>
+            <div class="txt"><div class="h">Bien vu, tu gères !</div><div class="s">L'hypoténuse fait toujours face à l'angle droit. <span class="xpwin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.6 6.4L21 9l-5 4.3L17.5 20 12 16.5 6.5 20 8 13.3 3 9l6.4-.6z"/></svg>+15 XP</span></div></div>
+          </div>
+          <button class="cont">CONTINUER</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉTAT 3 : à revoir -->
+    <div class="col">
+      <div class="cap"><div class="n">3 · À revoir</div><div class="d">Jamais puni : on montre la bonne réponse et on encourage.</div></div>
+      <div class="phone">
+        <div class="lhead">
+          <button class="close" aria-label="Quitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <div class="track"><i style="width:42%"></i></div>
+          <span class="frac">3/7</span>
+        </div>
+        <div class="qbody">
+          <p class="qkick">Le théorème de Pythagore</p>
+          <h2 class="q">Dans un triangle rectangle, quel côté est l'hypoténuse ?</h2>
+          <p class="qhint">Choisis la bonne réponse.</p>
+          <div class="opts">
+            <button class="opt correct"><span class="hx">A</span><span class="lab">Le côté opposé à l'angle droit</span><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></span></button>
+            <button class="opt wrong"><span class="hx">B</span><span class="lab">Le plus petit côté</span><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span></button>
+            <button class="opt muted"><span class="hx">C</span><span class="lab">Un côté de l'angle droit</span><span class="mark"></span></button>
+            <button class="opt muted"><span class="hx">D</span><span class="lab">La hauteur issue de l'angle droit</span><span class="mark"></span></button>
+          </div>
+        </div>
+        <div class="sheet ko">
+          <div class="cham"><svg viewBox="0 0 128 108"><path d="M6 84 C 44 76, 86 78, 122 80 L122 92 C 86 90, 44 88, 6 96 Z" fill="#9c6a3c"/><path d="M96 80 l13 -9" fill="none" stroke="#9c6a3c" stroke-width="6" stroke-linecap="round"/><path d="M54 62 C 42 66, 38 82, 52 82 C 62 82, 62 70, 53 70 C 47 70, 47 77, 52 77" fill="none" stroke="#2f8a45" stroke-width="8" stroke-linecap="round"/><path d="M60 62 C 57 72, 54 78, 52 82" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/><path d="M47 83 l6 4 M57 83 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/><path d="M86 60 C 89 70, 92 78, 94 83" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/><path d="M89 84 l6 4 M99 84 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/><path d="M50 60 C 44 40, 62 30, 82 33 C 98 35, 106 43, 104 50 C 102 60, 88 64, 72 64 L58 64 C 52 64, 51 62, 50 60 Z" fill="#46b45f"/><path d="M58 62 C 70 66, 88 64, 100 54 C 98 62, 84 66, 66 65 C 61 64, 58 63, 58 62 Z" fill="#86e0a0" opacity=".85"/><path d="M56 41 l4 -6 3 6 4 -7 4 7 4 -6 4 6 4 -5 3 5" fill="#2f8a45"/><path d="M92 37 C 89 27, 97 25, 100 33 C 101 36, 98 39, 92 37 Z" fill="#3aa054"/><path d="M92 37 C 108 33, 122 39, 122 47 C 122 55, 110 58, 98 55 C 90 53, 87 41, 92 37 Z" fill="#46b45f"/><path d="M108 52 C 114 52, 119 50, 121 47" fill="none" stroke="#2b7d40" stroke-width="2.5" stroke-linecap="round"/><circle cx="106" cy="45" r="7" fill="#ff7d1e"/><circle cx="106" cy="45" r="2.8" fill="#102a18"/><circle cx="103.6" cy="42.8" r="1.4" fill="#fff"/></svg></div>
+          <div class="row">
+            <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></span>
+            <div class="txt"><div class="h">Presque ! On regarde ensemble</div><div class="s">La bonne réponse est <b>« le côté opposé à l'angle droit »</b>. Repère l'angle droit, l'hypoténuse est en face.</div></div>
+          </div>
+          <button class="cont">CONTINUER</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="tip">Pas de cœurs, pas de sanction : une erreur ouvre une <b>explication</b>, pas un échec. Le ton reste <b>coach</b> (« tu gères », « on regarde ensemble ») et le <b>caméléon</b> réagit à chaque réponse.</p>
+</div>

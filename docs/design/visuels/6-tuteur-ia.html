@@ -1,0 +1,197 @@
+<style>
+  :root {
+    --page: #0a1310; --screen: #0e1a16; --fg: #eafff3; --muted: #85a093; --line: #1a2a22;
+    --green: #17c26b; --green-hi: #3ce088; --green-edge: #0b7a43; --green-soft: #14271d; --green-line: #2f6b48; --green-txt: #86f0b1;
+    --info: #4bb4ff; --info-soft: #10243a; --info-line: #26527e;
+    --amber: #f0a83a; --amber-soft: #33260f; --amber-line: #5a4416;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --round: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap { background: radial-gradient(120% 80% at 50% 0%, #14241d, var(--page) 60%); min-height: 100vh; color: var(--fg); font-family: var(--font); padding: 46px 20px 80px; display: flex; flex-direction: column; align-items: center; }
+  .masthead { max-width: 700px; text-align: center; margin-bottom: 34px; }
+  .masthead .kicker { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #4ade9a; font-weight: 800; margin: 0 0 12px; }
+  .masthead h1 { font-family: var(--round); font-weight: 800; font-size: clamp(25px, 5vw, 34px); line-height: 1.08; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .masthead p { color: #9db3aa; font-size: 15px; line-height: 1.6; margin: 0 auto; max-width: 58ch; }
+
+  .deck { display: grid; gap: 44px 34px; max-width: 1180px; margin: 0 auto; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); justify-items: center; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 360px; }
+  .col .cap { text-align: center; }
+  .col .cap .n { font-family: var(--round); font-weight: 800; font-size: 17px; }
+  .col .cap .d { color: #93a89d; font-size: 13px; margin-top: 4px; }
+
+  .phone { width: 100%; height: 748px; border-radius: 38px; overflow: hidden; background: var(--screen); position: relative; box-shadow: 0 24px 54px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.05); display: flex; flex-direction: column; }
+
+  /* header */
+  .thead { display: flex; align-items: center; gap: 11px; padding: 16px 16px 12px; border-bottom: 1px solid var(--line); }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; flex: none; background: #12271c; display: grid; place-items: center; box-shadow: 0 0 0 1px var(--green-line); }
+  .avatar svg { width: 30px; height: 30px; }
+  .thead .ti { flex: 1; min-width: 0; }
+  .thead .name { font-family: var(--round); font-weight: 800; font-size: 15px; }
+  .thead .ctx { font-size: 12px; color: var(--muted); }
+  .thead .x { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px; }
+  .thead .x svg { width: 22px; height: 22px; }
+
+  /* messages */
+  .msgs { flex: 1; overflow-y: auto; padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 12px; scrollbar-width: none; }
+  .msgs::-webkit-scrollbar { display: none; }
+  .me { align-self: flex-end; max-width: 82%; background: var(--green); color: #06301c; font-weight: 600; font-size: 14.5px; padding: 10px 13px; border-radius: 16px 16px 5px 16px; }
+  .bot { align-self: flex-start; max-width: 88%; display: flex; gap: 8px; }
+  .bot .av { width: 28px; height: 28px; border-radius: 50%; flex: none; background: #12271c; display: grid; place-items: center; box-shadow: 0 0 0 1px var(--green-line); margin-top: 2px; }
+  .bot .av svg { width: 22px; height: 22px; }
+  .bub { background: #14231b; border: 1px solid #24382e; color: var(--fg); font-size: 14.5px; line-height: 1.5; padding: 10px 13px; border-radius: 16px 16px 16px 5px; }
+  .bub.refus { border-color: var(--info-line); background: var(--info-soft); }
+  .bub.refus.socr { border-color: var(--amber-line); background: var(--amber-soft); }
+  .rlabel { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; }
+  .bub.refus .rlabel { color: var(--info); } .bub.refus.socr .rlabel { color: var(--amber); }
+  .rlabel svg { width: 13px; height: 13px; }
+  .cite { display: inline-flex; align-items: center; gap: 5px; margin-top: 9px; font-size: 12px; font-weight: 800; color: var(--green-txt); background: var(--green-soft); border: 1px solid var(--green-line); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+  .cite svg { width: 13px; height: 13px; }
+  .chaplink { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; font-family: var(--font); font-weight: 800; font-size: 12.5px; color: var(--green-txt); background: transparent; border: 1px solid var(--green-line); border-radius: 11px; padding: 9px 11px; cursor: pointer; text-align: left; }
+  .chaplink svg { width: 15px; height: 15px; flex: none; }
+  .chaplink .arw { margin-left: auto; font-size: 15px; }
+  .goto { display: flex; align-items: center; gap: 9px; width: 100%; margin-top: 11px; font-family: var(--font); font-weight: 800; font-size: 13px; color: #06301c; background: var(--green); border: none; border-radius: 12px; padding: 11px 12px; cursor: pointer; text-align: left; box-shadow: 0 3px 0 var(--green-edge); }
+  .goto > svg { width: 18px; height: 18px; flex: none; }
+  .goto span.tx { display: flex; flex-direction: column; line-height: 1.2; }
+  .goto small { font-weight: 600; font-size: 10.5px; opacity: .85; }
+  .goto .arw { margin-left: auto; font-size: 16px; }
+  .typing { display: inline-flex; gap: 5px; padding: 13px 14px; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: bnc 1.1s infinite ease-in-out; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes bnc { 0%,60%,100% { transform: translateY(0); opacity:.5;} 30% { transform: translateY(-5px); opacity:1;} }
+  @media (prefers-reduced-motion: reduce) { .typing i { animation: none; } }
+
+  /* empty state */
+  .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px 22px; }
+  .empty .bigav { width: 92px; margin-bottom: 6px; }
+  .empty .bigav svg { width: 100%; height: auto; }
+  .empty h3 { font-family: var(--round); font-weight: 800; font-size: 19px; margin: 4px 0 6px; }
+  .empty p { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0 0 18px; }
+  .sugg { display: flex; flex-direction: column; gap: 9px; width: 100%; }
+  .sugg button { font-family: var(--font); text-align: left; font-size: 14px; font-weight: 600; color: var(--fg); background: #14231b; border: 1px solid var(--green-line); border-radius: 13px; padding: 12px 14px; cursor: pointer; display: flex; align-items: center; gap: 9px; }
+  .sugg button svg { width: 16px; height: 16px; color: var(--green-txt); flex: none; }
+
+  /* input bar */
+  .inbar { display: flex; align-items: center; gap: 9px; padding: 12px 14px 18px; border-top: 1px solid var(--line); }
+  .field { flex: 1; background: #12211a; border: 1px solid #24382e; border-radius: 999px; padding: 12px 16px; color: var(--muted); font-size: 14px; }
+  .send { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--green); border: none; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 var(--green-edge); }
+  .send svg { width: 22px; height: 22px; color: #06301c; }
+
+  .tip { max-width: 760px; margin-top: 22px; color: #8ba79b; font-size: 13.5px; text-align: center; line-height: 1.6; }
+  .tip b { color: #cfe9df; }
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <p class="kicker">brio · le tuteur IA</p>
+    <h1>Un tuteur qui ne sort jamais du chapitre.</h1>
+    <p>Le caméléon répond <b style="color:#cfe9df">uniquement à partir du chapitre affiché</b>, avec des <b style="color:#cfe9df">citations</b> cliquables (anti-blabla), et refuse gentiment de sortir du sujet ou de donner la réponse d'un exercice.</p>
+  </div>
+
+  <div class="deck">
+
+    <!-- 1 empty -->
+    <div class="col">
+      <div class="cap"><div class="n">1 · Prêt à aider</div><div class="d">Des questions suggérées pour démarrer.</div></div>
+      <div class="phone">
+        <div class="thead">
+          <span class="avatar"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+          <div class="ti"><div class="name">Tuteur brio</div><div class="ctx">Théorème de Pythagore</div></div>
+          <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+        <div class="empty">
+          <div class="bigav"><svg viewBox="0 0 128 108"><path d="M6 84 C 44 76, 86 78, 122 80 L122 92 C 86 90, 44 88, 6 96 Z" fill="#9c6a3c"/><path d="M96 80 l13 -9" fill="none" stroke="#9c6a3c" stroke-width="6" stroke-linecap="round"/><path d="M54 62 C 42 66, 38 82, 52 82 C 62 82, 62 70, 53 70 C 47 70, 47 77, 52 77" fill="none" stroke="#2f8a45" stroke-width="8" stroke-linecap="round"/><path d="M60 62 C 57 72, 54 78, 52 82" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/><path d="M47 83 l6 4 M57 83 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/><path d="M86 60 C 89 70, 92 78, 94 83" fill="none" stroke="#2f8a45" stroke-width="7" stroke-linecap="round"/><path d="M89 84 l6 4 M99 84 l-6 4" fill="none" stroke="#2f8a45" stroke-width="4.5" stroke-linecap="round"/><path d="M50 60 C 44 40, 62 30, 82 33 C 98 35, 106 43, 104 50 C 102 60, 88 64, 72 64 L58 64 C 52 64, 51 62, 50 60 Z" fill="#46b45f"/><path d="M58 62 C 70 66, 88 64, 100 54 C 98 62, 84 66, 66 65 C 61 64, 58 63, 58 62 Z" fill="#86e0a0" opacity=".85"/><path d="M56 41 l4 -6 3 6 4 -7 4 7 4 -6 4 6 4 -5 3 5" fill="#2f8a45"/><path d="M92 37 C 89 27, 97 25, 100 33 C 101 36, 98 39, 92 37 Z" fill="#3aa054"/><path d="M92 37 C 108 33, 122 39, 122 47 C 122 55, 110 58, 98 55 C 90 53, 87 41, 92 37 Z" fill="#46b45f"/><path d="M108 52 C 114 52, 119 50, 121 47" fill="none" stroke="#2b7d40" stroke-width="2.5" stroke-linecap="round"/><circle cx="106" cy="45" r="7" fill="#ff7d1e"/><circle cx="106" cy="45" r="2.8" fill="#102a18"/><circle cx="103.6" cy="42.8" r="1.4" fill="#fff"/></svg></div>
+          <h3>Une question sur ce chapitre ?</h3>
+          <p>Je t'explique à partir du cours, avec les passages exacts. Je ne donne pas les réponses des exercices — je t'aide à les trouver.</p>
+          <div class="sugg">
+            <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/></svg>C'est quoi l'hypoténuse ?</button>
+            <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/></svg>À quoi sert le théorème ?</button>
+            <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/></svg>Montre-moi un exemple</button>
+          </div>
+        </div>
+        <div class="inbar">
+          <div class="field">Pose ta question…</div>
+          <button class="send" aria-label="Envoyer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6z"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 conversation + citations -->
+    <div class="col">
+      <div class="cap"><div class="n">2 · Réponse + citations</div><div class="d">Chaque réponse renvoie au passage du cours.</div></div>
+      <div class="phone">
+        <div class="thead">
+          <span class="avatar"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+          <div class="ti"><div class="name">Tuteur brio</div><div class="ctx">Théorème de Pythagore</div></div>
+          <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+        <div class="msgs">
+          <div class="me">Pourquoi ça marche seulement pour les triangles rectangles ?</div>
+          <div class="bot">
+            <span class="av"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+            <div class="bub">
+              Parce que l'égalité a² + b² = c² découle directement de l'angle droit. Sans angle droit, la relation est fausse.
+              <br><span class="cite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>Voir §2 · La démonstration</span>
+            </div>
+          </div>
+          <div class="me">Tu peux me donner un exemple ?</div>
+          <div class="bot">
+            <span class="av"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+            <div class="typing"><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <div class="inbar">
+          <div class="field">Pose ta question…</div>
+          <button class="send" aria-label="Envoyer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6z"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 refus -->
+    <div class="col">
+      <div class="cap"><div class="n">3 · Il t'oriente</div><div class="d">Même matière = il répond (+ lien). Autre matière = redirection cliquable.</div></div>
+      <div class="phone">
+        <div class="thead">
+          <span class="avatar"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+          <div class="ti"><div class="name">Tuteur brio</div><div class="ctx">Théorème de Pythagore</div></div>
+          <button class="x" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+        <div class="msgs">
+          <div class="me">Donne-moi la réponse de l'exercice 3 stp</div>
+          <div class="bot">
+            <span class="av"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+            <div class="bub refus socr">
+              <span class="rlabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2.5-3 4M12 17h.01"/></svg>On cherche ensemble</span>
+              Je ne te donne pas la réponse — mais on va y arriver. Commence par repérer l'angle droit : quel côté est juste en face ?
+            </div>
+          </div>
+          <div class="me">Et √20, ça se calcule comment ?</div>
+          <div class="bot">
+            <span class="av"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+            <div class="bub">
+              Bien sûr — c'est des maths, alors je réponds même si ça relève plutôt d'un autre chapitre : √20 = √(4×5) = 2√5 ≈ 4,47.
+              <button class="chaplink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M9 7h6"/></svg>Chapitre lié · Racines carrées<span class="arw">→</span></button>
+            </div>
+          </div>
+          <div class="me">C'est quoi la Révolution française ?</div>
+          <div class="bot">
+            <span class="av"><svg viewBox="0 0 40 40"><path d="M6 24 C 4 14, 14 8, 24 10 C 33 12, 36 18, 34 24 C 32 30, 20 32, 12 30 C 7 28, 6 26, 6 24 Z" fill="#46b45f"/><path d="M8 16 l3 -5 2 5 3 -6 3 6 3 -5 2 5" fill="#2f8a45"/><circle cx="27" cy="19" r="5.5" fill="#ff7d1e"/><circle cx="27" cy="19" r="2.2" fill="#102a18"/><circle cx="25.5" cy="17.5" r="1" fill="#fff"/></svg></span>
+            <div class="bub refus">
+              <span class="rlabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8v8l9 5 9-5V8z"/><path d="M12 21V11M3 8l9 3 9-3"/></svg>Autre matière</span>
+              Là c'est de l'histoire, pas des maths — je préfère rester juste. Mais je t'emmène au bon endroit :
+              <button class="goto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M9 7h6"/></svg><span class="tx">Va au chapitre adapté<small>Histoire · La Révolution française</small></span><span class="arw">→</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="inbar">
+          <div class="field">Pose ta question…</div>
+          <button class="send" aria-label="Envoyer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6z"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="tip">Règle d'orientation : <b>même matière → il répond</b> même si c'est un autre chapitre (les chapitres de maths sont très liés), avec un lien « chapitre lié » pour approfondir. <b>Autre matière → il redirige</b> vers le bon chapitre en un clic (quitte à changer de matière). Et toujours : ancré au chapitre, citations cliquables, refus d'exercice socratique.</p>
+</div>
