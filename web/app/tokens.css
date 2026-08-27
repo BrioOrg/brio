@@ -12,6 +12,16 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
+   Safelist — force @theme CSS variables to be emitted even when the
+   corresponding Tailwind utility class is only referenced via var() in
+   inline styles (e.g. the /design styleguide swatches).
+   Tailwind v4 JIT strips @theme tokens it never sees as utility classes.
+   -------------------------------------------------------------------------- */
+
+/* prettier-ignore */
+@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised text-accent-ink text-streak text-xp text-danger text-warning text-info border-feedback-incorrect");
+
+/* --------------------------------------------------------------------------
    Fonts — self-hosted, zero third-party requests
    Files: web/public/fonts/  (OFL licence)
    -------------------------------------------------------------------------- */
