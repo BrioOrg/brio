@@ -17,6 +17,9 @@
   }, {
     "name" : "Système",
     "description" : "Endpoints techniques exposés par le produit"
+  }, {
+    "name" : "IA",
+    "description" : "Tuteur IA par chapitre"
   } ],
   "paths" : {
     "/api/exercices/{id}/soumissions" : {
@@ -81,6 +84,88 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/SoumissionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chapitres/{niveau}/{matiere}/{slug}/tuteur" : {
+      "post" : {
+        "tags" : [ "IA" ],
+        "summary" : "Pose une question au tuteur IA du chapitre",
+        "description" : "Répond à partir du contenu du chapitre uniquement, avec citations vérifiées côté serveur.",
+        "operationId" : "ask",
+        "parameters" : [ {
+          "name" : "niveau",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "matiere",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TuteurRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Réponse du tuteur",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Requête invalide",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Chapitre introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
                 }
               }
             }
@@ -255,6 +340,28 @@
             "format" : "double"
           },
           "explanation" : {
+            "type" : "string"
+          }
+        }
+      },
+      "TuteurRequest" : {
+        "type" : "object",
+        "properties" : {
+          "question" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "exerciceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "question" ]
+      },
+      "TuteurResponse" : {
+        "type" : "object",
+        "properties" : {
+          "reponse" : {
             "type" : "string"
           }
         }
