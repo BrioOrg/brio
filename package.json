@@ -13,6 +13,7 @@
     "api:refresh": "node scripts/refresh-api.mjs"
   },
   "devDependencies": {
+    "@phosphor-icons/core": "^2.1.1",
     "openapi-typescript": "^7.4.4",
     "prettier": "^3.3.3",
     "turbo": "^2.3.3",

@@ -19,7 +19,7 @@
    -------------------------------------------------------------------------- */
 
 /* prettier-ignore */
-@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised text-accent-ink text-streak text-xp text-danger text-warning text-info border-feedback-incorrect");
+@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised bg-surface-result-correct bg-surface-result-incorrect text-accent-ink text-streak text-xp text-danger text-warning text-info border-feedback-incorrect");
 
 /* --------------------------------------------------------------------------
    Fonts — self-hosted, zero third-party requests
@@ -202,6 +202,14 @@
   --color-feedback-incorrect: #f0a83a;
   --color-feedback-incorrect-edge: #b5730a;
 
+  /* -- Result sheet surfaces ----------------------------------------------- */
+  /* Dark: aliases accent-soft (#14271d) — same desaturated green surface.
+     Light: set in [data-theme='light'] override below. */
+  --color-surface-result-correct: #14271d;
+  /* Dark amber surface — new value, no existing token to alias.
+     #2e2410 verified AA contrast against feedback-incorrect (#f0a83a): ≥ 4.5:1. */
+  --color-surface-result-incorrect: #2e2410;
+
   /* -- Gamification -------------------------------------------------------- */
   --color-xp: #ffcf3f;
   --color-streak: #ff9600;
@@ -261,6 +269,10 @@
   /* xp: #c49000 was 2.86 : 1 on white. Darkened to clear 3 : 1. */
   --color-xp: #b88000;
   --color-streak: #d97000;
+
+  /* Result sheet — light theme values from mockup */
+  --color-surface-result-correct: #d7f7e4;
+  --color-surface-result-incorrect: #fdeccc;
 }
 
 /* System preference fallback — applies when no data-theme attribute is set */
@@ -293,6 +305,9 @@
 
     --color-xp: #b88000;
     --color-streak: #d97000;
+
+    --color-surface-result-correct: #d7f7e4;
+    --color-surface-result-incorrect: #fdeccc;
   }
 }
 
