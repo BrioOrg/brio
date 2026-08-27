@@ -1,0 +1,301 @@
+/* ==========================================================================
+   brio design tokens
+   Source: docs/design/visuels/ (frozen — read, never edit)
+   Derivation rationale: docs/adr/0014-design-foundations.md
+
+   TWO LAYERS:
+   1. Primitives — raw palette in :root. Components must never reference these.
+   2. Semantics  — in @theme. The only layer components are allowed to use.
+
+   ADDING A TOKEN: open a standalone PR. Never bundle a token addition with a
+   feature. Never introduce a colour, size, radius, or duration outside this file.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Fonts — self-hosted, zero third-party requests
+   Files: web/public/fonts/  (OFL licence)
+   -------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Nunito Variable';
+  src: url('/fonts/Nunito-Variable.woff2') format('woff2');
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Nunito Sans Variable';
+  src: url('/fonts/NunitoSans-Variable.woff2') format('woff2');
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --------------------------------------------------------------------------
+   Primitives — raw values from the mockups. Not in @theme intentionally:
+   Tailwind generates no utility for these, so a component that references
+   a primitive gets no class to do so. The lint gate enforces the rest.
+
+   Source mapping (file → variable):
+     2-parcours-atlas.html   →  --p-page / --p-panel / green family / xp / streak
+     3-lecon-qcm.html        →  amber family / --p-fg / --p-muted / --p-line
+     6-tuteur-ia.html        →  --p-info family / --p-amber-soft / --p-amber-line
+     1-connexion-matiere-parcours.html  →  all --p-light-* values
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Dark ground */
+  --p-page: #0a1310;
+  --p-panel: #0e1a16;
+  --p-raised: #14271d;
+  --p-fg: #eafff3;
+  --p-muted: #85a093;
+  --p-line: #1a2a22;
+
+  /* Green accent family */
+  --p-green: #17c26b;
+  --p-green-hi: #3ce088;
+  --p-green-edge: #0b7a43;
+  --p-green-soft: #14271d;
+  --p-green-line: #2f6b48;
+  --p-green-txt: #86f0b1;
+
+  /* Amber / incorrect-answer family */
+  --p-amber: #f0a83a;
+  --p-amber-edge: #b5730a;
+  --p-amber-soft: #33260f;
+  --p-amber-line: #5a4416;
+
+  /* Info / citation blue */
+  --p-info: #4bb4ff;
+  --p-info-soft: #10243a;
+  --p-info-line: #26527e;
+
+  /* Gamification */
+  --p-xp: #ffcf3f;
+  --p-streak: #ff9600;
+
+  /* Danger red — not in the mockups; introduced deliberately.
+     Warm, slightly desaturated so it belongs on the dark-green ground.
+     Contrast on --p-panel (#0e1a16): ≥ 4.5 : 1 (verified by check-contrast.mjs).
+     Must never appear in a student's normal exercise flow. */
+  --p-danger: #e86060;
+  --p-danger-edge: #a83030;
+
+  /* Light theme — sourced from screen 1 (connexion) + screen 2 .phone.day */
+  --p-light-page: #eaf7ef;
+  --p-light-panel: #ffffff;
+  --p-light-raised: #ffffff;
+  --p-light-ink: #10241a;
+  --p-light-muted: #5c7568;
+  --p-light-line: #dfeae3;
+  --p-light-accent: #12b76a;
+  --p-light-accent-hi: #17c26b;
+  --p-light-accent-edge: #0a7a45;
+  --p-light-accent-soft: #d9f3e8;
+  --p-light-accent-txt: #0a7a45;
+  --p-light-danger: #c93535;
+  --p-light-danger-edge: #8f1f1f;
+}
+
+/* --------------------------------------------------------------------------
+   Semantic layer — the only tokens components may use.
+
+   In @theme: Tailwind v4 registers each as a CSS custom property at :root
+   and generates corresponding utility classes (bg-*, text-*, border-*, etc.).
+   Dark values are the defaults and the reference; light overrides follow below.
+   -------------------------------------------------------------------------- */
+
+@theme {
+  /* -- Fonts ---------------------------------------------------------------- */
+  --font-display: 'Nunito Variable', ui-rounded, system-ui, sans-serif;
+  --font-prose: 'Nunito Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* -- Type scale ----------------------------------------------------------- */
+  /* Sizes rounded to the nearest half-rem for legibility; line-heights paired */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1rem;
+
+  --text-xs: 0.6875rem;
+  --text-xs--line-height: 1.125rem;
+
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.5rem;
+
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+
+  --text-xl: 1.1875rem;
+  --text-xl--line-height: 1.625rem;
+
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.75rem;
+
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 2rem;
+
+  /* --text-display is not a Tailwind scale step; use it via var() or
+     a custom CSS class. clamp ensures it works at every breakpoint. */
+
+  /* -- Radii --------------------------------------------------------------- */
+  --radius-sm: 0.625rem; /* 10px — small controls, icon badges */
+  --radius-md: 0.875rem; /* 14px — cards, option rows */
+  --radius-lg: 1.125rem; /* 18px — panels, sheets */
+  --radius-xl: 1.5rem; /* 24px — banners, hero cards */
+  --radius-pill: 624.9375rem; /* pill / full-round */
+
+  /* -- Depth --------------------------------------------------------------- */
+  /* Arcade-button shadow offset. Use via --shadow-arcade composite below. */
+  --depth-arcade: 0.3125rem; /* 5px */
+
+  /* -- Motion -------------------------------------------------------------- */
+  --duration-fast: 100ms; /* micro-interactions: toggles, taps */
+  --duration-base: 120ms; /* standard transitions: cards, options */
+  --duration-slow: 300ms; /* enter/exit transitions */
+  --ease-out: cubic-bezier(0, 0, 0.4, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* reserved for rewards */
+
+  /* -- Surfaces ------------------------------------------------------------ */
+  --color-surface-page: #0a1310;
+  --color-surface-panel: #0e1a16;
+  --color-surface-raised: #14271d;
+
+  /* -- Text ---------------------------------------------------------------- */
+  --color-ink: #eafff3;
+  --color-ink-muted: #85a093;
+
+  /* -- Border -------------------------------------------------------------- */
+  --color-line: #1a2a22;
+
+  /* -- Accent / brand ------------------------------------------------------ */
+  --color-accent: #17c26b;
+  --color-accent-hi: #3ce088;
+  --color-accent-edge: #0b7a43;
+  --color-accent-soft: #14271d;
+  --color-accent-ink: #86f0b1;
+
+  /* -- Semantic states ----------------------------------------------------- */
+  /* success and accent are both green — intentional: correct = brand signal.
+     Kept as separate tokens so either can move without the other. */
+  --color-success: #17c26b;
+  --color-danger: #e86060;
+  --color-warning: #f0a83a;
+  --color-info: #4bb4ff;
+
+  /* -- Feedback ------------------------------------------------------------ */
+  /* wrong-answer state only. Not danger: a wrong answer is a normal step
+     in learning, not an error or a destructive action. */
+  --color-feedback-incorrect: #f0a83a;
+  --color-feedback-incorrect-edge: #b5730a;
+
+  /* -- Gamification -------------------------------------------------------- */
+  --color-xp: #ffcf3f;
+  --color-streak: #ff9600;
+}
+
+/* --------------------------------------------------------------------------
+   Composite tokens — not in @theme; consumed via var() in custom CSS.
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Arcade 3D button shadow — accent colour + depth offset */
+  --shadow-arcade: 0 var(--depth-arcade) 0 var(--color-accent-edge);
+
+  /* Display type size — clamped, not part of the Tailwind scale */
+  --text-display: clamp(1.5625rem, 5vw, 2.125rem);
+
+  /* color-scheme informs browser chrome (scrollbars, form controls) */
+  color-scheme: dark;
+}
+
+/* --------------------------------------------------------------------------
+   Light theme — explicit override
+   -------------------------------------------------------------------------- */
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --color-surface-page: #eaf7ef;
+  --color-surface-panel: #ffffff;
+  --color-surface-raised: #ffffff;
+
+  --color-ink: #10241a;
+  --color-ink-muted: #5c7568;
+
+  --color-line: #dfeae3;
+
+  /* Accent darkened vs mockup (#12b76a) to clear 3 : 1 on white.
+     Contrast on #ffffff: 3.62 : 1 | on #eaf7ef: 3.28 : 1. */
+  --color-accent: #0d9a5a;
+  --color-accent-hi: #17c26b;
+  --color-accent-edge: #0a7a45;
+  --color-accent-soft: #d9f3e8;
+  --color-accent-ink: #0a7a45;
+
+  /* success follows accent in the light theme */
+  --color-success: #0d9a5a;
+  --color-danger: #c93535;
+  /* warning/feedback-incorrect: amber on white cannot clear 3 : 1 at full
+     brightness (#f0a83a = 2.03 : 1). Darkened to a legible gold.
+     Contrast on #ffffff: ≥ 3.5 : 1. */
+  --color-warning: #b87a00;
+  --color-info: #1a80d4;
+
+  --color-feedback-incorrect: #b87a00;
+  --color-feedback-incorrect-edge: #7a4f00;
+
+  /* xp: #c49000 was 2.86 : 1 on white. Darkened to clear 3 : 1. */
+  --color-xp: #b88000;
+  --color-streak: #d97000;
+}
+
+/* System preference fallback — applies when no data-theme attribute is set */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+
+    --color-surface-page: #eaf7ef;
+    --color-surface-panel: #ffffff;
+    --color-surface-raised: #ffffff;
+
+    --color-ink: #10241a;
+    --color-ink-muted: #5c7568;
+
+    --color-line: #dfeae3;
+
+    --color-accent: #0d9a5a;
+    --color-accent-hi: #17c26b;
+    --color-accent-edge: #0a7a45;
+    --color-accent-soft: #d9f3e8;
+    --color-accent-ink: #0a7a45;
+
+    --color-success: #0d9a5a;
+    --color-danger: #c93535;
+    --color-warning: #b87a00;
+    --color-info: #1a80d4;
+
+    --color-feedback-incorrect: #b87a00;
+    --color-feedback-incorrect-edge: #7a4f00;
+
+    --color-xp: #b88000;
+    --color-streak: #d97000;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced-motion override — honour the system preference unconditionally
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

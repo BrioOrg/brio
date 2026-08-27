@@ -6,10 +6,29 @@ export const metadata: Metadata = {
   description: 'Plateforme pédagogique Brio',
 }
 
+// Reads localStorage('brio-theme'), falls back to prefers-color-scheme.
+// Runs before first paint to eliminate flash of wrong theme.
+const themeInitScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('brio-theme');
+    if (stored === 'dark' || stored === 'light') {
+      document.documentElement.dataset.theme = stored;
+      return;
+    }
+  } catch (_) {}
+  // No stored preference — let CSS @media (prefers-color-scheme) handle it.
+  // data-theme is intentionally left absent so the media-query fallback fires.
+})();
+`.trim()
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className="min-h-screen bg-gray-50 text-gray-900">{children}</body>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-screen bg-surface-page text-ink">{children}</body>
     </html>
   )
 }
