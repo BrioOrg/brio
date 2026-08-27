@@ -80,8 +80,7 @@ See `.claude/rules/` for the enforced backend and web conventions.
   `docs/design/README.md`.
 - **All** colours, fonts, sizes, radii, shadows and durations come from
   `web/app/tokens.css`. Components use **semantic** tokens only — never
-  primitives, never raw values. (Until the design-foundations issue lands that
-  file does not exist yet: do not style new UI ad hoc, ask first.)
+  primitives, never raw values.
 - Never introduce a colour, font, size, radius, shadow or duration outside
   tokens. If one is genuinely missing, propose a `tokens.css` change in its
   **own PR** — never bundled with a feature.
