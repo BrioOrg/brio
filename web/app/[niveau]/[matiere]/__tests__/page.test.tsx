@@ -44,7 +44,7 @@ describe('MatierePage', () => {
     const { default: Page } = await import('../page')
     render(await Page({ params: Promise.resolve({ niveau: '3e', matiere: 'mathematiques' }) }))
 
-    expect(screen.getByRole('heading', { name: 'Mathématiques' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Le parcours' })).toBeInTheDocument()
     const link = screen.getByRole('link', { name: /pythagore/i })
     expect(link).toHaveAttribute('href', '/3e/mathematiques/theoreme-de-pythagore')
   })

@@ -2,7 +2,7 @@
 
 exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
 <figure
-  class="my-4"
+  class="my-1 text-ink"
 >
   <div
     class="overflow-x-auto"
@@ -85,7 +85,7 @@ exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
     </svg>
   </div>
   <figcaption
-    class="mt-1 text-center text-xs text-gray-500"
+    class="mt-1.5 text-center font-prose text-xs text-ink-muted"
   >
     Le triangle rectangle ABC, rectangle en A.
   </figcaption>

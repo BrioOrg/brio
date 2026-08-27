@@ -81,7 +81,9 @@ describe('ChapterPage', () => {
     )
 
     expect(screen.getByText(/Quel côté est l'hypoténuse/)).toBeInTheDocument()
-    expect(screen.getAllByRole('radio')).toHaveLength(2)
+    // Choices are now hexagon OptionRow buttons, not radio inputs.
+    expect(screen.getByRole('button', { name: /Le côté \[RS\]/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Le côté \[RT\]/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Vérifier' })).toBeInTheDocument()
   })
 

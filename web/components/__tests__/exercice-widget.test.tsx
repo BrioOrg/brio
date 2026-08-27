@@ -107,10 +107,11 @@ describe('ExerciceWidget — choix multiple', () => {
     mockSoumettre.mockReset()
   })
 
-  it('affiche la question et les boutons radio', () => {
+  it('affiche la question et les options (boutons hexagone)', () => {
     render(<ExerciceWidget {...MC_PROPS} />)
     expect(screen.getByText(/Quel côté est l'hypoténuse/)).toBeInTheDocument()
-    expect(screen.getAllByRole('radio')).toHaveLength(2)
+    expect(screen.getByRole('button', { name: /Le côté \[RS\]/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Le côté \[RT\]/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Vérifier' })).toBeInTheDocument()
   })
 
@@ -125,10 +126,10 @@ describe('ExerciceWidget — choix multiple', () => {
     mockSoumettre.mockResolvedValue(SUCCESS_MC)
     render(<ExerciceWidget {...MC_PROPS} />)
 
-    fireEvent.click(screen.getByLabelText('Le côté [RT]'))
+    fireEvent.click(screen.getByRole('button', { name: /Le côté \[RT\]/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Correct')
+    expect(await screen.findByRole('status')).toHaveTextContent('Bien vu')
     expect(screen.getByText(/L'hypoténuse est \[RT\]/)).toBeInTheDocument()
   })
 
@@ -136,17 +137,17 @@ describe('ExerciceWidget — choix multiple', () => {
     mockSoumettre.mockResolvedValue(INCORRECT_MC)
     render(<ExerciceWidget {...MC_PROPS} />)
 
-    fireEvent.click(screen.getByLabelText('Le côté [RS]'))
+    fireEvent.click(screen.getByRole('button', { name: /Le côté \[RS\]/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Incorrect')
+    expect(await screen.findByRole('status')).toHaveTextContent('Pas tout à fait')
   })
 
   it('affiche une erreur réseau quand le backend est inaccessible', async () => {
     mockSoumettre.mockRejectedValue(new Error('Erreur réseau. Réessaie plus tard.'))
     render(<ExerciceWidget {...MC_PROPS} />)
 
-    fireEvent.click(screen.getByLabelText('Le côté [RT]'))
+    fireEvent.click(screen.getByRole('button', { name: /Le côté \[RT\]/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
     await waitFor(() => {
@@ -181,19 +182,23 @@ describe('ExerciceWidget — numérique', () => {
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Correct')
+    expect(await screen.findByRole('status')).toHaveTextContent('Bien vu')
     expect(screen.getByText(/BC = 10 cm/)).toBeInTheDocument()
   })
 
-  it('affiche la bonne réponse quand la réponse est incorrecte', async () => {
+  // T0 invariant (issue #49): a wrong answer never reveals the expected value.
+  it("n'expose jamais la valeur attendue quand la réponse est incorrecte", async () => {
     mockSoumettre.mockResolvedValue(INCORRECT_NUMERIC)
     render(<ExerciceWidget {...NUMERIC_PROPS} />)
 
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '9' } })
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Incorrect')
-    expect(screen.getByText(/10 cm/)).toBeInTheDocument()
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent('Pas tout à fait')
+    // The expected value (10) must appear nowhere in the result.
+    expect(status).not.toHaveTextContent('10')
+    expect(screen.queryByText(/10\s*cm/)).not.toBeInTheDocument()
   })
 
   it('affiche une erreur réseau quand le backend est inaccessible', async () => {
@@ -240,7 +245,7 @@ describe('ExerciceWidget — réponse courte', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Correct')
+    expect(await screen.findByRole('status')).toHaveTextContent('Bien vu')
   })
 
   it("affiche le résultat incorrect avec message de repli quand pas d'explication", async () => {
@@ -251,8 +256,8 @@ describe('ExerciceWidget — réponse courte', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('Incorrect')
-    expect(status).toHaveTextContent('Relis la section précédente')
+    expect(status).toHaveTextContent('Pas tout à fait')
+    expect(status).toHaveTextContent(/relis la section précédente/i)
   })
 
   it("affiche l'explication quand elle est présente", async () => {

@@ -1,6 +1,12 @@
-import { ChapterView } from '@/components/chapter-view'
-import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
 import Link from 'next/link'
+import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
+import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
+import { SiteHeader, type Crumb } from '@/components/site-header'
+import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sidebar'
+import { ChapterRail } from '@/components/chapter-rail'
+import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 
 export const dynamicParams = true
 
@@ -17,48 +23,118 @@ export async function generateStaticParams() {
   }
 }
 
+type NavContext = {
+  crumbs: Crumb[]
+  matiereLibelle: string
+  chapters: { slug: string; titre: string }[]
+}
+
+// Best-effort: the sidebar + breadcrumb come from the catalogue, but a missing
+// catalogue must not break the reading page. Fall back to codes.
+async function loadNavContext(niveau: string, matiere: string): Promise<NavContext> {
+  try {
+    const catalogue = await getCatalogue()
+    const niveauEntry = catalogue.find((n) => n.niveauCode === niveau)
+    const matiereEntry = niveauEntry?.matieres.find((m) => m.matiereCode === matiere)
+    if (niveauEntry && matiereEntry) {
+      return {
+        crumbs: [
+          { label: niveauEntry.niveauLibelle, href: `/${niveau}` },
+          { label: matiereEntry.matiereLibelle, href: `/${niveau}/${matiere}` },
+        ],
+        matiereLibelle: matiereEntry.matiereLibelle,
+        chapters: matiereEntry.chapitres.map((c) => ({ slug: c.slug, titre: c.titre })),
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+  return {
+    crumbs: [
+      { label: niveau, href: `/${niveau}` },
+      { label: matiere, href: `/${niveau}/${matiere}` },
+    ],
+    matiereLibelle: matiere,
+    chapters: [],
+  }
+}
+
 export default async function ChapterPage({
   params,
 }: {
   params: Promise<{ niveau: string; matiere: string; slug: string }>
 }) {
   const { niveau, matiere, slug } = await params
+  const nav = await loadNavContext(niveau, matiere)
 
+  let chapitre: ChapitreResponse | null = null
   try {
-    const chapitre = await getChapitreByTriplet(niveau, matiere, slug)
-    return (
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <nav className="mb-6">
-          <Link
-            href={`/${niveau}/${matiere}`}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            ← Retour
-          </Link>
-        </nav>
-        <ChapterView chapitre={chapitre} />
-      </main>
-    )
+    chapitre = await getChapitreByTriplet(niveau, matiere, slug)
   } catch {
+    chapitre = null
+  }
+
+  if (!chapitre) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <nav className="mb-6">
-          <Link
-            href={`/${niveau}/${matiere}`}
-            className="text-sm text-gray-500 hover:text-gray-700"
+      <div className="min-h-screen bg-surface-page font-prose text-ink">
+        <SiteHeader crumbs={nav.crumbs} />
+        <main className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+          <div
+            role="alert"
+            className="rounded-lg border border-warning/40 bg-warning/10 p-5 text-ink"
           >
-            ← Retour
-          </Link>
-        </nav>
-        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
-          <p className="font-semibold">Chapitre introuvable</p>
-          <p className="mt-1 text-sm">
-            Le chapitre{' '}
-            <code className="rounded bg-red-100 px-1 py-0.5 font-mono text-xs">{slug}</code>{' '}
-            n&apos;est pas disponible ou le serveur est inaccessible.
-          </p>
-        </div>
-      </main>
+            <p className="font-display text-lg font-extrabold text-ink">Chapitre introuvable</p>
+            <p className="mt-1 font-prose text-sm text-ink-muted">
+              Le chapitre demandé n&rsquo;est pas disponible pour le moment.
+            </p>
+            <div className="mt-4">
+              <Link href={`/${niveau}/${matiere}`}>
+                <Button variant="secondary" size="sm">
+                  <Icon name="arrow-left" size={16} aria-hidden="true" />
+                  Retour au parcours
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
     )
   }
+
+  const crumbs: Crumb[] = [...nav.crumbs, { label: chapitre.title }]
+  const railSections = chapitre.sections.map((s) => ({ id: s.id, title: s.title }))
+
+  return (
+    <div className="min-h-screen bg-surface-page font-prose text-ink">
+      <SiteHeader crumbs={crumbs} />
+
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
+        <ChapterSidebar
+          niveau={niveau}
+          matiere={matiere}
+          matiereLibelle={nav.matiereLibelle}
+          chapters={nav.chapters}
+          currentSlug={slug}
+        />
+
+        <main className="min-w-0">
+          <ChapterSidebarMobile
+            niveau={niveau}
+            matiere={matiere}
+            matiereLibelle={nav.matiereLibelle}
+            chapters={nav.chapters}
+            currentSlug={slug}
+          />
+
+          <div className="mx-auto max-w-[68ch]">
+            <ChapterView chapitre={chapitre} />
+          </div>
+        </main>
+
+        <ChapterRail sections={railSections} />
+      </div>
+
+      <ChapterToolsSheet sections={railSections} />
+    </div>
+  )
 }
