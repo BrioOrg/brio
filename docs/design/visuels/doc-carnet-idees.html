@@ -1,0 +1,187 @@
+<style>
+  :root {
+    --bg: #f7fbf8; --panel: #ffffff; --ink: #12211a; --muted: #5f7168; --faint: #8a9a91;
+    --line: #e4ebe7; --line-strong: #cdd8d2;
+    --accent: #12b76a; --accent-ink: #0a7a45; --accent-soft: #eafaf1;
+    --amber: #b5730a; --amber-soft: #fdf3e0; --blue: #2563eb; --blue-soft: #eaf1ff;
+    --flame: #ff7a2f;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --round: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .doc { background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.6; }
+  .inner { max-width: 820px; margin: 0 auto; padding: 0 22px; }
+
+  .head { background: linear-gradient(180deg, #0f2e22, #12b76a); color: #eafff3; padding: 50px 0 40px; }
+  .head .eyebrow { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #d6ffe9; font-weight: 800; margin: 0 0 12px; }
+  .head h1 { font-family: var(--round); font-size: clamp(28px, 5vw, 40px); line-height: 1.05; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .head p { color: #e6fff2; font-size: 16px; margin: 0; max-width: 60ch; }
+
+  .intro { background: var(--accent-soft); border: 1px solid #c6ecd6; border-radius: 14px; padding: 16px 18px; margin: 28px 0 8px; font-size: 15px; }
+  .intro b { color: var(--accent-ink); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 30px; }
+  .st { font-size: 12px; font-weight: 800; border-radius: 999px; padding: 4px 11px; display: inline-flex; align-items: center; gap: 6px; }
+  .st.idea { background: var(--accent-soft); color: var(--accent-ink); }
+  .st.todo { background: var(--amber-soft); color: var(--amber); }
+  .st.spec { background: var(--blue-soft); color: var(--blue); }
+  .st.done { background: #eef2f0; color: var(--muted); }
+
+  .cat { margin: 34px 0 14px; display: flex; align-items: center; gap: 11px; }
+  .cat .dot { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex: none; }
+  .cat .dot svg { width: 17px; height: 17px; }
+  .cat h2 { font-family: var(--round); font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  .d-flame { background: #ffe9dc; color: var(--flame); }
+  .d-book { background: #fff3d6; color: var(--amber); }
+  .d-user { background: var(--blue-soft); color: var(--blue); }
+  .d-ai { background: #ede2ff; color: #7c3aed; }
+  .d-star { background: var(--accent-soft); color: var(--accent-ink); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin: 12px 0; box-shadow: 0 1px 2px rgba(18,33,26,.04); }
+  .card .row1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .card h3 { font-family: var(--round); font-size: 17px; margin: 0; }
+  .card p { margin: 0 0 10px; font-size: 14.5px; }
+  .card .who { font-size: 12.5px; color: var(--faint); }
+  .how { background: #f5f9f7; border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 14px; margin-top: 10px; }
+  .how p { margin: 0 0 6px; font-size: 13.5px; font-weight: 700; color: var(--accent-ink); }
+  .how ul { margin: 0; padding-left: 18px; }
+  .how li { font-size: 13.5px; margin: 4px 0; }
+
+  .empty { border: 1px dashed var(--line-strong); border-radius: 14px; padding: 16px 18px; color: var(--muted); font-size: 14px; background: transparent; }
+  .empty b { color: var(--ink); }
+
+  .foot { padding: 34px 0 70px; color: var(--faint); font-size: 13px; }
+</style>
+
+<div class="doc">
+  <header class="head">
+    <div class="inner">
+      <p class="eyebrow">brio · le carnet d'idées</p>
+      <h1>Toutes tes idées, rangées au propre.</h1>
+      <p>Dès qu'une idée te passe par la tête, balance-la-moi — je la note ici, je la clarifie, et on décide plus tard quoi en faire. Rien ne se perd.</p>
+    </div>
+  </header>
+
+  <div class="inner">
+    <div class="intro">
+      <b>Comment ça marche :</b> tu me dis une idée en une phrase, je l'ajoute dans la bonne catégorie avec un petit statut. Ce document se remplit au fil de l'eau.
+    </div>
+
+    <div class="legend">
+      <span class="st idea">💡 idée à creuser</span>
+      <span class="st todo">à trancher</span>
+      <span class="st spec">déjà dans la spec back</span>
+      <span class="st done">✓ déjà fait</span>
+    </div>
+
+    <!-- Gamification -->
+    <div class="cat">
+      <span class="dot d-flame"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-1 4-2 6s0 4 2 4 3-2 2-5c3 2 5 5 5 8a7 7 0 0 1-14 0c0-4 4-6 5-9 1 1 2 2 2 4 1-2 0-5-0-8z"/></svg></span>
+      <h2>Motivation &amp; jeu</h2>
+    </div>
+
+    <div class="card">
+      <div class="row1">
+        <h3>Série de flammes 🔥</h3>
+        <span class="st idea">💡 idée à creuser</span>
+        <span class="st spec">dans la spec §5</span>
+      </div>
+      <p>Une leçon par jour entretient une <b>flamme</b>. Plus tu es régulier·e, plus la série de jours consécutifs grandit — c'est le petit moteur qui donne envie de revenir chaque jour.</p>
+      <p class="who">Idée de Gabrielle · 25/08/2026</p>
+      <div class="how">
+        <p>Comment ça pourrait marcher</p>
+        <ul>
+          <li><b>1 leçon / jour</b> = la flamme reste allumée ; un compteur affiche les jours d'affilée.</li>
+          <li><b>Paliers</b> (7, 30, 100 jours) : la flamme change d'aspect + petit badge et bonus d'XP.</li>
+          <li><b>Filet de sécurité</b> : un « jour de repos » ou un gel par semaine pour ne pas tout perdre en cas d'oubli.</li>
+          <li><b>Rupture douce</b> : si la série casse, message bienveillant, jamais culpabilisant — on repart à zéro sans drame.</li>
+          <li>Tout est <b>calculé côté serveur</b> (module <code>progression</code>) pour rester fiable.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Contenu & matières -->
+    <div class="cat">
+      <span class="dot d-book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M9 7h6"/></svg></span>
+      <h2>Contenu &amp; matières</h2>
+    </div>
+    <div class="card">
+      <div class="row1">
+        <h3>Plusieurs matières (après les maths)</h3>
+        <span class="st done">✓ prévu dans la grille</span>
+      </div>
+      <p>La page « choix de la matière » tient déjà 6 matières sans redesign. On démarre avec les maths, on ouvre les autres ensuite.</p>
+    </div>
+    <div class="empty">Rien d'autre ici pour l'instant — <b>dis-moi</b> tes idées de contenu, d'exercices, de format de cours…</div>
+
+    <!-- Exercices & correction -->
+    <div class="cat">
+      <span class="dot d-book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h10M4 18h7"/><path d="M17 15l2 2 4-4"/></svg></span>
+      <h2>Exercices &amp; correction</h2>
+    </div>
+    <div class="card">
+      <div class="row1">
+        <h3>Les types d'exercices</h3>
+        <span class="st done">✓ 4 maquettés</span>
+      </div>
+      <p>On garde les 4 types : <b>QCM</b>, <b>nombre à écrire</b> (clavier + unité + tolérance), <b>mot/expression à écrire</b> (tolérant aux fautes), <b>texte à trous</b>, et l'<b>exo « sur feuille »</b>. À venir aussi : relier / remettre en ordre, vrai-faux, et le mode <b>contrôle</b> (plusieurs exos notés).</p>
+      <p class="who">Vu ensemble · 26/08/2026 · <a class="inline" href="https://claude.ai/code/artifact/fc16a7df-8f2a-4089-b13c-19c21b243d4f">voir la maquette</a></p>
+    </div>
+    <div class="card">
+      <div class="row1">
+        <h3>Exo sur feuille : 2 façons de corriger 📸</h3>
+        <span class="st idea">💡 idée à creuser</span>
+      </div>
+      <p>Pour les exos rédigés sur papier, deux modes de correction possibles :</p>
+      <div class="how">
+        <p>Les deux options</p>
+        <ul>
+          <li><b>Auto-correction</b> : on montre le barème, l'élève s'auto-évalue (« À revoir / J'avais juste »). Simple, gratuit, dispo tout de suite.</li>
+          <li><b>Photo façon Photomath</b> : l'élève prend sa feuille en photo, l'app lit son écriture manuscrite et corrige toute seule. Effet « waouh », mais <b>lourd</b> (reconnaissance d'écriture = IA costaude ou service tiers → coût + fiabilité à valider avec Pierce).</li>
+          <li><b>Scan vérifiable</b> : on montre ce que le scan a lu ; l'élève peut <b>corriger un chiffre/une lettre</b> mal reconnus, sans tout re-scanner.</li>
+          <li><b>Clavier maths</b> nécessaire pour ça : √, x², xⁿ, fractions, π, ( ), ×, ÷…</li>
+          <li><b>Filet de sécurité</b> : après <b>3 essais</b> ratés (faux ou illisible) → on bascule vers l'auto-correction, jamais de blocage.</li>
+          <li><b>Plan proposé :</b> démarrer avec l'auto-correction, garder la photo pour une <b>v2</b>.</li>
+        </ul>
+      </div>
+      <p class="who">Idée de Gabrielle · 26/08/2026 · <a class="inline" href="https://claude.ai/code/artifact/838d0b95-f5a3-4e9d-aae2-d772abc4af8c">voir la maquette</a></p>
+    </div>
+
+    <!-- Compte & accès -->
+    <div class="cat">
+      <span class="dot d-user"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+      <h2>Compte &amp; accès</h2>
+    </div>
+    <div class="card">
+      <div class="row1">
+        <h3>Tout part du compte</h3>
+        <span class="st done">✓ dessiné</span>
+      </div>
+      <p>L'élève se connecte, le back reconnaît son compte et renvoie sa classe + sa progression. La classe n'est jamais choisie en naviguant.</p>
+    </div>
+    <div class="card">
+      <div class="row1">
+        <h3>Connexion via l'établissement (ENT)</h3>
+        <span class="st todo">à trancher</span>
+      </div>
+      <p>Se connecter avec le compte de son collège/lycée (ENT / GAR). À décider si on le branche dès le début ou plus tard.</p>
+    </div>
+
+    <!-- Tuteur IA -->
+    <div class="cat">
+      <span class="dot d-ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 7V4M9 13h.01M15 13h.01"/></svg></span>
+      <h2>Tuteur IA</h2>
+    </div>
+    <div class="empty">À remplir — par ex. les amorces de questions, le ton du tuteur, ce qu'il a le droit de dire ou pas.</div>
+
+    <!-- Autres -->
+    <div class="cat">
+      <span class="dot d-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></span>
+      <h2>Autres idées</h2>
+    </div>
+    <div class="empty">Le fourre-tout : tout ce qui ne rentre pas ailleurs. <b>Balance</b>, on triera après.</div>
+
+    <p class="foot">Carnet d'idées brio — document vivant. Dis « ajoute au carnet : … » n'importe quand.</p>
+  </div>
+</div>

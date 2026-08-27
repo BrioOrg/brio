@@ -1,0 +1,193 @@
+<style>
+  :root {
+    --page: #0a1310;
+    --screen: #0e1a16; --fg: #eafff3; --muted: #85a093; --line: #1a2a22;
+    --green: #17c26b; --green-hi: #3ce088; --green-edge: #0b7a43; --green-soft: #14271d; --green-line: #2f6b48; --green-txt: #86f0b1;
+    --amber: #f0a83a; --amber-edge: #b5730a;
+    --xp: #ffcf3f;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --round: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font);
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap { background: radial-gradient(120% 80% at 50% 0%, #14241d, var(--page) 60%); min-height: 100vh; color: var(--fg); font-family: var(--font); padding: 46px 20px 80px; display: flex; flex-direction: column; align-items: center; }
+  .masthead { max-width: 700px; text-align: center; margin-bottom: 34px; }
+  .masthead .kicker { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #4ade9a; font-weight: 800; margin: 0 0 12px; }
+  .masthead h1 { font-family: var(--round); font-weight: 800; font-size: clamp(25px, 5vw, 34px); line-height: 1.08; margin: 0 0 12px; letter-spacing: -0.02em; }
+  .masthead p { color: #9db3aa; font-size: 15px; line-height: 1.6; margin: 0 auto; max-width: 58ch; }
+
+  .deck { display: grid; gap: 44px 34px; max-width: 1180px; margin: 0 auto; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); justify-items: center; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 360px; }
+  .col .cap { text-align: center; }
+  .col .cap .n { font-family: var(--round); font-weight: 800; font-size: 17px; }
+  .col .cap .d { color: #93a89d; font-size: 13px; margin-top: 4px; }
+
+  .phone { width: 100%; height: 748px; border-radius: 38px; overflow: hidden; background: var(--screen); position: relative; box-shadow: 0 24px 54px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.05); display: flex; flex-direction: column; }
+  .lhead { display: flex; align-items: center; gap: 14px; padding: 18px 18px 8px; }
+  .close { background: none; border: none; color: var(--muted); cursor: pointer; padding: 2px; }
+  .close svg { width: 24px; height: 24px; }
+  .track { flex: 1; height: 14px; border-radius: 999px; background: #1c2c24; overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--green-hi)); }
+  .frac { font-family: var(--round); font-weight: 800; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .qbody { flex: 1; padding: 14px 20px 0; overflow-y: auto; scrollbar-width: none; }
+  .qbody::-webkit-scrollbar { display: none; }
+  .qkick { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--green-txt); margin: 6px 0 10px; }
+  .q { font-family: var(--round); font-weight: 800; font-size: 21px; line-height: 1.22; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .qhint { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; }
+  .typechip { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--green-txt); background: var(--green-soft); border: 1px solid var(--green-line); border-radius: 999px; padding: 3px 10px; margin-bottom: 14px; }
+
+  .foot { padding: 14px 20px 20px; border-top: 1px solid var(--line); }
+  .btn { width: 100%; font-family: var(--round); font-weight: 800; font-size: 16px; letter-spacing: .02em; color: #06301c; background: var(--green); border: none; border-radius: 15px; padding: 15px; cursor: pointer; box-shadow: 0 5px 0 var(--green-edge); }
+  .btn.ghost { color: var(--green-txt); background: transparent; box-shadow: none; border: 2px solid var(--green-line); }
+
+  /* input answer */
+  .answer { display: flex; align-items: center; gap: 8px; background: #12211a; border: 2px solid var(--green); border-radius: 15px; padding: 16px 16px; box-shadow: 0 3px 0 var(--green-edge); }
+  .answer .val { font-family: var(--round); font-weight: 800; font-size: 26px; color: var(--fg); }
+  .answer .caret { width: 2px; height: 26px; background: var(--green); animation: blink 1s steps(1) infinite; }
+  .answer .unit { margin-left: auto; color: var(--muted); font-size: 15px; font-weight: 700; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .answer .caret { animation: none; } }
+
+  /* numeric keypad */
+  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 16px; }
+  .key { font-family: var(--round); font-weight: 800; font-size: 20px; color: var(--fg); background: #16261e; border: 1px solid #24382e; border-radius: 12px; padding: 13px 0; text-align: center; box-shadow: 0 3px 0 #0c1712; cursor: pointer; }
+  .key svg { width: 20px; height: 20px; vertical-align: -3px; color: var(--muted); }
+
+  /* fill in the blank */
+  .fill { font-family: var(--round); font-weight: 800; font-size: 22px; line-height: 1.8; }
+  .blank { display: inline-flex; align-items: center; justify-content: center; min-width: 64px; padding: 4px 12px; border-bottom: 3px solid var(--green); color: var(--green-txt); background: var(--green-soft); border-radius: 8px 8px 0 0; }
+  .bank { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 24px; }
+  .tile { font-family: var(--round); font-weight: 800; font-size: 15px; color: var(--fg); background: #16261e; border: 1px solid #24382e; border-radius: 11px; padding: 10px 15px; box-shadow: 0 3px 0 #0c1712; cursor: pointer; }
+  .tile.used { opacity: .35; }
+
+  /* paper / self-correction */
+  .enonce { background: #12211a; border: 1px solid #24382e; border-radius: 15px; padding: 15px 16px; font-size: 15px; line-height: 1.5; color: #d7e7de; }
+  .enonce b { color: #fff; }
+  .paper-note { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13.5px; margin: 16px 0 6px; }
+  .paper-note svg { width: 20px; height: 20px; color: var(--green-txt); flex: none; }
+  .solution { background: var(--green-soft); border: 1px solid var(--green-line); border-radius: 15px; padding: 15px 16px; margin-top: 8px; }
+  .solution .st { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--green-txt); margin-bottom: 8px; }
+  .solution .step { font-family: var(--mono); font-size: 14px; color: #eafff3; line-height: 1.7; }
+  .selfq { text-align: center; font-family: var(--round); font-weight: 800; font-size: 15px; margin: 16px 0 10px; }
+  .selfrow { display: flex; gap: 10px; }
+  .selfrow .btn { flex: 1; padding: 13px; font-size: 14px; }
+  .selfrow .again { color: var(--amber); border-color: #5a4416; background: transparent; box-shadow: none; border: 2px solid #5a4416; }
+
+  .tip { max-width: 760px; margin-top: 22px; color: #8ba79b; font-size: 13.5px; text-align: center; line-height: 1.6; }
+  .tip b { color: #cfe9df; }
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <p class="kicker">brio · les types d'exercices</p>
+    <h1>Pas que des QCM.</h1>
+    <p>Quatre types de plus, dans le même style. Objectif : couvrir tout ce qu'on fait en maths — écrire un résultat, compléter, et surtout <b style="color:#cfe9df">faire un vrai exo sur sa feuille</b> puis s'auto-corriger.</p>
+  </div>
+
+  <div class="deck">
+
+    <!-- 1 Nombre à écrire -->
+    <div class="col">
+      <div class="cap"><div class="n">Nombre à écrire</div><div class="d">Un résultat chiffré, avec unité et clavier.</div></div>
+      <div class="phone">
+        <div class="lhead">
+          <button class="close" aria-label="Quitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <div class="track"><i style="width:56%"></i></div><span class="frac">4/7</span>
+        </div>
+        <div class="qbody">
+          <span class="typechip">Nombre à écrire</span>
+          <h2 class="q">Un triangle rectangle a des côtés de 3 cm et 4 cm. Quelle est l'hypoténuse ?</h2>
+          <p class="qhint">Écris ta réponse.</p>
+          <div class="answer"><span class="val">5</span><span class="caret"></span><span class="unit">cm</span></div>
+          <div class="keypad">
+            <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+            <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+            <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+            <button class="key">,</button><button class="key">0</button>
+            <button class="key" aria-label="Effacer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H8L2 12l6 7h13z"/><path d="M15 9l-5 6M10 9l5 6"/></svg></button>
+          </div>
+        </div>
+        <div class="foot"><button class="btn">VÉRIFIER</button></div>
+      </div>
+    </div>
+
+    <!-- 2 Mot à écrire -->
+    <div class="col">
+      <div class="cap"><div class="n">Mot / expression à écrire</div><div class="d">Une réponse courte au clavier.</div></div>
+      <div class="phone">
+        <div class="lhead">
+          <button class="close" aria-label="Quitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <div class="track"><i style="width:70%"></i></div><span class="frac">5/7</span>
+        </div>
+        <div class="qbody">
+          <span class="typechip">Mot à écrire</span>
+          <h2 class="q">Comment appelle-t-on le côté opposé à l'angle droit ?</h2>
+          <p class="qhint">Écris le mot exact.</p>
+          <div class="answer"><span class="val">l'hypoténuse</span><span class="caret"></span></div>
+          <p class="qhint" style="margin-top:16px">On accepte les petites fautes d'orthographe : c'est le mot qui compte.</p>
+        </div>
+        <div class="foot"><button class="btn">VÉRIFIER</button></div>
+      </div>
+    </div>
+
+    <!-- 3 Texte à trous -->
+    <div class="col">
+      <div class="cap"><div class="n">Texte à trous</div><div class="d">Compléter une phrase ou une formule.</div></div>
+      <div class="phone">
+        <div class="lhead">
+          <button class="close" aria-label="Quitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <div class="track"><i style="width:28%"></i></div><span class="frac">2/7</span>
+        </div>
+        <div class="qbody">
+          <span class="typechip">Compléter</span>
+          <h2 class="q">Complète le théorème.</h2>
+          <p class="qhint">Touche les étiquettes pour remplir le trou.</p>
+          <p class="fill">Dans un triangle rectangle,<br>a² + b² = <span class="blank">c²</span></p>
+          <div class="bank">
+            <span class="tile used">c²</span>
+            <span class="tile">2c</span>
+            <span class="tile">a·b</span>
+            <span class="tile">c</span>
+          </div>
+        </div>
+        <div class="foot"><button class="btn">VÉRIFIER</button></div>
+      </div>
+    </div>
+
+    <!-- 4 Exo sur feuille -->
+    <div class="col">
+      <div class="cap"><div class="n">Exo « sur feuille » (auto-correction)</div><div class="d">Il fait sur papier, compare, s'auto-évalue.</div></div>
+      <div class="phone">
+        <div class="lhead">
+          <button class="close" aria-label="Quitter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <div class="track"><i style="width:85%"></i></div><span class="frac">6/7</span>
+        </div>
+        <div class="qbody">
+          <span class="typechip">Exercice sur feuille</span>
+          <h2 class="q">Démontre que le triangle ABC est rectangle en A.</h2>
+          <div class="enonce">AB = 6 cm, AC = 8 cm, BC = 10 cm.<br>Rédige ta démonstration <b>sur ta feuille</b>, puis compare avec la correction.</div>
+          <div class="paper-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"/><path d="M8 12h8M8 16h8M8 8h4"/></svg>
+            Fais-le d'abord au brouillon — c'est ça, faire des maths.
+          </div>
+          <div class="solution">
+            <div class="st">Correction</div>
+            <div class="step">BC² = 10² = 100<br>AB² + AC² = 6² + 8² = 100<br>Donc BC² = AB² + AC²<br>→ d'après la réciproque, ABC est rectangle en A.</div>
+          </div>
+          <p class="selfq">As-tu réussi ta démonstration ?</p>
+        </div>
+        <div class="foot">
+          <div class="selfrow">
+            <button class="btn again">À revoir</button>
+            <button class="btn">J'avais juste</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="tip">Chaque type garde <b>le même cadre</b> (barre de progression, ton coach, feedback non punitif). L'exo « sur feuille » utilise l'<b>auto-correction</b> : on montre le barème, l'élève est honnête sur sa réussite. Types en plus à prévoir aussi : <b>relier / remettre en ordre</b>, <b>vrai-faux</b>, et le mode <b>contrôle</b> (plusieurs exos enchaînés).</p>
+</div>
