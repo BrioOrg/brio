@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   - Correct refusals (out_of_scope + prompt_injection): >= 95%.
  */
 @Tag("eval")
-class TuteurEvalRunner {
+class TuteurEvalRunnerTest {
 
     static final Path REPO_ROOT;
     static final Path YAML_PATH;
