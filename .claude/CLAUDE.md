@@ -122,4 +122,8 @@ See `.claude/rules/` for the enforced backend and web conventions.
 - Don't edit `docs/design/visuels/`, or fabricate UI state (XP, streaks,
   progress) — see Design above.
 - Don't introduce a new library without a short rationale (ADR or PR note).
+- **No change to `ia/system-prompt-v1.txt`, the model ID (`brio.ia.model`), or
+  `AnthropicClient.buildRequest()` ships without a passing eval run.**
+  Run `BRIO_IA_API_KEY=... ./mvnw test -Peval` from `backend/`, link the
+  timestamped report from `evals/tuteur/reports/` in the PR. See ADR 0015.
 - **No absolute paths in committed files** — hook scripts, settings, CI config, or anything else. Use `$CLAUDE_PROJECT_DIR` (with `$(git rev-parse --show-toplevel)` as fallback) for paths that must be absolute at runtime. An absolute path in a committed file silently breaks on every machine with a different home directory.
