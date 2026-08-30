@@ -83,13 +83,15 @@ function BlockRenderer({ block }: { block: Block }) {
   switch (block.type) {
     case 'prose':
       return (
-        <p className="font-prose text-base leading-relaxed text-ink">
+        <p id={block.id} className="font-prose text-base leading-relaxed text-ink">
           <RichTextRenderer text={block.text as string} />
         </p>
       )
 
     case 'heading':
-      return <Heading level={(block.level as number) ?? 1} text={block.text as string} />
+      return (
+        <Heading id={block.id} level={(block.level as number) ?? 1} text={block.text as string} />
+      )
 
     case 'formula': {
       const displayMode = (block.display as string) !== 'inline'
@@ -102,27 +104,31 @@ function BlockRenderer({ block }: { block: Block }) {
       // No code-block chrome: the formula sits directly on the page ground.
       return displayMode ? (
         <div
+          id={block.id}
           className="overflow-x-auto py-1 text-center text-ink"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
-        <span dangerouslySetInnerHTML={{ __html: html }} />
+        <span id={block.id} dangerouslySetInnerHTML={{ __html: html }} />
       )
     }
 
     case 'callout':
-      return <Callout block={block} />
+      return <Callout id={block.id} block={block} />
 
     case 'code':
       return (
-        <pre className="overflow-x-auto rounded-md border border-line bg-surface-raised p-4 font-mono text-sm text-ink">
+        <pre
+          id={block.id}
+          className="overflow-x-auto rounded-md border border-line bg-surface-raised p-4 font-mono text-sm text-ink"
+        >
           <code>{block.code as string}</code>
         </pre>
       )
 
     case 'image':
       return (
-        <figure className="my-1">
+        <figure id={block.id} className="my-1">
           <div className="rounded-md border border-line bg-surface-raised p-4 text-center font-prose text-sm italic text-ink-muted">
             [{block.asset as string}]
           </div>
@@ -136,22 +142,24 @@ function BlockRenderer({ block }: { block: Block }) {
 
     case 'figure':
       return (
-        <FigureRenderer
-          spec={block.spec as FigureSpec}
-          alt={block.alt as string}
-          caption={block.caption as string | undefined}
-        />
+        <div id={block.id}>
+          <FigureRenderer
+            spec={block.spec as FigureSpec}
+            alt={block.alt as string}
+            caption={block.caption as string | undefined}
+          />
+        </div>
       )
 
     case 'exercise':
-      return <ExerciseBlock block={block} />
+      return <ExerciseBlock id={block.id} block={block} />
 
     default:
       return null
   }
 }
 
-function ExerciseBlock({ block }: { block: Block }) {
+function ExerciseBlock({ id, block }: { id: string; block: Block }) {
   const { exerciceId, exerciseType, prompt, choices, multiple, unit, explanation } = block
 
   if (
@@ -163,6 +171,7 @@ function ExerciseBlock({ block }: { block: Block }) {
   ) {
     return (
       <ExerciceWidget
+        id={id}
         exerciceId={exerciceId}
         exerciseType={exerciseType}
         prompt={prompt}
@@ -176,7 +185,7 @@ function ExerciseBlock({ block }: { block: Block }) {
 
   // Fallback for unsupported exercise types (ordering, free-text): read-only card.
   return (
-    <div className="rounded-lg border border-line bg-surface-panel p-5">
+    <div id={id} className="rounded-lg border border-line bg-surface-panel p-5">
       <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
         Exercice
       </p>
@@ -224,11 +233,25 @@ function RichTextSpan({ token }: { token: RichTextToken }) {
   }
 }
 
-function Heading({ level, text }: { level: number; text: string }) {
+function Heading({ id, level, text }: { id: string; level: number; text: string }) {
   const base = 'font-display font-extrabold tracking-tight text-ink'
-  if (level === 1) return <h3 className={`text-lg ${base}`}>{text}</h3>
-  if (level === 2) return <h4 className={`text-base ${base}`}>{text}</h4>
-  return <h5 className={`text-sm ${base}`}>{text}</h5>
+  if (level === 1)
+    return (
+      <h3 id={id} className={`text-lg ${base}`}>
+        {text}
+      </h3>
+    )
+  if (level === 2)
+    return (
+      <h4 id={id} className={`text-base ${base}`}>
+        {text}
+      </h4>
+    )
+  return (
+    <h5 id={id} className={`text-sm ${base}`}>
+      {text}
+    </h5>
+  )
 }
 
 // Callout variants map to semantic token families — never raw colours.
@@ -268,18 +291,20 @@ const CALLOUT_LABEL: Record<string, string> = {
   example: 'Exemple',
 }
 
-function Callout({ block }: { block: Block }) {
+function Callout({ id, block }: { id: string; block: Block }) {
   const variant = (block.variant as string) ?? 'note'
   const c = CALLOUT[variant] ?? CALLOUT.note
 
   return (
-    <div className={`rounded-lg border ${c.border} ${c.surface} p-4`}>
+    <div id={id} className={`rounded-lg border ${c.border} ${c.surface} p-4`}>
       <div className="flex items-start gap-3">
         <span className={`mt-0.5 shrink-0 ${c.accent}`} aria-hidden="true">
           <Icon name={c.icon} size={18} weight="bold" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className={`mb-1 font-display text-xs font-extrabold uppercase tracking-widest ${c.accent}`}>
+          <p
+            className={`mb-1 font-display text-xs font-extrabold uppercase tracking-widest ${c.accent}`}
+          >
             {block.title != null ? (
               <RichTextRenderer text={block.title as string} />
             ) : (

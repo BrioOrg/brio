@@ -18,3 +18,19 @@
     opacity: 1;
   }
 }
+
+@keyframes citedHighlight {
+  0%,
+  20% {
+    outline: 2px solid color-mix(in srgb, var(--color-info) 60%, transparent);
+    outline-offset: 3px;
+  }
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+  }
+}
+
+[data-cited] {
+  animation: citedHighlight 1.5s var(--ease-out);
+}

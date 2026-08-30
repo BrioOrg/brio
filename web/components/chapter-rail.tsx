@@ -1,19 +1,16 @@
-import { Icon } from '@/components/ui/icon'
+import { TuteurPanel } from '@/components/tutor-panel'
 
 export type RailSection = { id: string; title: string }
 
-/**
- * Rail content: the on-page summary (jump links) and the space reserved for the
- * tutor. The tutor panel itself ships later (issue #49 only reserves its place);
- * until then this shows an honest "bientôt" teaser — never fabricated state.
- */
-export function RailContent({
-  sections,
-  onNavigate,
-}: {
+export type RailProps = {
   sections: RailSection[]
+  niveau: string
+  matiere: string
+  slug: string
   onNavigate?: () => void
-}) {
+}
+
+export function RailContent({ sections, niveau, matiere, slug, onNavigate }: RailProps) {
   return (
     <div className="flex flex-col gap-6">
       {sections.length > 1 && (
@@ -37,34 +34,17 @@ export function RailContent({
         </nav>
       )}
 
-      <section
-        aria-label="Tuteur"
-        className="rounded-lg border border-dashed border-accent/40 bg-accent-soft/40 p-4 text-center"
-      >
-        <span
-          className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent"
-          aria-hidden="true"
-        >
-          <Icon name="chat-circle" size={22} weight="bold" />
-        </span>
-        <p className="font-display text-sm font-extrabold text-ink">Ton tuteur</p>
-        <p className="mt-1 font-prose text-xs leading-relaxed text-ink-muted">
-          Il vivra ici, à côté de ton cours, pour t&rsquo;aider à partir de la leçon.
-        </p>
-        <span className="mt-2 inline-flex items-center gap-1 rounded-pill border border-accent/30 bg-accent-soft px-2.5 py-0.5 font-display text-xs font-extrabold text-accent-ink">
-          Bientôt
-        </span>
-      </section>
+      <TuteurPanel niveau={niveau} matiere={matiere} slug={slug} />
     </div>
   )
 }
 
 /** Desktop sticky rail. */
-export function ChapterRail({ sections }: { sections: RailSection[] }) {
+export function ChapterRail({ sections, niveau, matiere, slug }: Omit<RailProps, 'onNavigate'>) {
   return (
     <aside aria-label="Sommaire et tuteur" className="hidden lg:block">
       <div className="sticky top-[4.5rem] max-h-[calc(100vh-6rem)] overflow-y-auto pb-6">
-        <RailContent sections={sections} />
+        <RailContent sections={sections} niveau={niveau} matiere={matiere} slug={slug} />
       </div>
     </aside>
   )
