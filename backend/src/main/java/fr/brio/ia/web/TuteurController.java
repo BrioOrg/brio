@@ -1,5 +1,6 @@
 package fr.brio.ia.web;
 
+import fr.brio.ia.domain.TuteurResult;
 import fr.brio.ia.domain.TuteurService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -43,8 +44,8 @@ class TuteurController {
             @PathVariable String matiere,
             @PathVariable String slug,
             @RequestBody @Valid TuteurRequest request) {
-        String reponse = tuteurService.ask(
+        TuteurResult result = tuteurService.ask(
                 niveau, matiere, slug, request.question(), request.exerciceId());
-        return ResponseEntity.ok(new TuteurResponse(reponse));
+        return ResponseEntity.ok(new TuteurResponse(result.reponse(), result.citations()));
     }
 }

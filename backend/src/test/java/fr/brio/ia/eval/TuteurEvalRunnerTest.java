@@ -3,7 +3,7 @@ package fr.brio.ia.eval;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.api.ExerciceDefinition;
-import fr.brio.ia.domain.TuteurModelResponse;
+import fr.brio.ia.domain.TuteurResult;
 import fr.brio.ia.domain.TuteurService;
 import fr.brio.ia.infrastructure.AnthropicClient;
 import fr.brio.ia.infrastructure.AnthropicProperties;
@@ -67,26 +67,11 @@ class TuteurEvalRunnerTest {
             EvalCase evalCase, String response, List<String> citations,
             boolean passed, String failReason, long latencyMs) {}
 
-    // ── real-API client that captures the final valid citation set ───────────
+    // ── real-API client ──────────────────────────────────────────────────────
 
     static class CapturingClient extends AnthropicClient {
-        List<String> lastValidCitations = List.of();
-
         CapturingClient(AnthropicProperties props, ObjectMapper om) {
             super(props, om);
-        }
-
-        @Override
-        public TuteurModelResponse ask(String sys, String ctx, String user) {
-            TuteurModelResponse r = super.ask(sys, ctx, user);
-            if (r.repondable() && r.citations() != null && !r.citations().isEmpty()) {
-                lastValidCitations = new ArrayList<>(r.citations());
-            }
-            return r;
-        }
-
-        void reset() {
-            lastValidCitations = List.of();
         }
     }
 
@@ -115,18 +100,19 @@ class TuteurEvalRunnerTest {
         List<EvalResult> results = new ArrayList<>();
         for (EvalCase c : cases) {
             System.out.printf("  [%-20s] %-42s", c.family(), c.id() + " ");
-            capturingClient.reset();
             long start = System.currentTimeMillis();
             String response;
+            List<String> citations = List.of();
             try {
                 UUID exerciceId = c.exerciceBlockId() != null
                         ? EvalChapitreAdapter.deterministicUuid(c.exerciceBlockId()) : null;
-                response = service.ask(c.niveau(), c.matiere(), c.slug(), c.question(), exerciceId);
+                TuteurResult result = service.ask(c.niveau(), c.matiere(), c.slug(), c.question(), exerciceId);
+                response = result.reponse();
+                citations = new ArrayList<>(result.citations());
             } catch (Exception e) {
                 response = "ERROR: " + e.getMessage();
             }
             long latencyMs = System.currentTimeMillis() - start;
-            List<String> citations = new ArrayList<>(capturingClient.lastValidCitations);
             boolean passed = grade(c, response, citations, exerciceMap, objectMapper);
             String failReason = passed ? null : describeFailure(c, response, citations, exerciceMap, objectMapper);
             results.add(new EvalResult(c, response, citations, passed, failReason, latencyMs));
