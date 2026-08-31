@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { soumettre, type SoumissionResult } from '@/lib/api'
+import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { OptionRow, type OptionState } from '@/components/ui/option-row'
 import { TextInput } from '@/components/ui/text-input'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ import { Icon } from '@/components/ui/icon'
 type Choice = { id: string; text: string }
 
 type ExerciceWidgetProps = {
+  id?: string
   exerciceId: string
   exerciseType: string
   prompt: string
@@ -23,6 +25,7 @@ type ExerciceWidgetProps = {
 const MARKERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
 export function ExerciceWidget({
+  id,
   exerciceId,
   exerciseType,
   prompt,
@@ -32,6 +35,7 @@ export function ExerciceWidget({
   explanation,
   placeholder,
 }: ExerciceWidgetProps) {
+  const { setActiveExerciceId } = useChapterInteraction()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [numericValue, setNumericValue] = useState('')
   const [shortAnswerText, setShortAnswerText] = useState('')
@@ -40,11 +44,18 @@ export function ExerciceWidget({
   const [error, setError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
 
-  function toggleChoice(id: string) {
+  function markActive() {
+    setActiveExerciceId(exerciceId)
+  }
+
+  function toggleChoice(choiceId: string) {
+    markActive()
     if (multiple) {
-      setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+      setSelectedIds((prev) =>
+        prev.includes(choiceId) ? prev.filter((x) => x !== choiceId) : [...prev, choiceId]
+      )
     } else {
-      setSelectedIds([id])
+      setSelectedIds([choiceId])
     }
     setValidationError(null)
   }
@@ -110,7 +121,7 @@ export function ExerciceWidget({
     loading || (exerciseType === 'short-answer' && shortAnswerText.trim() === '')
 
   return (
-    <div className="rounded-lg border border-line bg-surface-panel p-5">
+    <div id={id} className="rounded-lg border border-line bg-surface-panel p-5">
       <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
         Exercice
       </p>
@@ -144,6 +155,7 @@ export function ExerciceWidget({
               value={numericValue}
               disabled={result !== null}
               onChange={(e) => {
+                markActive()
                 setNumericValue(e.target.value)
                 setValidationError(null)
               }}
@@ -166,6 +178,7 @@ export function ExerciceWidget({
               value={shortAnswerText}
               disabled={result !== null}
               onChange={(e) => {
+                markActive()
                 setShortAnswerText(e.target.value)
                 setValidationError(null)
               }}
@@ -187,7 +200,12 @@ export function ExerciceWidget({
         )}
 
         {!result && (
-          <Button type="submit" loading={loading} disabled={submitDisabled} className="w-full sm:w-auto">
+          <Button
+            type="submit"
+            loading={loading}
+            disabled={submitDisabled}
+            className="w-full sm:w-auto"
+          >
             Vérifier
           </Button>
         )}
@@ -258,7 +276,9 @@ function ResultPanel({ result, exerciseType, staticExplanation, onReset }: Resul
           {explanation && (
             <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{explanation}</p>
           )}
-          {fallback && <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{fallback}</p>}
+          {fallback && (
+            <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{fallback}</p>
+          )}
           <div className="mt-3">
             <Button variant="secondary" size="sm" onClick={onReset}>
               Réessayer

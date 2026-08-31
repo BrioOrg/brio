@@ -5,6 +5,7 @@ import { SiteHeader, type Crumb } from '@/components/site-header'
 import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sidebar'
 import { ChapterRail } from '@/components/chapter-rail'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
+import { ChapterInteractionProvider } from '@/components/chapter-interaction-context'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 
@@ -108,17 +109,9 @@ export default async function ChapterPage({
     <div className="min-h-screen bg-surface-page font-prose text-ink">
       <SiteHeader crumbs={crumbs} />
 
-      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
-        <ChapterSidebar
-          niveau={niveau}
-          matiere={matiere}
-          matiereLibelle={nav.matiereLibelle}
-          chapters={nav.chapters}
-          currentSlug={slug}
-        />
-
-        <main className="min-w-0">
-          <ChapterSidebarMobile
+      <ChapterInteractionProvider>
+        <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
+          <ChapterSidebar
             niveau={niveau}
             matiere={matiere}
             matiereLibelle={nav.matiereLibelle}
@@ -126,15 +119,25 @@ export default async function ChapterPage({
             currentSlug={slug}
           />
 
-          <div className="mx-auto max-w-[68ch]">
-            <ChapterView chapitre={chapitre} />
-          </div>
-        </main>
+          <main className="min-w-0">
+            <ChapterSidebarMobile
+              niveau={niveau}
+              matiere={matiere}
+              matiereLibelle={nav.matiereLibelle}
+              chapters={nav.chapters}
+              currentSlug={slug}
+            />
 
-        <ChapterRail sections={railSections} />
-      </div>
+            <div className="mx-auto max-w-[68ch]">
+              <ChapterView chapitre={chapitre} />
+            </div>
+          </main>
 
-      <ChapterToolsSheet sections={railSections} />
+          <ChapterRail sections={railSections} niveau={niveau} matiere={matiere} slug={slug} />
+        </div>
+
+        <ChapterToolsSheet sections={railSections} niveau={niveau} matiere={matiere} slug={slug} />
+      </ChapterInteractionProvider>
     </div>
   )
 }

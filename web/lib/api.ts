@@ -105,6 +105,38 @@ function buildAuthHeader(): string {
   return 'Basic ' + btoa(`${username}:${password}`)
 }
 
+// ---------------------------------------------------------------------------
+// Tuteur IA
+// ---------------------------------------------------------------------------
+
+const TuteurResponseSchema = z.object({
+  reponse: z.string(),
+  citations: z.array(z.string()).default([]),
+})
+
+export type TuteurReponse = z.infer<typeof TuteurResponseSchema>
+
+export async function askTuteur(
+  niveau: string,
+  matiere: string,
+  slug: string,
+  question: string,
+  exerciceId: string | null
+): Promise<TuteurReponse> {
+  const body: Record<string, unknown> = { question }
+  if (exerciceId) body.exerciceId = exerciceId
+  const res = await fetch(
+    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}/tuteur`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: buildAuthHeader() },
+      body: JSON.stringify(body),
+    }
+  )
+  if (!res.ok) throw new Error('Erreur du tuteur')
+  return TuteurResponseSchema.parse(await res.json())
+}
+
 export async function soumettre(
   exerciceId: string,
   answer: Record<string, unknown>
