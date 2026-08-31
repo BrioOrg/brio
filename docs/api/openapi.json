@@ -363,6 +363,12 @@
         "properties" : {
           "reponse" : {
             "type" : "string"
+          },
+          "citations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },

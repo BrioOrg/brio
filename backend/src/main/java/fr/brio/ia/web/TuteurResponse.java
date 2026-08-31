@@ -1,3 +1,5 @@
 package fr.brio.ia.web;
 
-record TuteurResponse(String reponse) {}
+import java.util.List;
+
+record TuteurResponse(String reponse, List<String> citations) {}

@@ -1,5 +1,6 @@
 package fr.brio;
 
+import fr.brio.ia.domain.TuteurResult;
 import fr.brio.ia.domain.TuteurService;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,20 +27,22 @@ class TuteurIntegrationTest {
 
     @Test
     void shouldAnswerGroundedQuestionWithCitations() {
-        String reponse = tuteurService.ask(
+        TuteurResult result = tuteurService.ask(
                 "3e", "mathematiques", "theoreme-de-pythagore",
                 "Qu'est-ce que l'hypoténuse ?", null);
 
-        assertThat(reponse).isNotBlank();
-        assertThat(reponse).isNotEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.reponse()).isNotBlank();
+        assertThat(result.reponse()).isNotEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.citations()).isNotEmpty();
     }
 
     @Test
     void shouldRefuseOffTopicQuestion() {
-        String reponse = tuteurService.ask(
+        TuteurResult result = tuteurService.ask(
                 "3e", "mathematiques", "theoreme-de-pythagore",
                 "Explique-moi la révolution française.", null);
 
-        assertThat(reponse).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.reponse()).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.citations()).isEmpty();
     }
 }

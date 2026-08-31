@@ -16,13 +16,11 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,9 +57,10 @@ class TuteurServiceTest {
         when(anthropicClient.ask(anyString(), anyString(), anyString()))
                 .thenReturn(new TuteurModelResponse(false, "N/A", List.of()));
 
-        String result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question hors sujet", null);
+        TuteurResult result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question hors sujet", null);
 
-        assertThat(result).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.reponse()).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.citations()).isEmpty();
     }
 
     @Test
@@ -70,9 +69,10 @@ class TuteurServiceTest {
         when(anthropicClient.ask(anyString(), anyString(), anyString()))
                 .thenReturn(new TuteurModelResponse(true, "Réponse sans citation", List.of()));
 
-        String result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
+        TuteurResult result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
 
-        assertThat(result).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.reponse()).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.citations()).isEmpty();
     }
 
     @Test
@@ -83,9 +83,9 @@ class TuteurServiceTest {
         when(anthropicClient.ask(anyString(), anyString(), anyString()))
                 .thenReturn(badCitation);
 
-        String result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
+        TuteurResult result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
 
-        assertThat(result).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.reponse()).isEqualTo(TuteurService.REFUSAL_MESSAGE);
         verify(anthropicClient, times(2)).ask(anyString(), anyString(), anyString());
     }
 
@@ -96,9 +96,10 @@ class TuteurServiceTest {
                 true, "Bonne réponse", List.of("enonce/intro"));
         when(anthropicClient.ask(anyString(), anyString(), anyString())).thenReturn(good);
 
-        String result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
+        TuteurResult result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
 
-        assertThat(result).isEqualTo("Bonne réponse");
+        assertThat(result.reponse()).isEqualTo("Bonne réponse");
+        assertThat(result.citations()).containsExactly("enonce/intro");
     }
 
     @Test
@@ -108,9 +109,9 @@ class TuteurServiceTest {
                 true, "Réponse", List.of("enonce/inexistant"));
         when(anthropicClient.ask(anyString(), anyString(), anyString())).thenReturn(bad, bad);
 
-        String result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
+        TuteurResult result = service.ask("3e", "mathematiques", "theoreme-de-pythagore", "Question", null);
 
-        assertThat(result).isEqualTo(TuteurService.REFUSAL_MESSAGE);
+        assertThat(result.reponse()).isEqualTo(TuteurService.REFUSAL_MESSAGE);
         verify(anthropicClient, times(2)).ask(anyString(), anyString(), anyString());
     }
 
@@ -202,9 +203,10 @@ class TuteurServiceTest {
         when(anthropicClient.ask(anyString(), anyString(), anyString()))
                 .thenReturn(disclosingResponse, disclosingResponse);
 
-        String result = service.ask("3e", "mathematiques", "chapitre", "Quelle est BC ?", exerciceId);
+        TuteurResult result = service.ask("3e", "mathematiques", "chapitre", "Quelle est BC ?", exerciceId);
 
-        assertThat(result).isEqualTo(TuteurService.GENERIC_HINT);
+        assertThat(result.reponse()).isEqualTo(TuteurService.GENERIC_HINT);
+        assertThat(result.citations()).isEmpty();
         verify(anthropicClient, times(2)).ask(anyString(), anyString(), anyString());
     }
 }

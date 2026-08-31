@@ -49,7 +49,7 @@ public class TuteurService {
         this.systemPrompt = loadSystemPrompt();
     }
 
-    public String ask(String niveau, String matiere, String slug, String question, UUID exerciceId) {
+    public TuteurResult ask(String niveau, String matiere, String slug, String question, UUID exerciceId) {
         ChapitreDocument doc = chapitreContentApi.findByTriplet(niveau, matiere, slug)
                 .orElseThrow(() -> new ChapitreNotFoundException(niveau, matiere, slug));
 
@@ -60,12 +60,12 @@ public class TuteurService {
 
         // Gate 1: model says it cannot answer
         if (!response.repondable()) {
-            return REFUSAL_MESSAGE;
+            return new TuteurResult(REFUSAL_MESSAGE, List.of());
         }
 
         // Gate 3: empty citation list
         if (response.citations() == null || response.citations().isEmpty()) {
-            return REFUSAL_MESSAGE;
+            return new TuteurResult(REFUSAL_MESSAGE, List.of());
         }
 
         // Gate 2: invalid citations — one regeneration attempt
@@ -77,7 +77,7 @@ public class TuteurService {
             if (!response.repondable() || response.citations() == null
                     || response.citations().isEmpty()
                     || !allCitationsValid(response.citations(), doc)) {
-                return REFUSAL_MESSAGE;
+                return new TuteurResult(REFUSAL_MESSAGE, List.of());
             }
         }
 
@@ -90,12 +90,12 @@ public class TuteurService {
                         + " Guide l'élève par des questions sans jamais donner le résultat ni la computation.";
                 response = anthropicClient.ask(systemPrompt, chapterContext, hardenedContent);
                 if (def.isPresent() && disclosesAnswer(response.reponse(), def.get())) {
-                    return GENERIC_HINT;
+                    return new TuteurResult(GENERIC_HINT, List.of());
                 }
             }
         }
 
-        return response.reponse();
+        return new TuteurResult(response.reponse(), response.citations());
     }
 
     private String buildChapterContext(ChapitreDocument doc) {
