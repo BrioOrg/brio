@@ -1,10 +1,20 @@
 package fr.brio.system.web;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import java.util.Map;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -13,18 +23,76 @@ import static org.springframework.security.config.Customizer.withDefaults;
 class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http,
+                                    AuthenticationSuccessHandler loginSuccess,
+                                    AuthenticationFailureHandler loginFailure,
+                                    LogoutSuccessHandler logoutSuccess) throws Exception {
+        var csrfHandler = new CsrfTokenRequestAttributeHandler();
+        csrfHandler.setCsrfRequestAttributeName(null); // always populate the attribute
+
         http
             .cors(withDefaults())
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(csrfHandler))
             .authorizeHttpRequests(auth -> auth
-                // OpenAPI spec and Swagger UI are accessible without auth (codegen + dev tooling)
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .anyRequest().authenticated()
-            )
-            .httpBasic(withDefaults())
-            // CSRF disabled — API is stateless basic auth, no session cookies
-            // NOTE: when cookie-based auth is added, enable CSRF and coordinate with CorsConfig
-            .csrf(csrf -> csrf.disable());
+                .requestMatchers("/api/sessions").permitAll()
+                .anyRequest().authenticated())
+            .formLogin(form -> form
+                .loginProcessingUrl("/api/sessions")
+                .usernameParameter("identifiant")
+                .passwordParameter("mot_de_passe")
+                .successHandler(loginSuccess)
+                .failureHandler(loginFailure)
+                .permitAll())
+            .logout(logout -> logout
+                .logoutRequestMatcher(req -> "DELETE".equals(req.getMethod())
+                        && "/api/sessions".equals(req.getRequestURI()))
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessHandler(logoutSuccess))
+            .sessionManagement(session -> session
+                .maximumSessions(5))
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((req, res, e) ->
+                        res.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                .accessDeniedHandler((req, res, e) ->
+                        res.sendError(HttpServletResponse.SC_FORBIDDEN)));
+
         return http.build();
+    }
+
+    @Bean
+    @Profile("local")
+    SecurityFilterChain localHttpBasicChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**")
+            .httpBasic(withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+        return http.build();
+    }
+
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        // DelegatingPasswordEncoder stores the algorithm prefix ({bcrypt}) in the hash,
+        // making future algorithm migration a config change with on-login rehashing.
+        // Strength 12 intentionally higher than Spring's default 10 — override to 4 in tests.
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    AuthenticationFailureHandler loginFailureHandler() {
+        return (req, res, ex) -> {
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            res.setContentType("application/json;charset=UTF-8");
+            res.getWriter().write("{\"error\":\"Identifiant ou mot de passe incorrect\"}");
+        };
+    }
+
+    @Bean
+    LogoutSuccessHandler logoutSuccessHandler() {
+        return (req, res, auth) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 }

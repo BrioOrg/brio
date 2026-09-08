@@ -192,6 +192,24 @@
         }
       }
     },
+    "/api/moi" : {
+      "get" : {
+        "tags" : [ "session-controller" ],
+        "operationId" : "moi",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CompteInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chapitres/{niveau}/{matiere}/{slug}" : {
       "get" : {
         "tags" : [ "Contenu" ],
@@ -387,6 +405,27 @@
           }
         },
         "required" : [ "status", "timestamp", "version" ]
+      },
+      "CompteInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "role" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          }
+        }
       },
       "CatalogueChapitreDto" : {
         "type" : "object",
