@@ -22,36 +22,56 @@ call. That is not acceptable for user-facing accounts.
 
 ### 1. Session cookies with Spring Security
 
-Sessions are managed by Spring Security's `HttpSession` mechanism, backed by a
-server-side session store (in-memory for development; Redis for production, using
-the existing Redis dependency).
+Sessions are managed by Spring Security's `HttpSession` mechanism. The backing
+store is in-memory for all current deployments (single-instance VPS, F0 launch).
+Redis-backed sessions (`spring-session-data-redis`) are introduced when the first
+of these triggers is reached: a second application instance is added, or
+zero-downtime deploys are required. The Redis infrastructure already exists for
+the tutor's prompt cache; the swap is a single configuration change if the session
+objects remain serializable.
 
 Session cookies are set with:
 - `HttpOnly` — not accessible to JavaScript
-- `Secure` — only sent over HTTPS
+- `Secure` — only sent over HTTPS (relaxed to `false` in the `local` profile only)
 - `SameSite=Lax` — blocks cross-site POST-based CSRF while allowing top-level
   navigation (sufficient for Brio's same-origin frontend)
 
 ### 2. CSRF protection re-enabled
 
 Spring Security's CSRF protection is re-enabled for all state-mutating endpoints.
-The existing `SecurityConfig` already notes this intention. The CSRF token is
-delivered via a cookie readable by the frontend (`XSRF-TOKEN`) and echoed in the
-`X-XSRF-TOKEN` request header — the standard Spring Security / Next.js pattern
-that requires no session for the token itself.
+The CSRF token is delivered via `CookieCsrfTokenRepository.withHttpOnlyFalse()`:
+the `XSRF-TOKEN` cookie is readable by JavaScript, and the frontend must echo it
+in the `X-XSRF-TOKEN` request header on every mutating request. This requires
+`allowCredentials(true)` in `CorsConfig` and exact (not wildcard) origin matching.
 
 ### 3. Basic auth is forbidden outside the `local` profile
 
 Basic Auth is retained **only** on the `local` Spring profile (local development
-without a browser). On all other profiles (`dev`, `staging`, `prod`), the
-`SecurityConfig` bean fails fast at application startup if Basic Auth is
-configured. Fail-fast, not fail-silent: a misconfigured production instance must
-not start, not start insecurely.
+without a browser), as a separate `@Profile("local")` `SecurityFilterChain` bean.
+On all other profiles, a `BasicAuthGuard` component (`@Profile("!local")`)
+inspects the registered filter chains at startup and throws `IllegalStateException`
+if any chain contains a `BasicAuthenticationFilter`. Fail-fast, not fail-silent:
+a misconfigured production instance must not start, not start insecurely.
 
-A dedicated integration test verifies that the `prod` profile refuses startup when
-Basic Auth is active.
+A dedicated integration test verifies that the context refuses to start when Basic
+Auth is active without the `local` profile.
 
-### 4. Session audit table
+### 4. API endpoint paths
+
+| Action | Method | Path |
+|--------|--------|------|
+| Log in | `POST` | `/api/sessions` |
+| Log out | `DELETE` | `/api/sessions` |
+| Current user | `GET` | `/api/moi` |
+
+These paths follow the resource-shaped convention of the existing API
+(`/api/catalogue`, `/api/chapitres/…`, `/api/exercices/{id}/soumissions`).
+
+Spring Security's logout is configured with `logoutRequestMatcher` on
+`DELETE /api/sessions` (the default is `POST /logout`). The login processing URL
+is `/api/sessions`. Both success and failure handlers write JSON, never redirects.
+
+### 5. Session audit table
 
 ```
 identite.sessions (
@@ -65,12 +85,24 @@ identite.sessions (
 ```
 
 The table is append-only for audit purposes. It is not the session store (that is
-Redis). On logout or expiry the session store entry is deleted; the audit row is
-retained for the duration of the data retention policy (to be defined in the
-registre des traitements). IP truncation is required: a full IP from a minor's
-home connection is personal data.
+in-memory HttpSession, or Redis when triggered by §1). On logout or expiry the
+in-memory session is invalidated; the audit row is retained for the duration of
+the data retention policy (to be defined in the registre des traitements). IP
+truncation is required: a full IP from a minor's home connection is personal data.
 
-### 5. Password policy for students
+### 6. Password hashing: BCrypt strength 12 via DelegatingPasswordEncoder
+
+`DelegatingPasswordEncoder` is the encoder registered as the `PasswordEncoder`
+bean. The default delegate is `BCryptPasswordEncoder` at strength 12. The
+`{bcrypt}` prefix stored in `mot_de_passe_hash` makes the algorithm and parameters
+explicit and makes future migration to a stronger algorithm (see §7) a
+configuration change with on-login rehashing — no bulk migration required.
+
+Strength 12 is intentionally slower than the Spring Security default (10) to
+increase brute-force cost. Test configurations override to strength 4 to keep the
+test suite fast.
+
+### 7. Password policy for students
 
 Collège students will choose weak passwords. The response is rate limiting and
 progressive lockout, not complexity rules that push them to write the password on
@@ -90,16 +122,15 @@ their pencil case.
 Teacher and admin accounts carry higher expectations and may be subject to stricter
 policy in a future ADR; this ADR sets the floor for student accounts only.
 
-### 6. JWT is explicitly rejected
+### 8. JWT is explicitly rejected
 
 JWT shifts session state from server to client. The benefit — stateless
-horizontal scaling — does not apply: Brio already has Redis for the tutor's
-prompt cache and session state adds negligible load. The cost of JWT for a
-student-facing product is a token-rotation machinery (refresh tokens, expiry
-clocks, revocation lists) that must be correct to prevent a stolen token from
-remaining valid after a reported incident. Cookies + server-side sessions revoke
-instantly. ENT/GAR SSO, if it arrives, uses SAML or OIDC — neither requires JWT
-for internal session management.
+horizontal scaling — does not apply at current scale, and the trigger for Redis
+sessions (§1) arrives first. The cost of JWT for a student-facing product is a
+token-rotation machinery (refresh tokens, expiry clocks, revocation lists) that
+must be correct to prevent a stolen token from remaining valid after a reported
+incident. Cookies + server-side sessions revoke instantly. ENT/GAR SSO, if it
+arrives, uses SAML or OIDC — neither requires JWT for internal session management.
 
 ## Consequences
 
@@ -113,41 +144,44 @@ for internal session management.
 - The session mechanism is orthogonal to the account model: ENT/GAR SSO can
   replace authentication (how a `compte` is verified) without altering the class
   structure, the consent workflow, or the display-name design of ADR 0016.
+- `DelegatingPasswordEncoder` makes password algorithm migration transparent:
+  no bulk rehash, users are rehashed on next successful login.
 
 ### Negative / trade-offs
 
-- Redis is now a hard runtime dependency (it was already present for the tutor's
-  prompt cache, so no new operational burden).
+- In-memory session store means a restart logs out all active users. Acceptable
+  for F0 (single VPS, pilot class); must be revisited before multi-instance
+  deployment (see §1 trigger).
 - CSRF token delivery requires the frontend to read the `XSRF-TOKEN` cookie and
   echo it on mutating requests. This is a standard pattern but must be wired
-  explicitly in the Next.js API layer.
+  explicitly in the Next.js API layer (separate ticket).
 - Password reset by email to `email_titulaire_legal` means a locked-out student
   depends on a parent to unlock their account. Acceptable for the consent model
   of ADR 0016; revisit if a separate student-email policy is introduced.
 
 ### Follow-ups
 
-- Flyway migration for `identite.sessions`.
-- Redis session store configuration (`spring.session.store-type=redis`) for
-  non-local profiles.
-- `SecurityConfig` update: CSRF on, Basic Auth guard, session cookie flags.
-- Integration test: `prod` profile fails to start with Basic Auth active.
 - Frontend: `XSRF-TOKEN` cookie read and echo in `@brio/api-client`.
 - Rate-limiting middleware (Spring's `HandlerInterceptor` or a dedicated filter).
 - Password reset flow (email → tokenised link → new password).
+- Redis session store when §1 trigger is reached.
 
 ## Alternatives considered
 
-- **JWT (stateless tokens)** — rejected. See §6.
+- **JWT (stateless tokens)** — rejected. See §8.
 
 - **SameSite=Strict** — considered; rejected because it breaks OAuth callback
   redirects and any future top-level navigation from an external link (e.g. a
   teacher sharing a chapter URL by email). `Lax` is the correct default for a
   content site with a same-origin frontend.
 
-- **Argon2 for password hashing** — preferred over bcrypt if the Spring Security
-  version in use supports it without an additional dependency. Decision deferred
-  to implementation; either is acceptable, the choice belongs in the `SecurityConfig`
-  comment, not this ADR.
+- **Argon2 for password hashing** — Argon2id is the stronger algorithm and its
+  memory-hardness matters for weak student passwords. However,
+  `Argon2PasswordEncoder` in `spring-security-crypto` requires BouncyCastle
+  (`bcprov-jdk18on`) on the runtime classpath — Spring Security does not bundle
+  it. Adding a large security-sensitive dependency for zero users is not the
+  right trade. `DelegatingPasswordEncoder` makes the switch cost-free when the
+  time comes: add BouncyCastle, change the default delegate, existing `{bcrypt}`
+  hashes continue to work and are rehashed on next login.
 
 - **ENT/GAR SSO from the start** — deferred. See ADR 0016 §7.
