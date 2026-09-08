@@ -15,13 +15,18 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,14 +34,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestcontainersConfiguration.class)
 class SoumissionIntegrationTest {
 
-    @Autowired MockMvc mockMvc;
+    @Autowired WebApplicationContext webApplicationContext;
     @Autowired ContenuService contenuService;
     @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired SoumissionRepository soumissionRepository;
     @Autowired ObjectMapper objectMapper;
 
+    // Rebuild with springSecurity() + default CSRF so existing tests need no per-call changes
+    MockMvc mockMvc;
+
     @BeforeEach
-    void seedChapter() throws Exception {
+    void setup() throws Exception {
+        mockMvc = webAppContextSetup(webApplicationContext)
+                .apply(springSecurity())
+                .defaultRequest(MockMvcRequestBuilders.post("/**").with(csrf()))
+                .build();
+
         try (var is = getClass().getResourceAsStream(
                 "/contenu/chapitres/3e/mathematiques/theoreme-de-pythagore.json")) {
             JsonNode doc = objectMapper.readTree(is);
