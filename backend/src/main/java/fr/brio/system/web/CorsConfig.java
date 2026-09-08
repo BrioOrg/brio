@@ -17,13 +17,14 @@ class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        // NOTE: when cookie-based auth (HttpOnly session cookies + CSRF) is added,
-        // revisit this config — allowCredentials(true) requires exact origins (no patterns),
-        // and SameSite policy must be coordinated here and in the session cookie config.
+        // allowCredentials requires exact origins (no wildcards) — configured per environment
+        // via app.cors.allowed-origins. The frontend must echo X-XSRF-TOKEN on mutating requests.
         registry.addMapping("/api/**")
                 .allowedOrigins(allowedOrigins.toArray(String[]::new))
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .exposedHeaders("X-XSRF-TOKEN")
+                .allowCredentials(true)
                 .maxAge(3600);
     }
 }
