@@ -30,7 +30,7 @@ export default function ConnexionPage() {
         <p className="mt-6 text-center font-prose text-sm text-ink-muted">
           Nouveau sur brio ?{' '}
           <Link
-            href="/inscription"
+            href="/commencer"
             className="rounded-sm font-extrabold text-accent-ink hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             Créer un compte
