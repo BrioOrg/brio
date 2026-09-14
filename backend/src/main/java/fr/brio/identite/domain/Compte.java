@@ -90,6 +90,17 @@ public class Compte {
         return c;
     }
 
+    public static Compte creerAdminBrio(String identifiantConnexion, String motDePasseHash, String nom, String email) {
+        var c = new Compte();
+        c.role = RoleCompte.admin_brio;
+        c.identifiantConnexion = identifiantConnexion;
+        c.motDePasseHash = motDePasseHash;
+        c.nom = nom;
+        c.email = email;
+        c.statut = StatutCompte.actif;
+        return c;
+    }
+
     public UUID getId() { return id; }
     public RoleCompte getRole() { return role; }
     public String getIdentifiantConnexion() { return identifiantConnexion; }

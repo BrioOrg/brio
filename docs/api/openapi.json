@@ -91,6 +91,34 @@
         }
       }
     },
+    "/api/etablissements" : {
+      "post" : {
+        "tags" : [ "etablissement-controller" ],
+        "operationId" : "creer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreerEtablissementRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtablissementInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/consentements/{token}/validation" : {
       "post" : {
         "tags" : [ "consentement-controller" ],
@@ -150,6 +178,99 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/CompteInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/classes" : {
+      "post" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "creer_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreerClasseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/classes/{id}/codes" : {
+      "post" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "genererCode",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/GenererCodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeClasseCreee"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/classes/rejoindre" : {
+      "post" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "rejoindre",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RejoindreClasseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EleveInscritInfo"
                 }
               }
             }
@@ -272,6 +393,51 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/classes/{id}/codes/actif" : {
+      "get" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "getCodeInfo",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeClasseInfo"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "revoquerCode",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
           }
         }
       }
@@ -448,6 +614,64 @@
           }
         }
       },
+      "CreerEtablissementRequest" : {
+        "type" : "object",
+        "properties" : {
+          "nom" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "uai" : {
+            "type" : "string",
+            "maxLength" : 8,
+            "minLength" : 0
+          },
+          "type" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "college|lycee"
+          },
+          "conventionSigneeLe" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "conventionReference" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "nom", "type" ]
+      },
+      "EtablissementInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "uai" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "conventionSigneeLe" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "conventionReference" : {
+            "type" : "string"
+          },
+          "pathAActif" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "InscriptionEnseignantRequest" : {
         "type" : "object",
         "properties" : {
@@ -496,6 +720,135 @@
           }
         }
       },
+      "CreerClasseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "niveauCode" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "anneeScolaire" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "\\d{4}-\\d{4}"
+          }
+        },
+        "required" : [ "anneeScolaire", "etablissementId", "libelle", "niveauCode" ]
+      },
+      "ClasseInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "anneeScolaire" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          }
+        }
+      },
+      "GenererCodeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "expireDansJours" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 60,
+            "minimum" : 1
+          },
+          "usagesMax" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 200,
+            "minimum" : 1
+          }
+        }
+      },
+      "CodeClasseCreee" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "expireAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "usages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "usagesMax" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "RejoindreClasseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "motDePasse" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 8
+          },
+          "nomAffiche" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "code", "motDePasse", "nomAffiche" ]
+      },
+      "EleveInscritInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "identifiantConnexion" : {
+            "type" : "string"
+          },
+          "nomAffiche" : {
+            "type" : "string"
+          },
+          "classeLibelle" : {
+            "type" : "string"
+          }
+        }
+      },
       "TuteurRequest" : {
         "type" : "object",
         "properties" : {
@@ -539,6 +892,27 @@
           }
         },
         "required" : [ "status", "timestamp", "version" ]
+      },
+      "CodeClasseInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "expireAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "usages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "usagesMax" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
       },
       "CatalogueChapitreDto" : {
         "type" : "object",
