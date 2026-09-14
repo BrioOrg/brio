@@ -42,11 +42,12 @@ class SecurityConfig {
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(csrfHandler)
                 // Consent endpoints are protected by their own bearer tokens; no CSRF cookie needed.
-                // POST /api/comptes (signup) has no session context to protect.
+                // POST /api/comptes (signup) and POST /api/classes/rejoindre have no session to protect.
                 .ignoringRequestMatchers(
                         AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/comptes"),
                         AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/consentements/*/validation"),
-                        AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/consentements/revocation/*")))
+                        AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/consentements/revocation/*"),
+                        AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/classes/rejoindre")))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/sessions").permitAll()
@@ -55,6 +56,12 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/consentements/revocation/*").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/comptes/*/consentement")
                         .hasAnyRole("ADMIN_BRIO", "ADMIN_ETAB")
+                // Class code enrollment: public (convention gate enforced in the service)
+                .requestMatchers(HttpMethod.POST, "/api/classes/rejoindre").permitAll()
+                // Class and établissement management: ADMIN_BRIO only
+                .requestMatchers(HttpMethod.POST, "/api/etablissements").hasRole("ADMIN_BRIO")
+                .requestMatchers(HttpMethod.POST, "/api/classes").hasRole("ADMIN_BRIO")
+                .requestMatchers(HttpMethod.POST, "/api/classes/*/codes").hasRole("ADMIN_BRIO")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginProcessingUrl("/api/sessions")
