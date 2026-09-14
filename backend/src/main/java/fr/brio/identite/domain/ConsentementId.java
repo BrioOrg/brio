@@ -5,4 +5,4 @@ import java.io.Serializable;
 import java.util.UUID;
 
 @Embeddable
-record ConsentementId(UUID compteId, String type) implements Serializable {}
+public record ConsentementId(UUID compteId, String type) implements Serializable {}
