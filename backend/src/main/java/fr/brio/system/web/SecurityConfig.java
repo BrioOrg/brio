@@ -50,6 +50,10 @@ class SecurityConfig {
                         AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/classes/rejoindre")))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                // Catalogue and chapter content are public — CDC §5: "un compte en attente peut
+                // lire le catalogue public et rien d'autre". The tutor and submissions remain gated.
+                .requestMatchers(HttpMethod.GET, "/api/catalogue").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/chapitres/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/sessions").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/comptes").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/consentements/*/validation").permitAll()
