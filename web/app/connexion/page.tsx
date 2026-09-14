@@ -6,7 +6,15 @@ export const metadata: Metadata = {
   title: 'Connexion — brio',
 }
 
-export default function ConnexionPage() {
+export default async function ConnexionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>
+}) {
+  const { from } = await searchParams
+  // Guard against open-redirect: only allow relative paths on this origin.
+  const redirectTo = from && from.startsWith('/') && !from.startsWith('//') ? from : '/'
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-surface-page px-4 py-12">
       <div className="w-full max-w-sm">
@@ -24,7 +32,7 @@ export default function ConnexionPage() {
             Connecte-toi : on retrouve ta classe et ta progression.
           </p>
 
-          <LoginForm />
+          <LoginForm redirectTo={redirectTo} />
         </div>
 
         <p className="mt-6 text-center font-prose text-sm text-ink-muted">
