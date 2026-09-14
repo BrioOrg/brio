@@ -142,6 +142,13 @@ This invariant is enforced by a test: no code path from `identite.api` returns
 
 ### 5. Consent is required for every élève account; no birthdate is stored
 
+> **ADR 0018 amendment:** This paragraph applies only to accounts where
+> `base_legale = 'consentement'`. Classes belonging to an établissement under
+> a signed convention may enrol students under `base_legale = 'mission_etablissement'`,
+> in which case the account is immediately `actif` and no parent email is
+> collected. See ADR 0018 for the two-path model and the conditions under
+> which each applies.
+
 Every `compte élève` is created with `statut = 'en_attente_consentement'`.
 The account becomes `actif` only after the titulaire légal validates the email
 sent to `email_titulaire_legal`.
