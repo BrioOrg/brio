@@ -30,11 +30,15 @@ public class Compte {
     @Column(name = "email_titulaire_legal")
     private String emailTitulaireLegal;
 
+    // Legal basis for processing (ADR 0018); required for eleve accounts, null for adults
+    @Enumerated(EnumType.STRING)
+    @Column(name = "base_legale")
+    private BaseLegale baseLegale;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatutCompte statut = StatutCompte.en_attente_consentement;
 
-    // Nullable until établissements table ships (follow-up ticket)
     @Column(name = "etablissement_id")
     private UUID etablissementId;
 
@@ -46,18 +50,49 @@ public class Compte {
 
     protected Compte() {}
 
-    public static Compte creerEleve(String identifiantConnexion, String motDePasseHash, String emailTitulaireLegal) {
+    /** Path B (consent): account starts pending, parent must validate email (ADR 0016 §5). */
+    public static Compte creerEleve(String identifiantConnexion, String motDePasseHash,
+                                    String emailTitulaireLegal) {
         var c = new Compte();
         c.role = RoleCompte.eleve;
         c.identifiantConnexion = identifiantConnexion;
         c.motDePasseHash = motDePasseHash;
         c.emailTitulaireLegal = emailTitulaireLegal;
+        c.baseLegale = BaseLegale.consentement;
+        return c;
+    }
+
+    /**
+     * Path A (mission d'intérêt public): account is immediately actif.
+     * No parent email collected — the établissement is the controller (ADR 0018 §1).
+     */
+    public static Compte creerEleveMissionEtablissement(String identifiantConnexion,
+                                                         String motDePasseHash,
+                                                         UUID etablissementId) {
+        var c = new Compte();
+        c.role = RoleCompte.eleve;
+        c.identifiantConnexion = identifiantConnexion;
+        c.motDePasseHash = motDePasseHash;
+        c.baseLegale = BaseLegale.mission_etablissement;
+        c.statut = StatutCompte.actif;
+        c.etablissementId = etablissementId;
         return c;
     }
 
     public static Compte creerEnseignant(String identifiantConnexion, String motDePasseHash, String nom, String email) {
         var c = new Compte();
         c.role = RoleCompte.enseignant;
+        c.identifiantConnexion = identifiantConnexion;
+        c.motDePasseHash = motDePasseHash;
+        c.nom = nom;
+        c.email = email;
+        c.statut = StatutCompte.actif;
+        return c;
+    }
+
+    public static Compte creerAdminBrio(String identifiantConnexion, String motDePasseHash, String nom, String email) {
+        var c = new Compte();
+        c.role = RoleCompte.admin_brio;
         c.identifiantConnexion = identifiantConnexion;
         c.motDePasseHash = motDePasseHash;
         c.nom = nom;
@@ -88,5 +123,9 @@ public class Compte {
 
     public String getEmailTitulaireLegal() {
         return emailTitulaireLegal;
+    }
+
+    public BaseLegale getBaseLegale() {
+        return baseLegale;
     }
 }
