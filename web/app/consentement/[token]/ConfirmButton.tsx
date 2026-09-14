@@ -12,16 +12,18 @@ export function ConfirmButton({ token }: { token: string }) {
     setPending(true)
     setError(null)
     try {
-      const res = await fetch(`${API_URL}/api/consentements/${encodeURIComponent(token)}/validation`, {
-        method: 'POST',
-        credentials: 'include',
-      })
+      const res = await fetch(
+        `${API_URL}/api/consentements/${encodeURIComponent(token)}/validation`,
+        { method: 'POST', credentials: 'include' }
+      )
       if (res.ok) {
         window.location.href = '/consentement/succes'
       } else if (res.status === 400) {
-        setError('Ce lien est invalide ou a déjà été utilisé. Demandez un nouveau lien à l'établissement.')
+        setError(
+          "Ce lien est invalide ou a déjà été utilisé. Demandez un nouveau lien à l'établissement."
+        )
       } else {
-        setError('Une erreur inattendue s'est produite. Réessayez dans un instant.')
+        setError("Une erreur inattendue s'est produite. Réessayez dans un instant.")
       }
     } catch {
       setError('Impossible de joindre le serveur. Vérifiez votre connexion.')
@@ -33,7 +35,10 @@ export function ConfirmButton({ token }: { token: string }) {
   return (
     <div className="flex flex-col gap-4">
       {error && (
-        <p role="alert" className="rounded-md border border-red-300 bg-red-50 px-4 py-3 font-prose text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-md border border-red-300 bg-red-50 px-4 py-3 font-prose text-sm text-red-700"
+        >
           {error}
         </p>
       )}

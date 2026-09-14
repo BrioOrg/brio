@@ -31,18 +31,18 @@ export default async function ConsentementPage({ params }: { params: Promise<{ t
           <div className="mt-5 rounded-md border border-line bg-surface-raised px-4 py-4">
             <p className="font-prose text-sm font-bold text-ink">Ce que vous autorisez :</p>
             <ul className="mt-2 list-inside list-disc space-y-1 font-prose text-sm text-ink-muted">
-              <li>La création d'un compte élève pseudonymisé.</li>
-              <li>L'accès aux cours et exercices de la plateforme.</li>
+              <li>La création d&apos;un compte élève pseudonymisé.</li>
+              <li>L&apos;accès aux cours et exercices de la plateforme.</li>
               <li>
-                Aucun nom ni prénom de votre enfant n'est stocké — son identité reste dans sa classe
-                uniquement.
+                Aucun nom ni prénom de votre enfant n&apos;est stocké — son identité reste dans sa
+                classe uniquement.
               </li>
             </ul>
           </div>
 
           <p className="mt-4 font-prose text-sm text-ink-muted">
             Vous recevrez un lien pour retirer votre autorisation à tout moment si vous changez
-            d'avis.
+            d&apos;avis.
           </p>
 
           <div className="mt-6">
@@ -52,7 +52,7 @@ export default async function ConsentementPage({ params }: { params: Promise<{ t
 
         <p className="mt-6 text-center font-prose text-xs text-ink-muted">
           Ce lien est à usage unique et expire dans 7 jours. En cas de question, contactez
-          l'établissement de votre enfant.
+          l&apos;établissement de votre enfant.
         </p>
       </div>
     </main>

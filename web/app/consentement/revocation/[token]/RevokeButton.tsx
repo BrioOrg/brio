@@ -15,16 +15,16 @@ export function RevokeButton({ token }: { token: string }) {
     try {
       const res = await fetch(
         `${API_URL}/api/consentements/revocation/${encodeURIComponent(token)}`,
-        { method: 'POST', credentials: 'include' },
+        { method: 'POST', credentials: 'include' }
       )
       if (res.ok) {
         setDone(true)
       } else if (res.status === 409) {
-        setError('L'autorisation a déjà été retirée.')
+        setError("L'autorisation a déjà été retirée.")
       } else if (res.status === 400) {
-        setError('Ce lien est invalide. Contactez l'établissement si vous avez besoin d'aide.')
+        setError("Ce lien est invalide. Contactez l'établissement si vous avez besoin d'aide.")
       } else {
-        setError('Une erreur inattendue s'est produite. Réessayez dans un instant.')
+        setError("Une erreur inattendue s'est produite. Réessayez dans un instant.")
       }
     } catch {
       setError('Impossible de joindre le serveur. Vérifiez votre connexion.')
@@ -38,8 +38,8 @@ export function RevokeButton({ token }: { token: string }) {
       <div className="rounded-md border border-line bg-surface-raised px-4 py-4 font-prose text-sm text-ink">
         <p className="font-bold">Autorisation retirée.</p>
         <p className="mt-1 text-ink-muted">
-          Le compte de votre enfant a été suspendu. Contactez l'établissement pour
-          le réactiver si vous le souhaitez.
+          Le compte de votre enfant a été suspendu. Contactez l&apos;établissement pour le réactiver
+          si vous le souhaitez.
         </p>
       </div>
     )
@@ -48,7 +48,10 @@ export function RevokeButton({ token }: { token: string }) {
   return (
     <div className="flex flex-col gap-4">
       {error && (
-        <p role="alert" className="rounded-md border border-red-300 bg-red-50 px-4 py-3 font-prose text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-md border border-red-300 bg-red-50 px-4 py-3 font-prose text-sm text-red-700"
+        >
           {error}
         </p>
       )}
