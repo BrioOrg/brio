@@ -1,9 +1,11 @@
 package fr.brio.system.web;
 
+import fr.brio.identite.CompteService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -11,10 +13,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import java.util.Map;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -26,18 +29,32 @@ class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http,
                                     AuthenticationSuccessHandler loginSuccess,
                                     AuthenticationFailureHandler loginFailure,
-                                    LogoutSuccessHandler logoutSuccess) throws Exception {
+                                    LogoutSuccessHandler logoutSuccess,
+                                    CompteService compteService) throws Exception {
         var csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null); // always populate the attribute
+
+        var statutCheck = new StatutCheckFilter(compteService);
 
         http
             .cors(withDefaults())
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(csrfHandler))
+                .csrfTokenRequestHandler(csrfHandler)
+                // Consent endpoints are protected by their own bearer tokens; no CSRF cookie needed.
+                // POST /api/comptes (signup) has no session context to protect.
+                .ignoringRequestMatchers(
+                        AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/comptes"),
+                        AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/consentements/*/validation"),
+                        AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/consentements/revocation/*")))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/api/sessions").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/sessions").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/comptes").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/consentements/*/validation").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/consentements/revocation/*").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/comptes/*/consentement")
+                        .hasAnyRole("ADMIN_BRIO", "ADMIN_ETAB")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginProcessingUrl("/api/sessions")
@@ -54,6 +71,7 @@ class SecurityConfig {
                 .logoutSuccessHandler(logoutSuccess))
             .sessionManagement(session -> session
                 .maximumSessions(5))
+            .addFilterAfter(statutCheck, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) ->
                         res.sendError(HttpServletResponse.SC_UNAUTHORIZED))
