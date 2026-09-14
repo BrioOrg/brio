@@ -77,4 +77,16 @@ public class Compte {
     public void marquerDernierAcces() {
         this.dernierAccesAt = Instant.now();
     }
+
+    public void activer() {
+        this.statut = StatutCompte.actif;
+    }
+
+    public void suspendre() {
+        this.statut = StatutCompte.suspendu;
+    }
+
+    public String getEmailTitulaireLegal() {
+        return emailTitulaireLegal;
+    }
 }
