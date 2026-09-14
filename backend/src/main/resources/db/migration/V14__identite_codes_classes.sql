@@ -5,7 +5,7 @@ CREATE TABLE identite.codes_classes (
     classe_id   UUID        NOT NULL REFERENCES identite.classes,
     cree_par    UUID        NOT NULL,           -- identite.comptes ID (no FK per ADR 0007)
     expire_at   TIMESTAMPTZ NOT NULL,
-    usages_max  INTEGER     NOT NULL DEFAULT 40,
-    usages      INTEGER     NOT NULL DEFAULT 0,
+    usages_max  SMALLINT    NOT NULL DEFAULT 40,
+    usages      SMALLINT    NOT NULL DEFAULT 0,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
