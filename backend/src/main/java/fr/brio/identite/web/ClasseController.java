@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -56,6 +57,23 @@ class ClasseController {
     @ResponseStatus(HttpStatus.CREATED)
     EleveInscritInfo rejoindre(@Valid @RequestBody RejoindreClasseRequest req) {
         return classeService.rejoindreParCode(req.code(), req.motDePasse(), req.nomAffiche());
+    }
+
+    @GetMapping("/{id}/inscriptions")
+    List<InscriptionInfo> listerInscrits(@PathVariable UUID id, Authentication auth) {
+        UUID demandePar = UUID.fromString(auth.getName());
+        boolean isAdmin = hasRole(auth, "ROLE_ADMIN_BRIO");
+        return classeService.listerInscrits(id, demandePar, isAdmin);
+    }
+
+    @PatchMapping("/{id}/inscriptions/{compteId}")
+    InscriptionInfo renommerEleve(@PathVariable UUID id,
+                                   @PathVariable UUID compteId,
+                                   @Valid @RequestBody RenommerInscriptionRequest req,
+                                   Authentication auth) {
+        UUID demandePar = UUID.fromString(auth.getName());
+        boolean isAdmin = hasRole(auth, "ROLE_ADMIN_BRIO");
+        return classeService.renommerEleve(id, compteId, req.nomAffiche(), demandePar, isAdmin);
     }
 
     private static boolean hasRole(Authentication auth, String role) {
