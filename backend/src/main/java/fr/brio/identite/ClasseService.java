@@ -17,7 +17,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ClasseService {
@@ -192,6 +195,59 @@ public class ClasseService {
         return new EleveInscritInfo(compte.getId(), identifiant, nomAffiche, classe.getLibelle());
     }
 
+    /**
+     * Returns the élève roster for a class, with a homonyme flag on any nom_affiche
+     * that is shared by more than one student. Teacher-only access (or ADMIN_BRIO).
+     */
+    @Transactional(readOnly = true)
+    public List<InscriptionInfo> listerInscrits(UUID classeId, UUID demandePar, boolean isAdminBrio) {
+        Classe classe = classes.findById(classeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Classe introuvable"));
+
+        if (!isAdminBrio && !demandePar.equals(classe.getEnseignantPrincipalId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        List<Inscription> eleves = inscriptions.findByIdClasseId(classeId).stream()
+                .filter(i -> "eleve".equals(i.getRoleDansClasse()))
+                .toList();
+
+        return withHomonymeFlag(eleves);
+    }
+
+    /**
+     * Lets the class teacher rename a student's nom_affiche (ADR 0016 §3).
+     * Returns the updated inscription with an up-to-date homonyme flag.
+     */
+    @Transactional
+    public InscriptionInfo renommerEleve(UUID classeId, UUID compteId,
+                                          String nouveauNom, UUID demandePar, boolean isAdminBrio) {
+        Classe classe = classes.findById(classeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Classe introuvable"));
+
+        if (!isAdminBrio && !demandePar.equals(classe.getEnseignantPrincipalId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        Inscription inscription = inscriptions.findById(new InscriptionId(classeId, compteId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Élève non inscrit dans cette classe"));
+
+        inscription.setNomAffiche(nouveauNom);
+        inscriptions.save(inscription);
+
+        List<Inscription> eleves = inscriptions.findByIdClasseId(classeId).stream()
+                .filter(i -> "eleve".equals(i.getRoleDansClasse()))
+                .toList();
+
+        return withHomonymeFlag(eleves).stream()
+                .filter(i -> i.compteId().equals(compteId))
+                .findFirst()
+                .orElseThrow();
+    }
+
     // --- private helpers ---
 
     private static String generateCode() {
@@ -221,5 +277,17 @@ public class ClasseService {
     private static ClasseInfo toClasseInfo(Classe c) {
         return new ClasseInfo(c.getId(), c.getEtablissementId(), c.getNiveauCode(),
                 c.getLibelle(), c.getAnneeScolaire(), c.getStatut().name());
+    }
+
+    static List<InscriptionInfo> withHomonymeFlag(List<Inscription> inscriptions) {
+        Map<String, Long> countByNom = inscriptions.stream()
+                .collect(Collectors.groupingBy(Inscription::getNomAffiche, Collectors.counting()));
+        return inscriptions.stream()
+                .map(i -> new InscriptionInfo(
+                        i.getId().compteId(),
+                        i.getNomAffiche(),
+                        i.getDepuis(),
+                        countByNom.get(i.getNomAffiche()) > 1))
+                .toList();
     }
 }
