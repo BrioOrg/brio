@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { RejoindreError } from '@brio/api-client'
+import { RejoindreError, InscrireEleveError } from '@brio/api-client'
 
 // Exercises the real api-client enrollment logic through @/lib/enrollment,
 // with fetch stubbed. Path A is public + CSRF-exempt, so no token/cookie dance.
@@ -15,11 +15,12 @@ describe('enrollment client', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('POSTs JSON to /api/classes/rejoindre and returns the inscrit', async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify(INSCRIT), {
-        status: 201,
-        headers: { 'Content-Type': 'application/json' },
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify(INSCRIT), {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' },
+        })
     )
     vi.stubGlobal('fetch', fetchMock)
 
@@ -55,5 +56,57 @@ describe('enrollment client', () => {
     await expect(
       rejoindreClasse({ code: 'BAD', nomAffiche: 'Léa', motDePasse: 'motdepasse1' })
     ).rejects.toBeInstanceOf(RejoindreError)
+  })
+
+  // ── Chemin B ──────────────────────────────────────────────────────────────
+
+  const EN_ATTENTE = {
+    id: 'uuid-b',
+    identifiantConnexion: 'eleve.6e.abc',
+    statut: 'en_attente_consentement',
+  }
+
+  it('POSTs JSON to /api/comptes/eleve and returns the en-attente info', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify(EN_ATTENTE), {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' },
+        })
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { inscrireEleve } = await import('@/lib/enrollment')
+    const info = await inscrireEleve({
+      niveauDeclare: '6e',
+      motDePasse: 'motdepasse1',
+      emailParent: 'parent@exemple.fr',
+    })
+
+    expect(info).toEqual(EN_ATTENTE)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toMatch(/\/api\/comptes\/eleve$/)
+    expect(init?.method).toBe('POST')
+    expect(new Headers(init?.headers).get('Content-Type')).toBe('application/json')
+    expect(JSON.parse(init?.body as string)).toEqual({
+      niveauDeclare: '6e',
+      motDePasse: 'motdepasse1',
+      emailParent: 'parent@exemple.fr',
+    })
+  })
+
+  it('throws InscrireEleveError carrying the HTTP status on failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ error: 'Validation' }), { status: 400 }))
+    )
+
+    const { inscrireEleve } = await import('@/lib/enrollment')
+    await expect(
+      inscrireEleve({ niveauDeclare: '4e', motDePasse: 'court', emailParent: 'x@y.fr' })
+    ).rejects.toMatchObject({ name: 'InscrireEleveError', status: 400 })
+    await expect(
+      inscrireEleve({ niveauDeclare: '4e', motDePasse: 'court', emailParent: 'x@y.fr' })
+    ).rejects.toBeInstanceOf(InscrireEleveError)
   })
 })
