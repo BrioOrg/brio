@@ -12,7 +12,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -24,8 +23,6 @@ public class ClasseService {
 
     // Code alphabet: alphanumeric minus 0/O/1/I — legible off a whiteboard (ADR 0018 §6)
     private static final String CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
-    // Identifiant alphabet: lowercase version for generated login credentials
-    private static final String ID_ALPHABET   = "23456789abcdefghjkmnpqrstuvwxyz";
 
     private static final int DEFAULT_TTL_JOURS  = 14;
     private static final int MAX_TTL_JOURS      = 60;
@@ -37,19 +34,22 @@ public class ClasseService {
     private final InscriptionRepository inscriptions;
     private final CompteRepository comptes;
     private final PasswordEncoder passwordEncoder;
+    private final IdentifiantGenerator identifiantGenerator;
 
     public ClasseService(EtablissementRepository etablissements,
                          ClasseRepository classes,
                          CodeClasseRepository codesClasses,
                          InscriptionRepository inscriptions,
                          CompteRepository comptes,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         IdentifiantGenerator identifiantGenerator) {
         this.etablissements = etablissements;
         this.classes = classes;
         this.codesClasses = codesClasses;
         this.inscriptions = inscriptions;
         this.comptes = comptes;
         this.passwordEncoder = passwordEncoder;
+        this.identifiantGenerator = identifiantGenerator;
     }
 
     @Transactional
@@ -177,7 +177,7 @@ public class ClasseService {
                     "L'établissement n'a pas encore signé sa convention — inscription non autorisée");
         }
 
-        String identifiant = generateUniqueIdentifiant();
+        String identifiant = identifiantGenerator.generateUnique();
         String hash2 = passwordEncoder.encode(motDePasse);
 
         Compte compte = comptes.save(
@@ -193,30 +193,11 @@ public class ClasseService {
 
     // --- private helpers ---
 
-    private String generateUniqueIdentifiant() {
-        for (int attempt = 0; attempt < 5; attempt++) {
-            String candidate = generateIdentifiant();
-            if (comptes.findByIdentifiantConnexion(candidate).isEmpty()) {
-                return candidate;
-            }
-        }
-        throw new IllegalStateException("Impossible de générer un identifiant unique après 5 tentatives");
-    }
-
     private static String generateCode() {
         var rng = new SecureRandom();
         var sb = new StringBuilder(12);
         for (int i = 0; i < 12; i++) {
             sb.append(CODE_ALPHABET.charAt(rng.nextInt(CODE_ALPHABET.length())));
-        }
-        return sb.toString();
-    }
-
-    private static String generateIdentifiant() {
-        var rng = new SecureRandom();
-        var sb = new StringBuilder(10);
-        for (int i = 0; i < 10; i++) {
-            sb.append(ID_ALPHABET.charAt(rng.nextInt(ID_ALPHABET.length())));
         }
         return sb.toString();
     }

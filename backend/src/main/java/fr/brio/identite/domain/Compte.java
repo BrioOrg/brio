@@ -35,6 +35,10 @@ public class Compte {
     @Column(name = "base_legale")
     private BaseLegale baseLegale;
 
+    // Path B only: level the student declared at registration (ADR 0018 §1)
+    @Column(name = "niveau_declare")
+    private String niveauDeclare;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatutCompte statut = StatutCompte.en_attente_consentement;
@@ -52,13 +56,14 @@ public class Compte {
 
     /** Path B (consent): account starts pending, parent must validate email (ADR 0016 §5). */
     public static Compte creerEleve(String identifiantConnexion, String motDePasseHash,
-                                    String emailTitulaireLegal) {
+                                    String emailTitulaireLegal, String niveauDeclare) {
         var c = new Compte();
         c.role = RoleCompte.eleve;
         c.identifiantConnexion = identifiantConnexion;
         c.motDePasseHash = motDePasseHash;
         c.emailTitulaireLegal = emailTitulaireLegal;
         c.baseLegale = BaseLegale.consentement;
+        c.niveauDeclare = niveauDeclare;
         return c;
     }
 
@@ -127,5 +132,9 @@ public class Compte {
 
     public BaseLegale getBaseLegale() {
         return baseLegale;
+    }
+
+    public String getNiveauDeclare() {
+        return niveauDeclare;
     }
 }
