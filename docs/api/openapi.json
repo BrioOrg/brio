@@ -306,6 +306,81 @@
         }
       }
     },
+    "/api/classes/{id}/inscriptions" : {
+      "get" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "listerInscrits",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/InscriptionInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/classes/{id}/inscriptions/{compteId}" : {
+      "patch" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "renommerEleve",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "compteId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RenommerInscriptionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InscriptionInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chapitres/{niveau}/{matiere}/{slug}/tuteur" : {
       "post" : {
         "tags" : [ "IA" ],
@@ -1031,6 +1106,36 @@
             }
           }
         }
+      },
+      "InscriptionInfo" : {
+        "type" : "object",
+        "properties" : {
+          "compteId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nomAffiche" : {
+            "type" : "string"
+          },
+          "depuis" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "homonyme" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "RenommerInscriptionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "nomAffiche" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "nomAffiche" ]
       }
     }
   }
