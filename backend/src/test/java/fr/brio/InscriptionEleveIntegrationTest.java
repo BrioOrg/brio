@@ -129,7 +129,7 @@ class InscriptionEleveIntegrationTest {
                                 {
                                   "niveauDeclare": "4e",
                                   "motDePasse": "motdepasse123",
-                                  "emailParent": "pasun@email"
+                                  "emailParent": "pas-un-email"
                                 }
                                 """))
                 .andExpect(status().isBadRequest());
