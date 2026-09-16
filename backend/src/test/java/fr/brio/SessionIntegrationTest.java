@@ -37,7 +37,7 @@ class SessionIntegrationTest {
                 Compte.creerEnseignant("prof.test", "{noop}motdepasse", "Dupont", "prof@test.fr"));
 
         eleveEnAttente = compteRepository.save(
-                Compte.creerEleve("eleve.test", "{noop}motdepasse", "parent@test.fr"));
+                Compte.creerEleve("eleve.test", "{noop}motdepasse", "parent@test.fr", "4e"));
     }
 
     @Test

@@ -45,6 +45,7 @@ class SecurityConfig {
                 // POST /api/comptes (signup) and POST /api/classes/rejoindre have no session to protect.
                 .ignoringRequestMatchers(
                         AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/comptes"),
+                        AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/comptes/eleve"),
                         AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/consentements/*/validation"),
                         AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/consentements/revocation/*"),
                         AntPathRequestMatcher.antMatcher(HttpMethod.POST, "/api/classes/rejoindre")))
@@ -56,6 +57,7 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/chapitres/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/sessions").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/comptes").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/comptes/eleve").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/consentements/*/validation").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/consentements/revocation/*").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/comptes/*/consentement")

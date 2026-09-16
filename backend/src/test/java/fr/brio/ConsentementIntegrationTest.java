@@ -41,7 +41,7 @@ class ConsentementIntegrationTest {
     void setup() {
         emailSender.clear();
         eleveEnAttente = compteRepository.save(
-                Compte.creerEleve("eleve.consent.test", "{noop}motdepasse", "parent@example.fr"));
+                Compte.creerEleve("eleve.consent.test", "{noop}motdepasse", "parent@example.fr", "4e"));
     }
 
     // ── Confirmation flow ──────────────────────────────────────────────────────

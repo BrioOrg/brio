@@ -2,6 +2,8 @@ package fr.brio.identite.web;
 
 import fr.brio.identite.CompteService;
 import fr.brio.identite.api.CompteInfo;
+import fr.brio.identite.api.InscriptionEleveEnAttenteInfo;
+import fr.brio.identite.api.InscriptionEleveRequest;
 import fr.brio.identite.api.InscriptionEnseignantRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,14 @@ class InscriptionController {
                 req.motDePasse(),
                 req.nom(),
                 req.email());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PostMapping("/comptes/eleve")
+    ResponseEntity<InscriptionEleveEnAttenteInfo> inscrireEleve(
+            @RequestBody @Valid InscriptionEleveRequest req) {
+        InscriptionEleveEnAttenteInfo created = compteService.inscrireEleve(
+                req.niveauDeclare(), req.motDePasse(), req.emailParent());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }
