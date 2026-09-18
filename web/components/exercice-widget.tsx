@@ -20,7 +20,13 @@ type ExerciceWidgetProps = {
   unit?: string
   explanation?: string
   placeholder?: string
+  /** fill-blank: sentence with `{}` markers, one per blank. */
+  template?: string
+  /** fill-blank: the pool of tiles the student picks from. */
+  bank?: string[]
 }
+
+const BLANK_MARKER = '{}'
 
 type PaperExerciseProps = {
   id?: string
@@ -121,6 +127,8 @@ export function ExerciceWidget({
   unit,
   explanation,
   placeholder,
+  template,
+  bank,
 }: ExerciceWidgetProps) {
   const { setActiveExerciceId } = useChapterInteraction()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -131,8 +139,41 @@ export function ExerciceWidget({
   const [error, setError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
 
+  // fill-blank: the sentence splits into text parts around each `{}` blank.
+  const textParts = template ? template.split(BLANK_MARKER) : []
+  const blankCount = Math.max(textParts.length - 1, 0)
+  // Each blank holds the index of the bank tile placed in it (or null).
+  const [filledBlanks, setFilledBlanks] = useState<(number | null)[]>(() =>
+    Array(blankCount).fill(null)
+  )
+
   function markActive() {
     setActiveExerciceId(exerciceId)
+  }
+
+  function placeTile(tileIndex: number) {
+    if (result) return
+    markActive()
+    setValidationError(null)
+    setFilledBlanks((prev) => {
+      if (prev.includes(tileIndex)) return prev // already placed
+      const firstEmpty = prev.indexOf(null)
+      if (firstEmpty === -1) return prev // all blanks full
+      const next = [...prev]
+      next[firstEmpty] = tileIndex
+      return next
+    })
+  }
+
+  function clearBlank(blankIndex: number) {
+    if (result) return
+    markActive()
+    setValidationError(null)
+    setFilledBlanks((prev) => {
+      const next = [...prev]
+      next[blankIndex] = null
+      return next
+    })
   }
 
   function toggleChoice(choiceId: string) {
@@ -167,6 +208,11 @@ export function ExerciceWidget({
         setValidationError('Saisis ta réponse.')
         return
       }
+    } else if (exerciseType === 'fill-blank') {
+      if (filledBlanks.some((b) => b === null)) {
+        setValidationError('Remplis tous les trous.')
+        return
+      }
     }
 
     const answer: Record<string, unknown> =
@@ -174,7 +220,9 @@ export function ExerciceWidget({
         ? { choiceIds: selectedIds }
         : exerciseType === 'short-answer'
           ? { text: shortAnswerText }
-          : { value: Number(numericValue) }
+          : exerciseType === 'fill-blank'
+            ? { blanks: filledBlanks.map((b) => (b !== null && bank ? bank[b] : '')) }
+            : { value: Number(numericValue) }
 
     setLoading(true)
     try {
@@ -192,6 +240,7 @@ export function ExerciceWidget({
     setSelectedIds([])
     setNumericValue('')
     setShortAnswerText('')
+    setFilledBlanks(Array(blankCount).fill(null))
     setError(null)
   }
 
@@ -271,6 +320,56 @@ export function ExerciceWidget({
               }}
               placeholder={placeholder ?? 'Ta réponse'}
             />
+          </div>
+        )}
+
+        {exerciseType === 'fill-blank' && template && bank && (
+          <div className="mb-4">
+            <p className="mb-3 font-prose text-base leading-relaxed text-ink">
+              {textParts.map((part, i) => (
+                <span key={i}>
+                  {part}
+                  {i < blankCount &&
+                    (filledBlanks[i] !== null ? (
+                      <button
+                        type="button"
+                        onClick={() => clearBlank(i)}
+                        disabled={result !== null}
+                        aria-label={`Trou ${i + 1} : ${bank[filledBlanks[i] as number]} — retirer`}
+                        className="mx-1 inline-flex min-w-14 items-center justify-center rounded-t-md border-b-2 border-accent bg-accent-soft px-2 py-0.5 font-display font-extrabold text-accent-ink"
+                      >
+                        {bank[filledBlanks[i] as number]}
+                      </button>
+                    ) : (
+                      <span
+                        aria-label={`Trou ${i + 1} à remplir`}
+                        className="mx-1 inline-block min-w-14 rounded-t-md border-b-2 border-ink-muted px-2 py-0.5 align-middle"
+                      >
+                        &nbsp;
+                      </span>
+                    ))}
+                </span>
+              ))}
+            </p>
+            <p className="mb-2 font-prose text-sm text-ink-muted">
+              Touche une étiquette pour remplir le prochain trou.
+            </p>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Étiquettes">
+              {bank.map((tile, i) => {
+                const used = filledBlanks.includes(i)
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => placeTile(i)}
+                    disabled={used || result !== null}
+                    className="rounded-md border-2 border-line bg-surface-raised px-3 py-1.5 font-display font-extrabold text-ink transition-[transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)] enabled:hover:-translate-y-0.5 enabled:hover:[box-shadow:0_3px_0_var(--color-line)] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel"
+                  >
+                    {tile}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         )}
 
