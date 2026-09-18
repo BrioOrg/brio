@@ -15,6 +15,7 @@ import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { SuggestedQuestion } from '@/components/ui/chat/suggested-question'
 import { TypingIndicator } from '@/components/ui/chat/typing-indicator'
 import { Icon } from '@/components/ui/icon'
+import { Mascot } from '@/components/ui/mascot'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -455,6 +456,35 @@ export default function DesignPage() {
               </SuggestedQuestion>
             </div>
           </div>
+        </Section>
+
+        {/* ── Mascot ────────────────────────────────────────────────────────── */}
+        <Section title="Mascotte — le caméléon Brio">
+          <div className="flex flex-wrap items-end gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <Mascot size={120} label="Brio, la mascotte" />
+              <Label>calm · 120</Label>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Mascot size={120} mood="happy" label="Brio, content" />
+              <Label>happy · 120</Label>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Mascot size={64} />
+              <Label>décorative · 64</Label>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Mascot size={40} />
+              <Label>décorative · 40</Label>
+            </div>
+          </div>
+          <Panel raised className="mt-6">
+            <p className="text-sm leading-relaxed text-ink">
+              Illustration autonome, sans donnée — à poser sur le parcours / l&apos;atlas plus tard.
+              Ses couleurs sont celles du personnage (maquette <code>2-parcours-atlas</code>), pas des
+              tokens : une mascotte est un dessin, pas du chrome d&apos;interface.
+            </p>
+          </Panel>
         </Section>
 
         {/* ── Danger constraint ─────────────────────────────────────────────── */}
