@@ -1,7 +1,7 @@
 import katex from 'katex'
 import { parseRichText, type RichTextToken, type FigureSpec } from '@brio/content'
 
-import { ExerciceWidget } from '@/components/exercice-widget'
+import { ExerciceWidget, PaperExercise } from '@/components/exercice-widget'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { Icon } from '@/components/ui/icon'
 
@@ -38,6 +38,10 @@ type Block = {
   multiple?: boolean
   unit?: string
   explanation?: string
+  statement?: string
+  solution?: string
+  template?: string
+  bank?: string[]
   // other block fields
   [key: string]: unknown
 }
@@ -160,14 +164,27 @@ function BlockRenderer({ block }: { block: Block }) {
 }
 
 function ExerciseBlock({ id, block }: { id: string; block: Block }) {
-  const { exerciceId, exerciseType, prompt, choices, multiple, unit, explanation } = block
+  const {
+    exerciceId,
+    exerciseType,
+    prompt,
+    choices,
+    multiple,
+    unit,
+    explanation,
+    statement,
+    solution,
+    template,
+    bank,
+  } = block
 
   if (
     exerciceId &&
     prompt &&
     (exerciseType === 'multiple-choice' ||
       exerciseType === 'numeric' ||
-      exerciseType === 'short-answer')
+      exerciseType === 'short-answer' ||
+      exerciseType === 'fill-blank')
   ) {
     return (
       <ExerciceWidget
@@ -179,8 +196,15 @@ function ExerciseBlock({ id, block }: { id: string; block: Block }) {
         multiple={multiple}
         unit={unit}
         explanation={explanation}
+        template={template}
+        bank={bank}
       />
     )
+  }
+
+  // "Sur feuille" — self-assessed, no backend grading.
+  if (exerciseType === 'paper' && prompt && solution) {
+    return <PaperExercise id={id} prompt={prompt} statement={statement} solution={solution} />
   }
 
   // Fallback for unsupported exercise types (ordering, free-text): read-only card.
