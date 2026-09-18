@@ -22,6 +22,93 @@ type ExerciceWidgetProps = {
   placeholder?: string
 }
 
+type PaperExerciseProps = {
+  id?: string
+  prompt: string
+  /** The given data / setup shown under the prompt. */
+  statement?: string
+  /** Author-provided model correction, shown for self-comparison. */
+  solution: string
+}
+
+/**
+ * "Sur feuille" exercise — the student works on paper, reveals the model
+ * correction, then self-assesses. No auto-grading and no submission: the result
+ * is the student's own honest judgement (mockup 4-types-exercices, self-check).
+ *
+ * Showing the model answer is intentional here and specific to this type — it is
+ * how self-assessment works. It is NOT the T0-protected auto-graded flow, which
+ * never reveals the expected answer.
+ */
+export function PaperExercise({ id, prompt, statement, solution }: PaperExerciseProps) {
+  const [revealed, setRevealed] = useState(false)
+  const [selfResult, setSelfResult] = useState<'ok' | 'review' | null>(null)
+
+  return (
+    <div id={id} className="rounded-lg border border-line bg-surface-panel p-5">
+      <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+        Exercice sur feuille
+      </p>
+      <p className="mb-3 font-prose text-base leading-relaxed text-ink">{prompt}</p>
+      {statement && (
+        <p className="mb-3 font-prose text-sm leading-relaxed text-ink-muted">{statement}</p>
+      )}
+
+      <p className="mb-4 flex items-start gap-2 rounded-md border border-line bg-surface-raised px-3 py-2.5 font-prose text-sm text-ink-muted">
+        <Icon name="book-open" weight="bold" size={18} className="mt-0.5 shrink-0 text-accent" />
+        <span>Fais-le d’abord au brouillon — c’est ça, faire des maths.</span>
+      </p>
+
+      {!revealed ? (
+        <Button onClick={() => setRevealed(true)} className="w-full sm:w-auto">
+          Voir la correction
+        </Button>
+      ) : (
+        <>
+          <div className="rounded-lg border border-line bg-surface-raised p-4">
+            <p className="mb-1 font-display text-xs font-extrabold uppercase tracking-widest text-accent-ink">
+              Correction
+            </p>
+            <p className="whitespace-pre-line font-prose text-sm leading-relaxed text-ink">
+              {solution}
+            </p>
+          </div>
+
+          {selfResult === null ? (
+            <div className="mt-4">
+              <p className="mb-2 font-prose text-sm font-semibold text-ink">
+                As-tu réussi ta démonstration&nbsp;?
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setSelfResult('review')}>
+                  À revoir
+                </Button>
+                <Button onClick={() => setSelfResult('ok')}>J’avais juste</Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="mt-4 rounded-lg border border-line bg-surface-panel p-4"
+              role="status"
+            >
+              <p className="font-prose text-sm leading-relaxed text-ink">
+                {selfResult === 'ok'
+                  ? 'Bravo — la rédaction sur feuille, c’est le vrai entraînement. Continue comme ça.'
+                  : 'Pas grave : relis la correction, refais-la au propre, et tu vas y arriver.'}
+              </p>
+              <div className="mt-3">
+                <Button variant="secondary" size="sm" onClick={() => setSelfResult(null)}>
+                  Refaire mon auto-évaluation
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 const MARKERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
 export function ExerciceWidget({
