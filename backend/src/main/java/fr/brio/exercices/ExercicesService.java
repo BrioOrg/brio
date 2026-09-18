@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.api.ExerciceContentApi;
 import fr.brio.contenu.api.ExerciceDefinition;
+import fr.brio.exercices.api.SoumissionEnregistree;
 import fr.brio.exercices.domain.EvaluationResult;
 import fr.brio.exercices.domain.Soumission;
 import fr.brio.exercices.infrastructure.EvaluatorDispatcher;
@@ -11,6 +12,7 @@ import fr.brio.exercices.infrastructure.SoumissionRepository;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,16 +25,19 @@ public class ExercicesService {
     private final EvaluatorDispatcher dispatcher;
     private final SoumissionRepository soumissionRepository;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher events;
 
     ExercicesService(
             ExerciceContentApi exerciceContentApi,
             EvaluatorDispatcher dispatcher,
             SoumissionRepository soumissionRepository,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher events) {
         this.exerciceContentApi = exerciceContentApi;
         this.dispatcher = dispatcher;
         this.soumissionRepository = soumissionRepository;
         this.objectMapper = objectMapper;
+        this.events = events;
     }
 
     @Transactional
@@ -42,11 +47,37 @@ public class ExercicesService {
         ExerciceDefinition definition = exerciceContentApi.findById(exerciceId)
                 .orElseThrow(() -> new ExerciceNotFoundException(exerciceId));
 
+        // Computed before persisting the current submission, so it reflects prior attempts only.
+        boolean premiereTentative = !soumissionRepository.existsByStudentRefAndExerciceId(studentRef, exerciceId);
+
         EvaluationResult result = dispatcher.dispatch(definition.type(), definition.evaluationJson(), answer);
 
         Soumission soumission = persist(exerciceId, studentRef, answer, result, definition);
 
+        publierEvenement(studentRef, soumission, premiereTentative);
+
         return new SoumissionResult(soumission.getId(), result);
+    }
+
+    /**
+     * Announce the submission to the rest of the system (progression, …). The event
+     * is only published for real accounts (studentRef is a compte UUID from the
+     * session). Non-UUID refs (dev/basic-auth scaffolding) earn no XP — deliberately.
+     */
+    private void publierEvenement(String studentRef, Soumission soumission, boolean premiereTentative) {
+        UUID eleveId;
+        try {
+            eleveId = UUID.fromString(studentRef);
+        } catch (IllegalArgumentException notARealAccount) {
+            return;
+        }
+        events.publishEvent(new SoumissionEnregistree(
+                eleveId,
+                soumission.getExerciceId(),
+                soumission.isCorrect(),
+                premiereTentative,
+                soumission.getCompetencies(),
+                soumission.getSubmittedAt()));
     }
 
     private String resolveStudentRef() {
