@@ -24,9 +24,12 @@ import java.util.UUID;
  * redelivered event (Spring Modulith replays after a crash) records the submission
  * once in progression's mastery projection rather than skewing the sample (ADR 0022 §6).
  *
- * `score` is the graded fraction in [0, 1] (1.0 = fully correct). Mastery is derived
- * from `correct` in v1 but the score is carried and stored now: history that was
- * never captured cannot be recomputed if the formula later becomes score-based.
+ * `score` is the graded fraction in [0, 1] (1.0 = fully correct). Mastery weights the score
+ * by the exercise's difficulty (ADR 0022 §6).
+ *
+ * `difficulte` is the exercise's coarse difficulty band (copied from the definition, open enum,
+ * may be null for legacy submissions or blocks that omit it). progression weights harder
+ * exercises more without calling contenu; a null band is weighted as "standard".
  */
 public record SoumissionEnregistree(
         UUID eleveId,
@@ -37,6 +40,7 @@ public record SoumissionEnregistree(
         double score,
         boolean premiereTentative,
         List<String> competencies,
+        String difficulte,
         Instant submittedAt) {
 
     public SoumissionEnregistree {

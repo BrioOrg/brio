@@ -194,6 +194,19 @@ confirmer.)*
 > - **API.** `GET /api/progression/maitrise` renvoie, pour l'élève authentifié, la liste
 >   `{ competenceCode, niveau (0–4 ou null), echantillon }` — seules les compétences
 >   effectivement soumises apparaissent (jamais tout le référentiel).
+>
+> **Mise en œuvre #103 (2026-09-20, pondération par la difficulté).** La difficulté est
+> désormais câblée de bout en bout — ingesteur (extraction de `difficulty`, `INGEST_VERSION`
+> 1 → 2 pour ré-extraire les chapitres inchangés) → colonne `contenu.exercices.difficulte` →
+> `ExerciceDefinition` → `SoumissionEnregistree` → colonne `progression.soumissions_competences.difficulte`.
+> La formule passe du booléen `correct` au **score pondéré** : chaque soumission contribue
+> `score · poids(difficulté)` au numérateur et `poids(difficulté)` au dénominateur, donc
+> `taux = Σ(score·poids) / Σ(poids)` reste dans [0, 1] et `niveau = clamp(floor(taux·5), 0, 4)`
+> ne change pas. **Poids** : introduction 1, standard 2, approfondissement 3 ; toute valeur
+> absente (soumissions antérieures à #103, blocs sans difficulté) ou inconnue (énum ouvert) est
+> pondérée **standard** (médiane), sans backfill. Le seuil d'échantillon reste un **compte de
+> lignes** (non pondéré). Le contrat de `GET /api/progression/maitrise` est inchangé. Poids et
+> seuils restent des constantes ajustables.
 
 ### 7. Série
 
@@ -227,10 +240,9 @@ seulement. Sa rupture est annoncée **sans culpabilisation** (`PRINCIPLES.md`).
   `SectionTerminee`/`ChapitreTermine`).
 - **#95** série (gel hebdo, rupture sans culpabilisation).
 - **#96** maîtrise par compétence (projection depuis les soumissions).
-- **(à ouvrir)** pondération de la maîtrise par la difficulté : câbler `difficulty`
-  ingesteur → `contenu.exercices` (colonne + migration + ré-ingestion) →
-  `ExerciceDefinition` → `SoumissionEnregistree` → `progression`, puis passer la formule
-  du booléen `correct` au score/à la difficulté (voir mise en œuvre #96 en §6).
+- **#103** pondération de la maîtrise par la difficulté (livré) : `difficulty` câblé
+  ingesteur → `contenu.exercices` → `ExerciceDefinition` → `SoumissionEnregistree` →
+  `progression`, formule passée au score pondéré par la difficulté (voir mise en œuvre #103 en §6).
 - Migrations Flyway `progression` (schéma ci-dessus).
 - Côté front (Gabrielle) : #80 (dès #93), #79/#82 (dès #94), #81 (dès #95).
 

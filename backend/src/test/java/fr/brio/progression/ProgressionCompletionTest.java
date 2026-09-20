@@ -70,7 +70,7 @@ class ProgressionCompletionTest {
 
     private SoumissionEnregistree soumissionReussie(UUID exo) {
         return new SoumissionEnregistree(
-                eleve, exo, UUID.randomUUID(), CHAP, true, 1.0, true, List.of(), Instant.now());
+                eleve, exo, UUID.randomUUID(), CHAP, true, 1.0, true, List.of(), null, Instant.now());
     }
 
     // ── section read ────────────────────────────────────────────────────────

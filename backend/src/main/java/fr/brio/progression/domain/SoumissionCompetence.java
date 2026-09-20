@@ -40,6 +40,11 @@ public class SoumissionCompetence {
     @Column(name = "premiere_tentative", nullable = false)
     private boolean premiereTentative;
 
+    // Difficulty band of the exercise (open enum, may be null). The mastery recompute weights
+    // the score by this band; a null band is treated as "standard" (ADR 0022 §6).
+    @Column
+    private String difficulte;
+
     @Column(name = "submitted_at", nullable = false)
     private Instant submittedAt;
 
@@ -52,6 +57,7 @@ public class SoumissionCompetence {
             boolean correct,
             double score,
             boolean premiereTentative,
+            String difficulte,
             Instant submittedAt) {
         this.id = UUID.randomUUID();
         this.eleveId = eleveId;
@@ -60,6 +66,7 @@ public class SoumissionCompetence {
         this.correct = correct;
         this.score = score;
         this.premiereTentative = premiereTentative;
+        this.difficulte = difficulte;
         this.submittedAt = submittedAt;
     }
 
@@ -70,5 +77,6 @@ public class SoumissionCompetence {
     public boolean isCorrect() { return correct; }
     public double getScore() { return score; }
     public boolean isPremiereTentative() { return premiereTentative; }
+    public String getDifficulte() { return difficulte; }
     public Instant getSubmittedAt() { return submittedAt; }
 }

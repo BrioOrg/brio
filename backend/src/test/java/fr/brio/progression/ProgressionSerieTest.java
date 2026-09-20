@@ -58,7 +58,7 @@ class ProgressionSerieTest {
 
     private SoumissionEnregistree soumission(boolean correct) {
         return new SoumissionEnregistree(
-                eleve, exo, UUID.randomUUID(), null, correct, correct ? 1.0 : 0.0, true, List.of(), Instant.now());
+                eleve, exo, UUID.randomUUID(), null, correct, correct ? 1.0 : 0.0, true, List.of(), null, Instant.now());
     }
 
     @Test

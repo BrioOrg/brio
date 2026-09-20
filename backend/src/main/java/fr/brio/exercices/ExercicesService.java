@@ -54,7 +54,7 @@ public class ExercicesService {
 
         Soumission soumission = persist(exerciceId, studentRef, answer, result, definition);
 
-        publierEvenement(studentRef, soumission, premiereTentative, definition.chapitreId());
+        publierEvenement(studentRef, soumission, premiereTentative, definition);
 
         return new SoumissionResult(soumission.getId(), result);
     }
@@ -65,7 +65,7 @@ public class ExercicesService {
      * session). Non-UUID refs (dev/basic-auth scaffolding) earn no XP — deliberately.
      */
     private void publierEvenement(
-            String studentRef, Soumission soumission, boolean premiereTentative, String chapitreId) {
+            String studentRef, Soumission soumission, boolean premiereTentative, ExerciceDefinition definition) {
         UUID eleveId;
         try {
             eleveId = UUID.fromString(studentRef);
@@ -76,11 +76,12 @@ public class ExercicesService {
                 eleveId,
                 soumission.getExerciceId(),
                 soumission.getId(),
-                chapitreId,
+                definition.chapitreId(),
                 soumission.isCorrect(),
                 soumission.getScore(),
                 premiereTentative,
                 soumission.getCompetencies(),
+                definition.difficulte(),
                 soumission.getSubmittedAt()));
     }
 
