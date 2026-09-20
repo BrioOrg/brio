@@ -82,15 +82,32 @@ DO NOTHING`), pas une erreur.
 
 | Événement | Émis par | Disponible |
 |---|---|---|
-| `SoumissionEnregistree` | `exercices` | **F2** (à ajouter) |
+| `SoumissionEnregistree` (+ `chapitreId`) | `exercices` | **F2** (à ajouter) |
+| `ChapitrePublie` (structurel, non par-élève) | `contenu` | **F2** (à ajouter) |
 | `SectionTerminee` | `contenu` | **F2** (à ajouter) |
-| `ChapitreTermine` | `contenu` | **F2** (à ajouter) |
+| `ChapitreTermine` | `progression` (auto-dérivé) | **F2** (à ajouter) |
 | `RenduDepose` | `devoirs` | F4 |
 | `ReponseUtileValidee` | `social` | F6a |
 
-En F2 on câble les trois premiers. La complétion de section/chapitre (issue #94)
-est portée par `contenu` : un signal « section lue » (endpoint léger) déclenche
-l'émission ; `progression` en dérive l'XP et les états de parcours.
+En F2 on câble ces événements. La complétion de section/chapitre (issue #94)
+est portée par `contenu` pour le **signal** (un endpoint léger « section lue »
+émet `SectionTerminee`) et par `progression` pour la **dérivation**.
+
+> **Correction du 2026-09-20 (mise en œuvre #94).** La rédaction initiale
+> plaçait `ChapitreTermine` chez `contenu`. C'est impossible sans introduire un
+> cycle de modules : `exercices → contenu` existe déjà, et `progression →
+> exercices` (écoute des soumissions) aussi ; faire dépendre `contenu` de
+> `progression` — ou lui faire écouter `exercices` pour connaître les exercices
+> réussis — fermerait la boucle `contenu → progression → exercices → contenu` que
+> `ModularityTests` rejette. La règle « toutes sections + ≥ 80 % des exercices »
+> ne peut donc être calculée que par `progression`, seul module qui entend déjà
+> les soumissions. `contenu` émet un `ChapitrePublie` **structurel** (niveau,
+> matière, ordre, statut, nb de sections, nb d'exercices) que `progression`
+> projette en interne, plus le `SectionTerminee` par-élève ; `progression` en
+> dérive complétion, pourcentage, états de parcours (fait / en cours /
+> verrouillé), auto-émet `ChapitreTermine`, et **expose** l'état par chapitre en
+> lecture (`GET /api/progression/parcours/{niveau}/{matiere}`). Aucun appel
+> sortant : tout arrive par événement (§3 tient).
 
 ### 4. Barème et plafond
 
@@ -105,6 +122,21 @@ l'émission ; `progression` en dérive l'XP et les états de parcours.
 
 **Plafond quotidien : 200 XP** — appliqué au moment de l'attribution (somme des
 `points` du jour pour l'élève ; le surplus n'est pas inséré).
+
+> **Précisions #94 (2026-09-20).**
+> - **Les récompenses de complétion (`section_terminee`, `chapitre_termine`) sont
+>   exemptées du plafond.** Elles sont idempotentes et bornées (une fois par
+>   section / par chapitre via la contrainte d'unicité), donc infarmables ; les
+>   soumettre au plafond ferait perdre définitivement les 50 XP d'un chapitre
+>   terminé après une grosse journée, sans réessai possible (l'attribution ne se
+>   rejoue pas). Seules les récompenses d'exercice restent plafonnées.
+> - **La complétion a son propre enregistrement**, distinct du journal `evenements_xp`
+>   (`progression.sections_lues`, `progression.exercices_reussis`). On ne peut pas
+>   déduire « exercice réussi » d'`evenements_xp` : un exercice réussi au-delà du
+>   plafond n'y laisse aucune ligne, ce qui empêcherait la porte des 80 % de
+>   s'ouvrir pour un élève productif.
+> - **`source_ref` élargi** à `VARCHAR(200)` : les réfs de section valent
+>   `chapitreId/sectionId` et dépassent l'ancienne borne de 100.
 
 ### 5. Niveau — seuils quadratiques
 
