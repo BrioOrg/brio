@@ -5,31 +5,39 @@ import fr.brio.contenu.api.SectionTerminee;
 import fr.brio.exercices.api.SoumissionEnregistree;
 import fr.brio.progression.api.ChapitreTermine;
 import fr.brio.progression.api.EtatParcours;
+import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.api.SerieInfo;
 import fr.brio.progression.domain.Chapitre;
 import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.domain.ExerciceReussi;
+import fr.brio.progression.domain.Maitrise;
 import fr.brio.progression.domain.Niveau;
+import fr.brio.progression.domain.NiveauMaitrise;
 import fr.brio.progression.domain.SectionLue;
 import fr.brio.progression.domain.Serie;
 import fr.brio.progression.domain.Solde;
+import fr.brio.progression.domain.SoumissionCompetence;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
+import fr.brio.progression.infrastructure.MaitriseRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
 import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
+import fr.brio.progression.infrastructure.SoumissionCompetenceRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +74,8 @@ public class ProgressionService {
     private final SectionLueRepository sectionsLues;
     private final ExerciceReussiRepository exercicesReussis;
     private final SerieRepository series;
+    private final SoumissionCompetenceRepository soumissionsCompetences;
+    private final MaitriseRepository maitrises;
     private final ApplicationEventPublisher events;
 
     ProgressionService(
@@ -75,6 +85,8 @@ public class ProgressionService {
             SectionLueRepository sectionsLues,
             ExerciceReussiRepository exercicesReussis,
             SerieRepository series,
+            SoumissionCompetenceRepository soumissionsCompetences,
+            MaitriseRepository maitrises,
             ApplicationEventPublisher events) {
         this.evenements = evenements;
         this.soldes = soldes;
@@ -82,6 +94,8 @@ public class ProgressionService {
         this.sectionsLues = sectionsLues;
         this.exercicesReussis = exercicesReussis;
         this.series = series;
+        this.soumissionsCompetences = soumissionsCompetences;
+        this.maitrises = maitrises;
         this.events = events;
     }
 
@@ -101,6 +115,10 @@ public class ProgressionService {
 
         // Any submission — right or wrong — is activity for the streak (decision #95).
         enregistrerActivite(e.eleveId(), quand);
+
+        // Mastery counts both hits and misses toward the sample, so record it before the
+        // early return below — an error still tells us something about the competence (#96).
+        enregistrerMaitrise(e, quand);
 
         if (!e.correct()) {
             return; // an error costs nothing (ADR 0022 barème)
@@ -155,6 +173,35 @@ public class ProgressionService {
     }
 
     /**
+     * Mastery per competence for a student: only competences the student has actually
+     * submitted to appear (never the whole referential). {@code niveau} is null while the
+     * sample is below the honesty threshold (ADR 0022 §6).
+     */
+    @Transactional(readOnly = true)
+    public List<MaitriseInfo> maitrise(UUID eleveId) {
+        return maitrises.findByIdEleveId(eleveId).stream()
+                .map(m -> new MaitriseInfo(
+                        m.getCompetenceCode(),
+                        m.getNiveau() == null ? null : (int) (short) m.getNiveau(),
+                        m.getEchantillon()))
+                .toList();
+    }
+
+    /**
+     * Rebuilds every mastery row for a student from the stored submission projection —
+     * the "recalculable intégralement depuis les soumissions" guarantee (ADR 0022 §6).
+     * The projection is progression's own copy, fed by {@code SoumissionEnregistree};
+     * it is never read back from exercices (§3 forbids the outbound call).
+     */
+    @Transactional
+    public void recalculer(UUID eleveId) {
+        Instant maintenant = Instant.now();
+        for (String code : soumissionsCompetences.competencesDeLEleve(eleveId)) {
+            recalculerMaitrise(eleveId, code, maintenant);
+        }
+    }
+
+    /**
      * Path state of every published chapter in a track, in order. Locks are
      * sequential (a chapter unlocks when the previous one is done) and monotonic:
      * a chapter the student has touched stays unlocked even if the track is later
@@ -197,6 +244,41 @@ public class ProgressionService {
         Serie serie = series.findById(eleveId).orElseGet(() -> new Serie(eleveId));
         serie.enregistrerActivite(jour, quand);
         series.save(serie);
+    }
+
+    /** Records the submission for each of its competences, then refreshes their mastery. */
+    private void enregistrerMaitrise(SoumissionEnregistree e, Instant quand) {
+        if (e.soumissionId() == null) {
+            return; // legacy event without a submission id — cannot dedupe, so skip mastery
+        }
+        for (String code : e.competencies()) {
+            enregistrerSoumissionCompetence(e, code, quand);
+            recalculerMaitrise(e.eleveId(), code, quand);
+        }
+    }
+
+    private void enregistrerSoumissionCompetence(SoumissionEnregistree e, String code, Instant quand) {
+        if (soumissionsCompetences.existsBySoumissionIdAndCompetenceCode(e.soumissionId(), code)) {
+            return;
+        }
+        try {
+            soumissionsCompetences.save(new SoumissionCompetence(
+                    e.eleveId(), e.soumissionId(), code, e.correct(), e.score(),
+                    e.premiereTentative(), quand));
+        } catch (DataIntegrityViolationException raceOnUniqueConstraint) {
+            // another delivery won; idempotent by construction (redelivery-safe)
+        }
+    }
+
+    /** Derives the mastery of one competence from its last N first attempts and upserts it. */
+    private void recalculerMaitrise(UUID eleveId, String code, Instant quand) {
+        List<SoumissionCompetence> fenetre = soumissionsCompetences.fenetre(
+                eleveId, code, PageRequest.of(0, NiveauMaitrise.FENETRE));
+        int echantillon = fenetre.size();
+        int reussites = (int) fenetre.stream().filter(SoumissionCompetence::isCorrect).count();
+        OptionalInt niveau = NiveauMaitrise.pour(reussites, echantillon);
+        maitrises.save(new Maitrise(eleveId, code,
+                niveau.isPresent() ? (short) niveau.getAsInt() : null, echantillon, quand));
     }
 
     private void enregistrerSectionLue(UUID eleveId, String chapitreId, String sectionId, Instant quand) {

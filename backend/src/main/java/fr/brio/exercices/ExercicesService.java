@@ -75,8 +75,10 @@ public class ExercicesService {
         events.publishEvent(new SoumissionEnregistree(
                 eleveId,
                 soumission.getExerciceId(),
+                soumission.getId(),
                 chapitreId,
                 soumission.isCorrect(),
+                soumission.getScore(),
                 premiereTentative,
                 soumission.getCompetencies(),
                 soumission.getSubmittedAt()));

@@ -1,6 +1,7 @@
 package fr.brio.progression.web;
 
 import fr.brio.progression.ProgressionService;
+import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.api.SerieInfo;
@@ -52,5 +53,15 @@ class ProgressionController {
             @AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
         return progression.parcours(niveau, matiere, eleveId);
+    }
+
+    /**
+     * Mastery per competence for the authenticated student. Only competences the student
+     * has submitted to appear; niveau is null while the sample is too small (#96).
+     */
+    @GetMapping("/maitrise")
+    List<MaitriseInfo> maitrise(@AuthenticationPrincipal UserDetails principal) {
+        UUID eleveId = UUID.fromString(principal.getUsername());
+        return progression.maitrise(eleveId);
     }
 }

@@ -13,9 +13,11 @@ import fr.brio.progression.domain.Serie;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
+import fr.brio.progression.infrastructure.MaitriseRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
 import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
+import fr.brio.progression.infrastructure.SoumissionCompetenceRepository;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -46,6 +48,8 @@ class ProgressionSerieTest {
                 mock(SectionLueRepository.class),
                 mock(ExerciceReussiRepository.class),
                 series,
+                mock(SoumissionCompetenceRepository.class),
+                mock(MaitriseRepository.class),
                 mock(ApplicationEventPublisher.class));
         when(evenements.existsByEleveIdAndSourceTypeAndSourceRef(any(), any(), any())).thenReturn(false);
         when(evenements.sommePointsDepuis(any(), any())).thenReturn(0);
@@ -53,7 +57,8 @@ class ProgressionSerieTest {
     }
 
     private SoumissionEnregistree soumission(boolean correct) {
-        return new SoumissionEnregistree(eleve, exo, null, correct, true, List.of(), Instant.now());
+        return new SoumissionEnregistree(
+                eleve, exo, UUID.randomUUID(), null, correct, correct ? 1.0 : 0.0, true, List.of(), Instant.now());
     }
 
     @Test
