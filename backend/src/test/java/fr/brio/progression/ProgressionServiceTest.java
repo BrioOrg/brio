@@ -7,9 +7,11 @@ import fr.brio.progression.domain.Solde;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
+import fr.brio.progression.infrastructure.MaitriseRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
 import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
+import fr.brio.progression.infrastructure.SoumissionCompetenceRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +50,7 @@ class ProgressionServiceTest {
         exercicesReussis = mock(ExerciceReussiRepository.class);
         series = mock(SerieRepository.class);
         service = new ProgressionService(evenements, soldes, chapitres, sectionsLues, exercicesReussis, series,
+                mock(SoumissionCompetenceRepository.class), mock(MaitriseRepository.class),
                 mock(ApplicationEventPublisher.class));
         // Defaults: no prior XP for this exercise, cap not reached.
         when(evenements.existsByEleveIdAndSourceTypeAndSourceRef(any(), any(), any())).thenReturn(false);
@@ -57,7 +60,9 @@ class ProgressionServiceTest {
     // chapitreId = null keeps these tests focused on the exercise-XP path; completion
     // tracking (which needs the chapter projection) is covered in ProgressionCompletionTest.
     private SoumissionEnregistree soumission(boolean correct, boolean premiereTentative) {
-        return new SoumissionEnregistree(eleve, exo, null, correct, premiereTentative, List.of(), Instant.now());
+        return new SoumissionEnregistree(
+                eleve, exo, UUID.randomUUID(), null, correct, correct ? 1.0 : 0.0,
+                premiereTentative, List.of(), Instant.now());
     }
 
     @Test

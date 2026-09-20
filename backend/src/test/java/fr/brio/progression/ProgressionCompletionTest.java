@@ -10,9 +10,11 @@ import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
+import fr.brio.progression.infrastructure.MaitriseRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
 import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
+import fr.brio.progression.infrastructure.SoumissionCompetenceRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +55,8 @@ class ProgressionCompletionTest {
         series = mock(SerieRepository.class);
         events = mock(ApplicationEventPublisher.class);
         service = new ProgressionService(
-                evenements, soldes, chapitres, sectionsLues, exercicesReussis, series, events);
+                evenements, soldes, chapitres, sectionsLues, exercicesReussis, series,
+                mock(SoumissionCompetenceRepository.class), mock(MaitriseRepository.class), events);
         // Defaults: nothing awarded yet, cap not reached, structure not known.
         when(evenements.existsByEleveIdAndSourceTypeAndSourceRef(any(), any(), any())).thenReturn(false);
         when(evenements.sommePointsDepuis(any(), any())).thenReturn(0);
@@ -66,7 +69,8 @@ class ProgressionCompletionTest {
     }
 
     private SoumissionEnregistree soumissionReussie(UUID exo) {
-        return new SoumissionEnregistree(eleve, exo, CHAP, true, true, List.of(), Instant.now());
+        return new SoumissionEnregistree(
+                eleve, exo, UUID.randomUUID(), CHAP, true, 1.0, true, List.of(), Instant.now());
     }
 
     // ── section read ────────────────────────────────────────────────────────

@@ -539,6 +539,27 @@
         }
       }
     },
+    "/api/progression/maitrise" : {
+      "get" : {
+        "tags" : [ "progression-controller" ],
+        "operationId" : "maitrise",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MaitriseInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ping" : {
       "get" : {
         "tags" : [ "Système" ],
@@ -1201,6 +1222,22 @@
             "format" : "int32"
           },
           "niveau" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "MaitriseInfo" : {
+        "type" : "object",
+        "properties" : {
+          "competenceCode" : {
+            "type" : "string"
+          },
+          "niveau" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "echantillon" : {
             "type" : "integer",
             "format" : "int32"
           }
