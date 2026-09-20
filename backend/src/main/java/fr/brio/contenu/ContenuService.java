@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.api.CatalogueChapitreDto;
 import fr.brio.contenu.api.CatalogueMatiereDto;
 import fr.brio.contenu.api.CatalogueNiveauDto;
+import fr.brio.contenu.api.SectionTerminee;
 import fr.brio.contenu.domain.Chapitre;
 import fr.brio.contenu.domain.Exercice;
 import fr.brio.contenu.domain.Matiere;
@@ -13,6 +14,7 @@ import fr.brio.contenu.infrastructure.ChapitreRepository;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
 import fr.brio.contenu.infrastructure.MatiereRepository;
 import fr.brio.contenu.infrastructure.NiveauRepository;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -40,18 +43,21 @@ public class ContenuService {
     private final NiveauRepository niveauRepository;
     private final MatiereRepository matiereRepository;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher events;
 
     ContenuService(
             ChapitreRepository chapitreRepository,
             ExerciceRepository exerciceRepository,
             NiveauRepository niveauRepository,
             MatiereRepository matiereRepository,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher events) {
         this.chapitreRepository = chapitreRepository;
         this.exerciceRepository = exerciceRepository;
         this.niveauRepository = niveauRepository;
         this.matiereRepository = matiereRepository;
         this.objectMapper = objectMapper;
+        this.events = events;
     }
 
     public List<CatalogueNiveauDto> getCatalogue() {
@@ -114,5 +120,32 @@ public class ContenuService {
                 throw new IllegalStateException("Stored chapter content is not valid JSON: " + id, e);
             }
         });
+    }
+
+    /**
+     * Records that a student read a section by publishing {@link SectionTerminee}
+     * (ADR 0022). The section is validated to exist in the chapter first, so an
+     * arbitrary path can never reach progression's journal as a phantom source.
+     *
+     * @return {@code false} if the chapter or section is unknown (→ 404); the read
+     *     itself is trusted (light signal) and made idempotent downstream.
+     */
+    public boolean marquerSectionLue(String chapitreId, String sectionId, UUID eleveId) {
+        Optional<JsonNode> chapitre = findChapitre(chapitreId);
+        if (chapitre.isEmpty()) {
+            return false;
+        }
+        boolean sectionExists = false;
+        for (JsonNode section : chapitre.get().path("sections")) {
+            if (sectionId.equals(section.path("id").asText())) {
+                sectionExists = true;
+                break;
+            }
+        }
+        if (!sectionExists) {
+            return false;
+        }
+        events.publishEvent(new SectionTerminee(eleveId, chapitreId, sectionId, Instant.now()));
+        return true;
     }
 }

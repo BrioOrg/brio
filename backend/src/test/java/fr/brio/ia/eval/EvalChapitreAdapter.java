@@ -112,7 +112,7 @@ class EvalChapitreAdapter implements ChapitreContentApi {
             type = exerciseType;
             evaluationJson = "{}";
         }
-        return new ExerciceDefinition(exerciceId, type, List.of(), evaluationJson);
+        return new ExerciceDefinition(exerciceId, "chapitre", type, List.of(), evaluationJson);
     }
 
     static UUID deterministicUuid(String blockId) {

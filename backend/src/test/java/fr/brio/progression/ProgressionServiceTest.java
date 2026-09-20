@@ -4,7 +4,10 @@ import fr.brio.exercices.api.SoumissionEnregistree;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.domain.Solde;
+import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
+import fr.brio.progression.infrastructure.ExerciceReussiRepository;
+import fr.brio.progression.infrastructure.SectionLueRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
 import java.time.Instant;
 import java.util.List;
@@ -13,6 +16,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +29,9 @@ class ProgressionServiceTest {
 
     private EvenementXpRepository evenements;
     private SoldeRepository soldes;
+    private ChapitreProjectionRepository chapitres;
+    private SectionLueRepository sectionsLues;
+    private ExerciceReussiRepository exercicesReussis;
     private ProgressionService service;
 
     private final UUID eleve = UUID.randomUUID();
@@ -34,14 +41,20 @@ class ProgressionServiceTest {
     void setUp() {
         evenements = mock(EvenementXpRepository.class);
         soldes = mock(SoldeRepository.class);
-        service = new ProgressionService(evenements, soldes);
+        chapitres = mock(ChapitreProjectionRepository.class);
+        sectionsLues = mock(SectionLueRepository.class);
+        exercicesReussis = mock(ExerciceReussiRepository.class);
+        service = new ProgressionService(evenements, soldes, chapitres, sectionsLues, exercicesReussis,
+                mock(ApplicationEventPublisher.class));
         // Defaults: no prior XP for this exercise, cap not reached.
         when(evenements.existsByEleveIdAndSourceTypeAndSourceRef(any(), any(), any())).thenReturn(false);
         when(evenements.sommePointsDepuis(any(), any())).thenReturn(0);
     }
 
+    // chapitreId = null keeps these tests focused on the exercise-XP path; completion
+    // tracking (which needs the chapter projection) is covered in ProgressionCompletionTest.
     private SoumissionEnregistree soumission(boolean correct, boolean premiereTentative) {
-        return new SoumissionEnregistree(eleve, exo, correct, premiereTentative, List.of(), Instant.now());
+        return new SoumissionEnregistree(eleve, exo, null, correct, premiereTentative, List.of(), Instant.now());
     }
 
     @Test

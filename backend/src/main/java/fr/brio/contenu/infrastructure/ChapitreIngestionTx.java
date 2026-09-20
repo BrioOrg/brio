@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.brio.contenu.ContenuService;
 import fr.brio.contenu.InvalidContentException;
+import fr.brio.contenu.api.ChapitrePublie;
 import fr.brio.contenu.domain.Chapitre;
 import fr.brio.contenu.domain.Competence;
 import fr.brio.contenu.domain.Exercice;
@@ -25,6 +26,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,7 @@ class ChapitreIngestionTx {
     private final MatiereRepository matiereRepository;
     private final ContentSchemaValidator validator;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher events;
 
     ChapitreIngestionTx(
             ChapitreRepository chapitreRepository,
@@ -53,7 +56,8 @@ class ChapitreIngestionTx {
             NiveauRepository niveauRepository,
             MatiereRepository matiereRepository,
             ContentSchemaValidator validator,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher events) {
         this.chapitreRepository = chapitreRepository;
         this.exerciceRepository = exerciceRepository;
         this.competenceRepository = competenceRepository;
@@ -61,6 +65,7 @@ class ChapitreIngestionTx {
         this.matiereRepository = matiereRepository;
         this.validator = validator;
         this.objectMapper = objectMapper;
+        this.events = events;
     }
 
     @Transactional
@@ -70,6 +75,10 @@ class ChapitreIngestionTx {
 
         Optional<Chapitre> existing = chapitreRepository.findById(chapitreId);
         if (existing.isPresent() && hash.equals(existing.get().getContentHash())) {
+            // Content unchanged, but ordre comes from _index.json (not the hash) and
+            // progression's projection may not exist yet: re-announce the structure so
+            // the read-model converges on every run (idempotent for consumers).
+            publierStructure(doc, chapitreId, niveau, matiere, ordre);
             return new ChapterResult(chapitreId, ChapterResult.Status.SKIPPED, null);
         }
 
@@ -100,6 +109,7 @@ class ChapitreIngestionTx {
             chapitreRepository.save(new Chapitre(
                     chapitreId, contentJson, niveau, matiere, ordre, statut, titre, duree, hash));
             exerciceRepository.saveAll(newExercices);
+            publierStructure(doc, chapitreId, niveau, matiere, ordre);
             return new ChapterResult(chapitreId, ChapterResult.Status.CREATED, null);
         }
 
@@ -108,7 +118,29 @@ class ChapitreIngestionTx {
         chapitreRepository.save(chapitre);
 
         upsertExercices(chapitreId, newExercices, existingUuids.keySet());
+        publierStructure(doc, chapitreId, niveau, matiere, ordre);
         return new ChapterResult(chapitreId, ChapterResult.Status.UPDATED, null);
+    }
+
+    /**
+     * Announces the chapter's structure for progression's projection (ADR 0022).
+     * Counts are read straight from the document so they stay correct on the SKIPPED
+     * path too, where the exercise entities are not rebuilt.
+     */
+    private void publierStructure(JsonNode doc, String chapitreId, String niveau, String matiere, int ordre) {
+        JsonNode sections = doc.path("sections");
+        int totalSections = sections.isArray() ? sections.size() : 0;
+        int totalExercices = 0;
+        for (JsonNode section : sections) {
+            for (JsonNode block : section.path("blocks")) {
+                if ("exercise".equals(block.path("type").asText())) {
+                    totalExercices++;
+                }
+            }
+        }
+        String statut = doc.path("status").asText("published");
+        events.publishEvent(new ChapitrePublie(
+                chapitreId, niveau, matiere, ordre, statut, totalSections, totalExercices));
     }
 
     private void upsertExercices(String chapitreId, List<Exercice> newExercices, Set<String> existingSlugSet) {
