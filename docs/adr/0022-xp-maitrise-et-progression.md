@@ -67,6 +67,21 @@ progression.maitrise (eleve_id, competence_code, niveau SMALLINT, echantillon IN
                       PRIMARY KEY (eleve_id, competence_code))
 ```
 
+> **Précisions #96 (2026-09-20, mise en œuvre de la maîtrise).**
+> - **Une projection de soumissions par compétence est ajoutée** :
+>   `progression.soumissions_competences (id, eleve_id, soumission_id, competence_code,
+>   correct, score, premiere_tentative, submitted_at, UNIQUE(soumission_id, competence_code))`.
+>   C'est *elle*, et non `exercices.soumissions`, qui est la source recalculable :
+>   `progression` ne peut pas lire `exercices` sans l'appel sortant que §3 interdit — même
+>   raison qui a fait naître `progression.exercices_reussis` en #94. Le §6 « recalculable
+>   intégralement depuis `exercices.soumissions` » se lit donc : *depuis la copie que
+>   `progression` en tient, alimentée par l'événement*. Le registre Modulith
+>   `event_publication` n'est **pas** une source de rejeu (log de (re)délivraison, non
+>   requêtable, purgé selon le mode de complétion) — le test de recalcul s'appuie sur la
+>   projection ci-dessus.
+> - **`maitrise.niveau` est NULLABLE** : `null` tant que l'échantillon est sous le seuil
+>   d'honnêteté (voir §6). L'`api` renvoie alors `niveau: null` plutôt qu'une valeur inventée.
+
 ### 2. L'idempotence est la contrainte anti-abus
 
 La contrainte **`UNIQUE (eleve_id, source_type, source_ref, motif)`** *est* le
@@ -154,6 +169,32 @@ l'exercice. Entièrement recalculable depuis `exercices.soumissions` — c'est u
 **projection**, jamais une donnée saisie. *(N et la pondération proposés, à
 confirmer.)*
 
+> **Mise en œuvre #96 (2026-09-20).** Le v1 précise et amende ce paragraphe :
+> - **Pondération par la difficulté : reportée.** La difficulté existe dans le schéma de
+>   contenu (`course-content.schema.json`, énum ouvert) mais **aucune couche back** ne la
+>   porte : l'ingesteur la laisse tomber, `contenu.exercices` n'a pas de colonne,
+>   `ExerciceDefinition` et `SoumissionEnregistree` ne la transportent pas. La câbler
+>   traverserait trois modules (ingesteur + migration + ré-ingestion → `contenu` →
+>   `exercices` → `progression`) pour un gain nul aujourd'hui (catalogue : 28
+>   *introduction*, 27 *standard*, 2 *approfondissement* — une pondération y est un
+>   arrondi sur deux exercices). Reporté à un ticket dédié ; le v1 est **non pondéré**.
+> - **Signal binaire, mais `score` capturé.** La maîtrise v1 se calcule du booléen
+>   `correct`. On ajoute quand même `score` à l'événement et à la projection dès
+>   maintenant : on ne recalcule pas une histoire qu'on n'a jamais captée, et passer au
+>   score plus tard ne sera qu'un changement de formule + rebuild.
+> - **Anti-« refaire jusqu'à réussir ».** La fenêtre ne compte que les **premières
+>   tentatives** (`premiere_tentative`, déjà porté par l'événement) : refaire un exercice
+>   ne remplit pas les 10 places de succès. La maîtrise mesure « su faire seul », pas la
+>   persévérance.
+> - **Formule et seuil.** `niveau = clamp(floor(taux · 5), 0, 4)` avec
+>   `taux = réussites / échantillon` (0,8 → 4). En dessous de **3 soumissions** le niveau
+>   est **absent** (`null`) : une seule bonne réponse afficherait « maîtrisé » — contraire
+>   à la règle produit « ne pas montrer une donnée que le back n'a pas ». Seuil et N
+>   restent des constantes ajustables.
+> - **API.** `GET /api/progression/maitrise` renvoie, pour l'élève authentifié, la liste
+>   `{ competenceCode, niveau (0–4 ou null), echantillon }` — seules les compétences
+>   effectivement soumises apparaissent (jamais tout le référentiel).
+
 ### 7. Série
 
 `jours_consecutifs` avec un **gel hebdomadaire** (un jour manqué par semaine ne
@@ -186,6 +227,10 @@ seulement. Sa rupture est annoncée **sans culpabilisation** (`PRINCIPLES.md`).
   `SectionTerminee`/`ChapitreTermine`).
 - **#95** série (gel hebdo, rupture sans culpabilisation).
 - **#96** maîtrise par compétence (projection depuis les soumissions).
+- **(à ouvrir)** pondération de la maîtrise par la difficulté : câbler `difficulty`
+  ingesteur → `contenu.exercices` (colonne + migration + ré-ingestion) →
+  `ExerciceDefinition` → `SoumissionEnregistree` → `progression`, puis passer la formule
+  du booléen `correct` au score/à la difficulté (voir mise en œuvre #96 en §6).
 - Migrations Flyway `progression` (schéma ci-dessus).
 - Côté front (Gabrielle) : #80 (dès #93), #79/#82 (dès #94), #81 (dès #95).
 
