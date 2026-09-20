@@ -33,7 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 class ChapitreIngestionTx {
 
-    static final int INGEST_VERSION = 1;
+    // Bumped 1 → 2 for #103: exercises now carry `difficulte`. The bump changes the content
+    // hash so unchanged chapters take the UPDATE path and backfill the new column, instead of
+    // being SKIPPED (the skip path never rebuilds exercise entities).
+    static final int INGEST_VERSION = 2;
 
     private static final ObjectMapper CANONICAL_MAPPER = JsonMapper.builder()
             .configure(com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
@@ -153,7 +156,8 @@ class ChapitreIngestionTx {
         for (Exercice newEx : newExercices) {
             Exercice existingEx = existingBySlug.get(newEx.getSlug());
             if (existingEx != null) {
-                existingEx.update(newEx.getType(), newEx.getEvaluation(), newEx.getCompetencies());
+                existingEx.update(newEx.getType(), newEx.getEvaluation(),
+                        newEx.getCompetencies(), newEx.getDifficulte());
                 exerciceRepository.save(existingEx);
             } else {
                 exerciceRepository.save(newEx);
@@ -247,11 +251,14 @@ class ChapitreIngestionTx {
             block.get("competencies").forEach(c -> competencies.add(c.asText()));
         }
 
+        // Open enum; may be absent on a block. Null flows through to a "standard" weight later.
+        String difficulte = block.hasNonNull("difficulty") ? block.get("difficulty").asText() : null;
+
         try {
             exercices.add(new Exercice(
                     exerciceId, chapitreId, slug, exerciseType,
                     objectMapper.writeValueAsString(evaluation),
-                    competencies));
+                    competencies, difficulte));
         } catch (Exception e) {
             throw new IllegalStateException("Failed to serialize evaluation for exercise " + slug, e);
         }

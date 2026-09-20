@@ -120,7 +120,7 @@ class TuteurServiceTest {
     @Test
     void disclosureFilter_detectsNumericAnswerInPlainForm() {
         ExerciceDefinition def = new ExerciceDefinition(
-                UUID.randomUUID(), "chapitre", "numeric", List.of(),
+                UUID.randomUUID(), "chapitre", "numeric", List.of(), null,
                 "{\"answer\": \"10\", \"tolerance\": 0.01}");
 
         assertThat(service.disclosesAnswer("La réponse est 10.", def)).isTrue();
@@ -129,7 +129,7 @@ class TuteurServiceTest {
     @Test
     void disclosureFilter_detectsNumericAnswerWithCommaDecimal() {
         ExerciceDefinition def = new ExerciceDefinition(
-                UUID.randomUUID(), "chapitre", "numeric", List.of(),
+                UUID.randomUUID(), "chapitre", "numeric", List.of(), null,
                 "{\"answer\": \"10\", \"tolerance\": 0.1}");
 
         assertThat(service.disclosesAnswer("Le résultat vaut 10,0 cm.", def)).isTrue();
@@ -138,7 +138,7 @@ class TuteurServiceTest {
     @Test
     void disclosureFilter_detectsNumericAnswerWithUnit() {
         ExerciceDefinition def = new ExerciceDefinition(
-                UUID.randomUUID(), "chapitre", "numeric", List.of(),
+                UUID.randomUUID(), "chapitre", "numeric", List.of(), null,
                 "{\"answer\": \"10\", \"tolerance\": 0.01}");
 
         // "10" appears as standalone token before " cm"
@@ -148,7 +148,7 @@ class TuteurServiceTest {
     @Test
     void disclosureFilter_doesNotFlagUnrelatedNumbers() {
         ExerciceDefinition def = new ExerciceDefinition(
-                UUID.randomUUID(), "chapitre", "numeric", List.of(),
+                UUID.randomUUID(), "chapitre", "numeric", List.of(), null,
                 "{\"answer\": \"10\", \"tolerance\": 0.01}");
 
         assertThat(service.disclosesAnswer("Il y a 3 côtés dans un triangle.", def)).isFalse();
@@ -161,7 +161,7 @@ class TuteurServiceTest {
                 + "{\"id\": \"b\", \"text\": \"Le côté [RS]\", \"correct\": false}"
                 + "]}";
         ExerciceDefinition def = new ExerciceDefinition(
-                UUID.randomUUID(), "chapitre", "multiple-choice", List.of(), evalJson);
+                UUID.randomUUID(), "chapitre", "multiple-choice", List.of(), null, evalJson);
 
         assertThat(service.disclosesAnswer("La bonne réponse est Le côté [RT].", def)).isTrue();
     }
@@ -173,7 +173,7 @@ class TuteurServiceTest {
                 + "{\"id\": \"b\", \"text\": \"Le côté [RS]\", \"correct\": false}"
                 + "]}";
         ExerciceDefinition def = new ExerciceDefinition(
-                UUID.randomUUID(), "chapitre", "multiple-choice", List.of(), evalJson);
+                UUID.randomUUID(), "chapitre", "multiple-choice", List.of(), null, evalJson);
 
         assertThat(service.disclosesAnswer("Pense au côté opposé à l'angle droit.", def)).isFalse();
     }
@@ -184,7 +184,7 @@ class TuteurServiceTest {
         // note: we register a fresh chapter stub here (not the default one)
         // since this test uses a different chapter document with an exercise block
         ExerciceDefinition def = new ExerciceDefinition(
-                exerciceId, "chapitre", "numeric", List.of(),
+                exerciceId, "chapitre", "numeric", List.of(), null,
                 "{\"answer\": \"5\", \"tolerance\": 0.01}");
 
         // exercise block has the matching exerciceId

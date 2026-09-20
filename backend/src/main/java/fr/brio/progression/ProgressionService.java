@@ -264,7 +264,7 @@ public class ProgressionService {
         try {
             soumissionsCompetences.save(new SoumissionCompetence(
                     e.eleveId(), e.soumissionId(), code, e.correct(), e.score(),
-                    e.premiereTentative(), quand));
+                    e.premiereTentative(), e.difficulte(), quand));
         } catch (DataIntegrityViolationException raceOnUniqueConstraint) {
             // another delivery won; idempotent by construction (redelivery-safe)
         }
@@ -275,8 +275,14 @@ public class ProgressionService {
         List<SoumissionCompetence> fenetre = soumissionsCompetences.fenetre(
                 eleveId, code, PageRequest.of(0, NiveauMaitrise.FENETRE));
         int echantillon = fenetre.size();
-        int reussites = (int) fenetre.stream().filter(SoumissionCompetence::isCorrect).count();
-        OptionalInt niveau = NiveauMaitrise.pour(reussites, echantillon);
+        double sommeSignal = 0;
+        double sommePoids = 0;
+        for (SoumissionCompetence s : fenetre) {
+            double poids = NiveauMaitrise.poids(s.getDifficulte());
+            sommeSignal += s.getScore() * poids;
+            sommePoids += poids;
+        }
+        OptionalInt niveau = NiveauMaitrise.pour(sommeSignal, sommePoids, echantillon);
         maitrises.save(new Maitrise(eleveId, code,
                 niveau.isPresent() ? (short) niveau.getAsInt() : null, echantillon, quand));
     }

@@ -27,6 +27,7 @@ class ExerciceContentApiImpl implements ExerciceContentApi {
                 exercice.getChapitreId(),
                 exercice.getType(),
                 exercice.getCompetencies(),
+                exercice.getDifficulte(),
                 exercice.getEvaluation()
         );
     }

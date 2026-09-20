@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.brio.contenu.ContenuService;
+import fr.brio.contenu.api.ExerciceContentApi;
 import fr.brio.contenu.infrastructure.ChapitreIngestor;
 import fr.brio.contenu.infrastructure.ChapterResult;
 import fr.brio.contenu.infrastructure.IngestReport;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +32,7 @@ class IngestorIntegrationTest {
 
     @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired ContenuService contenuService;
+    @Autowired ExerciceContentApi exerciceContentApi;
     @Autowired ObjectMapper objectMapper;
 
     @Test
@@ -84,6 +87,34 @@ class IngestorIntegrationTest {
         assertThat(uuidsAfter)
                 .as("Exercise UUIDs must be preserved across a content update")
                 .containsExactlyInAnyOrderElementsOf(uuidsBefore);
+    }
+
+    @Test
+    void shouldPersistExerciseDifficultyEndToEnd() {
+        IngestReport report = chapitreIngestor.ingestAll(CONTENT_DIR);
+        assertThat(report.hasFailures()).isFalse();
+
+        // The difficulty band is dropped at no layer (#103): read it back through the published
+        // ExerciceContentApi — the same path exercices/progression use to weight mastery.
+        JsonNode chapter = contenuService.findChapitre("theoreme-de-pythagore")
+                .orElseThrow(() -> new AssertionError("Chapter not found after ingest"));
+
+        List<String> difficultes = new ArrayList<>();
+        for (JsonNode section : chapter.path("sections")) {
+            for (JsonNode block : section.path("blocks")) {
+                if ("exercise".equals(block.path("type").asText()) && block.has("exerciceId")) {
+                    UUID id = UUID.fromString(block.get("exerciceId").asText());
+                    String difficulte = exerciceContentApi.findById(id)
+                            .orElseThrow(() -> new AssertionError("Exercise definition missing for " + id))
+                            .difficulte();
+                    difficultes.add(difficulte);
+                }
+            }
+        }
+
+        assertThat(difficultes)
+                .as("Difficulty must survive ingestion into contenu.exercices")
+                .contains("introduction", "standard", "approfondissement");
     }
 
     private List<String> exerciceIds(JsonNode chapter) {

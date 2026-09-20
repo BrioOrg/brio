@@ -43,18 +43,25 @@ public class Exercice implements Persistable<UUID> {
     @JdbcTypeCode(SqlTypes.ARRAY)
     private List<String> competencies;
 
+    // Coarse difficulty band from the content (open enum, may be null when a block omits it).
+    // Carried through to progression so mastery can weight harder exercises more (ADR 0022 §6).
+    @Column
+    private String difficulte;
+
     @Column(name = "retired_at")
     private Instant retiredAt;
 
     protected Exercice() {}
 
-    public Exercice(UUID id, String chapitreId, String slug, String type, String evaluation, List<String> competencies) {
+    public Exercice(UUID id, String chapitreId, String slug, String type, String evaluation,
+                    List<String> competencies, String difficulte) {
         this.id = id;
         this.chapitreId = chapitreId;
         this.slug = slug;
         this.type = type;
         this.evaluation = evaluation;
         this.competencies = competencies != null ? competencies : List.of();
+        this.difficulte = difficulte;
     }
 
     @PostLoad
@@ -62,10 +69,11 @@ public class Exercice implements Persistable<UUID> {
         this.isNew = false;
     }
 
-    public void update(String type, String evaluation, List<String> competencies) {
+    public void update(String type, String evaluation, List<String> competencies, String difficulte) {
         this.type = type;
         this.evaluation = evaluation;
         this.competencies = competencies != null ? competencies : List.of();
+        this.difficulte = difficulte;
     }
 
     public void retire() {
@@ -79,5 +87,6 @@ public class Exercice implements Persistable<UUID> {
     public String getType() { return type; }
     public String getEvaluation() { return evaluation; }
     public List<String> getCompetencies() { return competencies; }
+    public String getDifficulte() { return difficulte; }
     public Instant getRetiredAt() { return retiredAt; }
 }

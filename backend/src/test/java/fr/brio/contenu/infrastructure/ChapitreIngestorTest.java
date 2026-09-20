@@ -121,7 +121,7 @@ class ChapitreIngestorTest {
         JsonNode doc = loadFixture();
         UUID existingUuid = UUID.randomUUID();
         Exercice existingEx = new Exercice(existingUuid, "theoreme-de-pythagore",
-                "ex-reconnaitre-hypotenuse", "multiple-choice", "{}", List.of());
+                "ex-reconnaitre-hypotenuse", "multiple-choice", "{}", List.of(), null);
 
         Chapitre existingChapter = new Chapitre("theoreme-de-pythagore", "{}", "3e", "mathematiques", 0, "published", "T", 0, "stale");
         doReturn(Optional.of(existingChapter)).when(chapitreRepository).findById("theoreme-de-pythagore");
@@ -139,7 +139,7 @@ class ChapitreIngestorTest {
     void shouldRetireExercisesRemovedFromFile() throws Exception {
         JsonNode doc = loadFixture();
         Exercice orphan = new Exercice(UUID.randomUUID(), "theoreme-de-pythagore",
-                "old-exercise-slug", "numeric", "{}", List.of());
+                "old-exercise-slug", "numeric", "{}", List.of(), null);
 
         Chapitre existingChapter = new Chapitre("theoreme-de-pythagore", "{}", "3e", "mathematiques", 0, "published", "T", 0, "stale");
         doReturn(Optional.of(existingChapter)).when(chapitreRepository).findById("theoreme-de-pythagore");

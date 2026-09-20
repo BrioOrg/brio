@@ -62,14 +62,23 @@ class ProgressionMaitriseTest {
 
     private SoumissionEnregistree soumission(
             UUID soumissionId, boolean correct, boolean premiere, List<String> competences) {
+        return soumission(soumissionId, correct, premiere, competences, null);
+    }
+
+    private SoumissionEnregistree soumission(
+            UUID soumissionId, boolean correct, boolean premiere, List<String> competences, String difficulte) {
         return new SoumissionEnregistree(
                 eleve, exo, soumissionId, null, correct, correct ? 1.0 : 0.0,
-                premiere, competences, Instant.now());
+                premiere, competences, difficulte, Instant.now());
     }
 
     private SoumissionCompetence rows(String code, boolean correct) {
+        return rows(code, correct, null);
+    }
+
+    private SoumissionCompetence rows(String code, boolean correct, String difficulte) {
         return new SoumissionCompetence(eleve, UUID.randomUUID(), code, correct,
-                correct ? 1.0 : 0.0, true, Instant.now());
+                correct ? 1.0 : 0.0, true, difficulte, Instant.now());
     }
 
     // ── recording from the event ────────────────────────────────────────────
@@ -143,6 +152,34 @@ class ProgressionMaitriseTest {
         verify(maitrises).save(captor.capture());
         assertThat(captor.getValue().getNiveau()).isNull();
         assertThat(captor.getValue().getEchantillon()).isEqualTo(2);
+    }
+
+    @Test
+    void laDifficulteEstEnregistreeSurLaProjection() {
+        service.attribuerPourSoumission(
+                soumission(UUID.randomUUID(), true, true, List.of(COMP_X), "approfondissement"));
+
+        ArgumentCaptor<SoumissionCompetence> captor = ArgumentCaptor.forClass(SoumissionCompetence.class);
+        verify(soumissionsCompetences).save(captor.capture());
+        assertThat(captor.getValue().getDifficulte()).isEqualTo("approfondissement");
+    }
+
+    @Test
+    void laDifficultePondereLaMaitrise() {
+        // Two easy successes and one hard miss. An unweighted count would read 2/3 ≈ 0.67 → niveau 3;
+        // weighted, the hard miss (poids 3) drags the rate to 2/5 = 0.4 → niveau 2 (ADR 0022 §6, #103).
+        when(soumissionsCompetences.competencesDeLEleve(eleve)).thenReturn(List.of(COMP_X));
+        when(soumissionsCompetences.fenetre(eq(eleve), eq(COMP_X), any())).thenReturn(List.of(
+                rows(COMP_X, true, "introduction"),
+                rows(COMP_X, true, "introduction"),
+                rows(COMP_X, false, "approfondissement")));
+
+        service.recalculer(eleve);
+
+        ArgumentCaptor<Maitrise> captor = ArgumentCaptor.forClass(Maitrise.class);
+        verify(maitrises).save(captor.capture());
+        assertThat(captor.getValue().getNiveau()).isEqualTo((short) 2);
+        assertThat(captor.getValue().getEchantillon()).isEqualTo(3);
     }
 
     // ── read API ──────────────────────────────────────────────────────────────

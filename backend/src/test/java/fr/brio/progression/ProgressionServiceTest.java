@@ -62,7 +62,7 @@ class ProgressionServiceTest {
     private SoumissionEnregistree soumission(boolean correct, boolean premiereTentative) {
         return new SoumissionEnregistree(
                 eleve, exo, UUID.randomUUID(), null, correct, correct ? 1.0 : 0.0,
-                premiereTentative, List.of(), Instant.now());
+                premiereTentative, List.of(), null, Instant.now());
     }
 
     @Test
