@@ -7,18 +7,22 @@ import fr.brio.progression.api.ChapitreTermine;
 import fr.brio.progression.api.EtatParcours;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
+import fr.brio.progression.api.SerieInfo;
 import fr.brio.progression.domain.Chapitre;
 import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.domain.ExerciceReussi;
 import fr.brio.progression.domain.Niveau;
 import fr.brio.progression.domain.SectionLue;
+import fr.brio.progression.domain.Serie;
 import fr.brio.progression.domain.Solde;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
+import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +65,7 @@ public class ProgressionService {
     private final ChapitreProjectionRepository chapitres;
     private final SectionLueRepository sectionsLues;
     private final ExerciceReussiRepository exercicesReussis;
+    private final SerieRepository series;
     private final ApplicationEventPublisher events;
 
     ProgressionService(
@@ -69,12 +74,14 @@ public class ProgressionService {
             ChapitreProjectionRepository chapitres,
             SectionLueRepository sectionsLues,
             ExerciceReussiRepository exercicesReussis,
+            SerieRepository series,
             ApplicationEventPublisher events) {
         this.evenements = evenements;
         this.soldes = soldes;
         this.chapitres = chapitres;
         this.sectionsLues = sectionsLues;
         this.exercicesReussis = exercicesReussis;
+        this.series = series;
         this.events = events;
     }
 
@@ -90,10 +97,14 @@ public class ProgressionService {
     /** Award XP for a graded submission and track it toward chapter completion. */
     @Transactional
     public void attribuerPourSoumission(SoumissionEnregistree e) {
+        Instant quand = e.submittedAt() != null ? e.submittedAt() : Instant.now();
+
+        // Any submission — right or wrong — is activity for the streak (decision #95).
+        enregistrerActivite(e.eleveId(), quand);
+
         if (!e.correct()) {
             return; // an error costs nothing (ADR 0022 barème)
         }
-        Instant quand = e.submittedAt() != null ? e.submittedAt() : Instant.now();
 
         String motif = e.premiereTentative() ? MOTIF_1ER_COUP : MOTIF_APRES_ERREUR;
         short points = e.premiereTentative() ? XP_1ER_COUP : XP_APRES_ERREUR;
@@ -112,6 +123,7 @@ public class ProgressionService {
     public void onSectionTerminee(SectionTerminee e) {
         Instant quand = e.survenuLe() != null ? e.survenuLe() : Instant.now();
 
+        enregistrerActivite(e.eleveId(), quand); // a section read is activity too (#95)
         enregistrerSectionLue(e.eleveId(), e.chapitreId(), e.sectionId(), quand);
         attribuer(e.eleveId(), SOURCE_SECTION, e.chapitreId() + "/" + e.sectionId(),
                 MOTIF_SECTION, XP_SECTION, quand, false);
@@ -124,6 +136,22 @@ public class ProgressionService {
         return soldes.findById(eleveId)
                 .map(s -> new ProgressionInfo(s.getXpTotal(), s.getNiveau()))
                 .orElse(new ProgressionInfo(0, 0));
+    }
+
+    /**
+     * Current day streak for a student, decayed to today: a streak past the freeze
+     * tolerance reads 0 without needing a write. Empty (0 / null) if none yet.
+     */
+    @Transactional(readOnly = true)
+    public SerieInfo serie(UUID eleveId) {
+        LocalDate aujourdhui = LocalDate.now(ZONE);
+        return series.findById(eleveId)
+                .map(s -> new SerieInfo(
+                        s.joursConsecutifsAu(aujourdhui),
+                        s.getDernierJourActif(),
+                        s.gelsRestantsAu(aujourdhui),
+                        s.estActifAu(aujourdhui)))
+                .orElse(new SerieInfo(0, null, Serie.GELS_PAR_SEMAINE, false));
     }
 
     /**
@@ -162,6 +190,14 @@ public class ProgressionService {
     }
 
     // ── internals ─────────────────────────────────────────────────────────────
+
+    /** Marks the student active on the day of {@code quand} and updates the streak. */
+    private void enregistrerActivite(UUID eleveId, Instant quand) {
+        LocalDate jour = quand.atZone(ZONE).toLocalDate();
+        Serie serie = series.findById(eleveId).orElseGet(() -> new Serie(eleveId));
+        serie.enregistrerActivite(jour, quand);
+        series.save(serie);
+    }
 
     private void enregistrerSectionLue(UUID eleveId, String chapitreId, String sectionId, Instant quand) {
         if (sectionsLues.existsByEleveIdAndChapitreIdAndSectionId(eleveId, chapitreId, sectionId)) {

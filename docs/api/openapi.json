@@ -467,6 +467,24 @@
         }
       }
     },
+    "/api/progression/serie" : {
+      "get" : {
+        "tags" : [ "progression-controller" ],
+        "operationId" : "serie",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SerieInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/progression/parcours/{niveau}/{matiere}" : {
       "get" : {
         "tags" : [ "progression-controller" ],
@@ -1131,6 +1149,26 @@
             "format" : "date"
           },
           "homonyme" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SerieInfo" : {
+        "type" : "object",
+        "properties" : {
+          "joursConsecutifs" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dernierJourActif" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "gelsRestants" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "actifAujourdhui" : {
             "type" : "boolean"
           }
         }
