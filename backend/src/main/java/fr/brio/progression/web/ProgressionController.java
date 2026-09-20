@@ -3,6 +3,7 @@ package fr.brio.progression.web;
 import fr.brio.progression.ProgressionService;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
+import fr.brio.progression.api.SerieInfo;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,6 +28,16 @@ class ProgressionController {
     ProgressionInfo moi(@AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
         return progression.pour(eleveId);
+    }
+
+    /**
+     * Day streak of the authenticated student, decayed to today (a broken streak
+     * reads 0). Feeds the top-bar flame (#81).
+     */
+    @GetMapping("/serie")
+    SerieInfo serie(@AuthenticationPrincipal UserDetails principal) {
+        UUID eleveId = UUID.fromString(principal.getUsername());
+        return progression.serie(eleveId);
     }
 
     /**

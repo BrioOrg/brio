@@ -8,6 +8,7 @@ import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
+import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
 import java.time.Instant;
 import java.util.List;
@@ -32,6 +33,7 @@ class ProgressionServiceTest {
     private ChapitreProjectionRepository chapitres;
     private SectionLueRepository sectionsLues;
     private ExerciceReussiRepository exercicesReussis;
+    private SerieRepository series;
     private ProgressionService service;
 
     private final UUID eleve = UUID.randomUUID();
@@ -44,7 +46,8 @@ class ProgressionServiceTest {
         chapitres = mock(ChapitreProjectionRepository.class);
         sectionsLues = mock(SectionLueRepository.class);
         exercicesReussis = mock(ExerciceReussiRepository.class);
-        service = new ProgressionService(evenements, soldes, chapitres, sectionsLues, exercicesReussis,
+        series = mock(SerieRepository.class);
+        service = new ProgressionService(evenements, soldes, chapitres, sectionsLues, exercicesReussis, series,
                 mock(ApplicationEventPublisher.class));
         // Defaults: no prior XP for this exercise, cap not reached.
         when(evenements.existsByEleveIdAndSourceTypeAndSourceRef(any(), any(), any())).thenReturn(false);

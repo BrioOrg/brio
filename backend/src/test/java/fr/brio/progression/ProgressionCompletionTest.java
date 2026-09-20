@@ -11,6 +11,7 @@ import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
+import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
 import java.time.Instant;
 import java.util.List;
@@ -35,6 +36,7 @@ class ProgressionCompletionTest {
     private ChapitreProjectionRepository chapitres;
     private SectionLueRepository sectionsLues;
     private ExerciceReussiRepository exercicesReussis;
+    private SerieRepository series;
     private ApplicationEventPublisher events;
     private ProgressionService service;
 
@@ -48,8 +50,10 @@ class ProgressionCompletionTest {
         chapitres = mock(ChapitreProjectionRepository.class);
         sectionsLues = mock(SectionLueRepository.class);
         exercicesReussis = mock(ExerciceReussiRepository.class);
+        series = mock(SerieRepository.class);
         events = mock(ApplicationEventPublisher.class);
-        service = new ProgressionService(evenements, soldes, chapitres, sectionsLues, exercicesReussis, events);
+        service = new ProgressionService(
+                evenements, soldes, chapitres, sectionsLues, exercicesReussis, series, events);
         // Defaults: nothing awarded yet, cap not reached, structure not known.
         when(evenements.existsByEleveIdAndSourceTypeAndSourceRef(any(), any(), any())).thenReturn(false);
         when(evenements.sommePointsDepuis(any(), any())).thenReturn(0);
