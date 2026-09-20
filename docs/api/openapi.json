@@ -388,6 +388,40 @@
         }
       }
     },
+    "/api/chapitres/{id}/sections/{sectionId}/lu" : {
+      "post" : {
+        "tags" : [ "Contenu" ],
+        "summary" : "Marque une section de leçon comme lue",
+        "description" : "Signal léger : enregistre la lecture d'une section pour l'élève connecté. Alimente la progression (XP de section, complétion du chapitre). Requiert une authentification.",
+        "operationId" : "marquerSectionLue",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sectionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Lecture enregistrée"
+          },
+          "401" : {
+            "description" : "Non authentifié"
+          },
+          "404" : {
+            "description" : "Chapitre ou section introuvable"
+          }
+        }
+      }
+    },
     "/api/classes/{id}/inscriptions/{compteId}" : {
       "patch" : {
         "tags" : [ "classe-controller" ],
@@ -426,6 +460,42 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/InscriptionInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/progression/parcours/{niveau}/{matiere}" : {
+      "get" : {
+        "tags" : [ "progression-controller" ],
+        "operationId" : "parcours",
+        "parameters" : [ {
+          "name" : "niveau",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "matiere",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ParcoursChapitre"
+                  }
                 }
               }
             }
@@ -1062,6 +1132,26 @@
           },
           "homonyme" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "ParcoursChapitre" : {
+        "type" : "object",
+        "properties" : {
+          "chapitreId" : {
+            "type" : "string"
+          },
+          "ordre" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "etat" : {
+            "type" : "string",
+            "enum" : [ "fait", "en_cours", "verrouille" ]
+          },
+          "pourcentage" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

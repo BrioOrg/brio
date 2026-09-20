@@ -14,10 +14,15 @@ import java.util.UUID;
  * `premiereTentative` is true when this was the student's first attempt at the
  * exercise — it lets progression tell "réussi du premier coup" from "réussi
  * après erreur" (ADR 0022 barème) without storing attempt state itself.
+ *
+ * `chapitreId` is the owning chapter (copied from the exercise definition) so
+ * progression can attribute the solve to a chapter for completion tracking
+ * without calling contenu (ADR 0022). It may be null for legacy submissions.
  */
 public record SoumissionEnregistree(
         UUID eleveId,
         UUID exerciceId,
+        String chapitreId,
         boolean correct,
         boolean premiereTentative,
         List<String> competencies,

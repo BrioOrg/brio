@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,6 +40,7 @@ class ChapitreIngestorTest {
     @Mock private CompetenceRepository competenceRepository;
     @Mock private NiveauRepository niveauRepository;
     @Mock private MatiereRepository matiereRepository;
+    @Mock private ApplicationEventPublisher events;
 
     private ChapitreIngestionTx tx;
 
@@ -56,7 +58,7 @@ class ChapitreIngestorTest {
         lenient().when(matiereRepository.existsById(any())).thenReturn(true);
         tx = new ChapitreIngestionTx(
                 chapitreRepository, exerciceRepository, competenceRepository,
-                niveauRepository, matiereRepository, validator, objectMapper);
+                niveauRepository, matiereRepository, validator, objectMapper, events);
     }
 
     @Test

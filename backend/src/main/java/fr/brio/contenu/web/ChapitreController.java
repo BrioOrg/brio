@@ -8,11 +8,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,6 +55,25 @@ class ChapitreController {
         return contenuService.findChapitreByTriplet(niveau, matiere, slug)
                 .<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping(value = "/chapitres/{id}/sections/{sectionId}/lu")
+    @Operation(
+            summary = "Marque une section de leçon comme lue",
+            description = "Signal léger : enregistre la lecture d'une section pour l'élève connecté. "
+                    + "Alimente la progression (XP de section, complétion du chapitre). Requiert une authentification."
+    )
+    @ApiResponse(responseCode = "204", description = "Lecture enregistrée")
+    @ApiResponse(responseCode = "401", description = "Non authentifié")
+    @ApiResponse(responseCode = "404", description = "Chapitre ou section introuvable")
+    ResponseEntity<Void> marquerSectionLue(
+            @PathVariable String id,
+            @PathVariable String sectionId,
+            @AuthenticationPrincipal UserDetails principal) {
+        UUID eleveId = UUID.fromString(principal.getUsername());
+        return contenuService.marquerSectionLue(id, sectionId, eleveId)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     @GetMapping(value = "/chapitres/{id}", produces = MediaType.APPLICATION_JSON_VALUE)

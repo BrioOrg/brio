@@ -24,6 +24,7 @@ class ExerciceContentApiImpl implements ExerciceContentApi {
     private ExerciceDefinition toDefinition(Exercice exercice) {
         return new ExerciceDefinition(
                 exercice.getId(),
+                exercice.getChapitreId(),
                 exercice.getType(),
                 exercice.getCompetencies(),
                 exercice.getEvaluation()
