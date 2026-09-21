@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ensureCsrfToken, csrfHeaders, readXsrfToken } from './csrf.js'
 
 /**
  * Session (authentication) client — manual Zod wrapper.
@@ -46,37 +47,6 @@ export class LoginError extends Error {
   }
 }
 
-const XSRF_COOKIE = 'XSRF-TOKEN'
-const XSRF_HEADER = 'X-XSRF-TOKEN'
-
-function readCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null
-  const prefix = `${name}=`
-  const hit = document.cookie.split('; ').find((c) => c.startsWith(prefix))
-  return hit ? decodeURIComponent(hit.slice(prefix.length)) : null
-}
-
-/**
- * Ensure an XSRF-TOKEN cookie exists before a mutating request. On a fresh
- * browser the cookie is only written once a response has passed through the
- * CsrfFilter, so we prime it with a GET. /api/moi returns 401 when there is no
- * session, but the filter still sets the cookie — which is all we need here.
- */
-async function ensureCsrfToken(baseUrl: string): Promise<string | null> {
-  const existing = readCookie(XSRF_COOKIE)
-  if (existing) return existing
-  try {
-    await fetch(`${baseUrl}/api/moi`, { credentials: 'include' })
-  } catch {
-    // Network error is surfaced by the actual login request below.
-  }
-  return readCookie(XSRF_COOKIE)
-}
-
-function csrfHeaders(token: string | null): Record<string, string> {
-  return token ? { [XSRF_HEADER]: token } : {}
-}
-
 /** Log in with an identifier (login name or e-mail) and password. */
 export async function login(
   baseUrl: string,
@@ -109,7 +79,7 @@ export async function login(
 
 /** End the current session. Idempotent from the caller's point of view. */
 export async function logout(baseUrl: string): Promise<void> {
-  const token = readCookie(XSRF_COOKIE)
+  const token = readXsrfToken()
   await fetch(`${baseUrl}/api/sessions`, {
     method: 'DELETE',
     credentials: 'include',

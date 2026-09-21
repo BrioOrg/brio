@@ -1,4 +1,4 @@
-import { createApiClient } from '@brio/api-client'
+import { createApiClient, ensureCsrfToken, csrfHeaders } from '@brio/api-client'
 import type { ChapitreResponse } from '@/components/chapter-view'
 import { z } from 'zod'
 
@@ -141,12 +141,18 @@ export async function soumettre(
   exerciceId: string,
   answer: Record<string, unknown>
 ): Promise<SoumissionResult> {
+  // Submissions are attributed to the logged-in student via the session cookie
+  // (createApiClient sends it). Being a mutating POST, it also needs the CSRF
+  // token echoed as a header — primed here if the cookie isn't set yet.
+  const token = await ensureCsrfToken(API_URL)
   const { data, error, response } = await client.POST('/api/exercices/{id}/soumissions', {
     params: { path: { id: exerciceId } },
     body: { answer },
-    headers: { Authorization: buildAuthHeader() },
+    headers: csrfHeaders(token),
   })
-  if (error) {
+  // Guard on the status too: an auth/CSRF failure can return an empty body, which
+  // openapi-fetch surfaces as no `error` rather than a populated one.
+  if (error || !response.ok) {
     if (response.status === 401) throw new Error('Non authentifié')
     if (response.status === 404) throw new Error('Exercice introuvable')
     throw new Error('Erreur lors de la soumission')
