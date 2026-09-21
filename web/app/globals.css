@@ -34,3 +34,47 @@
 [data-cited] {
   animation: citedHighlight 1.5s var(--ease-out);
 }
+
+/* XP reward feedback (issue #80). Colours come from tokens; these keyframes only
+   move and fade, so they carry no design values. The global reduced-motion rule
+   in tokens.css clamps them to ~0ms. */
+@keyframes xpRise {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes xpPop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Floating "+N XP" that rises and fades — used in the top bar. */
+.xp-rise {
+  animation: xpRise 1s var(--ease-out) forwards;
+}
+
+/* Springy scale bump on the XP counter / reward pill when a gain lands. */
+.xp-pop {
+  animation: xpPop var(--duration-slow) var(--ease-spring);
+}
