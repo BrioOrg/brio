@@ -76,3 +76,29 @@ export async function getParcours(
   if (!res.ok) throw new Error('Impossible de récupérer le parcours.')
   return ParcoursSchema.parse(await res.json())
 }
+
+/**
+ * A student's day streak (fr.brio.progression.api.SerieInfo, issue #81).
+ * `joursConsecutifs` is the live value decayed to today — a broken streak reads
+ * 0, and the UI hides the flame at 0 (never "0 jour"). `dernierJourActif` is left
+ * unvalidated because the UI doesn't use it and its JSON shape (date) is not worth
+ * pinning here.
+ */
+export const SerieInfoSchema = z.object({
+  joursConsecutifs: z.number(),
+  dernierJourActif: z.unknown().nullish(),
+  gelsRestants: z.number(),
+  actifAujourdhui: z.boolean(),
+})
+
+export type SerieInfo = z.infer<typeof SerieInfoSchema>
+
+/**
+ * Return the authenticated student's day streak, or null when not logged in (401).
+ */
+export async function getSerie(baseUrl: string): Promise<SerieInfo | null> {
+  const res = await fetch(`${baseUrl}/api/progression/serie`, { credentials: 'include' })
+  if (res.status === 401) return null
+  if (!res.ok) throw new Error('Impossible de récupérer la série.')
+  return SerieInfoSchema.parse(await res.json())
+}

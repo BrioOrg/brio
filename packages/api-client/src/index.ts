@@ -16,5 +16,7 @@ export {
   getParcours,
   ParcoursChapitreSchema,
   ParcoursSchema,
+  getSerie,
+  SerieInfoSchema,
 } from './progression.js'
-export type { ProgressionInfo, ParcoursChapitre } from './progression.js'
+export type { ProgressionInfo, ParcoursChapitre, SerieInfo } from './progression.js'

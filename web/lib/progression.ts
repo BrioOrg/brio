@@ -1,8 +1,9 @@
 import {
   getProgression as apiGetProgression,
   getParcours as apiGetParcours,
+  getSerie as apiGetSerie,
 } from '@brio/api-client'
-import type { ProgressionInfo, ParcoursChapitre } from '@brio/api-client'
+import type { ProgressionInfo, ParcoursChapitre, SerieInfo } from '@brio/api-client'
 
 // Same env var as lib/api.ts and lib/session.ts — the URL the browser calls.
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
@@ -20,4 +21,9 @@ export function getParcours(
   return apiGetParcours(API_URL, niveau, matiere)
 }
 
-export type { ProgressionInfo, ParcoursChapitre }
+/** Return the student's day streak, or null when not logged in. */
+export function getSerie(): Promise<SerieInfo | null> {
+  return apiGetSerie(API_URL)
+}
+
+export type { ProgressionInfo, ParcoursChapitre, SerieInfo }

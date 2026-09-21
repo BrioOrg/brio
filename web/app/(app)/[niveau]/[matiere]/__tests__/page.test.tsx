@@ -7,8 +7,10 @@ vi.mock('@/lib/api', () => ({
 
 // The atlas fetches per-student states on mount; null = logged out → neutral,
 // which keeps chapters as reachable links (what these page-level tests assert).
+// getSerie feeds the top-bar streak flame (also in this page's SiteHeader).
 vi.mock('@/lib/progression', () => ({
   getParcours: vi.fn().mockResolvedValue(null),
+  getSerie: vi.fn().mockResolvedValue(null),
 }))
 
 vi.mock('next/navigation', () => ({
