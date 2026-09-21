@@ -5,6 +5,12 @@ vi.mock('@/lib/api', () => ({
   getCatalogue: vi.fn(),
 }))
 
+// The atlas fetches per-student states on mount; null = logged out → neutral,
+// which keeps chapters as reachable links (what these page-level tests assert).
+vi.mock('@/lib/progression', () => ({
+  getParcours: vi.fn().mockResolvedValue(null),
+}))
+
 vi.mock('next/navigation', () => ({
   notFound: vi.fn(() => {
     throw new Error('NEXT_NOT_FOUND')

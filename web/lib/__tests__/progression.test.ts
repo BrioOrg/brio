@@ -29,7 +29,7 @@ describe('progression client', () => {
 
   it('sends the session cookie (credentials: include)', async () => {
     const fetchMock = vi.fn(
-      async () =>
+      async (_url: string, _init?: RequestInit) =>
         new Response(JSON.stringify({ xpTotal: 0, niveau: 0 }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -38,9 +38,9 @@ describe('progression client', () => {
     vi.stubGlobal('fetch', fetchMock)
     const { getProgression } = await import('@/lib/progression')
     await getProgression()
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const [url, init] = fetchMock.mock.calls[0]
     expect(url).toMatch(/\/api\/progression\/moi$/)
-    expect(init.credentials).toBe('include')
+    expect(init?.credentials).toBe('include')
   })
 
   it('returns null when the student is not logged in (401)', async () => {
