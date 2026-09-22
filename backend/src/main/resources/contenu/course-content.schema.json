@@ -118,6 +118,10 @@
         { "$ref": "#/$defs/calloutBlock" },
         { "$ref": "#/$defs/codeBlock" },
         { "$ref": "#/$defs/exerciseBlock" },
+        { "$ref": "#/$defs/referenceBlock" },
+        { "$ref": "#/$defs/tableBlock" },
+        { "$ref": "#/$defs/stepsBlock" },
+        { "$ref": "#/$defs/objectivesBlock" },
         { "$ref": "#/$defs/unknownBlock" }
       ]
     },
@@ -375,6 +379,128 @@
       }
     },
 
+    "referenceBlock": {
+      "description": "Citation of a resource, internal (another chapter on this platform) or external (an https URL). Rendered with the same CitationChip component as tutor citations — a teacher's citation and the tutor's are the same thing. Internal targets are validated at publish time, exactly as a competency code is; external URLs must be https.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "scope", "title"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "reference" },
+        "scope": {
+          "description": "internal = a target chapter on this platform; external = an https URL.",
+          "type": "string",
+          "enum": ["internal", "external"]
+        },
+        "title": { "$ref": "#/$defs/plainText" },
+        "source": {
+          "description": "Optional human-readable source label, e.g. a publisher or site name.",
+          "$ref": "#/$defs/plainText"
+        },
+        "consultedOn": {
+          "description": "Optional date the external resource was consulted (ISO 8601, YYYY-MM-DD).",
+          "type": "string",
+          "format": "date"
+        },
+        "url": {
+          "description": "External resource URL. Required and must be https when scope = external. No third-party embeds (see ADR 0019): a link opens in a new tab.",
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "target": {
+          "description": "Internal chapter target. Required when scope = internal.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "subject", "slug"],
+          "properties": {
+            "level": { "$ref": "#/$defs/plainText" },
+            "subject": { "$ref": "#/$defs/plainText" },
+            "slug": { "$ref": "#/$defs/nodeId" },
+            "anchor": { "$ref": "#/$defs/nodeId" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["scope"], "properties": { "scope": { "const": "external" } } },
+          "then": { "required": ["url"] }
+        },
+        {
+          "if": { "required": ["scope"], "properties": { "scope": { "const": "internal" } } },
+          "then": { "required": ["target"] }
+        }
+      ]
+    },
+
+    "tableBlock": {
+      "description": "A data table (numeric, variation, conversion). Structure only — no styling, alignment, or colour.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "rows"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "table" },
+        "headers": {
+          "description": "Optional header cells for the first row.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/richText" }
+        },
+        "rows": {
+          "description": "Body rows; each row is an array of cells, in reading order.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/richText" }
+          }
+        },
+        "caption": { "$ref": "#/$defs/richText" }
+      }
+    },
+
+    "stepsBlock": {
+      "description": "A method laid out as numbered steps — the most requested format in maths. Each step is text with an optional inline formula.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "steps"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "steps" },
+        "title": { "$ref": "#/$defs/plainText" },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text"],
+            "properties": {
+              "text": { "$ref": "#/$defs/richText" },
+              "formula": {
+                "description": "Optional LaTeX for the step, rendered like a formula block.",
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "objectivesBlock": {
+      "description": "Chapter objectives, anchored in the competency referential (ADR 0009). Codes follow the referential grammar here; existence is validated against contenu.competences at publish time.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "competencies"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "objectives" },
+        "title": { "$ref": "#/$defs/plainText" },
+        "competencies": { "$ref": "#/$defs/competencies" }
+      }
+    },
+
     "unknownBlock": {
       "description": "Forward-compatibility fallback. A block whose 'type' is none of the known ones still validates as long as it carries an id and a string type. This is what makes adding a new block/exercise type additive rather than a migration.",
       "type": "object",
@@ -391,7 +517,11 @@
               "image",
               "callout",
               "code",
-              "exercise"
+              "exercise",
+              "reference",
+              "table",
+              "steps",
+              "objectives"
             ]
           }
         }
