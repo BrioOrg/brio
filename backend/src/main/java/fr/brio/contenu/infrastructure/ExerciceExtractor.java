@@ -19,12 +19,21 @@ import org.springframework.stereotype.Component;
  * convention repeated in two places (ADR 0019 §4).
  */
 @Component
-class ExerciceExtractor {
+public class ExerciceExtractor {
 
     private final ObjectMapper objectMapper;
 
-    ExerciceExtractor(ObjectMapper objectMapper) {
+    public ExerciceExtractor(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+    }
+
+    /**
+     * Extract a teacher-course version's exercises: every exercise gets a fresh UUID (versions
+     * are immutable) keyed on {@code (coursId, version)}. Returns the stripped content to store
+     * in {@code cours_versions}; the {@link Exercice} entities are appended to {@code out}.
+     */
+    public JsonNode extractForCoursVersion(JsonNode content, UUID coursId, int version, List<Exercice> out) {
+        return extract(content, new ExtractionOwner.CoursVersionOwner(coursId, version), out);
     }
 
     /**

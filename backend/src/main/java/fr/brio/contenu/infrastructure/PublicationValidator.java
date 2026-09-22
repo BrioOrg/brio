@@ -16,14 +16,14 @@ import org.springframework.stereotype.Component;
  * schema check runs first so later checks can assume a well-formed document.
  */
 @Component
-class PublicationValidator {
+public class PublicationValidator {
 
     private final ContentSchemaValidator schemaValidator;
     private final ContentReferentialValidator referentialValidator;
     private final ChapitreRepository chapitreRepository;
     private final ObjectMapper objectMapper;
 
-    PublicationValidator(
+    public PublicationValidator(
             ContentSchemaValidator schemaValidator,
             ContentReferentialValidator referentialValidator,
             ChapitreRepository chapitreRepository,
@@ -34,7 +34,7 @@ class PublicationValidator {
         this.objectMapper = objectMapper;
     }
 
-    void validate(JsonNode content) {
+    public void validate(JsonNode content) {
         schemaValidator.validate(content);
         referentialValidator.assertCompetenciesExist(content);
         for (JsonNode section : content.path("sections")) {
