@@ -61,6 +61,12 @@ class EvalChapitreAdapter implements ChapitreContentApi {
         }
     }
 
+    @Override
+    public Optional<ChapitreDocument> findCoursVersionPubliee(UUID coursId) {
+        // The eval harness reads catalogue chapters from git only — never teacher courses.
+        return Optional.empty();
+    }
+
     private ChapitreDocument toDocument(JsonNode doc) {
         String id = doc.path("id").asText();
         List<Section> sections = new ArrayList<>();
