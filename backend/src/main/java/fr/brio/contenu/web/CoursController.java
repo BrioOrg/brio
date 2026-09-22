@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api")
-@Tag(name = "Contenu", description = "Accès aux cours d'enseignant publiés")
+@Tag(name = "Contenu", description = "Accès aux chapitres de cours")
 class CoursController {
 
     private final CoursLectureService coursLectureService;

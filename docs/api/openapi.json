@@ -119,6 +119,85 @@
         }
       }
     },
+    "/api/cours/{coursId}/tuteur" : {
+      "post" : {
+        "tags" : [ "IA" ],
+        "summary" : "Pose une question au tuteur IA d'un cours d'enseignant",
+        "description" : "Même tuteur que pour un chapitre, sur la version publiée du cours. Réservé aux élèves des classes portées.",
+        "operationId" : "askCours",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TuteurRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Réponse du tuteur",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Requête invalide",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Cours non accessible à l'élève (hors portée)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Cours introuvable ou non publié",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/consentements/{token}/validation" : {
       "post" : {
         "tags" : [ "consentement-controller" ],
@@ -597,6 +676,65 @@
         }
       }
     },
+    "/api/cours/{coursId}" : {
+      "get" : {
+        "tags" : [ "Contenu" ],
+        "summary" : "Récupère un cours d'enseignant publié",
+        "description" : "Retourne la version publiée du cours, dans le même format qu'un chapitre de catalogue. Réservé aux élèves des classes portées. Les réponses correctes des exercices ne sont jamais incluses.",
+        "operationId" : "getCoursPublie",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Cours trouvé et accessible",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JsonNode"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JsonNode"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Cours non accessible à l'élève (hors portée)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JsonNode"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Cours introuvable ou non publié",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JsonNode"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/classes/{id}/inscriptions" : {
       "get" : {
         "tags" : [ "classe-controller" ],
@@ -902,6 +1040,34 @@
           }
         }
       },
+      "TuteurRequest" : {
+        "type" : "object",
+        "properties" : {
+          "question" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "exerciceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "question" ]
+      },
+      "TuteurResponse" : {
+        "type" : "object",
+        "properties" : {
+          "reponse" : {
+            "type" : "string"
+          },
+          "citations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
       "InscriptionEnseignantRequest" : {
         "type" : "object",
         "properties" : {
@@ -1113,34 +1279,6 @@
           },
           "classeLibelle" : {
             "type" : "string"
-          }
-        }
-      },
-      "TuteurRequest" : {
-        "type" : "object",
-        "properties" : {
-          "question" : {
-            "type" : "string",
-            "minLength" : 1
-          },
-          "exerciceId" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        },
-        "required" : [ "question" ]
-      },
-      "TuteurResponse" : {
-        "type" : "object",
-        "properties" : {
-          "reponse" : {
-            "type" : "string"
-          },
-          "citations" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
           }
         }
       },
