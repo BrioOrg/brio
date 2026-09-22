@@ -67,9 +67,10 @@ class ChapitreContentApiImpl implements ChapitreContentApi {
             return new ExerciseBlock(id, type, prompt, exerciceId);
         }
 
-        // prose/callout: "text"; formula: "latex"; image: "alt"
+        // prose/callout: "text"; formula: "latex"; reference/steps/objectives: "title"; image: "alt"
         String text = b.has("text") ? b.path("text").asText("")
                 : b.has("latex") ? b.path("latex").asText("")
+                : b.has("title") ? b.path("title").asText("")
                 : b.path("alt").asText("");
         return new TextBlock(id, type, text);
     }

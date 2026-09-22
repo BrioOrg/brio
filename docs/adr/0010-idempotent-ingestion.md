@@ -82,6 +82,21 @@ database is a projection and editorial decisions belong in Git.
 
 A `CHECK(statut IN ('published', 'draft'))` constraint is added in V6 to enforce the value set.
 
+### 6. Re-ingestion purges only catalogue-origin content
+
+Once teacher-authored courses exist (ADR 0019), content in `contenu` has two origins: the
+catalogue (source: Git `/content`, re-derivable) and teacher courses (source: applicative writes
+to `contenu.cours_versions`, **not** re-derivable). The "blank database + full re-ingestion" job —
+used in CI and for recovery — must therefore purge and rebuild **only** rows whose origin is
+`catalogue`. It must never delete a teacher's course.
+
+Idempotency, as defined by this ADR, is a property of catalogue content only: two runs on the same
+Git state produce identical *catalogue* state, and leave teacher content untouched. The day a
+rebuild script erases a course a teacher wrote the day before, trust does not come back. When the
+`origine` distinction lands with the F3 schema, the ingestion delete/upsert scope is narrowed to
+`origine = 'catalogue'`, and an integration test asserts a teacher course survives a full
+re-ingestion (ADR 0019 §8.6 verification).
+
 ## Consequences
 
 ### Positive

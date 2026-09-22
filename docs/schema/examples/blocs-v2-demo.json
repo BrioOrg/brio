@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "blocs-v2-demo",
+  "title": "Démonstration des blocs additifs (schéma v2)",
+  "subject": "mathematiques",
+  "level": "3e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 20,
+  "sections": [
+    {
+      "id": "objectifs-et-methode",
+      "title": "Objectifs et méthode",
+      "kind": "lesson",
+      "blocks": [
+        {
+          "id": "objectifs-chapitre",
+          "type": "objectives",
+          "title": "Ce que tu sauras faire",
+          "competencies": [
+            "c4.geo.pythagore.calculer",
+            "c4.geo.pythagore.reconnaitre-hypotenuse"
+          ]
+        },
+        {
+          "id": "methode-calcul-hypotenuse",
+          "type": "steps",
+          "title": "Calculer la longueur de l'hypoténuse",
+          "steps": [
+            { "text": "Repérer l'angle droit et nommer les deux côtés adjacents." },
+            {
+              "text": "Écrire l'égalité de Pythagore avec l'hypoténuse d'un côté.",
+              "formula": "BC^2 = AB^2 + AC^2"
+            },
+            { "text": "Remplacer par les valeurs connues, puis calculer la racine carrée." }
+          ]
+        },
+        {
+          "id": "table-valeurs",
+          "type": "table",
+          "headers": ["AB (cm)", "AC (cm)", "BC (cm)"],
+          "rows": [
+            ["3", "4", "5"],
+            ["6", "8", "10"]
+          ],
+          "caption": "Quelques triplets pythagoriciens usuels."
+        },
+        {
+          "id": "reference-eduscol",
+          "type": "reference",
+          "scope": "external",
+          "title": "Programme de mathématiques du cycle 4",
+          "source": "Éduscol",
+          "url": "https://eduscol.education.fr/",
+          "consultedOn": "2026-09-22"
+        }
+      ]
+    }
+  ]
+}
