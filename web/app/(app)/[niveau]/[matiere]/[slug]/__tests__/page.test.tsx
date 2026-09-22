@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@brio/api-client', () => ({
   createApiClient: vi.fn(),
+  // The page's SiteHeader renders the streak flame, which reads getSerie.
+  // Plain async fn (not vi.fn) so vi.resetAllMocks() in beforeEach can't wipe it.
+  getSerie: async () => null,
 }))
 
 vi.mock('@/lib/api', () => ({
