@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { soumettre, type SoumissionResult } from '@/lib/api'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
+import { useProgression } from '@/components/progression-context'
 import { OptionRow, type OptionState } from '@/components/ui/option-row'
 import { TextInput } from '@/components/ui/text-input'
 import { Button } from '@/components/ui/button'
@@ -131,11 +132,13 @@ export function ExerciceWidget({
   bank,
 }: ExerciceWidgetProps) {
   const { setActiveExerciceId } = useChapterInteraction()
+  const { refresh: refreshProgression } = useProgression()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [numericValue, setNumericValue] = useState('')
   const [shortAnswerText, setShortAnswerText] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<SoumissionResult | null>(null)
+  const [xpGain, setXpGain] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -228,6 +231,18 @@ export function ExerciceWidget({
     try {
       const res = await soumettre(exerciceId, answer)
       setResult(res)
+      // A correct answer may have awarded XP (asynchronously, ADR 0022). Re-read
+      // progression and surface the real gain — never a fixed number. Runs in the
+      // background so the feedback panel shows immediately.
+      if (res.correct === true) {
+        refreshProgression()
+          .then((delta) => {
+            if (delta > 0) setXpGain(delta)
+          })
+          .catch(() => {
+            // XP is non-critical feedback; a failed re-read just shows no gain.
+          })
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur réseau. Réessaie plus tard.')
     } finally {
@@ -237,6 +252,7 @@ export function ExerciceWidget({
 
   function reset() {
     setResult(null)
+    setXpGain(null)
     setSelectedIds([])
     setNumericValue('')
     setShortAnswerText('')
@@ -402,6 +418,7 @@ export function ExerciceWidget({
           result={result}
           exerciseType={exerciseType}
           staticExplanation={explanation}
+          xpGain={xpGain}
           onReset={reset}
         />
       )}
@@ -413,6 +430,8 @@ type ResultPanelProps = {
   result: SoumissionResult
   exerciseType: string
   staticExplanation?: string
+  /** Real XP awarded for this answer, or null when none (cap reached / already earned). */
+  xpGain?: number | null
   onReset: () => void
 }
 
@@ -433,7 +452,13 @@ const RESULT_CONFIG = {
   },
 } as const
 
-function ResultPanel({ result, exerciseType, staticExplanation, onReset }: ResultPanelProps) {
+function ResultPanel({
+  result,
+  exerciseType,
+  staticExplanation,
+  xpGain,
+  onReset,
+}: ResultPanelProps) {
   const isCorrect = result.correct === true
   const c = RESULT_CONFIG[isCorrect ? 'success' : 'failure']
 
@@ -458,7 +483,18 @@ function ResultPanel({ result, exerciseType, staticExplanation, onReset }: Resul
           <Icon name={c.icon} weight="bold" size={18} className="text-surface-page" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className={`font-display text-lg font-extrabold ${c.title}`}>{c.heading}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className={`font-display text-lg font-extrabold ${c.title}`}>{c.heading}</p>
+            {isCorrect && xpGain != null && xpGain > 0 && (
+              <span
+                className="xp-pop inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-display text-xs font-extrabold text-xp"
+                role="status"
+              >
+                <Icon name="star" weight="bold" size={14} className="text-xp" />+{xpGain}
+                &nbsp;XP
+              </span>
+            )}
+          </div>
           {explanation && (
             <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{explanation}</p>
           )}
