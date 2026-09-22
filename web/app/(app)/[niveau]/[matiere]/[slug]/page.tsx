@@ -104,6 +104,7 @@ export default async function ChapterPage({
 
   const crumbs: Crumb[] = [...nav.crumbs, { label: chapitre.title }]
   const railSections = chapitre.sections.map((s) => ({ id: s.id, title: s.title }))
+  const tutorTarget = { kind: 'chapitre' as const, niveau, matiere, slug }
 
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">
@@ -133,10 +134,10 @@ export default async function ChapterPage({
             </div>
           </main>
 
-          <ChapterRail sections={railSections} niveau={niveau} matiere={matiere} slug={slug} />
+          <ChapterRail sections={railSections} target={tutorTarget} />
         </div>
 
-        <ChapterToolsSheet sections={railSections} niveau={niveau} matiere={matiere} slug={slug} />
+        <ChapterToolsSheet sections={railSections} target={tutorTarget} />
       </ChapterInteractionProvider>
     </div>
   )

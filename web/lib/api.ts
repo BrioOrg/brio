@@ -70,6 +70,19 @@ export async function getChapitreByTriplet(
   return res.json() as Promise<ChapitreResponse>
 }
 
+/**
+ * A published teacher course, served in the exact same shape as a catalogue chapter
+ * (ADR 0019 §1) so it renders through the same <ChapterView/>. Unlike the public
+ * catalogue, this endpoint is scoped: the backend enforces the course's portées.
+ */
+export async function getCoursPublie(coursId: string): Promise<ChapitreResponse> {
+  const res = await fetch(`${API_URL}/api/cours/${encodeURIComponent(coursId)}`, {
+    headers: { Authorization: buildAuthHeader() },
+  })
+  if (!res.ok) throw new Error(`Cours indisponible: ${coursId}`)
+  return res.json() as Promise<ChapitreResponse>
+}
+
 // ---------------------------------------------------------------------------
 // Exercise submission
 // Dev-only scaffolding: credentials from env vars, replaced when the identite
@@ -123,16 +136,56 @@ export async function askTuteur(
   question: string,
   exerciceId: string | null
 ): Promise<TuteurReponse> {
+  return postTuteur(
+    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}/tuteur`,
+    question,
+    exerciceId
+  )
+}
+
+export async function askCoursTuteur(
+  coursId: string,
+  question: string,
+  exerciceId: string | null
+): Promise<TuteurReponse> {
+  return postTuteur(
+    `${API_URL}/api/cours/${encodeURIComponent(coursId)}/tuteur`,
+    question,
+    exerciceId
+  )
+}
+
+/**
+ * Where the tutor should answer from. Serializable (no functions) so a Server Component
+ * page can hand it to the client TuteurPanel across the RSC boundary. The tutor pipeline
+ * is identical for both origins — only the endpoint differs (ADR 0019 §1).
+ */
+export type TutorTarget =
+  | { kind: 'chapitre'; niveau: string; matiere: string; slug: string }
+  | { kind: 'cours'; coursId: string }
+
+export function askTuteurForTarget(
+  target: TutorTarget,
+  question: string,
+  exerciceId: string | null
+): Promise<TuteurReponse> {
+  return target.kind === 'chapitre'
+    ? askTuteur(target.niveau, target.matiere, target.slug, question, exerciceId)
+    : askCoursTuteur(target.coursId, question, exerciceId)
+}
+
+async function postTuteur(
+  url: string,
+  question: string,
+  exerciceId: string | null
+): Promise<TuteurReponse> {
   const body: Record<string, unknown> = { question }
   if (exerciceId) body.exerciceId = exerciceId
-  const res = await fetch(
-    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}/tuteur`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: buildAuthHeader() },
-      body: JSON.stringify(body),
-    }
-  )
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: buildAuthHeader() },
+    body: JSON.stringify(body),
+  })
   if (!res.ok) throw new Error('Erreur du tuteur')
   return TuteurResponseSchema.parse(await res.json())
 }

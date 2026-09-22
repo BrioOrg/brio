@@ -4,19 +4,18 @@ import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { RailContent, type RailSection } from '@/components/chapter-rail'
 import { Icon } from '@/components/ui/icon'
+import type { TutorTarget } from '@/lib/api'
 
 type ChapterToolsSheetProps = {
   sections: RailSection[]
-  niveau: string
-  matiere: string
-  slug: string
+  target: TutorTarget
 }
 
 /**
  * Below the desktop breakpoint the rail becomes a bottom sheet: a fixed trigger
  * bar raises a sheet carrying the same summary + tutor space. Nothing is lost.
  */
-export function ChapterToolsSheet({ sections, niveau, matiere, slug }: ChapterToolsSheetProps) {
+export function ChapterToolsSheet({ sections, target }: ChapterToolsSheetProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -50,13 +49,7 @@ export function ChapterToolsSheet({ sections, niveau, matiere, slug }: ChapterTo
                 <Icon name="x" size={18} aria-hidden="true" />
               </Dialog.Close>
             </div>
-            <RailContent
-              sections={sections}
-              niveau={niveau}
-              matiere={matiere}
-              slug={slug}
-              onNavigate={() => setOpen(false)}
-            />
+            <RailContent sections={sections} target={target} onNavigate={() => setOpen(false)} />
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
