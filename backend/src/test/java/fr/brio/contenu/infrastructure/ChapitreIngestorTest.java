@@ -57,8 +57,9 @@ class ChapitreIngestorTest {
         lenient().when(niveauRepository.existsById(any())).thenReturn(true);
         lenient().when(matiereRepository.existsById(any())).thenReturn(true);
         tx = new ChapitreIngestionTx(
-                chapitreRepository, exerciceRepository, competenceRepository,
-                niveauRepository, matiereRepository, validator, objectMapper, events);
+                chapitreRepository, exerciceRepository, niveauRepository, matiereRepository,
+                validator, new ContentReferentialValidator(competenceRepository),
+                new ExerciceExtractor(objectMapper), objectMapper, events);
     }
 
     @Test
@@ -120,7 +121,7 @@ class ChapitreIngestorTest {
     void shouldPreserveExerciseUuidsOnUpdate() throws Exception {
         JsonNode doc = loadFixture();
         UUID existingUuid = UUID.randomUUID();
-        Exercice existingEx = new Exercice(existingUuid, "theoreme-de-pythagore",
+        Exercice existingEx = Exercice.pourChapitre(existingUuid, "theoreme-de-pythagore",
                 "ex-reconnaitre-hypotenuse", "multiple-choice", "{}", List.of(), null);
 
         Chapitre existingChapter = new Chapitre("theoreme-de-pythagore", "{}", "3e", "mathematiques", 0, "published", "T", 0, "stale");
@@ -138,7 +139,7 @@ class ChapitreIngestorTest {
     @Test
     void shouldRetireExercisesRemovedFromFile() throws Exception {
         JsonNode doc = loadFixture();
-        Exercice orphan = new Exercice(UUID.randomUUID(), "theoreme-de-pythagore",
+        Exercice orphan = Exercice.pourChapitre(UUID.randomUUID(), "theoreme-de-pythagore",
                 "old-exercise-slug", "numeric", "{}", List.of(), null);
 
         Chapitre existingChapter = new Chapitre("theoreme-de-pythagore", "{}", "3e", "mathematiques", 0, "published", "T", 0, "stale");
