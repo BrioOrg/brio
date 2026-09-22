@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { askTuteur, type TuteurReponse } from '@/lib/api'
+import { askTuteurForTarget, type TutorTarget, type TuteurReponse } from '@/lib/api'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
@@ -16,12 +16,10 @@ const CAP_MESSAGE =
 type Message = { question: string; response: TuteurReponse }
 
 type TuteurPanelProps = {
-  niveau: string
-  matiere: string
-  slug: string
+  target: TutorTarget
 }
 
-export function TuteurPanel({ niveau, matiere, slug }: TuteurPanelProps) {
+export function TuteurPanel({ target }: TuteurPanelProps) {
   const { activeExerciceId } = useChapterInteraction()
   const [question, setQuestion] = useState('')
   const [history, setHistory] = useState<Message[]>([])
@@ -39,7 +37,7 @@ export function TuteurPanel({ niveau, matiere, slug }: TuteurPanelProps) {
     setError(null)
     setLoading(true)
     try {
-      const response = await askTuteur(niveau, matiere, slug, question, activeExerciceId)
+      const response = await askTuteurForTarget(target, question, activeExerciceId)
       setHistory((prev) => [...prev, { question, response }])
       setRequestCount((prev) => prev + 1)
       setQuestion('')

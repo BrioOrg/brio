@@ -8,6 +8,8 @@ import fr.brio.contenu.api.ChapitreDocument;
 import fr.brio.contenu.api.ExerciseBlock;
 import fr.brio.contenu.api.Section;
 import fr.brio.contenu.api.TextBlock;
+import fr.brio.contenu.domain.Cours;
+import fr.brio.contenu.domain.CoursVersionId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,10 +20,18 @@ import org.springframework.stereotype.Component;
 class ChapitreContentApiImpl implements ChapitreContentApi {
 
     private final ChapitreRepository chapitreRepository;
+    private final CoursRepository coursRepository;
+    private final CoursVersionRepository coursVersionRepository;
     private final ObjectMapper objectMapper;
 
-    ChapitreContentApiImpl(ChapitreRepository chapitreRepository, ObjectMapper objectMapper) {
+    ChapitreContentApiImpl(
+            ChapitreRepository chapitreRepository,
+            CoursRepository coursRepository,
+            CoursVersionRepository coursVersionRepository,
+            ObjectMapper objectMapper) {
         this.chapitreRepository = chapitreRepository;
+        this.coursRepository = coursRepository;
+        this.coursVersionRepository = coursVersionRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -29,14 +39,23 @@ class ChapitreContentApiImpl implements ChapitreContentApi {
     public Optional<ChapitreDocument> findByTriplet(String niveau, String matiere, String slug) {
         return chapitreRepository
                 .findByNiveauCodeAndMatiereCodeAndId(niveau, matiere, slug)
-                .map(ch -> {
-                    try {
-                        return toDocument(objectMapper.readTree(ch.getContent()));
-                    } catch (Exception e) {
-                        throw new IllegalStateException(
-                                "Stored chapter content is not valid JSON: " + slug, e);
-                    }
-                });
+                .map(ch -> parseDocument(ch.getContent(), "chapter " + slug));
+    }
+
+    @Override
+    public Optional<ChapitreDocument> findCoursVersionPubliee(UUID coursId) {
+        return coursRepository.findById(coursId)
+                .filter(c -> Cours.STATUT_PUBLIE.equals(c.getStatut()) && c.getVersionPubliee() != null)
+                .flatMap(c -> coursVersionRepository.findById(new CoursVersionId(coursId, c.getVersionPubliee())))
+                .map(v -> parseDocument(v.getContent(), "course version " + coursId));
+    }
+
+    private ChapitreDocument parseDocument(String content, String label) {
+        try {
+            return toDocument(objectMapper.readTree(content));
+        } catch (Exception e) {
+            throw new IllegalStateException("Stored content is not valid JSON: " + label, e);
+        }
     }
 
     private ChapitreDocument toDocument(JsonNode doc) {

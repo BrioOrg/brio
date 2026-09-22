@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -208,5 +209,28 @@ class TuteurServiceTest {
         assertThat(result.reponse()).isEqualTo(TuteurService.GENERIC_HINT);
         assertThat(result.citations()).isEmpty();
         verify(anthropicClient, times(2)).ask(anyString(), anyString(), anyString());
+    }
+
+    // A teacher course runs the exact same pipeline — only the origin resolution differs.
+    @Test
+    void shouldAnswerOverACourseResolvedFromTheCourseOrigin() {
+        UUID coursId = UUID.randomUUID();
+        when(chapitreContentApi.findCoursVersionPubliee(coursId)).thenReturn(Optional.of(doc));
+        when(anthropicClient.ask(anyString(), anyString(), anyString()))
+                .thenReturn(new TuteurModelResponse(true, "Le carré de l'hypoténuse.", List.of("enonce/intro")));
+
+        TuteurResult result = service.askCours(coursId, "Que dit le théorème ?", null);
+
+        assertThat(result.reponse()).isEqualTo("Le carré de l'hypoténuse.");
+        assertThat(result.citations()).containsExactly("enonce/intro");
+    }
+
+    @Test
+    void shouldThrowWhenCourseHasNoPublishedVersion() {
+        UUID coursId = UUID.randomUUID();
+        when(chapitreContentApi.findCoursVersionPubliee(coursId)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(CoursNotFoundException.class)
+                .isThrownBy(() -> service.askCours(coursId, "Une question", null));
     }
 }

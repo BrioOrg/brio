@@ -2,33 +2,38 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/lib/api', () => ({ askTuteur: vi.fn() }))
+vi.mock('@/lib/api', () => ({ askTuteurForTarget: vi.fn() }))
 vi.mock('@brio/api-client', () => ({ createApiClient: vi.fn() }))
 
 import { TuteurPanel } from '../tutor-panel'
 import { ChapterInteractionProvider } from '../chapter-interaction-context'
-import { askTuteur } from '@/lib/api'
+import { askTuteurForTarget, type TutorTarget } from '@/lib/api'
 
-const PROPS = { niveau: '3e', matiere: 'mathematiques', slug: 'theoreme-de-pythagore' }
+const TARGET: TutorTarget = {
+  kind: 'chapitre',
+  niveau: '3e',
+  matiere: 'mathematiques',
+  slug: 'theoreme-de-pythagore',
+}
 
 function renderPanel() {
   return render(
     <ChapterInteractionProvider>
-      <TuteurPanel {...PROPS} />
+      <TuteurPanel target={TARGET} />
     </ChapterInteractionProvider>
   )
 }
 
 describe('TuteurPanel', () => {
   beforeEach(() => {
-    vi.mocked(askTuteur).mockReset()
+    vi.mocked(askTuteurForTarget).mockReset()
   })
 
   it('does not send an empty question', async () => {
     const user = userEvent.setup()
     renderPanel()
     await user.click(screen.getByRole('button', { name: /envoyer/i }))
-    expect(askTuteur).not.toHaveBeenCalled()
+    expect(askTuteurForTarget).not.toHaveBeenCalled()
   })
 
   it('does not send a whitespace-only question', async () => {
@@ -36,12 +41,12 @@ describe('TuteurPanel', () => {
     renderPanel()
     await user.type(screen.getByLabelText('Ta question au tuteur'), '   ')
     await user.click(screen.getByRole('button', { name: /envoyer/i }))
-    expect(askTuteur).not.toHaveBeenCalled()
+    expect(askTuteurForTarget).not.toHaveBeenCalled()
   })
 
   it('renders a refusal as a normal non-alarming message', async () => {
     const REFUSAL = 'Je ne peux pas répondre à cette question à partir du contenu de ce chapitre.'
-    vi.mocked(askTuteur).mockResolvedValueOnce({ reponse: REFUSAL, citations: [] })
+    vi.mocked(askTuteurForTarget).mockResolvedValueOnce({ reponse: REFUSAL, citations: [] })
     const user = userEvent.setup()
     renderPanel()
     await user.type(screen.getByLabelText('Ta question au tuteur'), 'Hors sujet')
@@ -58,7 +63,7 @@ describe('TuteurPanel', () => {
     target.scrollIntoView = scrollIntoView
     document.body.appendChild(target)
 
-    vi.mocked(askTuteur).mockResolvedValueOnce({
+    vi.mocked(askTuteurForTarget).mockResolvedValueOnce({
       reponse: 'Voir la définition.',
       citations: ['enonce-du-theoreme/definition-hypotenuse'],
     })
@@ -83,7 +88,7 @@ describe('TuteurPanel — session cap', () => {
     vi.stubEnv('NEXT_PUBLIC_TUTEUR_REQUEST_CAP', '2')
 
     const mockAsk = vi.fn().mockResolvedValue({ reponse: 'OK', citations: [] })
-    vi.doMock('@/lib/api', () => ({ askTuteur: mockAsk }))
+    vi.doMock('@/lib/api', () => ({ askTuteurForTarget: mockAsk }))
 
     const { TuteurPanel: Panel } = await import('../tutor-panel')
     const { ChapterInteractionProvider: Provider } = await import('../chapter-interaction-context')
@@ -91,7 +96,7 @@ describe('TuteurPanel — session cap', () => {
     const user = userEvent.setup()
     render(
       <Provider>
-        <Panel {...PROPS} />
+        <Panel target={TARGET} />
       </Provider>
     )
 

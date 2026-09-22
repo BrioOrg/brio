@@ -128,6 +128,20 @@ class ProgressionServiceTest {
     }
 
     @Test
+    void exerciceDeCoursEnseignantDonneDeLXpMaisPasDeCompletion() {
+        // A teacher-course exercise carries no chapitreId (ADR 0019 §3, exercices.cours_version).
+        // It earns XP and mastery like any other exercise — the award path is origin-agnostic —
+        // but completion tracking is deferred (V26 note): a course has no parcours projection yet,
+        // so no exercices_reussis row is written and no 80 % gate is evaluated.
+        when(evenements.sommePointsPourEleve(eleve)).thenReturn(10);
+
+        service.attribuerPourSoumission(soumission(true, true)); // chapitreId == null
+
+        verify(evenements).save(any());                 // XP awarded
+        verify(exercicesReussis, never()).save(any());  // completion deferred
+    }
+
+    @Test
     void pourRetourneZeroQuandAucunSolde() {
         when(soldes.findById(eleve)).thenReturn(Optional.empty());
         assertThat(service.pour(eleve)).isEqualTo(new ProgressionInfo(0, 0));

@@ -1,16 +1,15 @@
 import { TuteurPanel } from '@/components/tutor-panel'
+import type { TutorTarget } from '@/lib/api'
 
 export type RailSection = { id: string; title: string }
 
 export type RailProps = {
   sections: RailSection[]
-  niveau: string
-  matiere: string
-  slug: string
+  target: TutorTarget
   onNavigate?: () => void
 }
 
-export function RailContent({ sections, niveau, matiere, slug, onNavigate }: RailProps) {
+export function RailContent({ sections, target, onNavigate }: RailProps) {
   return (
     <div className="flex flex-col gap-6">
       {sections.length > 1 && (
@@ -34,17 +33,17 @@ export function RailContent({ sections, niveau, matiere, slug, onNavigate }: Rai
         </nav>
       )}
 
-      <TuteurPanel niveau={niveau} matiere={matiere} slug={slug} />
+      <TuteurPanel target={target} />
     </div>
   )
 }
 
 /** Desktop sticky rail. */
-export function ChapterRail({ sections, niveau, matiere, slug }: Omit<RailProps, 'onNavigate'>) {
+export function ChapterRail({ sections, target }: Omit<RailProps, 'onNavigate'>) {
   return (
     <aside aria-label="Sommaire et tuteur" className="hidden lg:block">
       <div className="sticky top-[4.5rem] max-h-[calc(100vh-6rem)] overflow-y-auto pb-6">
-        <RailContent sections={sections} niveau={niveau} matiere={matiere} slug={slug} />
+        <RailContent sections={sections} target={target} />
       </div>
     </aside>
   )

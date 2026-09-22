@@ -49,10 +49,25 @@ public class TuteurService {
         this.systemPrompt = loadSystemPrompt();
     }
 
+    /** Tutor over a catalogue chapter, addressed by triplet. */
     public TuteurResult ask(String niveau, String matiere, String slug, String question, UUID exerciceId) {
         ChapitreDocument doc = chapitreContentApi.findByTriplet(niveau, matiere, slug)
                 .orElseThrow(() -> new ChapitreNotFoundException(niveau, matiere, slug));
+        return ask(doc, question, exerciceId);
+    }
 
+    /**
+     * Tutor over a published teacher course (ADR 0019 §1). Resolves the same typed document
+     * from the course origin and runs the identical gate pipeline — the tutor does not know
+     * or care which origin the document came from. Portée access is enforced by the caller.
+     */
+    public TuteurResult askCours(UUID coursId, String question, UUID exerciceId) {
+        ChapitreDocument doc = chapitreContentApi.findCoursVersionPubliee(coursId)
+                .orElseThrow(() -> new CoursNotFoundException(coursId));
+        return ask(doc, question, exerciceId);
+    }
+
+    private TuteurResult ask(ChapitreDocument doc, String question, UUID exerciceId) {
         String chapterContext = buildChapterContext(doc);
         String userContent = buildUserContent(question, exerciceId, doc);
 
