@@ -4,26 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.brio.contenu.ContenuService;
 import fr.brio.contenu.InvalidContentException;
 import fr.brio.contenu.api.ChapitrePublie;
 import fr.brio.contenu.domain.Chapitre;
-import fr.brio.contenu.domain.Competence;
 import fr.brio.contenu.domain.Exercice;
-import fr.brio.contenu.domain.Matiere;
-import fr.brio.contenu.domain.Niveau;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,28 +37,31 @@ class ChapitreIngestionTx {
 
     private final ChapitreRepository chapitreRepository;
     private final ExerciceRepository exerciceRepository;
-    private final CompetenceRepository competenceRepository;
     private final NiveauRepository niveauRepository;
     private final MatiereRepository matiereRepository;
     private final ContentSchemaValidator validator;
+    private final ContentReferentialValidator referentialValidator;
+    private final ExerciceExtractor exerciceExtractor;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher events;
 
     ChapitreIngestionTx(
             ChapitreRepository chapitreRepository,
             ExerciceRepository exerciceRepository,
-            CompetenceRepository competenceRepository,
             NiveauRepository niveauRepository,
             MatiereRepository matiereRepository,
             ContentSchemaValidator validator,
+            ContentReferentialValidator referentialValidator,
+            ExerciceExtractor exerciceExtractor,
             ObjectMapper objectMapper,
             ApplicationEventPublisher events) {
         this.chapitreRepository = chapitreRepository;
         this.exerciceRepository = exerciceRepository;
-        this.competenceRepository = competenceRepository;
         this.niveauRepository = niveauRepository;
         this.matiereRepository = matiereRepository;
         this.validator = validator;
+        this.referentialValidator = referentialValidator;
+        this.exerciceExtractor = exerciceExtractor;
         this.objectMapper = objectMapper;
         this.events = events;
     }
@@ -86,7 +81,7 @@ class ChapitreIngestionTx {
         }
 
         validator.validate(doc);
-        assertCompetenciesExist(doc);
+        referentialValidator.assertCompetenciesExist(doc);
         assertNiveauAndMatiereExist(doc);
 
         String titre = doc.get("title").asText();
@@ -100,7 +95,8 @@ class ChapitreIngestionTx {
                         .collect(Collectors.toMap(Exercice::getSlug, Exercice::getId));
 
         List<Exercice> newExercices = new ArrayList<>();
-        JsonNode contentDoc = buildContentDocument(doc, chapitreId, newExercices, existingUuids);
+        JsonNode contentDoc = exerciceExtractor.extract(
+                doc, new ExtractionOwner.CatalogueOwner(chapitreId, existingUuids), newExercices);
         String contentJson;
         try {
             contentJson = objectMapper.writeValueAsString(contentDoc);
@@ -172,36 +168,6 @@ class ChapitreIngestionTx {
         }
     }
 
-    private void assertCompetenciesExist(JsonNode rawDocument) {
-        Set<String> referenced = new TreeSet<>();
-        rawDocument.findValues("competencies")
-                .forEach(array -> array.forEach(code -> referenced.add(code.asText())));
-        if (referenced.isEmpty()) {
-            return;
-        }
-        List<Competence> found = competenceRepository.findAllById(referenced);
-        Set<String> foundCodes = found.stream()
-                .map(Competence::getCode)
-                .collect(HashSet::new, HashSet::add, HashSet::addAll);
-
-        Set<String> unknown = new TreeSet<>(referenced);
-        unknown.removeAll(foundCodes);
-        if (!unknown.isEmpty()) {
-            throw new InvalidContentException(
-                    "Unknown competency code(s), absent from the referential: " + String.join(", ", unknown));
-        }
-
-        Set<String> deprecated = found.stream()
-                .filter(Competence::isDeprecated)
-                .map(Competence::getCode)
-                .collect(TreeSet::new, TreeSet::add, TreeSet::addAll);
-        if (!deprecated.isEmpty()) {
-            throw new InvalidContentException(
-                    "Deprecated competency code(s) — content must reference only active codes: "
-                    + String.join(", ", deprecated));
-        }
-    }
-
     private void assertNiveauAndMatiereExist(JsonNode rawDocument) {
         String level = rawDocument.path("level").asText();
         String subject = rawDocument.path("subject").asText();
@@ -211,72 +177,6 @@ class ChapitreIngestionTx {
         if (!matiereRepository.existsById(subject)) {
             throw new InvalidContentException("Unknown matiere: '" + subject + "' — add it to contenu.matieres first");
         }
-    }
-
-    private JsonNode buildContentDocument(JsonNode rawDocument, String chapitreId,
-                                          List<Exercice> exercices, Map<String, UUID> existingUuids) {
-        ObjectNode doc = rawDocument.deepCopy();
-        ArrayNode sections = (ArrayNode) doc.get("sections");
-        for (JsonNode section : sections) {
-            ArrayNode blocks = (ArrayNode) section.get("blocks");
-            for (int i = 0; i < blocks.size(); i++) {
-                JsonNode block = blocks.get(i);
-                if ("exercise".equals(block.get("type").asText())) {
-                    ObjectNode stripped = extractExercice(block, chapitreId, exercices, existingUuids);
-                    blocks.set(i, stripped);
-                }
-            }
-        }
-        return doc;
-    }
-
-    private ObjectNode extractExercice(JsonNode block, String chapitreId,
-                                       List<Exercice> exercices, Map<String, UUID> existingUuids) {
-        String slug = block.get("id").asText();
-        String exerciseType = block.has("exerciseType") ? block.get("exerciseType").asText() : "unknown";
-        UUID exerciceId = existingUuids.getOrDefault(slug, UUID.randomUUID());
-
-        ObjectNode evaluation = objectMapper.createObjectNode();
-        for (String field : ContenuService.SENSITIVE_EVAL_FIELDS) {
-            if (block.has(field)) {
-                evaluation.set(field, block.get(field));
-            }
-        }
-        if (block.has("choices")) {
-            evaluation.set("choices", block.get("choices"));
-        }
-
-        List<String> competencies = new ArrayList<>();
-        if (block.has("competencies")) {
-            block.get("competencies").forEach(c -> competencies.add(c.asText()));
-        }
-
-        // Open enum; may be absent on a block. Null flows through to a "standard" weight later.
-        String difficulte = block.hasNonNull("difficulty") ? block.get("difficulty").asText() : null;
-
-        try {
-            exercices.add(new Exercice(
-                    exerciceId, chapitreId, slug, exerciseType,
-                    objectMapper.writeValueAsString(evaluation),
-                    competencies, difficulte));
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to serialize evaluation for exercise " + slug, e);
-        }
-
-        ObjectNode stripped = block.deepCopy();
-        ContenuService.SENSITIVE_EVAL_FIELDS.forEach(stripped::remove);
-
-        if (stripped.has("choices") && stripped.get("choices").isArray()) {
-            ArrayNode choices = (ArrayNode) stripped.get("choices");
-            for (int i = 0; i < choices.size(); i++) {
-                ObjectNode choice = choices.get(i).deepCopy();
-                choice.remove("correct");
-                choices.set(i, choice);
-            }
-        }
-
-        stripped.put("exerciceId", exerciceId.toString());
-        return stripped;
     }
 
     String computeHash(JsonNode document) {

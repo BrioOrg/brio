@@ -26,8 +26,16 @@ public class Exercice implements Persistable<UUID> {
     @Transient
     private boolean isNew = true;
 
-    @Column(name = "chapitre_id", nullable = false)
+    // Exactly one origin is set (V26 CHECK chk_exercices_origine): a catalogue chapter
+    // (chapitreId) OR a teacher-course version (coursId + coursVersion), never both.
+    @Column(name = "chapitre_id")
     private String chapitreId;
+
+    @Column(name = "cours_id")
+    private UUID coursId;
+
+    @Column(name = "cours_version")
+    private Integer coursVersion;
 
     @Column(nullable = false)
     private String slug;
@@ -53,15 +61,30 @@ public class Exercice implements Persistable<UUID> {
 
     protected Exercice() {}
 
-    public Exercice(UUID id, String chapitreId, String slug, String type, String evaluation,
-                    List<String> competencies, String difficulte) {
+    private Exercice(UUID id, String chapitreId, UUID coursId, Integer coursVersion, String slug,
+                     String type, String evaluation, List<String> competencies, String difficulte) {
         this.id = id;
         this.chapitreId = chapitreId;
+        this.coursId = coursId;
+        this.coursVersion = coursVersion;
         this.slug = slug;
         this.type = type;
         this.evaluation = evaluation;
         this.competencies = competencies != null ? competencies : List.of();
         this.difficulte = difficulte;
+    }
+
+    /** Exercise belonging to a catalogue chapter (source: Git ingestion, ADR 0010). */
+    public static Exercice pourChapitre(UUID id, String chapitreId, String slug, String type,
+                                        String evaluation, List<String> competencies, String difficulte) {
+        return new Exercice(id, chapitreId, null, null, slug, type, evaluation, competencies, difficulte);
+    }
+
+    /** Exercise belonging to an immutable teacher-course version (source: publish, ADR 0019). */
+    public static Exercice pourCoursVersion(UUID id, UUID coursId, int coursVersion, String slug,
+                                            String type, String evaluation, List<String> competencies,
+                                            String difficulte) {
+        return new Exercice(id, null, coursId, coursVersion, slug, type, evaluation, competencies, difficulte);
     }
 
     @PostLoad
@@ -83,6 +106,8 @@ public class Exercice implements Persistable<UUID> {
     @Override public boolean isNew() { return isNew; }
     @Override public UUID getId() { return id; }
     public String getChapitreId() { return chapitreId; }
+    public UUID getCoursId() { return coursId; }
+    public Integer getCoursVersion() { return coursVersion; }
     public String getSlug() { return slug; }
     public String getType() { return type; }
     public String getEvaluation() { return evaluation; }

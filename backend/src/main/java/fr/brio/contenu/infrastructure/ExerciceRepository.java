@@ -11,4 +11,6 @@ public interface ExerciceRepository extends JpaRepository<Exercice, UUID> {
     Optional<Exercice> findByChapitreIdAndSlug(String chapitreId, String slug);
 
     List<Exercice> findByChapitreId(String chapitreId);
+
+    List<Exercice> findByCoursId(UUID coursId);
 }

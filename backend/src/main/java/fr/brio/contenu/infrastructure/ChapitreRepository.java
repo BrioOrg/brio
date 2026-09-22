@@ -11,4 +11,7 @@ public interface ChapitreRepository extends JpaRepository<Chapitre, String> {
 
     Optional<Chapitre> findByNiveauCodeAndMatiereCodeAndId(
             String niveauCode, String matiereCode, String id);
+
+    Optional<Chapitre> findByNiveauCodeAndMatiereCodeAndIdAndStatut(
+            String niveauCode, String matiereCode, String id, String statut);
 }
