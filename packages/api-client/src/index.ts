@@ -11,5 +11,13 @@ export {
   InscriptionEleveEnAttenteInfoSchema,
 } from './enrollment.js'
 export type { InscriptionEleveEnAttenteInfo, InscrireEleveInput } from './enrollment.js'
-export { getProgression, ProgressionInfoSchema } from './progression.js'
-export type { ProgressionInfo } from './progression.js'
+export {
+  getProgression,
+  ProgressionInfoSchema,
+  getParcours,
+  ParcoursChapitreSchema,
+  ParcoursSchema,
+  getSerie,
+  SerieInfoSchema,
+} from './progression.js'
+export type { ProgressionInfo, ParcoursChapitre, SerieInfo } from './progression.js'

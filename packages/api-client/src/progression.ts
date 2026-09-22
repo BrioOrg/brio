@@ -39,3 +39,66 @@ export async function getProgression(baseUrl: string): Promise<ProgressionInfo |
   if (!res.ok) throw new Error('Impossible de récupérer la progression.')
   return ProgressionInfoSchema.parse(await res.json())
 }
+
+/**
+ * One chapter's state on the student's path (fr.brio.progression.api.ParcoursChapitre,
+ * issue #79/#82). `chapitreId` joins to the public catalogue's `slug` (both are the
+ * chapter id server-side). `etat` is kept as a string on purpose so the client does
+ * not break if the backend adds a state it does not yet branch on — unknown values
+ * fall back to a neutral, reachable node rather than a fabricated lock.
+ */
+export const ParcoursChapitreSchema = z.object({
+  chapitreId: z.string(),
+  ordre: z.number(),
+  etat: z.string(),
+  pourcentage: z.number(),
+})
+
+export type ParcoursChapitre = z.infer<typeof ParcoursChapitreSchema>
+
+export const ParcoursSchema = z.array(ParcoursChapitreSchema)
+
+/**
+ * Return the path state of a niveau/matière track for the authenticated student,
+ * or null when not logged in (401) — a logged-out visitor sees a neutral atlas
+ * (all chapters reachable, no fabricated locks or completion).
+ */
+export async function getParcours(
+  baseUrl: string,
+  niveau: string,
+  matiere: string
+): Promise<ParcoursChapitre[] | null> {
+  const res = await fetch(
+    `${baseUrl}/api/progression/parcours/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}`,
+    { credentials: 'include' }
+  )
+  if (res.status === 401) return null
+  if (!res.ok) throw new Error('Impossible de récupérer le parcours.')
+  return ParcoursSchema.parse(await res.json())
+}
+
+/**
+ * A student's day streak (fr.brio.progression.api.SerieInfo, issue #81).
+ * `joursConsecutifs` is the live value decayed to today — a broken streak reads
+ * 0, and the UI hides the flame at 0 (never "0 jour"). `dernierJourActif` is left
+ * unvalidated because the UI doesn't use it and its JSON shape (date) is not worth
+ * pinning here.
+ */
+export const SerieInfoSchema = z.object({
+  joursConsecutifs: z.number(),
+  dernierJourActif: z.unknown().nullish(),
+  gelsRestants: z.number(),
+  actifAujourdhui: z.boolean(),
+})
+
+export type SerieInfo = z.infer<typeof SerieInfoSchema>
+
+/**
+ * Return the authenticated student's day streak, or null when not logged in (401).
+ */
+export async function getSerie(baseUrl: string): Promise<SerieInfo | null> {
+  const res = await fetch(`${baseUrl}/api/progression/serie`, { credentials: 'include' })
+  if (res.status === 401) return null
+  if (!res.ok) throw new Error('Impossible de récupérer la série.')
+  return SerieInfoSchema.parse(await res.json())
+}

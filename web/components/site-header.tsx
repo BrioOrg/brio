@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Icon } from '@/components/ui/icon'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { XpBadge } from '@/components/xp-badge'
+import { StreakBadge } from '@/components/streak-badge'
 
 export type Crumb = { label: string; href?: string }
 
@@ -70,6 +71,7 @@ export function SiteHeader({ crumbs = [] }: { crumbs?: Crumb[] }) {
         )}
 
         <div className="ml-auto flex shrink-0 items-center gap-3">
+          <StreakBadge />
           <XpBadge />
           <ThemeToggle />
         </div>

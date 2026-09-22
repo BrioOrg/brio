@@ -78,3 +78,56 @@
 .xp-pop {
   animation: xpPop var(--duration-slow) var(--ease-spring);
 }
+
+/* Atlas parcours (issue #79). The active node bobs its coach bubble and pulses a
+   ring; both are pure motion (no design values) and the global reduced-motion
+   rule clamps them. */
+@keyframes atlasBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes atlasPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.atlas-bubble {
+  animation: atlasBob 1.4s ease-in-out infinite;
+}
+
+/* Dashed serpentine trail running down the centre of the atlas. Colour is the
+   line token; the geometry carries no design values. */
+.atlas-trail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 3px dashed var(--color-line);
+  transform: translateX(-1.5px);
+  z-index: 0;
+}
+
+/* Pulsing halo behind the active hexagon. The hexagon clip matches the node. */
+.atlas-pulse::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  clip-path: polygon(25% 2%, 75% 2%, 100% 50%, 75% 98%, 25% 98%, 0 50%);
+  background: var(--color-accent);
+  opacity: 0.22;
+  animation: atlasPulse 1.7s var(--ease-out) infinite;
+  z-index: -1;
+}
