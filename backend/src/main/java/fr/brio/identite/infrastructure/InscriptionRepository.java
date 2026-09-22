@@ -9,4 +9,6 @@ import java.util.UUID;
 
 public interface InscriptionRepository extends JpaRepository<Inscription, InscriptionId> {
     List<Inscription> findByIdClasseId(UUID classeId);
+
+    List<Inscription> findByIdCompteId(UUID compteId);
 }
