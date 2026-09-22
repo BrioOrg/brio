@@ -160,7 +160,13 @@ function ChapterNode({
       </Hexagon>
     )
 
-  // Caption: title + a short, real status line.
+  // A completion bar is shown when the real percentage is known (#82): done
+  // chapters read 100 %, in-progress ones their live value. Locked/neutral
+  // chapters have no real percentage, so no bar — never a fabricated 0/100.
+  const showBar = state === 'fait' || state === 'en_cours'
+  const pct = state === 'fait' ? 100 : pourcentage
+
+  // A short status line, also used as the link's accessible name.
   const status =
     state === 'fait'
       ? 'Terminé'
@@ -168,7 +174,7 @@ function ChapterNode({
         ? 'Verrouillé'
         : state === 'en_cours'
           ? pourcentage > 0
-            ? `En cours · ${pourcentage} %`
+            ? `${pourcentage} % effectués`
             : 'À commencer'
           : `Lecture ≈ ${chapter.dureeEstimeeMinutes} min`
 
@@ -179,7 +185,11 @@ function ChapterNode({
       >
         {chapter.titre}
       </span>
-      <span className="mt-0.5 font-prose text-xs text-ink-muted">{status}</span>
+      {showBar ? (
+        <ProgressBar value={pct} label={status} />
+      ) : (
+        <span className="mt-0.5 font-prose text-xs text-ink-muted">{status}</span>
+      )}
     </span>
   )
 
@@ -210,6 +220,24 @@ function ChapterNode({
       {hex}
       {caption}
     </Link>
+  )
+}
+
+function ProgressBar({ value, label }: { value: number; label: string }) {
+  return (
+    <span className="mt-1.5 flex w-full flex-col items-center gap-1">
+      <span
+        className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised"
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Avancement ${value} %`}
+      >
+        <span className="block h-full rounded-full bg-accent" style={{ width: `${value}%` }} />
+      </span>
+      <span className="font-prose text-xs text-ink-muted">{label}</span>
+    </span>
   )
 }
 

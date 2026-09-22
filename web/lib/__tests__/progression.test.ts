@@ -28,19 +28,21 @@ describe('progression client', () => {
   })
 
   it('sends the session cookie (credentials: include)', async () => {
-    const fetchMock = vi.fn(
-      async (_url: string, _init?: RequestInit) =>
-        new Response(JSON.stringify({ xpTotal: 0, niveau: 0 }), {
+    let captured: { url: string; init?: RequestInit } | undefined
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        captured = { url, init }
+        return new Response(JSON.stringify({ xpTotal: 0, niveau: 0 }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         })
+      })
     )
-    vi.stubGlobal('fetch', fetchMock)
     const { getProgression } = await import('@/lib/progression')
     await getProgression()
-    const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toMatch(/\/api\/progression\/moi$/)
-    expect(init?.credentials).toBe('include')
+    expect(captured?.url).toMatch(/\/api\/progression\/moi$/)
+    expect(captured?.init?.credentials).toBe('include')
   })
 
   it('returns null when the student is not logged in (401)', async () => {

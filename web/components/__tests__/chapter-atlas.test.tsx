@@ -57,16 +57,22 @@ describe('ChapterAtlas', () => {
     await waitFor(() => expect(screen.getByText('Terminé')).toBeInTheDocument())
     expect(screen.getByRole('link', { name: /Nombres relatifs/i })).toBeInTheDocument()
 
-    // Active chapter: link, "EN ROUTE" bubble and the real percentage.
+    // Active chapter: link, "EN ROUTE" bubble and the real percentage (#82).
     expect(screen.getByText('EN ROUTE')).toBeInTheDocument()
-    expect(screen.getByText(/En cours · 40 %/)).toBeInTheDocument()
+    expect(screen.getByText('40 % effectués')).toBeInTheDocument()
 
     // Banner points at the active chapter.
     expect(screen.getByText('Chapitre 2')).toBeInTheDocument()
 
-    // Locked chapter: NOT a link, and labelled locked.
+    // Real completion bars: done = 100, in-progress = 40 (#82).
+    const bars = screen.getAllByRole('progressbar')
+    const values = bars.map((b) => b.getAttribute('aria-valuenow')).sort()
+    expect(values).toEqual(['100', '40'])
+
+    // Locked chapter: NOT a link, labelled locked, and NO fabricated bar.
     expect(screen.queryByRole('link', { name: /Pythagore/i })).toBeNull()
     expect(screen.getByLabelText(/Pythagore — verrouillé/i)).toBeInTheDocument()
+    expect(bars).toHaveLength(2) // only fait + en_cours, never the locked one
   })
 
   it('falls back to a neutral node for an unknown state code', async () => {
