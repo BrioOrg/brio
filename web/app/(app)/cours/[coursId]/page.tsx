@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers'
 import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
 import { getCoursPublie } from '@/lib/api'
 import { SiteHeader } from '@/components/site-header'
@@ -11,9 +12,13 @@ import { ChapterInteractionProvider } from '@/components/chapter-interaction-con
 export default async function CoursPage({ params }: { params: Promise<{ coursId: string }> }) {
   const { coursId } = await params
 
+  // The course endpoint is authenticated + portée-scoped: forward the student's session
+  // cookie so the server-side fetch is made as the logged-in student, not anonymously.
+  const cookieHeader = (await cookies()).toString()
+
   let cours: ChapitreResponse | null = null
   try {
-    cours = await getCoursPublie(coursId)
+    cours = await getCoursPublie(coursId, cookieHeader)
   } catch {
     cours = null
   }

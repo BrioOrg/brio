@@ -73,11 +73,13 @@ export async function getChapitreByTriplet(
 /**
  * A published teacher course, served in the exact same shape as a catalogue chapter
  * (ADR 0019 §1) so it renders through the same <ChapterView/>. Unlike the public
- * catalogue, this endpoint is scoped: the backend enforces the course's portées.
+ * catalogue, this endpoint is scoped: the backend enforces the course's portées, so the
+ * caller must be an authenticated student. Fetched in a Server Component, which has no
+ * browser cookie of its own — the page forwards the incoming session cookie via `cookie`.
  */
-export async function getCoursPublie(coursId: string): Promise<ChapitreResponse> {
+export async function getCoursPublie(coursId: string, cookie?: string): Promise<ChapitreResponse> {
   const res = await fetch(`${API_URL}/api/cours/${encodeURIComponent(coursId)}`, {
-    headers: { Authorization: buildAuthHeader() },
+    headers: cookie ? { Cookie: cookie } : { Authorization: buildAuthHeader() },
   })
   if (!res.ok) throw new Error(`Cours indisponible: ${coursId}`)
   return res.json() as Promise<ChapitreResponse>
