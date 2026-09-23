@@ -158,9 +158,89 @@ function BlockRenderer({ block }: { block: Block }) {
     case 'exercise':
       return <ExerciseBlock id={block.id} block={block} />
 
+    case 'steps':
+      return <StepsBlock id={block.id} block={block} />
+
+    case 'objectives':
+      return <ObjectivesBlock id={block.id} block={block} />
+
     default:
       return null
   }
+}
+
+function ObjectivesBlock({ id, block }: { id: string; block: Block }) {
+  const title = block.title as string | undefined
+  // Objectifs en texte libre écrits par l'enseignant. (Les compétences codées du référentiel,
+  // block.competencies, sont un affichage séparé qui viendra avec les libellés du référentiel.)
+  const items = (Array.isArray(block.items) ? block.items : []).filter(
+    (it): it is string => typeof it === 'string' && it.trim().length > 0,
+  )
+  if (items.length === 0) return null
+  return (
+    <div id={id} className="rounded-lg border border-accent-edge bg-accent-soft p-4">
+      <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-accent-ink">
+        {title && title.trim() ? title : 'Ce que tu vas savoir faire'}
+      </p>
+      <ul className="flex flex-col gap-1.5">
+        {items.map((item, i) => (
+          <li key={i} className="flex items-start gap-2 font-prose text-base leading-relaxed text-ink">
+            <span className="mt-1 shrink-0 text-accent-ink" aria-hidden="true">
+              <Icon name="check" size={15} weight="bold" />
+            </span>
+            <span className="min-w-0">
+              <RichTextRenderer text={item} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function StepsBlock({ id, block }: { id: string; block: Block }) {
+  const title = block.title as string | undefined
+  const steps = (Array.isArray(block.steps) ? block.steps : []) as {
+    text: string
+    formula?: string
+  }[]
+  return (
+    <div id={id} className="rounded-lg border border-line bg-surface-panel p-4">
+      <p className="mb-3 font-display text-xs font-extrabold uppercase tracking-widest text-accent-ink">
+        {title && title.trim() ? <RichTextRenderer text={title} /> : 'Exemple'}
+      </p>
+      <ol className="flex flex-col gap-3">
+        {steps.map((step, i) => (
+          <li key={i} className="flex gap-3">
+            <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft font-display text-xs font-extrabold text-accent-ink">
+              {i + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-prose text-base leading-relaxed text-ink">
+                <RichTextRenderer text={step.text} />
+              </p>
+              {step.formula && <StepFormula latex={step.formula} />}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
+function StepFormula({ latex }: { latex: string }) {
+  // KaTeX output is trusted: content comes from the reviewed content pipeline, never user input.
+  const html = katex.renderToString(latex, {
+    throwOnError: false,
+    output: 'htmlAndMathml',
+    displayMode: true,
+  })
+  return (
+    <div
+      className="mt-1 overflow-x-auto py-1 text-ink"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  )
 }
 
 function ExerciseBlock({ id, block }: { id: string; block: Block }) {
