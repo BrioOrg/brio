@@ -40,6 +40,17 @@ describe('middleware', () => {
     expect(res.status).not.toBe(302)
   })
 
+  it('redirige /prof vers /connexion sans session', () => {
+    const res = middleware(makeRequest('/prof'))
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toContain('from=%2Fprof')
+  })
+
+  it('passe /prof avec session', () => {
+    const res = middleware(makeRequest('/prof', true))
+    expect(res.status).not.toBe(302)
+  })
+
   it('redirige les sous-chemins proteges', () => {
     const res = middleware(makeRequest('/profil/parametres'))
     expect(res.status).toBe(302)

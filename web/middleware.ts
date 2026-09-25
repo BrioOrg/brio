@@ -9,7 +9,7 @@ import type { NextRequest } from 'next/server'
  * The middleware is a UX guard, not a security boundary. Spring Security is
  * the enforcement point; this just avoids showing a broken page.
  */
-const PROTECTED_PREFIXES = ['/ma-classe', '/profil', '/tableau-de-bord', '/enseignant']
+const PROTECTED_PREFIXES = ['/ma-classe', '/profil', '/tableau-de-bord', '/enseignant', '/prof']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
