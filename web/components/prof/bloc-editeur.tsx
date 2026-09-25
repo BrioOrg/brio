@@ -502,7 +502,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               />
             </label>
             <div className="flex flex-wrap gap-2">
-              <label className="flex min-w-[8rem] flex-1 flex-col gap-1">
+              <label className="flex min-w-32 flex-1 flex-col gap-1">
                 <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
                   Source (facultatif)
                 </span>
@@ -535,7 +535,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               catalogue.
             </p>
             <div className="flex flex-wrap gap-2">
-              <label className="flex min-w-[7rem] flex-1 flex-col gap-1">
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
                 <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
                   Niveau
                 </span>
@@ -547,7 +547,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   placeholder="Ex. 6e"
                 />
               </label>
-              <label className="flex min-w-[7rem] flex-1 flex-col gap-1">
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
                 <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
                   Matière
                 </span>
@@ -561,7 +561,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               </label>
             </div>
             <div className="flex flex-wrap gap-2">
-              <label className="flex min-w-[7rem] flex-1 flex-col gap-1">
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
                 <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
                   Chapitre (slug)
                 </span>
@@ -573,7 +573,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   placeholder="Ex. theoreme-de-pythagore"
                 />
               </label>
-              <label className="flex min-w-[7rem] flex-1 flex-col gap-1">
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
                 <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
                   Ancre (facultatif)
                 </span>
