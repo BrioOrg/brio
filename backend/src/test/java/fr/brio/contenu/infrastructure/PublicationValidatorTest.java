@@ -100,15 +100,15 @@ class PublicationValidatorTest {
 
     @Test
     void shouldBlockPublicationWhenFigureHasNoAltText() throws Exception {
-        // A 'figure' block is not in the backend schema yet, so it validates as an unknown
-        // block and would slip past the schema — the explicit alt check must still catch it.
+        // Since #119 the backend consumes the canonical schema, which makes 'alt' required on
+        // figure blocks. A figure with no textual equivalent (ADR 0013) is therefore rejected
+        // at the schema layer, before the reference/referential checks run.
         String figureNoAlt = """
                 { "id": "fig1", "type": "figure", "caption": "Un schéma" }
                 """;
         assertThatThrownBy(() -> validator.validate(doc(figureNoAlt)))
                 .isInstanceOf(InvalidContentException.class)
-                .hasMessageContaining("Missing alt text")
-                .hasMessageContaining("fig1");
+                .hasMessageContaining("alt");
     }
 
     @Test
