@@ -25,15 +25,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
  * HTTP wiring of the teacher authoring endpoints (ADR 0019 §4): a teacher creates, saves, scopes
  * and publishes a course; ownership and role are enforced. The teacher↔class link
- * ({@code enseignant_principal_id}) has no service path yet, so it is set directly here — that
- * assignment is separate "auth prof" work; this test proves the controller given the link exists.
+ * ({@code enseignant_principal_id}) is set through {@link ClasseService#assignerEnseignantPrincipal}.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -44,7 +42,6 @@ class ProfCoursControllerIntegrationTest {
     @Autowired ClasseService classeService;
     @Autowired CompteService compteService;
     @Autowired CoursEditionService coursEditionService;
-    @Autowired JdbcTemplate jdbc;
     @Autowired ObjectMapper objectMapper;
 
     MockMvc mockMvc;
@@ -58,13 +55,11 @@ class ProfCoursControllerIntegrationTest {
 
         var etab = classeService.creerEtablissement(
                 "Collège Test", null, "college", LocalDate.now().minusYears(1), "CONV-2025");
-        classeA = classeService.creerClasse(etab.id(), "3e", "3e A", "2025-2026");
+        classeA = classeService.creerClasse(etab.id(), "3e", "3e A", "2025-2026", null);
 
         // A real, active teacher account — StatutCheckFilter re-checks statut on every request.
         teacher = creerEnseignant();
-        // No service assigns a principal teacher yet; wire the link at the persistence level.
-        jdbc.update("UPDATE identite.classes SET enseignant_principal_id = ? WHERE id = ?",
-                teacher, classeA.id());
+        classeService.assignerEnseignantPrincipal(classeA.id(), teacher);
     }
 
     private UUID creerEnseignant() {

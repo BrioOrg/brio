@@ -1,6 +1,10 @@
 package fr.brio.identite.infrastructure;
 
+import fr.brio.identite.ClasseService;
+import fr.brio.identite.api.EtablissementInfo;
 import fr.brio.identite.domain.Compte;
+import java.time.LocalDate;
+import java.util.UUID;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +38,15 @@ class LocalAccountSeeder implements ApplicationRunner {
     private static final String DEV_PASSWORD = "password";
 
     private final CompteRepository comptes;
+    private final ClasseRepository classes;
+    private final ClasseService classeService;
     private final PasswordEncoder passwordEncoder;
 
-    LocalAccountSeeder(CompteRepository comptes, PasswordEncoder passwordEncoder) {
+    LocalAccountSeeder(CompteRepository comptes, ClasseRepository classes,
+                       ClasseService classeService, PasswordEncoder passwordEncoder) {
         this.comptes = comptes;
+        this.classes = classes;
+        this.classeService = classeService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -48,6 +57,26 @@ class LocalAccountSeeder implements ApplicationRunner {
         seed("prof.demo", () -> Compte.creerEnseignant("prof.demo", hash, "Prof Démo", "prof.demo@brio.local"));
         seed("admin.demo", () -> Compte.creerAdminBrio("admin.demo", hash, "Admin Démo", "admin.demo@brio.local"));
         seed("eleve.demo", () -> creerEleveActif(hash));
+
+        seedClasseDemo();
+    }
+
+    /**
+     * Gives prof.demo a class they are the enseignant_principal of, so they immediately have a
+     * non-empty établissement (derived from their classes) and can create/publish a course.
+     * Idempotent: skips when prof.demo already runs a class.
+     */
+    private void seedClasseDemo() {
+        UUID profId = comptes.findByIdentifiantConnexion("prof.demo")
+                .map(Compte::getId)
+                .orElse(null);
+        if (profId == null || !classes.findByEnseignantPrincipalId(profId).isEmpty()) {
+            return;
+        }
+        EtablissementInfo etab = classeService.creerEtablissement(
+                "Collège Démo", null, "college", LocalDate.now().minusYears(1), "CONV-DEMO");
+        classeService.creerClasse(etab.id(), "3e", "3e Démo", "2026-2027", profId);
+        log.info("Seeded demo class '3e Démo' for prof.demo — local profile");
     }
 
     /** Path B élève, activated directly — dev fixture bypasses the parental consent step. */

@@ -24,7 +24,14 @@ class ClasseController {
     @ResponseStatus(HttpStatus.CREATED)
     ClasseInfo creer(@Valid @RequestBody CreerClasseRequest req) {
         return classeService.creerClasse(
-                req.etablissementId(), req.niveauCode(), req.libelle(), req.anneeScolaire());
+                req.etablissementId(), req.niveauCode(), req.libelle(), req.anneeScolaire(),
+                req.enseignantPrincipalId());
+    }
+
+    @PutMapping("/{id}/enseignant-principal")
+    ClasseInfo assignerEnseignant(@PathVariable UUID id,
+                                  @Valid @RequestBody AssignerEnseignantRequest req) {
+        return classeService.assignerEnseignantPrincipal(id, req.enseignantId());
     }
 
     @PostMapping("/{id}/codes")
