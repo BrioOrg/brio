@@ -8,13 +8,7 @@
 // Les types de blocs que l'afficheur élève sait rendre AUJOURD'HUI (chapter-view.tsx). On s'y
 // limite volontairement : inutile de laisser écrire des blocs qui n'apparaîtraient pas.
 export type BlocType =
-  | 'heading'
-  | 'prose'
-  | 'objectives'
-  | 'formula'
-  | 'callout'
-  | 'steps'
-  | 'exercise'
+  'heading' | 'prose' | 'objectives' | 'formula' | 'callout' | 'steps' | 'exercise'
 
 /** Une étape d'un bloc « exemple en étapes » : un texte, et éventuellement une formule. */
 export type Etape = { text: string; formula?: string }
@@ -242,5 +236,96 @@ export function resumeBrouillon(b: Brouillon): { parties: number; blocs: number 
   return {
     parties: b.sections.length,
     blocs: b.sections.reduce((n, s) => n + s.blocks.length, 0),
+  }
+}
+
+// --- Pont avec le serveur (ADR 0019 §1) -------------------------------------
+// Le contenu d'un cours est un document du même schéma que <ChapterView/>. On envoie ce
+// document au serveur et on le relit tel quel : les champs de tenue locale (misAJour…) ne
+// font pas partie du schéma et ne voyagent donc pas.
+
+/** Le document de contenu tel que le serveur le stocke et que l'afficheur élève le rend. */
+export type CoursContent = {
+  schemaVersion: number
+  id: string
+  title: string
+  subject?: string
+  level?: string
+  sections: Section[]
+}
+
+/** Extrait du brouillon le seul document de contenu (sans les champs de tenue locale). */
+export function contenuDepuisBrouillon(b: Brouillon): CoursContent {
+  return {
+    schemaVersion: b.schemaVersion,
+    id: b.id,
+    title: b.title,
+    ...(b.subject ? { subject: b.subject } : {}),
+    ...(b.level ? { level: b.level } : {}),
+    sections: b.sections,
+  }
+}
+
+/**
+ * Reconstruit un brouillon éditable depuis le contenu renvoyé par le serveur. `coursId` (l'id
+ * serveur) devient l'id du document ; `titre` fait foi (il vit dans une colonne à part). Un
+ * contenu vide (cours fraîchement créé) démarre sur une première partie prête à remplir.
+ */
+export function brouillonDepuisContenu(
+  coursId: string,
+  titre: string,
+  content: unknown
+): Brouillon {
+  const doc = (content && typeof content === 'object' ? content : {}) as Partial<CoursContent>
+  const sections =
+    Array.isArray(doc.sections) && doc.sections.length > 0
+      ? (doc.sections as Section[])
+      : [nouvelleSection('lesson')]
+  return {
+    schemaVersion: typeof doc.schemaVersion === 'number' ? doc.schemaVersion : 1,
+    id: coursId,
+    title: titre,
+    subject: doc.subject,
+    level: doc.level,
+    sections,
+  }
+}
+
+// --- Tampon local par cours (résilience) ------------------------------------
+// À côté de l'enregistrement serveur (débounce), on écrit chaque frappe dans un tampon local
+// indexé par l'id serveur du cours. Il survit à un rechargement entre deux enregistrements et
+// n'est effacé qu'une fois la synchronisation serveur confirmée.
+const CLE_TAMPON = 'brio.prof.tampon.'
+
+/** Le brouillon en tampon pour ce cours, ou null. */
+export function lireTampon(coursId: string): Brouillon | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const brut = window.localStorage.getItem(CLE_TAMPON + coursId)
+    if (!brut) return null
+    const b = JSON.parse(brut) as Brouillon
+    return b && Array.isArray(b.sections) ? b : null
+  } catch {
+    return null
+  }
+}
+
+/** Écrit (horodaté) le brouillon en tampon pour ce cours. */
+export function ecrireTampon(b: Brouillon): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(CLE_TAMPON + b.id, JSON.stringify({ ...b, misAJour: maintenant() }))
+  } catch {
+    // Quota plein ou stockage indisponible : on ignore (le serveur reste la source de vérité).
+  }
+}
+
+/** Efface le tampon d'un cours (après une synchronisation serveur réussie). */
+export function effacerTampon(coursId: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(CLE_TAMPON + coursId)
+  } catch {
+    // Ignoré.
   }
 }
