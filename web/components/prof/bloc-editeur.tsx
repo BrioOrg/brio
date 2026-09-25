@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 
 import { ChampFormule } from '@/components/maths/champ-formule'
+import { FigureEditeur } from '@/components/prof/figure-editeur'
 import { CALLOUT_VARIANTES, genId, type Bloc, type Choix, type Etape } from '@/lib/cours-editeur'
 
 // Édition « dans la page » (piste A) : chaque bloc s'écrit là où il s'affichera, sans fiche ni
@@ -254,9 +255,342 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
       )
     }
 
+    case 'table':
+      return <TableEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+
+    case 'reference':
+      return <ReferenceEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+
+    case 'figure':
+      return <FigureEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+
     case 'exercise':
       return <ExerciceEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
   }
+}
+
+// --- Tableau ------------------------------------------------------------------
+// En-têtes (facultatives) + lignes + légende. Structure seule : aucune couleur, aucun alignement
+// (le schéma n'a pas ces champs). Les cellules acceptent le balisage inline (**gras**, $formule$),
+// rendu à l'aperçu élève par le même parseur que la prose.
+
+function TableEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const headers = Array.isArray(bloc.headers) ? (bloc.headers as string[]) : null
+  const rows = (Array.isArray(bloc.rows) ? bloc.rows : [['']]) as string[][]
+  const avecEntetes = headers !== null
+  const nbColonnes = avecEntetes ? headers.length : (rows[0]?.length ?? 1)
+
+  const maj = (patch: { headers?: string[] | null; rows?: string[][] }) => {
+    const next: Record<string, unknown> = {}
+    if ('headers' in patch) next.headers = patch.headers === null ? undefined : patch.headers
+    if (patch.rows) next.rows = patch.rows
+    onModifier(next)
+  }
+
+  const majEntete = (c: number, v: string) =>
+    maj({ headers: (headers ?? []).map((h, j) => (j === c ? v : h)) })
+  const majCellule = (r: number, c: number, v: string) =>
+    maj({ rows: rows.map((row, i) => (i === r ? row.map((x, j) => (j === c ? v : x)) : row)) })
+
+  const ajouterColonne = () =>
+    maj({
+      headers: avecEntetes ? [...(headers as string[]), ''] : undefined,
+      rows: rows.map((row) => [...row, '']),
+    })
+  const supprimerColonne = (c: number) =>
+    maj({
+      headers: avecEntetes ? (headers as string[]).filter((_, j) => j !== c) : undefined,
+      rows: rows.map((row) => row.filter((_, j) => j !== c)),
+    })
+  const ajouterLigne = () => maj({ rows: [...rows, Array.from({ length: nbColonnes }, () => '')] })
+  const supprimerLigne = (r: number) => maj({ rows: rows.filter((_, i) => i !== r) })
+
+  const basculerEntetes = () =>
+    maj({ headers: avecEntetes ? null : Array.from({ length: nbColonnes }, () => '') })
+
+  return (
+    <div className="rounded-lg border border-line bg-surface-panel p-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+          Tableau
+        </span>
+        <label className="flex shrink-0 items-center gap-1.5 font-prose text-xs text-ink-muted">
+          <input
+            type="checkbox"
+            checked={avecEntetes}
+            onChange={basculerEntetes}
+            className="accent-accent"
+          />
+          Ligne d’en-têtes
+        </label>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          {avecEntetes && (
+            <thead>
+              <tr>
+                {(headers as string[]).map((h, c) => (
+                  <th key={c} className="border border-line bg-surface-page p-1">
+                    <input
+                      className={`${inline} font-display text-sm font-extrabold text-ink`}
+                      value={h}
+                      onChange={(e) => majEntete(c, e.target.value)}
+                      onFocus={onFocusBloc}
+                      placeholder={`Colonne ${c + 1}`}
+                      aria-label={`En-tête colonne ${c + 1}`}
+                    />
+                  </th>
+                ))}
+                <th className="w-8" aria-hidden="true" />
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {rows.map((row, r) => (
+              <tr key={r} className="group/row">
+                {row.map((cell, c) => (
+                  <td key={c} className="border border-line p-1">
+                    <input
+                      className={`${inline} font-prose text-sm text-ink`}
+                      value={cell}
+                      onChange={(e) => majCellule(r, c, e.target.value)}
+                      onFocus={onFocusBloc}
+                      placeholder="…"
+                      aria-label={`Ligne ${r + 1}, colonne ${c + 1}`}
+                    />
+                  </td>
+                ))}
+                <td className="w-8 text-center align-middle">
+                  <button
+                    type="button"
+                    aria-label={`Supprimer la ligne ${r + 1}`}
+                    onClick={() => supprimerLigne(r)}
+                    disabled={rows.length <= 1}
+                    className="text-ink-muted opacity-0 hover:text-danger disabled:opacity-30 group-hover/row:opacity-100"
+                  >
+                    ✕
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-4">
+        <button
+          type="button"
+          onClick={ajouterLigne}
+          className="font-display text-sm font-bold text-accent-ink hover:underline"
+        >
+          ＋ Ligne
+        </button>
+        <button
+          type="button"
+          onClick={ajouterColonne}
+          className="font-display text-sm font-bold text-accent-ink hover:underline"
+        >
+          ＋ Colonne
+        </button>
+        {nbColonnes > 1 && (
+          <button
+            type="button"
+            onClick={() => supprimerColonne(nbColonnes - 1)}
+            className="font-display text-sm font-bold text-ink-muted hover:text-danger"
+          >
+            − Colonne
+          </button>
+        )}
+      </div>
+
+      <div className="mt-3 border-t border-line pt-3">
+        <ZoneAuto
+          value={(bloc.caption as string) ?? ''}
+          onChange={(v) => onModifier({ caption: v || undefined })}
+          onFocus={onFocusBloc}
+          placeholder="Légende du tableau (facultatif)"
+          className="font-prose text-sm leading-relaxed text-ink-muted"
+        />
+      </div>
+    </div>
+  )
+}
+
+// --- Référence ----------------------------------------------------------------
+// Externe (titre + URL https, ouverte dans un nouvel onglet) ou interne (cible level/subject/slug
+// + ancre). La résolution des cibles internes est vérifiée à la publication (PublicationValidator) :
+// ici on saisit librement, un lien cassé bloquera la publication avec un message clair.
+
+type Cible = { level?: string; subject?: string; slug?: string; anchor?: string }
+
+const champRef =
+  'w-full rounded-md border border-line bg-surface-page px-2 py-1 font-prose text-sm text-ink focus:border-accent focus:outline-none'
+
+function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const scope = (bloc.scope as string) === 'internal' ? 'internal' : 'external'
+  const target = (bloc.target ?? {}) as Cible
+
+  const majCible = (patch: Partial<Cible>) => {
+    const suivant = { ...target, ...patch }
+    // Retire les champs vides : l'ancre est facultative et une chaîne vide n'est pas dans le schéma.
+    const nettoye: Cible = {}
+    for (const [k, v] of Object.entries(suivant)) {
+      if (typeof v === 'string' && v.trim()) nettoye[k as keyof Cible] = v
+    }
+    onModifier({ target: nettoye })
+  }
+
+  const changerScope = (s: 'external' | 'internal') => {
+    if (s === scope) return
+    if (s === 'external')
+      onModifier({ scope: 'external', url: (bloc.url as string) ?? '', target: undefined })
+    else onModifier({ scope: 'internal', target, url: undefined })
+  }
+
+  return (
+    <div className="rounded-lg border border-line bg-surface-panel p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <span className="font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+          Référence
+        </span>
+        <div className="flex rounded-md border border-line bg-surface-page p-0.5">
+          {(['external', 'internal'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => changerScope(s)}
+              aria-pressed={scope === s}
+              className={`rounded-[6px] px-3 py-1 font-display text-xs font-bold ${
+                scope === s ? 'bg-surface-panel text-ink shadow-sm' : 'text-ink-muted'
+              }`}
+            >
+              {s === 'external' ? 'Ressource externe' : 'Chapitre de la plateforme'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="flex flex-col gap-1">
+          <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+            Titre
+          </span>
+          <input
+            className={champRef}
+            value={(bloc.title as string) ?? ''}
+            onChange={(e) => onModifier({ title: e.target.value })}
+            onFocus={onFocusBloc}
+            placeholder="Ex. Manuel Sésamath — Théorème de Pythagore"
+          />
+        </label>
+
+        {scope === 'external' ? (
+          <>
+            <label className="flex flex-col gap-1">
+              <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+                URL (https)
+              </span>
+              <input
+                type="url"
+                inputMode="url"
+                className={champRef}
+                value={(bloc.url as string) ?? ''}
+                onChange={(e) => onModifier({ url: e.target.value })}
+                onFocus={onFocusBloc}
+                placeholder="https://…"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <label className="flex min-w-32 flex-1 flex-col gap-1">
+                <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+                  Source (facultatif)
+                </span>
+                <input
+                  className={champRef}
+                  value={(bloc.source as string) ?? ''}
+                  onChange={(e) => onModifier({ source: e.target.value || undefined })}
+                  onFocus={onFocusBloc}
+                  placeholder="Ex. Sésamath"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+                  Consulté le (facultatif)
+                </span>
+                <input
+                  type="date"
+                  className={champRef}
+                  value={(bloc.consultedOn as string) ?? ''}
+                  onChange={(e) => onModifier({ consultedOn: e.target.value || undefined })}
+                  onFocus={onFocusBloc}
+                />
+              </label>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="font-prose text-xs text-ink-muted">
+              La cible est vérifiée à la publication : elle doit désigner un chapitre publié du
+              catalogue.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
+                <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+                  Niveau
+                </span>
+                <input
+                  className={champRef}
+                  value={target.level ?? ''}
+                  onChange={(e) => majCible({ level: e.target.value })}
+                  onFocus={onFocusBloc}
+                  placeholder="Ex. 6e"
+                />
+              </label>
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
+                <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+                  Matière
+                </span>
+                <input
+                  className={champRef}
+                  value={target.subject ?? ''}
+                  onChange={(e) => majCible({ subject: e.target.value })}
+                  onFocus={onFocusBloc}
+                  placeholder="Ex. mathematiques"
+                />
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
+                <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+                  Chapitre (slug)
+                </span>
+                <input
+                  className={champRef}
+                  value={target.slug ?? ''}
+                  onChange={(e) => majCible({ slug: e.target.value })}
+                  onFocus={onFocusBloc}
+                  placeholder="Ex. theoreme-de-pythagore"
+                />
+              </label>
+              <label className="flex min-w-28 flex-1 flex-col gap-1">
+                <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+                  Ancre (facultatif)
+                </span>
+                <input
+                  className={champRef}
+                  value={target.anchor ?? ''}
+                  onChange={(e) => majCible({ anchor: e.target.value })}
+                  onFocus={onFocusBloc}
+                  placeholder="Ex. enonce"
+                />
+              </label>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // --- Éditeurs d'exercice, un par type -----------------------------------------

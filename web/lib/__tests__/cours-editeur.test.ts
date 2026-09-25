@@ -42,6 +42,9 @@ describe('nouveauBloc', () => {
     'formula',
     'callout',
     'steps',
+    'table',
+    'reference',
+    'figure',
     'exercise',
   ]
 
@@ -100,6 +103,25 @@ describe('nouveauBloc', () => {
   it('crée un encadré « définition » par défaut', () => {
     expect(nouveauBloc('callout').variant).toBe('definition')
   })
+
+  it('crée un tableau 2×1 avec en-têtes et une ligne de corps', () => {
+    const t = nouveauBloc('table')
+    expect(t.headers).toEqual(['', ''])
+    expect(t.rows).toEqual([['', '']])
+  })
+
+  it('crée une référence externe par défaut', () => {
+    const r = nouveauBloc('reference')
+    expect(r.scope).toBe('external')
+    expect(r).toHaveProperty('url')
+    expect(r).not.toHaveProperty('target')
+  })
+
+  it('crée une figure avec un alt vide et une spec valide vide', () => {
+    const f = nouveauBloc('figure')
+    expect(f.alt).toBe('')
+    expect(f.spec).toEqual({ points: [], segments: [] })
+  })
 })
 
 describe('deplacer', () => {
@@ -150,6 +172,22 @@ describe('apercuBloc', () => {
     expect(
       apercuBloc({ id: '1', type: 'objectives', title: '', items: ['Calculer une longueur'] })
     ).toBe('Calculer une longueur')
+  })
+
+  it('résume une référence par son titre, une figure par son alt', () => {
+    expect(
+      apercuBloc({ id: '1', type: 'reference', scope: 'external', title: 'Sésamath', url: '' })
+    ).toBe('Sésamath')
+    expect(apercuBloc({ id: '2', type: 'figure', alt: 'Triangle en A', spec: {} })).toBe(
+      'Triangle en A'
+    )
+  })
+
+  it('résume un tableau par sa légende ou sa première cellule', () => {
+    expect(apercuBloc({ id: '1', type: 'table', caption: 'Conversions', rows: [['km']] })).toBe(
+      'Conversions'
+    )
+    expect(apercuBloc({ id: '2', type: 'table', rows: [['Longueur', 'm']] })).toBe('Longueur')
   })
 
   it('tronque les contenus longs', () => {

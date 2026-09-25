@@ -82,3 +82,93 @@ describe('BlocEditeur — numérique', () => {
     expect(etat()).not.toHaveProperty('answer')
   })
 })
+
+// Harnais générique pour les blocs non-exercice : on part d'un bloc neuf du type demandé.
+function HarnaisBloc({ type }: { type: Parameters<typeof nouveauBloc>[0] }) {
+  const [bloc, setBloc] = useState<Bloc>(() => nouveauBloc(type))
+  return (
+    <>
+      <BlocEditeur bloc={bloc} onModifier={(patch) => setBloc((b) => ({ ...b, ...patch }))} />
+      <output data-testid="etat">{JSON.stringify(bloc)}</output>
+    </>
+  )
+}
+
+describe('BlocEditeur — tableau', () => {
+  it('édite une cellule, ajoute une ligne et une colonne', async () => {
+    render(<HarnaisBloc type="table" />)
+
+    await userEvent.type(screen.getByLabelText('Ligne 1, colonne 1'), 'Longueur')
+    await userEvent.click(screen.getByRole('button', { name: '＋ Ligne' }))
+    await userEvent.click(screen.getByRole('button', { name: '＋ Colonne' }))
+
+    const b = etat()
+    expect((b.rows as string[][]).length).toBe(2)
+    expect((b.rows as string[][])[0].length).toBe(3)
+    expect((b.headers as string[]).length).toBe(3)
+    expect((b.rows as string[][])[0][0]).toBe('Longueur')
+  })
+
+  it('retire la ligne d’en-têtes', async () => {
+    render(<HarnaisBloc type="table" />)
+    await userEvent.click(screen.getByLabelText('Ligne d’en-têtes'))
+    expect(etat()).not.toHaveProperty('headers')
+  })
+})
+
+describe('BlocEditeur — référence', () => {
+  it('saisit une référence externe (titre + url https)', async () => {
+    render(<HarnaisBloc type="reference" />)
+
+    await userEvent.type(screen.getByPlaceholderText('https://…'), 'https://example.org')
+    const b = etat()
+    expect(b.scope).toBe('external')
+    expect(b.url).toBe('https://example.org')
+  })
+
+  it('bascule en interne et saisit une cible', async () => {
+    render(<HarnaisBloc type="reference" />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Chapitre de la plateforme' }))
+    await userEvent.type(screen.getByPlaceholderText('Ex. 6e'), '6e')
+    await userEvent.type(screen.getByPlaceholderText('Ex. mathematiques'), 'mathematiques')
+    await userEvent.type(screen.getByPlaceholderText('Ex. theoreme-de-pythagore'), 'pythagore')
+
+    const b = etat()
+    expect(b.scope).toBe('internal')
+    expect(b.target).toMatchObject({ level: '6e', subject: 'mathematiques', slug: 'pythagore' })
+    expect(b).not.toHaveProperty('url')
+  })
+})
+
+describe('BlocEditeur — figure', () => {
+  it('exige un alt et construit une spec point par point', async () => {
+    render(<HarnaisBloc type="figure" />)
+
+    await userEvent.type(
+      screen.getByLabelText('Texte alternatif de la figure'),
+      'Triangle rectangle en A'
+    )
+    await userEvent.click(screen.getByRole('button', { name: '＋ Point' }))
+
+    const b = etat()
+    expect(b.alt).toBe('Triangle rectangle en A')
+    const points = (b.spec as { points: { name: string }[] }).points
+    expect(points).toHaveLength(1)
+    expect(points[0].name).toBe('A')
+  })
+
+  it('relie deux points par un segment', async () => {
+    render(<HarnaisBloc type="figure" />)
+
+    await userEvent.click(screen.getByRole('button', { name: '＋ Point' }))
+    await userEvent.click(screen.getByRole('button', { name: '＋ Point' }))
+    await userEvent.click(screen.getByRole('button', { name: '＋ Segment' }))
+
+    await userEvent.selectOptions(screen.getByLabelText('Segment 1 — départ'), 'A')
+    await userEvent.selectOptions(screen.getByLabelText('Segment 1 — arrivée'), 'B')
+
+    const segs = (etat().spec as { segments: { from: string; to: string }[] }).segments
+    expect(segs[0]).toEqual({ from: 'A', to: 'B' })
+  })
+})

@@ -114,3 +114,93 @@ describe('ChapterView — formula blocks', () => {
     expect(container.querySelector('.katex-error')).not.toBeNull()
   })
 })
+
+describe('ChapterView — table block', () => {
+  it('renders headers, rows and caption with richText in cells', () => {
+    const { container, getByText } = render(
+      <ChapterView
+        chapitre={makeChapter([
+          {
+            id: 't1',
+            type: 'table',
+            headers: ['Grandeur', 'Symbole'],
+            rows: [['Longueur', '$L$'], ['Masse', 'm']],
+            caption: 'Unités **usuelles**',
+          },
+        ])}
+      />
+    )
+    expect(container.querySelectorAll('thead th')).toHaveLength(2)
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(2)
+    getByText('Longueur')
+    // richText: the caption bold and the math cell both render
+    expect(container.querySelector('caption strong')?.textContent).toBe('usuelles')
+    expect(container.querySelector('.katex')).not.toBeNull()
+  })
+
+  it('renders a headerless table (no thead)', () => {
+    const { container } = render(
+      <ChapterView
+        chapitre={makeChapter([{ id: 't2', type: 'table', rows: [['a', 'b']] }])}
+      />
+    )
+    expect(container.querySelector('thead')).toBeNull()
+    expect(container.querySelectorAll('tbody td')).toHaveLength(2)
+  })
+})
+
+describe('ChapterView — reference block', () => {
+  it('renders an external reference as a new-tab https link', () => {
+    const { getByRole } = render(
+      <ChapterView
+        chapitre={makeChapter([
+          {
+            id: 'r1',
+            type: 'reference',
+            scope: 'external',
+            title: 'Sésamath',
+            url: 'https://example.org/cours',
+            source: 'Sésamath',
+            consultedOn: '2026-09-01',
+          },
+        ])}
+      />
+    )
+    const link = getByRole('link', { name: /Sésamath/ })
+    expect(link).toHaveAttribute('href', 'https://example.org/cours')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('renders an internal reference as a semantic-URL link with anchor', () => {
+    const { getByRole } = render(
+      <ChapterView
+        chapitre={makeChapter([
+          {
+            id: 'r2',
+            type: 'reference',
+            scope: 'internal',
+            title: 'Voir Pythagore',
+            target: { level: '6e', subject: 'mathematiques', slug: 'pythagore', anchor: 'enonce' },
+          },
+        ])}
+      />
+    )
+    expect(getByRole('link', { name: /Voir Pythagore/ })).toHaveAttribute(
+      'href',
+      '/6e/mathematiques/pythagore#enonce'
+    )
+  })
+
+  it('renders no dead link when an internal target is incomplete', () => {
+    const { container, getByText } = render(
+      <ChapterView
+        chapitre={makeChapter([
+          { id: 'r3', type: 'reference', scope: 'internal', title: 'Cible à définir', target: {} },
+        ])}
+      />
+    )
+    expect(container.querySelector('a')).toBeNull()
+    getByText('Cible à définir')
+  })
+})
