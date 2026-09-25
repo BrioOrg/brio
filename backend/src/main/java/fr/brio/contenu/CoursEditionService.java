@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,6 +118,26 @@ public class CoursEditionService {
         coursRepository.save(cours);
 
         return new PublicationResult(coursId, version);
+    }
+
+    /** A teacher's own courses, most recently touched first (the "Mes cours" listing). */
+    @Transactional(readOnly = true)
+    public List<Cours> listerCoursDe(UUID auteurId) {
+        return coursRepository.findByAuteurIdOrderByUpdatedAtDesc(auteurId);
+    }
+
+    /** Load a course for editing, refusing the caller if they are not its author. */
+    @Transactional(readOnly = true)
+    public Cours chargerBrouillon(UUID coursId, UUID auteurId) {
+        return chargerEnVerifiantProprietaire(coursId, auteurId);
+    }
+
+    /** The classes a course is currently scoped to (empty before any {@code definirPortees}). */
+    @Transactional(readOnly = true)
+    public Set<UUID> porteesDe(UUID coursId) {
+        return coursPorteeRepository.findByIdCoursId(coursId).stream()
+                .map(CoursPortee::getClasseId)
+                .collect(Collectors.toSet());
     }
 
     /** Load a course, refusing the caller if they are not its author. */

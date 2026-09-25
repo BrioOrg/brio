@@ -2,9 +2,14 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
   apercuBloc,
+  brouillonDepuisContenu,
   chargerBrouillon,
+  contenuDepuisBrouillon,
   deplacer,
+  ecrireTampon,
+  effacerTampon,
   enregistrerBrouillon,
+  lireTampon,
   listerBrouillons,
   nouveauBloc,
   nouveauBrouillon,
@@ -90,7 +95,7 @@ describe('deplacer', () => {
 describe('apercuBloc', () => {
   it('résume le contenu réel en retirant le balisage', () => {
     expect(apercuBloc({ id: '1', type: 'prose', text: 'Dans un **triangle** rectangle' })).toBe(
-      'Dans un triangle rectangle',
+      'Dans un triangle rectangle'
     )
   })
 
@@ -100,16 +105,21 @@ describe('apercuBloc', () => {
 
   it('résume un bloc « étapes » par son titre ou sa première étape', () => {
     expect(apercuBloc({ id: '1', type: 'steps', title: 'Calculer BC', steps: [] })).toBe(
-      'Calculer BC',
+      'Calculer BC'
     )
     expect(
-      apercuBloc({ id: '2', type: 'steps', title: '', steps: [{ text: 'On applique le théorème' }] }),
+      apercuBloc({
+        id: '2',
+        type: 'steps',
+        title: '',
+        steps: [{ text: 'On applique le théorème' }],
+      })
     ).toBe('On applique le théorème')
   })
 
   it('résume un bloc « objectifs » par son premier objectif', () => {
     expect(
-      apercuBloc({ id: '1', type: 'objectives', title: '', items: ['Calculer une longueur'] }),
+      apercuBloc({ id: '1', type: 'objectives', title: '', items: ['Calculer une longueur'] })
     ).toBe('Calculer une longueur')
   })
 
@@ -165,5 +175,65 @@ describe('collection « Mes cours » (localStorage)', () => {
     expect(liste).toHaveLength(1)
     expect(liste[0].title).toBe('Ancien cours')
     expect(window.localStorage.getItem('brio.prof.brouillon')).toBeNull()
+  })
+})
+
+describe('pont serveur (contenu ↔ brouillon)', () => {
+  it('extrait le document de contenu sans les champs de tenue locale', () => {
+    const b = nouveauBrouillon()
+    b.title = 'Pythagore'
+    b.misAJour = 123
+    const content = contenuDepuisBrouillon(b)
+    expect(content).toEqual({
+      schemaVersion: 1,
+      id: b.id,
+      title: 'Pythagore',
+      sections: b.sections,
+    })
+    expect(content).not.toHaveProperty('misAJour')
+  })
+
+  it('n’inclut subject/level que s’ils sont renseignés', () => {
+    const b = { ...nouveauBrouillon(), subject: 'mathematiques', level: '3e' }
+    expect(contenuDepuisBrouillon(b)).toMatchObject({ subject: 'mathematiques', level: '3e' })
+  })
+
+  it('reconstruit un brouillon depuis le contenu serveur, titre serveur faisant foi', () => {
+    const content = {
+      schemaVersion: 1,
+      id: 'ancien-id',
+      title: 'Ancien titre',
+      sections: [{ id: 's1', title: 'Leçon', kind: 'lesson', blocks: [] }],
+    }
+    const b = brouillonDepuisContenu('cours-uuid', 'Titre serveur', content)
+    expect(b.id).toBe('cours-uuid')
+    expect(b.title).toBe('Titre serveur')
+    expect(b.sections).toHaveLength(1)
+  })
+
+  it('démarre sur une première partie quand le contenu est vide', () => {
+    const b = brouillonDepuisContenu('cours-uuid', 'Neuf', null)
+    expect(b.sections).toHaveLength(1)
+    expect(b.sections[0].kind).toBe('lesson')
+  })
+})
+
+describe('tampon local par cours', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  it('écrit, relit (horodaté) puis efface un tampon', () => {
+    const b = { ...nouveauBrouillon(), id: 'cours-uuid', title: 'En cours' }
+    ecrireTampon(b)
+    const relu = lireTampon('cours-uuid')
+    expect(relu?.title).toBe('En cours')
+    expect(relu?.misAJour).toBeTypeOf('number')
+    effacerTampon('cours-uuid')
+    expect(lireTampon('cours-uuid')).toBeNull()
+  })
+
+  it('renvoie null pour un cours sans tampon', () => {
+    expect(lireTampon('inconnu')).toBeNull()
   })
 })

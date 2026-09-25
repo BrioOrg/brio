@@ -306,6 +306,19 @@ public class ClasseService {
                 e.getConventionSigneeLe(), e.getConventionReference(), e.peutUtiliserPathA());
     }
 
+    /**
+     * The active classes the given teacher is the principal of, as labelled infos — the set a
+     * teacher may scope a course to (ADR 0019 §4). Mirrors {@code EnseignantContexteQuery} but
+     * returns labels for the publish screen's class picker, not bare IDs.
+     */
+    @Transactional(readOnly = true)
+    public List<ClasseInfo> classesDeLEnseignant(UUID enseignantId) {
+        return classes.findByEnseignantPrincipalId(enseignantId).stream()
+                .filter(c -> c.getStatut() == StatutClasse.active)
+                .map(ClasseService::toClasseInfo)
+                .toList();
+    }
+
     private static ClasseInfo toClasseInfo(Classe c) {
         return new ClasseInfo(c.getId(), c.getEtablissementId(), c.getNiveauCode(),
                 c.getLibelle(), c.getAnneeScolaire(), c.getStatut().name(),

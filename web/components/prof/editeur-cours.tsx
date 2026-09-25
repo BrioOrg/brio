@@ -1,17 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { CoursApiError, enregistrerCours, getCoursBrouillon } from '@brio/api-client'
 
 import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
 import { Icon } from '@/components/ui/icon'
 import { BlocEditeur } from '@/components/prof/bloc-editeur'
+import { PublierCours } from '@/components/prof/publier-cours'
 import {
   BLOCS,
   SECTION_KIND_LABELS,
-  chargerBrouillon,
+  brouillonDepuisContenu,
+  contenuDepuisBrouillon,
   deplacer,
-  enregistrerBrouillon,
+  ecrireTampon,
+  effacerTampon,
+  lireTampon,
   nouveauBloc,
   nouvelleSection,
   type Bloc,
@@ -21,28 +27,115 @@ import {
   type SectionKind,
 } from '@/lib/cours-editeur'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+
+// Délai d'inactivité avant un enregistrement serveur : assez court pour ne rien perdre, assez
+// long pour ne pas écrire à chaque frappe. Le tampon local, lui, est écrit immédiatement.
+const DELAI_ENREGISTREMENT_MS = 1500
+
+type EtatEnregistrement = 'repos' | 'enregistrement' | 'enregistre' | 'echec'
+
 // Éditeur de cours côté enseignant — piste A « la page ».
 // Thème CLAIR (data-theme="light") : on écrit sur une page blanche, comme un document. Une barre
-// d'outils en haut insère une formule, un encadré, un exercice… (plus de fenêtre « ajouter un bloc »).
-// À gauche, un plan léger pour naviguer entre les parties. Enregistrement local à chaque frappe.
+// d'outils en haut insère une formule, un encadré, un exercice… À gauche, un plan léger pour
+// naviguer entre les parties. Le serveur est la source de vérité : on charge le brouillon depuis
+// l'API, on écrit chaque frappe dans un tampon local (résilience) et on enregistre côté serveur
+// après une courte pause. « Publier » fige une version immuable visible des classes portées.
 
 export function EditeurCours({ coursId }: { coursId: string }) {
   const [brouillon, setBrouillon] = useState<Brouillon | null>(null)
   const [charge, setCharge] = useState(false)
+  const [erreurChargement, setErreurChargement] = useState<string | null>(null)
   const [sectionActiveId, setSectionActiveId] = useState<string>('')
   const [blocActifId, setBlocActifId] = useState<string>('')
   const [mode, setMode] = useState<'edition' | 'apercu'>('edition')
+  const [etat, setEtat] = useState<EtatEnregistrement>('repos')
+  const [statut, setStatut] = useState<string>('brouillon')
+  const [versionPubliee, setVersionPubliee] = useState<number | null>(null)
+  const [classeIds, setClasseIds] = useState<string[]>([])
+  const [publierOuvert, setPublierOuvert] = useState(false)
 
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Sauter l'enregistrement déclenché par le tout premier rendu (le chargement lui-même).
+  const vientDeCharger = useRef(false)
+
+  // --- Chargement depuis le serveur (le tampon local prime s'il est plus récent) ---
   useEffect(() => {
-    const local = chargerBrouillon(coursId)
-    setBrouillon(local)
-    if (local && local.sections.length > 0) setSectionActiveId(local.sections[0].id)
-    setCharge(true)
+    let vivant = true
+    setCharge(false)
+    setErreurChargement(null)
+    getCoursBrouillon(API_URL, coursId)
+      .then((detail) => {
+        if (!vivant) return
+        const depuisServeur = brouillonDepuisContenu(coursId, detail.titre ?? '', detail.content)
+        const tampon = lireTampon(coursId)
+        const serveurMs = detail.updatedAt ? Date.parse(detail.updatedAt) : 0
+        const b = tampon && (tampon.misAJour ?? 0) > serveurMs ? tampon : depuisServeur
+        setBrouillon(b)
+        if (b.sections.length > 0) setSectionActiveId(b.sections[0].id)
+        setStatut(detail.statut ?? 'brouillon')
+        setVersionPubliee(detail.versionPubliee ?? null)
+        setClasseIds(detail.classeIds ?? [])
+        vientDeCharger.current = true
+        setCharge(true)
+      })
+      .catch((e) => {
+        if (!vivant) return
+        setErreurChargement(
+          e instanceof CoursApiError ? e.message : 'Impossible de charger ce cours.'
+        )
+        setCharge(true)
+      })
+    return () => {
+      vivant = false
+    }
   }, [coursId])
 
+  const enregistrer = useCallback(
+    async (b: Brouillon) => {
+      setEtat('enregistrement')
+      try {
+        await enregistrerCours(API_URL, coursId, {
+          titre: b.title,
+          content: contenuDepuisBrouillon(b),
+        })
+        setEtat('enregistre')
+        effacerTampon(coursId)
+      } catch {
+        // On garde le tampon : rien n'est perdu, l'enregistrement sera retenté à la frappe suivante.
+        setEtat('echec')
+      }
+    },
+    [coursId]
+  )
+
+  // --- Tampon local immédiat + enregistrement serveur débouncé ---
   useEffect(() => {
-    if (brouillon) enregistrerBrouillon(brouillon)
-  }, [brouillon])
+    if (!charge || !brouillon) return
+    if (vientDeCharger.current) {
+      vientDeCharger.current = false
+      return
+    }
+    ecrireTampon(brouillon)
+    setEtat('enregistrement')
+    if (timer.current) clearTimeout(timer.current)
+    const instantane = brouillon
+    timer.current = setTimeout(() => {
+      void enregistrer(instantane)
+    }, DELAI_ENREGISTREMENT_MS)
+    return () => {
+      if (timer.current) clearTimeout(timer.current)
+    }
+  }, [brouillon, charge, enregistrer])
+
+  // Force un enregistrement immédiat (avant la publication).
+  const enregistrerMaintenant = useCallback(async () => {
+    if (timer.current) {
+      clearTimeout(timer.current)
+      timer.current = null
+    }
+    if (brouillon) await enregistrer(brouillon)
+  }, [brouillon, enregistrer])
 
   const apercu = useMemo(
     () => (brouillon ? (brouillon as unknown as ChapitreResponse) : null),
@@ -67,9 +160,9 @@ export function EditeurCours({ coursId }: { coursId: string }) {
         className="grid min-h-screen place-items-center bg-surface-page p-6 font-prose text-ink"
       >
         <div className="max-w-md rounded-xl border border-line bg-surface-panel p-6 text-center">
-          <p className="font-display text-lg font-extrabold text-ink">Cours introuvable</p>
+          <p className="font-display text-lg font-extrabold text-ink">Cours indisponible</p>
           <p className="mt-1 font-prose text-sm text-ink-muted">
-            Ce cours n’existe pas (ou a été supprimé).
+            {erreurChargement ?? 'Ce cours n’existe pas (ou a été supprimé).'}
           </p>
           <Link
             href="/prof"
@@ -184,10 +277,13 @@ export function EditeurCours({ coursId }: { coursId: string }) {
             aria-label="Titre du cours"
           />
 
-          <span className="hidden items-center gap-2 font-display text-xs font-bold text-ink-muted sm:inline-flex">
-            <span className="h-2 w-2 rounded-full bg-success" aria-hidden="true" />
-            Enregistré
-          </span>
+          <EtatEnregistre etat={etat} />
+
+          {statut === 'publie' && versionPubliee != null && (
+            <span className="hidden items-center gap-1.5 rounded-pill bg-accent-soft px-2.5 py-0.5 font-display text-[11px] font-extrabold text-accent-ink sm:inline-flex">
+              Publié · v{versionPubliee}
+            </span>
+          )}
 
           <div className="flex rounded-md border border-line bg-surface-page p-0.5">
             {(['edition', 'apercu'] as const).map((m) => (
@@ -207,9 +303,8 @@ export function EditeurCours({ coursId }: { coursId: string }) {
 
           <button
             type="button"
-            disabled
-            title="La publication vers le serveur arrive à la prochaine étape."
-            className="cursor-not-allowed rounded-lg bg-accent px-4 py-2 font-display text-sm font-extrabold text-surface-panel opacity-50"
+            onClick={() => setPublierOuvert(true)}
+            className="rounded-lg bg-accent px-4 py-2 font-display text-sm font-extrabold text-surface-panel [box-shadow:var(--shadow-arcade)] hover:-translate-y-0.5"
           >
             Publier
           </button>
@@ -370,7 +465,41 @@ export function EditeurCours({ coursId }: { coursId: string }) {
           )}
         </main>
       </div>
+
+      {publierOuvert && (
+        <PublierCours
+          coursId={coursId}
+          brouillon={brouillon}
+          classeIdsInitiales={classeIds}
+          onAvantPublicationAction={enregistrerMaintenant}
+          onPublieAction={(version) => {
+            setStatut('publie')
+            setVersionPubliee(version)
+          }}
+          onFermerAction={() => setPublierOuvert(false)}
+        />
+      )}
     </div>
+  )
+}
+
+// Petit indicateur d'état d'enregistrement, en remplacement du badge statique « Enregistré ».
+function EtatEnregistre({ etat }: { etat: EtatEnregistrement }) {
+  const config: Record<EtatEnregistrement, { texte: string; couleur: string }> = {
+    repos: { texte: 'Enregistré', couleur: 'bg-success' },
+    enregistrement: { texte: 'Enregistrement…', couleur: 'bg-xp' },
+    enregistre: { texte: 'Enregistré', couleur: 'bg-success' },
+    echec: { texte: 'Échec de l’enregistrement', couleur: 'bg-danger' },
+  }
+  const { texte, couleur } = config[etat]
+  return (
+    <span
+      role="status"
+      className="hidden items-center gap-2 font-display text-xs font-bold text-ink-muted sm:inline-flex"
+    >
+      <span className={`h-2 w-2 rounded-full ${couleur}`} aria-hidden="true" />
+      {texte}
+    </span>
   )
 }
 
