@@ -26,6 +26,53 @@
   } ],
   "paths" : {
     "/api/prof/cours/{coursId}" : {
+      "get" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Charge un cours pour l'édition",
+        "description" : "Renvoie le brouillon en cours (métadonnées, contenu, classes portées). Réservé à l'auteur du cours.",
+        "operationId" : "charger",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Cours chargé",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CoursDetailResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Le cours ne vous appartient pas",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CoursDetailResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Cours introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CoursDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "put" : {
         "tags" : [ "Édition de cours" ],
         "summary" : "Enregistre le brouillon (titre + contenu)",
@@ -138,6 +185,53 @@
       }
     },
     "/api/prof/cours" : {
+      "get" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Liste vos cours",
+        "description" : "Les cours dont vous êtes l'auteur, du plus récemment modifié au plus ancien.",
+        "operationId" : "mesCours",
+        "responses" : {
+          "200" : {
+            "description" : "Vos cours",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CoursResumeResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CoursResumeResponse"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé aux enseignants",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CoursResumeResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post" : {
         "tags" : [ "Édition de cours" ],
         "summary" : "Crée un brouillon de cours",
@@ -865,6 +959,55 @@
                   "type" : "array",
                   "items" : {
                     "$ref" : "#/components/schemas/MaitriseInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/classes" : {
+      "get" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Liste les classes de l'enseignant connecté",
+        "description" : "Les classes actives dont l'enseignant est le professeur principal — les seules auxquelles il peut porter un cours.",
+        "operationId" : "mesClasses",
+        "responses" : {
+          "200" : {
+            "description" : "Classes de l'enseignant",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseInfo"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé aux enseignants",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseInfo"
                   }
                 }
               }
@@ -1704,6 +1847,75 @@
           "echantillon" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "CoursResumeResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "versionPubliee" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "CoursDetailResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "versionPubliee" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "content" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          },
+          "classeIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "uniqueItems" : true
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },

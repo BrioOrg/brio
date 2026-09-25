@@ -1,20 +1,25 @@
 package fr.brio.contenu.web;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.CoursEditionService;
 import fr.brio.contenu.api.CreerBrouillonCommand;
 import fr.brio.contenu.api.ModifierBrouillonCommand;
 import fr.brio.contenu.api.PublicationResult;
+import fr.brio.contenu.domain.Cours;
 import fr.brio.identite.api.EnseignantContexteQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,10 +43,49 @@ class ProfCoursController {
 
     private final CoursEditionService editionService;
     private final EnseignantContexteQuery enseignantContexte;
+    private final ObjectMapper objectMapper;
 
-    ProfCoursController(CoursEditionService editionService, EnseignantContexteQuery enseignantContexte) {
+    ProfCoursController(
+            CoursEditionService editionService,
+            EnseignantContexteQuery enseignantContexte,
+            ObjectMapper objectMapper) {
         this.editionService = editionService;
         this.enseignantContexte = enseignantContexte;
+        this.objectMapper = objectMapper;
+    }
+
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Liste vos cours",
+            description = "Les cours dont vous êtes l'auteur, du plus récemment modifié au plus ancien.")
+    @ApiResponse(responseCode = "200", description = "Vos cours")
+    @ApiResponse(responseCode = "401", description = "Authentification requise")
+    @ApiResponse(responseCode = "403", description = "Réservé aux enseignants")
+    List<CoursResumeResponse> mesCours(@AuthenticationPrincipal UserDetails principal) {
+        return editionService.listerCoursDe(auteurId(principal)).stream()
+                .map(CoursResumeResponse::from)
+                .toList();
+    }
+
+    @GetMapping(value = "/{coursId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Charge un cours pour l'édition",
+            description = "Renvoie le brouillon en cours (métadonnées, contenu, classes portées). "
+                    + "Réservé à l'auteur du cours.")
+    @ApiResponse(responseCode = "200", description = "Cours chargé")
+    @ApiResponse(responseCode = "403", description = "Le cours ne vous appartient pas")
+    @ApiResponse(responseCode = "404", description = "Cours introuvable")
+    CoursDetailResponse charger(
+            @PathVariable UUID coursId,
+            @AuthenticationPrincipal UserDetails principal) {
+        UUID auteurId = auteurId(principal);
+        Cours cours = editionService.chargerBrouillon(coursId, auteurId);
+        return new CoursDetailResponse(
+                cours.getId(), cours.getTitre(), cours.getNiveauCode(), cours.getMatiereCode(),
+                cours.getStatut(), cours.getVersionPubliee(),
+                parseContent(cours.getBrouillonContent()),
+                editionService.porteesDe(coursId),
+                cours.getUpdatedAt());
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -118,5 +162,17 @@ class ProfCoursController {
 
     private static UUID auteurId(UserDetails principal) {
         return UUID.fromString(principal.getUsername());
+    }
+
+    /** Draft content is stored as a JSON string; return it as an embedded object, or null. */
+    private JsonNode parseContent(String brouillonContent) {
+        if (brouillonContent == null || brouillonContent.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readTree(brouillonContent);
+        } catch (Exception e) {
+            throw new IllegalStateException("Draft content is not valid JSON", e);
+        }
     }
 }

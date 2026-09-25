@@ -3,6 +3,7 @@ package fr.brio;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -88,6 +89,57 @@ class ProfCoursControllerIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.version").value(1));
+    }
+
+    @Test
+    void shouldListTheTeachersOwnCourses() throws Exception {
+        UUID coursId = creerCours();
+
+        mockMvc.perform(get("/api/prof/cours").with(user(teacher.toString()).roles("ENSEIGNANT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(coursId.toString()))
+                .andExpect(jsonPath("$[0].statut").value("brouillon"))
+                .andExpect(jsonPath("$[0].niveauCode").value("3e"));
+    }
+
+    @Test
+    void shouldLoadACourseForEditingWithContentAndScopes() throws Exception {
+        UUID coursId = creerCours();
+
+        mockMvc.perform(put("/api/prof/cours/{id}", coursId).with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                objectMapper.createObjectNode().put("titre", "Pythagore")
+                                        .set("content", draftContent()))))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(put("/api/prof/cours/{id}/portees", coursId).with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"classeIds\":[\"" + classeA.id() + "\"]}"))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/prof/cours/{id}", coursId).with(user(teacher.toString()).roles("ENSEIGNANT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(coursId.toString()))
+                .andExpect(jsonPath("$.content.title").value("Pythagore"))
+                .andExpect(jsonPath("$.classeIds[0]").value(classeA.id().toString()));
+    }
+
+    @Test
+    void shouldNotLoadSomeoneElsesCourse() throws Exception {
+        UUID foreignCours = coursEditionService.creerBrouillon(new CreerBrouillonCommand(
+                UUID.randomUUID(), UUID.randomUUID(), "Pas à moi", "3e", "mathematiques", draftContent()));
+
+        mockMvc.perform(get("/api/prof/cours/{id}", foreignCours)
+                        .with(user(teacher.toString()).roles("ENSEIGNANT")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldListTheTeachersClasses() throws Exception {
+        mockMvc.perform(get("/api/prof/classes").with(user(teacher.toString()).roles("ENSEIGNANT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(classeA.id().toString()))
+                .andExpect(jsonPath("$[0].libelle").value("3e A"));
     }
 
     @Test
