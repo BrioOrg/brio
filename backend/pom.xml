@@ -136,7 +136,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<!-- The competency referential and its JSON Schema live once, at their
+				<!-- The competency referential and both JSON Schemas live once, at their
 				     canonical locations (content/referentiel/, docs/schema/ — ADR 0008).
 				     They are required at startup across all environments and are copied
 				     onto the classpath at build time. Chapter files are NOT copied here:
@@ -163,6 +163,28 @@
 									<directory>${project.basedir}/../docs/schema</directory>
 									<includes>
 										<include>competency.schema.json</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<!-- Canonical content schema (ADR 0008): consumed here rather than
+						     kept as a hand-maintained backend copy, which had drifted (#119).
+						     Loaded at runtime by ContentSchemaValidator via the classpath
+						     resource /contenu/course-content.schema.json. -->
+						<id>copy-content-schema</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/contenu</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../docs/schema</directory>
+									<includes>
+										<include>course-content.schema.json</include>
 									</includes>
 								</resource>
 							</resources>
