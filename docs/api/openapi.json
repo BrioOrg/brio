@@ -9,6 +9,9 @@
     "description" : "Generated server url"
   } ],
   "tags" : [ {
+    "name" : "Référentiel de compétences",
+    "description" : "Lecture du référentiel pour l'édition de cours"
+  }, {
     "name" : "Contenu",
     "description" : "Accès aux chapitres de cours"
   }, {
@@ -967,6 +970,55 @@
         }
       }
     },
+    "/api/prof/referentiel/competences" : {
+      "get" : {
+        "tags" : [ "Référentiel de compétences" ],
+        "summary" : "Liste les compétences actives du référentiel",
+        "description" : "Chaque entrée porte son code, son libellé, son domaine et ses niveaux. Les codes dépréciés ne sont jamais renvoyés.",
+        "operationId" : "competences",
+        "responses" : {
+          "200" : {
+            "description" : "Compétences actives",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CompetenceDto"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CompetenceDto"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé aux enseignants",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CompetenceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/classes" : {
       "get" : {
         "tags" : [ "Édition de cours" ],
@@ -1847,6 +1899,26 @@
           "echantillon" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "CompetenceDto" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "intitule" : {
+            "type" : "string"
+          },
+          "domaine" : {
+            "type" : "string"
+          },
+          "niveaux" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },
