@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
+import { ChampFormule } from '@/components/maths/champ-formule'
 import { CALLOUT_VARIANTES, type Bloc, type Etape } from '@/lib/cours-editeur'
 
 // Édition « dans la page » (piste A) : chaque bloc s'écrit là où il s'affichera, sans fiche ni
@@ -92,13 +93,14 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
 
     case 'formula':
       return (
-        <div className="rounded-lg border border-line bg-surface-panel px-4 py-3 text-center">
-          <input
-            className={`${inline} text-center font-mono text-xl text-ink`}
+        <div className="rounded-lg border border-line bg-surface-panel px-4 py-3">
+          <ChampFormule
             value={(bloc.latex as string) ?? ''}
-            onChange={(e) => onModifier({ latex: e.target.value })}
+            onChange={(v) => onModifier({ latex: v })}
             onFocus={onFocusBloc}
             placeholder="a^2 + b^2 = c^2"
+            inputClassName={`${inline} text-center font-mono text-xl text-ink`}
+            ariaLabel="Formule du bloc"
           />
         </div>
       )
@@ -154,7 +156,10 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           <ul className="flex flex-col gap-1.5">
             {items.map((item, i) => (
               <li key={i} className="flex items-center gap-2">
-                <span className="font-display text-sm font-extrabold text-accent-ink" aria-hidden="true">
+                <span
+                  className="font-display text-sm font-extrabold text-accent-ink"
+                  aria-hidden="true"
+                >
                   ✓
                 </span>
                 <input
@@ -215,13 +220,16 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                     placeholder="Ce qu’on fait à cette étape…"
                     className="font-prose text-base leading-relaxed text-ink"
                   />
-                  <input
-                    className={`${inline} mt-1 font-mono text-sm text-accent-ink`}
-                    value={etape.formula ?? ''}
-                    onChange={(e) => majE(i, { formula: e.target.value || undefined })}
-                    onFocus={onFocusBloc}
-                    placeholder="Formule de l’étape (facultatif)"
-                  />
+                  <div className="mt-1">
+                    <ChampFormule
+                      value={etape.formula ?? ''}
+                      onChange={(v) => majE(i, { formula: v || undefined })}
+                      onFocus={onFocusBloc}
+                      placeholder="Formule de l’étape (facultatif)"
+                      inputClassName={`${inline} font-mono text-sm text-accent-ink`}
+                      ariaLabel={`Formule de l’étape ${i + 1}`}
+                    />
+                  </div>
                 </div>
                 <button
                   type="button"
