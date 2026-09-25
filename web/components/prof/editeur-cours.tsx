@@ -46,7 +46,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
 
   const apercu = useMemo(
     () => (brouillon ? (brouillon as unknown as ChapitreResponse) : null),
-    [brouillon],
+    [brouillon]
   )
 
   if (!charge) {
@@ -84,7 +84,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
 
   const indexActif = Math.max(
     0,
-    brouillon.sections.findIndex((s) => s.id === sectionActiveId),
+    brouillon.sections.findIndex((s) => s.id === sectionActiveId)
   )
   const sectionActive = brouillon.sections[indexActif] ?? brouillon.sections[0]
 
@@ -102,7 +102,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
       sections: brouillon!.sections.map((s) =>
         s.id === sectionId
           ? { ...s, blocks: s.blocks.map((bl) => (bl.id === blocId ? { ...bl, ...patch } : bl)) }
-          : s,
+          : s
       ),
     })
   }
@@ -156,80 +156,87 @@ export function EditeurCours({ coursId }: { coursId: string }) {
     majSection(sectionActive.id, { blocks: sectionActive.blocks.filter((bl) => bl.id !== blocId) })
   }
 
-  const coursVide = !brouillon.title.trim() && brouillon.sections.every((s) => s.blocks.length === 0)
+  const coursVide =
+    !brouillon.title.trim() && brouillon.sections.every((s) => s.blocks.length === 0)
 
   return (
-    <div data-theme="light" className="flex min-h-screen flex-col bg-surface-page font-prose text-ink">
-      {/* -------- En-tête -------- */}
-      <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
-        <Link
-          href="/prof"
-          aria-label="Retour à mes cours"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-line text-ink-muted hover:text-ink"
-        >
-          <Icon name="arrow-right" size={16} className="rotate-180" aria-hidden="true" />
-        </Link>
+    <div
+      data-theme="light"
+      className="flex min-h-screen flex-col bg-surface-page font-prose text-ink"
+    >
+      {/* -------- En-tête + barre d'outils : une seule région collante (évite un offset magique) -------- */}
+      <div className="sticky top-0 z-20">
+        {/* -------- En-tête -------- */}
+        <header className="flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
+          <Link
+            href="/prof"
+            aria-label="Retour à mes cours"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-line text-ink-muted hover:text-ink"
+          >
+            <Icon name="arrow-right" size={16} className="rotate-180" aria-hidden="true" />
+          </Link>
 
-        <input
-          className="min-w-0 flex-1 bg-transparent font-display text-lg font-extrabold text-ink placeholder:text-ink-muted/60 focus:outline-none"
-          value={brouillon.title}
-          onChange={(e) => setBrouillon({ ...brouillon, title: e.target.value })}
-          placeholder="Titre du cours (ex. Le théorème de Pythagore)"
-          aria-label="Titre du cours"
-        />
+          <input
+            className="min-w-0 flex-1 bg-transparent font-display text-lg font-extrabold text-ink placeholder:text-ink-muted/60 focus:outline-none"
+            value={brouillon.title}
+            onChange={(e) => setBrouillon({ ...brouillon, title: e.target.value })}
+            placeholder="Titre du cours (ex. Le théorème de Pythagore)"
+            aria-label="Titre du cours"
+          />
 
-        <span className="hidden items-center gap-2 font-display text-xs font-bold text-ink-muted sm:inline-flex">
-          <span className="h-2 w-2 rounded-full bg-success" aria-hidden="true" />
-          Enregistré
-        </span>
-
-        <div className="flex rounded-md border border-line bg-surface-page p-0.5">
-          {(['edition', 'apercu'] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              aria-pressed={mode === m}
-              className={`rounded-[6px] px-3 py-1.5 font-display text-sm font-extrabold ${
-                mode === m ? 'bg-surface-panel text-ink shadow-sm' : 'text-ink-muted'
-              }`}
-            >
-              {m === 'edition' ? 'Écrire' : 'Aperçu élève'}
-            </button>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          disabled
-          title="La publication vers le serveur arrive à la prochaine étape."
-          className="cursor-not-allowed rounded-lg bg-accent px-4 py-2 font-display text-sm font-extrabold text-surface-panel opacity-50"
-        >
-          Publier
-        </button>
-      </header>
-
-      {/* -------- Barre d'outils (insertion) -------- */}
-      {mode === 'edition' && (
-        <div className="sticky top-[57px] z-10 flex items-center gap-1.5 overflow-x-auto border-b border-line bg-surface-panel/95 px-4 py-2 backdrop-blur">
-          <span className="mr-1 shrink-0 font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
-            Insérer :
+          <span className="hidden items-center gap-2 font-display text-xs font-bold text-ink-muted sm:inline-flex">
+            <span className="h-2 w-2 rounded-full bg-success" aria-hidden="true" />
+            Enregistré
           </span>
-          {BLOCS.map((b) => (
-            <button
-              key={b.type}
-              type="button"
-              onClick={() => insererBloc(b.type)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface-page px-2.5 py-1.5 font-display text-[13px] font-bold text-ink transition-colors hover:border-accent hover:bg-accent-soft"
-            >
-              <span aria-hidden="true" className="text-accent">
-                {b.icone}
-              </span>
-              {b.label}
-            </button>
-          ))}
-        </div>
-      )}
+
+          <div className="flex rounded-md border border-line bg-surface-page p-0.5">
+            {(['edition', 'apercu'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                aria-pressed={mode === m}
+                className={`rounded-[6px] px-3 py-1.5 font-display text-sm font-extrabold ${
+                  mode === m ? 'bg-surface-panel text-ink shadow-sm' : 'text-ink-muted'
+                }`}
+              >
+                {m === 'edition' ? 'Écrire' : 'Aperçu élève'}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            disabled
+            title="La publication vers le serveur arrive à la prochaine étape."
+            className="cursor-not-allowed rounded-lg bg-accent px-4 py-2 font-display text-sm font-extrabold text-surface-panel opacity-50"
+          >
+            Publier
+          </button>
+        </header>
+
+        {/* -------- Barre d'outils (insertion) -------- */}
+        {mode === 'edition' && (
+          <div className="flex items-center gap-1.5 overflow-x-auto border-b border-line bg-surface-panel/95 px-4 py-2 backdrop-blur">
+            <span className="mr-1 shrink-0 font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+              Insérer :
+            </span>
+            {BLOCS.map((b) => (
+              <button
+                key={b.type}
+                type="button"
+                onClick={() => insererBloc(b.type)}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface-page px-2.5 py-1.5 font-display text-[13px] font-bold text-ink transition-colors hover:border-accent hover:bg-accent-soft"
+              >
+                <span aria-hidden="true" className="text-accent">
+                  {b.icone}
+                </span>
+                {b.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* -------- Corps : plan + page -------- */}
       <div className="grid flex-1 lg:grid-cols-[240px_minmax(0,1fr)]">
