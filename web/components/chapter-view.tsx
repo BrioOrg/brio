@@ -3,6 +3,7 @@ import { parseRichText, type RichTextToken, type FigureSpec } from '@brio/conten
 
 import { ExerciceWidget, PaperExercise } from '@/components/exercice-widget'
 import { FigureRenderer } from '@/components/figure-renderer'
+import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
 
 type Choice = { id: string; text: string }
@@ -164,9 +165,107 @@ function BlockRenderer({ block }: { block: Block }) {
     case 'objectives':
       return <ObjectivesBlock id={block.id} block={block} />
 
+    case 'table':
+      return <TableBlock id={block.id} block={block} />
+
+    case 'reference':
+      return <ReferenceBlock id={block.id} block={block} />
+
     default:
       return null
   }
+}
+
+function TableBlock({ id, block }: { id: string; block: Block }) {
+  const headers = (Array.isArray(block.headers) ? block.headers : []).filter(
+    (h): h is string => typeof h === 'string'
+  )
+  const rows = (Array.isArray(block.rows) ? block.rows : []).filter((r): r is string[] =>
+    Array.isArray(r)
+  )
+  const caption = typeof block.caption === 'string' ? block.caption : undefined
+  if (rows.length === 0) return null
+
+  return (
+    <div id={id} className="overflow-x-auto">
+      <table className="w-full border-collapse font-prose text-base text-ink">
+        {caption && (
+          <caption className="mb-1.5 text-left font-prose text-xs text-ink-muted">
+            <RichTextRenderer text={caption} />
+          </caption>
+        )}
+        {headers.length > 0 && (
+          <thead>
+            <tr>
+              {headers.map((cell, i) => (
+                <th
+                  key={i}
+                  scope="col"
+                  className="border border-line bg-surface-raised px-3 py-2 text-left font-display text-sm font-extrabold text-ink"
+                >
+                  <RichTextRenderer text={cell} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {rows.map((row, r) => (
+            <tr key={r}>
+              {row.map((cell, c) => (
+                <td key={c} className="border border-line px-3 py-2 align-top">
+                  <RichTextRenderer text={typeof cell === 'string' ? cell : ''} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ReferenceBlock({ id, block }: { id: string; block: Block }) {
+  const scope = block.scope as string
+  const title = typeof block.title === 'string' ? block.title : ''
+  const source = typeof block.source === 'string' ? block.source : undefined
+  const consultedOn = typeof block.consultedOn === 'string' ? block.consultedOn : undefined
+  if (!title.trim()) return null
+
+  let href: string | undefined
+  let external = false
+  if (scope === 'external') {
+    href = typeof block.url === 'string' ? block.url : undefined
+    external = true
+  } else if (scope === 'internal') {
+    const target = (block.target ?? {}) as {
+      level?: string
+      subject?: string
+      slug?: string
+      anchor?: string
+    }
+    if (target.level && target.subject && target.slug) {
+      href = `/${target.level}/${target.subject}/${target.slug}${
+        target.anchor ? `#${target.anchor}` : ''
+      }`
+    }
+  }
+
+  // Sans cible résoluble (brouillon incomplet), on n'affiche pas de lien mort : juste le libellé.
+  const meta = [source, consultedOn && `consulté le ${consultedOn}`].filter(Boolean).join(' · ')
+
+  return (
+    <div id={id}>
+      {href ? (
+        <CitationChip href={href} external={external}>
+          {title}
+        </CitationChip>
+      ) : (
+        <CitationChip>{title}</CitationChip>
+      )}
+      {meta && <p className="mt-1 font-prose text-xs text-ink-muted">{meta}</p>}
+    </div>
+  )
 }
 
 function ObjectivesBlock({ id, block }: { id: string; block: Block }) {
@@ -174,7 +273,7 @@ function ObjectivesBlock({ id, block }: { id: string; block: Block }) {
   // Objectifs en texte libre écrits par l'enseignant. (Les compétences codées du référentiel,
   // block.competencies, sont un affichage séparé qui viendra avec les libellés du référentiel.)
   const items = (Array.isArray(block.items) ? block.items : []).filter(
-    (it): it is string => typeof it === 'string' && it.trim().length > 0,
+    (it): it is string => typeof it === 'string' && it.trim().length > 0
   )
   if (items.length === 0) return null
   return (
@@ -184,7 +283,10 @@ function ObjectivesBlock({ id, block }: { id: string; block: Block }) {
       </p>
       <ul className="flex flex-col gap-1.5">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2 font-prose text-base leading-relaxed text-ink">
+          <li
+            key={i}
+            className="flex items-start gap-2 font-prose text-base leading-relaxed text-ink"
+          >
             <span className="mt-1 shrink-0 text-accent-ink" aria-hidden="true">
               <Icon name="check" size={15} weight="bold" />
             </span>

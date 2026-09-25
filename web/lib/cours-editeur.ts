@@ -8,7 +8,16 @@
 // Les types de blocs que l'afficheur élève sait rendre AUJOURD'HUI (chapter-view.tsx). On s'y
 // limite volontairement : inutile de laisser écrire des blocs qui n'apparaîtraient pas.
 export type BlocType =
-  'heading' | 'prose' | 'objectives' | 'formula' | 'callout' | 'steps' | 'exercise'
+  | 'heading'
+  | 'prose'
+  | 'objectives'
+  | 'formula'
+  | 'callout'
+  | 'steps'
+  | 'table'
+  | 'reference'
+  | 'figure'
+  | 'exercise'
 
 /** Une étape d'un bloc « exemple en étapes » : un texte, et éventuellement une formule. */
 export type Etape = { text: string; formula?: string }
@@ -65,6 +74,24 @@ export const BLOCS: {
   { type: 'callout', label: 'Encadré', description: 'Définition, exemple, attention…', icone: '▣' },
   { type: 'steps', label: 'Étapes', description: 'Un exemple résolu, étape par étape', icone: '≣' },
   {
+    type: 'table',
+    label: 'Tableau',
+    description: 'Un tableau de données ou de conversion',
+    icone: '▦',
+  },
+  {
+    type: 'reference',
+    label: 'Référence',
+    description: 'Un lien vers un autre chapitre ou une ressource externe',
+    icone: '❝',
+  },
+  {
+    type: 'figure',
+    label: 'Figure',
+    description: 'Une figure géométrique ou une droite graduée',
+    icone: '△',
+  },
+  {
     type: 'exercise',
     exerciseType: 'multiple-choice',
     label: 'QCM',
@@ -101,6 +128,9 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   formula: 'Formule',
   callout: 'Encadré',
   steps: 'Étapes',
+  table: 'Tableau',
+  reference: 'Référence',
+  figure: 'Figure',
   exercise: 'Exercice',
 }
 
@@ -151,6 +181,19 @@ export function nouveauBloc(type: BlocType, exerciseType?: ExerciceType): Bloc {
     case 'steps':
       // Un exemple résolu : un titre optionnel et une première étape prête à remplir.
       return { id: genId(), type, title: '', steps: [{ text: '' }] as Etape[] }
+    case 'table':
+      // Une grille 2×1 prête à remplir : une ligne d'en-têtes (facultative dans le schéma, mais
+      // proposée par défaut) et une première ligne de corps. Le schéma exige au moins une ligne
+      // d'au moins une cellule ; les cellules vides sont remplacées à la publication.
+      return { id: genId(), type, headers: ['', ''], rows: [['', '']] }
+    case 'reference':
+      // Externe par défaut (le cas le plus courant : renvoyer vers une ressource en ligne).
+      // Passer en « interne » ajoute la cible level/subject/slug, validée à la publication.
+      return { id: genId(), type, scope: 'external', title: '', url: '' }
+    case 'figure':
+      // Figure déclarative (ADR 0013) : `alt` obligatoire (rempli par l'enseignant, vérifié à la
+      // publication) et une `spec` vide mais valide, que le constructeur remplit primitive à primitive.
+      return { id: genId(), type, alt: '', spec: { points: [], segments: [] } }
     case 'exercise':
       return nouvelExercice(exerciseType ?? 'paper')
   }
@@ -221,13 +264,24 @@ export function apercuBloc(bloc: Bloc): string {
       : ''
   const premierItem =
     Array.isArray(bloc.items) && typeof bloc.items[0] === 'string' ? (bloc.items[0] as string) : ''
+  const premiereCellule =
+    Array.isArray(bloc.rows) &&
+    Array.isArray(bloc.rows[0]) &&
+    typeof (bloc.rows[0] as unknown[])[0] === 'string'
+      ? ((bloc.rows[0] as unknown[])[0] as string)
+      : ''
   const brut =
     (typeof bloc.text === 'string' && bloc.text) ||
     (typeof bloc.prompt === 'string' && bloc.prompt) ||
     (typeof bloc.title === 'string' && bloc.title) ||
     (typeof bloc.latex === 'string' && bloc.latex) ||
+    // Une référence résume par son titre ; une figure par son texte alternatif ; un tableau par
+    // sa légende ou sa première cellule.
+    (typeof bloc.alt === 'string' && bloc.alt) ||
+    (typeof bloc.caption === 'string' && bloc.caption) ||
     premiereEtape ||
     premierItem ||
+    premiereCellule ||
     ''
   const nettoye = brut.replace(/[*$]/g, '').trim()
   if (!nettoye) return BLOC_LABELS[bloc.type]
