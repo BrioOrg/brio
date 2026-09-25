@@ -173,9 +173,9 @@ export function nouveauBloc(type: BlocType, exerciseType?: ExerciceType): Bloc {
     case 'formula':
       return { id: genId(), type, latex: '', display: 'block' }
     case 'objectives':
-      // Objectifs en texte libre : ce que l'élève saura faire à la fin. La grille de
-      // compétences codées (référentiel ADR 0009) est un ajout séparé, plus tard.
-      return { id: genId(), type, title: '', items: [''] }
+      // Deux facettes indépendantes (schéma) : `items` en texte libre (ce que l'élève saura
+      // faire) et `competencies`, des codes du référentiel (ADR 0009) choisis via le picker.
+      return { id: genId(), type, title: '', items: [''], competencies: [] }
     case 'callout':
       return { id: genId(), type, variant: 'definition', title: '', text: '' }
     case 'steps':
