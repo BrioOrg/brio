@@ -69,6 +69,8 @@ class SecurityConfig {
                         .hasAnyRole("ADMIN_BRIO", "ADMIN_ETAB")
                 // Class code enrollment: public (convention gate enforced in the service)
                 .requestMatchers(HttpMethod.POST, "/api/classes/rejoindre").permitAll()
+                // Teacher course authoring (create/save/scope/publish): ENSEIGNANT only.
+                .requestMatchers("/api/prof/**").hasRole("ENSEIGNANT")
                 // Class and établissement management: ADMIN_BRIO only
                 .requestMatchers(HttpMethod.POST, "/api/etablissements").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes").hasRole("ADMIN_BRIO")

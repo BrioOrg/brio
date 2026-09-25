@@ -15,6 +15,9 @@
     "name" : "Exercices",
     "description" : "Soumission et évaluation des exercices"
   }, {
+    "name" : "Édition de cours",
+    "description" : "Composition et publication de cours par un enseignant"
+  }, {
     "name" : "Système",
     "description" : "Endpoints techniques exposés par le produit"
   }, {
@@ -22,6 +25,200 @@
     "description" : "Tuteur IA par chapitre"
   } ],
   "paths" : {
+    "/api/prof/cours/{coursId}" : {
+      "put" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Enregistre le brouillon (titre + contenu)",
+        "operationId" : "enregistrer",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModifierCoursRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Brouillon enregistré"
+          },
+          "403" : {
+            "description" : "Le cours ne vous appartient pas"
+          },
+          "404" : {
+            "description" : "Cours introuvable"
+          }
+        }
+      }
+    },
+    "/api/prof/cours/{coursId}/portees" : {
+      "put" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Définit les classes auxquelles le cours est porté",
+        "description" : "Chaque classe doit être une classe de l'enseignant connecté.",
+        "operationId" : "definirPortees",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DefinirPorteesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Portées enregistrées"
+          },
+          "403" : {
+            "description" : "Cours non détenu, ou classe hors de vos classes"
+          },
+          "404" : {
+            "description" : "Cours introuvable"
+          }
+        }
+      }
+    },
+    "/api/prof/cours" : {
+      "post" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Crée un brouillon de cours",
+        "description" : "L'auteur et l'établissement sont déduits de l'enseignant connecté, jamais lus dans la requête. Le contenu est validé à la publication, pas ici.",
+        "operationId" : "creer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreerCoursRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Brouillon créé",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé aux enseignants",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            }
+          },
+          "422" : {
+            "description" : "L'enseignant n'a aucune classe : établissement indéterminé",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/cours/{coursId}/publier" : {
+      "post" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Publie le cours",
+        "description" : "Valide le brouillon et fige une version immuable visible des classes portées. Les réponses de correction sont retirées du contenu figé.",
+        "operationId" : "publier",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Cours publié ; version figée",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PublicationResult"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Le cours ne vous appartient pas",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PublicationResult"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Cours introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PublicationResult"
+                }
+              }
+            }
+          },
+          "422" : {
+            "description" : "Le brouillon ne respecte pas le schéma / le référentiel",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PublicationResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/exercices/{id}/soumissions" : {
       "post" : {
         "tags" : [ "Exercices" ],
@@ -94,7 +291,7 @@
     "/api/etablissements" : {
       "post" : {
         "tags" : [ "etablissement-controller" ],
-        "operationId" : "creer",
+        "operationId" : "creer_1",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -295,7 +492,7 @@
     "/api/classes" : {
       "post" : {
         "tags" : [ "classe-controller" ],
-        "operationId" : "creer_1",
+        "operationId" : "creer_2",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -933,6 +1130,80 @@
   "components" : {
     "schemas" : {
       "JsonNode" : { },
+      "ModifierCoursRequest" : {
+        "type" : "object",
+        "properties" : {
+          "titre" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "content" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          }
+        },
+        "required" : [ "titre" ]
+      },
+      "DefinirPorteesRequest" : {
+        "type" : "object",
+        "properties" : {
+          "classeIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "classeIds" ]
+      },
+      "CreerCoursRequest" : {
+        "type" : "object",
+        "properties" : {
+          "titre" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "niveauCode" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "matiereCode" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "content" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          }
+        },
+        "required" : [ "matiereCode", "niveauCode", "titre" ]
+      },
+      "CoursCreeResponse" : {
+        "type" : "object",
+        "properties" : {
+          "coursId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
+      "PublicationResult" : {
+        "type" : "object",
+        "properties" : {
+          "coursId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "SoumissionRequest" : {
         "type" : "object",
         "properties" : {
