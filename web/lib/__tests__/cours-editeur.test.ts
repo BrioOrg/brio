@@ -61,11 +61,40 @@ describe('nouveauBloc', () => {
     expect(obj.items).toEqual([''])
   })
 
-  it('crée un exercice « sur feuille » avec ses champs', () => {
+  it('crée un exercice « sur feuille » par défaut avec ses champs', () => {
     const ex = nouveauBloc('exercise')
     expect(ex.exerciseType).toBe('paper')
     expect(ex).toHaveProperty('prompt')
     expect(ex).toHaveProperty('solution')
+  })
+
+  it('crée un QCM avec deux propositions vides et un drapeau « plusieurs »', () => {
+    const ex = nouveauBloc('exercise', 'multiple-choice')
+    expect(ex.exerciseType).toBe('multiple-choice')
+    expect(ex.multiple).toBe(false)
+    expect(ex.choices).toHaveLength(2)
+    expect(ex.choices).toEqual([
+      { id: expect.any(String), text: '', correct: false },
+      { id: expect.any(String), text: '', correct: false },
+    ])
+    const [c1, c2] = ex.choices as { id: string }[]
+    expect(c1.id).not.toBe(c2.id)
+  })
+
+  it('crée une réponse courte avec une réponse acceptée vide', () => {
+    const ex = nouveauBloc('exercise', 'short-answer')
+    expect(ex.exerciseType).toBe('short-answer')
+    expect(ex.acceptedAnswers).toEqual([''])
+    expect(ex.caseSensitive).toBe(false)
+  })
+
+  it('crée un exercice numérique sans réponse ni unité pré-remplies', () => {
+    const ex = nouveauBloc('exercise', 'numeric')
+    expect(ex.exerciseType).toBe('numeric')
+    expect(ex.tolerance).toBe(0)
+    // Une réponse absente (et non 0) distingue « pas encore rempli » ; pas d'unité vide (hors schéma).
+    expect(ex).not.toHaveProperty('answer')
+    expect(ex).not.toHaveProperty('unit')
   })
 
   it('crée un encadré « définition » par défaut', () => {

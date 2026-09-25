@@ -33,9 +33,12 @@ public class ContenuService {
     // Choices are handled separately: the array is kept in the chapter JSONB but the
     // per-choice "correct" flag is stripped.
     // "multiple" is display-only (radio vs checkbox) and stays in the chapter JSONB.
+    // fill-blank: "expected" is the correction and is stripped here; "template" and "bank"
+    // are what the student sees and stay in the chapter JSONB.
     public static final List<String> SENSITIVE_EVAL_FIELDS = List.of(
             "answer", "tolerance", "acceptedAnswers",
-            "caseSensitive", "referenceAnswer", "rubric", "items"
+            "caseSensitive", "referenceAnswer", "rubric", "items",
+            "expected"
     );
 
     private final ChapitreRepository chapitreRepository;

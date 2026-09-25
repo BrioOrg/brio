@@ -72,7 +72,15 @@ class CoursPublicationIntegrationTest {
                         "choices": [
                           { "id": "a", "text": "Le côté [RS]", "correct": false },
                           { "id": "b", "text": "Le côté [RT]", "correct": true }
-                        ] }
+                        ] },
+                      { "id": "ex-court", "type": "exercise", "exerciseType": "short-answer",
+                        "prompt": "Comment s'appelle le plus grand côté ?",
+                        "acceptedAnswers": ["hypoténuse"], "caseSensitive": false },
+                      { "id": "ex-trous", "type": "exercise", "exerciseType": "fill-blank",
+                        "prompt": "Complète l'égalité de Pythagore.",
+                        "template": "BC{} = AB{} + AC{}",
+                        "bank": ["²", "³", "×2"],
+                        "expected": ["²", "²", "²"] }
                     ] }
                   ]
                 }
@@ -111,10 +119,13 @@ class CoursPublicationIntegrationTest {
         // The per-choice correct flag is stripped, display fields kept.
         assertThat(containsKey(stored, "correct")).isFalse();
         assertThat(containsKey(stored, "exerciceId")).isTrue();
+        // fill-blank keeps its student-facing tiles/sentence but never the correct answers.
+        assertThat(containsKey(stored, "template")).isTrue();
+        assertThat(containsKey(stored, "bank")).isTrue();
 
         // Correction data lives in the exercise rows instead, keyed on this course version.
         List<Exercice> exercices = exerciceRepository.findByCoursId(coursId);
-        assertThat(exercices).hasSize(2);
+        assertThat(exercices).hasSize(4);
         assertThat(exercices).allSatisfy(ex -> {
             assertThat(ex.getChapitreId()).isNull();
             assertThat(ex.getCoursVersion()).isEqualTo(1);
@@ -122,6 +133,12 @@ class CoursPublicationIntegrationTest {
         Exercice numeric = exercices.stream()
                 .filter(ex -> "ex-num".equals(ex.getSlug())).findFirst().orElseThrow();
         assertThat(numeric.getEvaluation()).contains("answer");
+        Exercice shortAnswer = exercices.stream()
+                .filter(ex -> "ex-court".equals(ex.getSlug())).findFirst().orElseThrow();
+        assertThat(shortAnswer.getEvaluation()).contains("acceptedAnswers");
+        Exercice fillBlank = exercices.stream()
+                .filter(ex -> "ex-trous".equals(ex.getSlug())).findFirst().orElseThrow();
+        assertThat(fillBlank.getEvaluation()).contains("expected");
     }
 
     @Test

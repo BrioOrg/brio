@@ -267,6 +267,10 @@
           "then": { "$ref": "#/$defs/numericFields" }
         },
         {
+          "if": { "properties": { "exerciseType": { "const": "fill-blank" } } },
+          "then": { "$ref": "#/$defs/fillBlankFields" }
+        },
+        {
           "if": { "properties": { "exerciseType": { "const": "free-text" } } },
           "then": { "$ref": "#/$defs/freeTextFields" }
         },
@@ -339,6 +343,37 @@
         "unit": {
           "description": "Optional expected unit label, e.g. 'cm'.",
           "$ref": "#/$defs/plainText"
+        }
+      }
+    },
+
+    "fillBlankFields": {
+      "description": "Extra fields required when exerciseType = 'fill-blank'. The student drags tiles from 'bank' into the '{}' markers of 'template', in order; 'expected' holds the correct tile per blank and is a correction field — stripped from the served document by the ExerciceExtractor, never sent to a student.",
+      "type": "object",
+      "required": ["template", "bank", "expected"],
+      "properties": {
+        "template": {
+          "description": "The sentence shown to the student, with one '{}' marker per blank, in reading order.",
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\{\\}"
+        },
+        "bank": {
+          "description": "Pool of tiles the student picks from. Holds at least the correct answers, usually plus distractors.",
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/plainText" }
+        },
+        "expected": {
+          "description": "Correct tile for each blank, in the same order as the '{}' markers. One entry per blank.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/plainText" }
+        },
+        "caseSensitive": {
+          "description": "Same semantics as short-answer: NFD normalisation and accent removal always apply; this flag only controls case-folding. Default false.",
+          "type": "boolean",
+          "default": false
         }
       }
     },

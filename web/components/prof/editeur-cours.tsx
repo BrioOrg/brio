@@ -23,6 +23,7 @@ import {
   type Bloc,
   type BlocType,
   type Brouillon,
+  type ExerciceType,
   type Section,
   type SectionKind,
 } from '@/lib/cours-editeur'
@@ -222,8 +223,8 @@ export function EditeurCours({ coursId }: { coursId: string }) {
   }
 
   // Insère un bloc juste après celui en cours d'écriture (sinon à la fin de la partie).
-  function insererBloc(type: BlocType) {
-    const bloc = nouveauBloc(type)
+  function insererBloc(type: BlocType, exerciseType?: ExerciceType) {
+    const bloc = nouveauBloc(type, exerciseType)
     const blocks = [...sectionActive.blocks]
     const idx = blocks.findIndex((b) => b.id === blocActifId)
     if (idx >= 0) blocks.splice(idx + 1, 0, bloc)
@@ -318,9 +319,10 @@ export function EditeurCours({ coursId }: { coursId: string }) {
             </span>
             {BLOCS.map((b) => (
               <button
-                key={b.type}
+                key={b.exerciseType ?? b.type}
                 type="button"
-                onClick={() => insererBloc(b.type)}
+                title={b.description}
+                onClick={() => insererBloc(b.type, b.exerciseType)}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface-page px-2.5 py-1.5 font-display text-[13px] font-bold text-ink transition-colors hover:border-accent hover:bg-accent-soft"
               >
                 <span aria-hidden="true" className="text-accent">
