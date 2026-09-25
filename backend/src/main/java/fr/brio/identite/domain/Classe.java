@@ -24,7 +24,7 @@ public class Classe {
     @Column(name = "annee_scolaire", nullable = false)
     private String anneeScolaire;
 
-    // Nullable until teacher-class assignment flow ships (follow-up ticket)
+    // Nullable: a class may exist between teachers before one is assigned (ADR 0016 §1)
     @Column(name = "enseignant_principal_id")
     private UUID enseignantPrincipalId;
 
@@ -39,12 +39,24 @@ public class Classe {
 
     public static Classe creer(UUID etablissementId, String niveauCode,
                                 String libelle, String anneeScolaire) {
+        return creer(etablissementId, niveauCode, libelle, anneeScolaire, null);
+    }
+
+    public static Classe creer(UUID etablissementId, String niveauCode,
+                                String libelle, String anneeScolaire,
+                                UUID enseignantPrincipalId) {
         var c = new Classe();
         c.etablissementId = etablissementId;
         c.niveauCode = niveauCode;
         c.libelle = libelle;
         c.anneeScolaire = anneeScolaire;
+        c.enseignantPrincipalId = enseignantPrincipalId;
         return c;
+    }
+
+    /** Sets (or replaces) the principal teacher — the account that owns and authors for the class. */
+    public void assignerEnseignantPrincipal(UUID enseignantPrincipalId) {
+        this.enseignantPrincipalId = enseignantPrincipalId;
     }
 
     public UUID getId() { return id; }

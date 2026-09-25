@@ -67,12 +67,44 @@ public class ClasseService {
 
     @Transactional
     public ClasseInfo creerClasse(UUID etablissementId, String niveauCode,
-                                   String libelle, String anneeScolaire) {
+                                   String libelle, String anneeScolaire,
+                                   UUID enseignantPrincipalId) {
         etablissements.findById(etablissementId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Établissement introuvable"));
-        Classe classe = classes.save(Classe.creer(etablissementId, niveauCode, libelle, anneeScolaire));
+        if (enseignantPrincipalId != null) {
+            verifierEstEnseignant(enseignantPrincipalId);
+        }
+        Classe classe = classes.save(
+                Classe.creer(etablissementId, niveauCode, libelle, anneeScolaire, enseignantPrincipalId));
         return toClasseInfo(classe);
+    }
+
+    /**
+     * Assigns (or replaces) the class's principal teacher — the account that owns and authors for
+     * the class, and from which its établissement is derived ({@link EnseignantContexteQuery}).
+     *
+     * @throws ResponseStatusException 404 if the class or the account is unknown
+     * @throws ResponseStatusException 422 if the account is not an enseignant
+     */
+    @Transactional
+    public ClasseInfo assignerEnseignantPrincipal(UUID classeId, UUID enseignantId) {
+        Classe classe = classes.findById(classeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Classe introuvable"));
+        verifierEstEnseignant(enseignantId);
+        classe.assignerEnseignantPrincipal(enseignantId);
+        return toClasseInfo(classes.save(classe));
+    }
+
+    private void verifierEstEnseignant(UUID compteId) {
+        Compte compte = comptes.findById(compteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Enseignant introuvable"));
+        if (compte.getRole() != RoleCompte.enseignant) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Le compte désigné n'est pas un enseignant");
+        }
     }
 
     /**
@@ -276,7 +308,8 @@ public class ClasseService {
 
     private static ClasseInfo toClasseInfo(Classe c) {
         return new ClasseInfo(c.getId(), c.getEtablissementId(), c.getNiveauCode(),
-                c.getLibelle(), c.getAnneeScolaire(), c.getStatut().name());
+                c.getLibelle(), c.getAnneeScolaire(), c.getStatut().name(),
+                c.getEnseignantPrincipalId());
     }
 
     static List<InscriptionInfo> withHomonymeFlag(List<Inscription> inscriptions) {

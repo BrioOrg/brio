@@ -8,5 +8,6 @@ public record ClasseInfo(
         String niveauCode,
         String libelle,
         String anneeScolaire,
-        String statut
+        String statut,
+        UUID enseignantPrincipalId // null until a principal teacher is assigned
 ) {}

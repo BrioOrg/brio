@@ -54,8 +54,8 @@ class CoursControllerIntegrationTest {
         // and no rollback, so a fixed UAI would collide across tests.
         var etab = classeService.creerEtablissement(
                 "Collège Test", null, "college", LocalDate.now().minusYears(1), "CONV-2025");
-        var classeA = classeService.creerClasse(etab.id(), "3e", "3e A", "2025-2026");
-        var classeB = classeService.creerClasse(etab.id(), "3e", "3e B", "2025-2026");
+        var classeA = classeService.creerClasse(etab.id(), "3e", "3e A", "2025-2026", null);
+        var classeB = classeService.creerClasse(etab.id(), "3e", "3e B", "2025-2026", null);
 
         var codeA = classeService.genererCode(classeA.id(), UUID.randomUUID(), 14, 40);
         var codeB = classeService.genererCode(classeB.id(), UUID.randomUUID(), 14, 40);

@@ -27,6 +27,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -65,7 +66,7 @@ class RejoindreClasseIntegrationTest {
                 LocalDate.of(2026, 9, 1), "CONV-TEST-001");
         etabId = etab.id();
 
-        var classe = classeService.creerClasse(etabId, "4e", "4e B", "2026-2027");
+        var classe = classeService.creerClasse(etabId, "4e", "4e B", "2026-2027", null);
         classeId = classe.id();
 
         var code = classeService.genererCode(classeId, adminCompte.getId(), 14, 40);
@@ -168,7 +169,7 @@ class RejoindreClasseIntegrationTest {
     void shouldReturn403WhenEtablissementHasNoConvention() throws Exception {
         var etabSans = classeService.creerEtablissement(
                 "École Sans Convention", null, "college", null, null);
-        var classeSans = classeService.creerClasse(etabSans.id(), "5e", "5e A", "2026-2027");
+        var classeSans = classeService.creerClasse(etabSans.id(), "5e", "5e A", "2026-2027", null);
         var codeSans = classeService.genererCode(classeSans.id(), adminCompte.getId(), 14, 40);
 
         mockMvc.perform(post("/api/classes/rejoindre")
@@ -308,6 +309,55 @@ class RejoindreClasseIntegrationTest {
                 .andExpect(jsonPath("$.usages").value(0))
                 .andExpect(jsonPath("$.usagesMax").value(40))
                 .andExpect(jsonPath("$.code").doesNotExist());
+    }
+
+    @Test
+    void shouldReturn200AndSetPrincipalWhenAdminAssignsEnseignant() throws Exception {
+        mockMvc.perform(put("/api/classes/{id}/enseignant-principal", classeId)
+                        .session(adminSession)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"enseignantId":"%s"}
+                                """.formatted(enseignantCompte.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enseignantPrincipalId").value(enseignantCompte.getId().toString()));
+    }
+
+    @Test
+    void shouldReturn403WhenNonAdminTriesToAssignEnseignant() throws Exception {
+        mockMvc.perform(put("/api/classes/{id}/enseignant-principal", classeId)
+                        .session(enseignantSession)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"enseignantId":"%s"}
+                                """.formatted(enseignantCompte.getId())))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturn422WhenAssignedAccountIsNotAnEnseignant() throws Exception {
+        mockMvc.perform(put("/api/classes/{id}/enseignant-principal", classeId)
+                        .session(adminSession)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"enseignantId":"%s"}
+                                """.formatted(adminCompte.getId())))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void shouldReturn404WhenAssigningEnseignantToUnknownClasse() throws Exception {
+        mockMvc.perform(put("/api/classes/{id}/enseignant-principal", UUID.randomUUID())
+                        .session(adminSession)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"enseignantId":"%s"}
+                                """.formatted(enseignantCompte.getId())))
+                .andExpect(status().isNotFound());
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

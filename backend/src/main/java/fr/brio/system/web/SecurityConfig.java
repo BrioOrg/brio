@@ -74,6 +74,7 @@ class SecurityConfig {
                 // Class and établissement management: ADMIN_BRIO only
                 .requestMatchers(HttpMethod.POST, "/api/etablissements").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes").hasRole("ADMIN_BRIO")
+                .requestMatchers(HttpMethod.PUT, "/api/classes/*/enseignant-principal").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes/*/codes").hasRole("ADMIN_BRIO")
                 .anyRequest().authenticated())
             .formLogin(form -> form
