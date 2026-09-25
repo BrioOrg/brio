@@ -13,6 +13,9 @@ export type BlocType =
 /** Une étape d'un bloc « exemple en étapes » : un texte, et éventuellement une formule. */
 export type Etape = { text: string; formula?: string }
 
+/** Une proposition d'un QCM : un texte montré à l'élève et un drapeau « bonne réponse ». */
+export type Choix = { id: string; text: string; correct: boolean }
+
 export type Bloc = {
   id: string
   type: BlocType
@@ -39,15 +42,56 @@ export type Brouillon = {
   misAJour?: number
 }
 
-// Catalogue des blocs proposés dans le « + Ajouter un bloc », dans l'ordre du menu.
-export const BLOCS: { type: BlocType; label: string; description: string; icone: string }[] = [
+// Les types d'exercice que l'afficheur élève sait rendre ET que le serveur sait corriger :
+// QCM, réponse courte, numérique (schéma « $defs » + evaluators du module exercices). « paper »
+// (sur feuille) existe déjà, auto-corrigé côté élève. Les champs de correction sont retirés à la
+// publication par l'ExerciceExtractor (ADR 0019 §4).
+export type ExerciceType = 'multiple-choice' | 'short-answer' | 'numeric' | 'paper'
+
+// Catalogue des blocs proposés dans la barre « Insérer », dans l'ordre du menu. Un bloc
+// « exercise » porte en plus un `exerciseType` : chaque type a sa propre entrée (pas de
+// sélecteur caché dans le bloc), pour qu'insérer un QCM ou une réponse courte soit un seul geste.
+export const BLOCS: {
+  type: BlocType
+  exerciseType?: ExerciceType
+  label: string
+  description: string
+  icone: string
+}[] = [
   { type: 'heading', label: 'Titre', description: 'Un intertitre dans la section', icone: 'T' },
   { type: 'objectives', label: 'Objectifs', description: 'Ce que l’élève saura faire', icone: '★' },
   { type: 'prose', label: 'Texte', description: 'Un paragraphe d’explication', icone: '¶' },
   { type: 'formula', label: 'Formule', description: 'Une formule mathématique', icone: '∑' },
   { type: 'callout', label: 'Encadré', description: 'Définition, exemple, attention…', icone: '▣' },
   { type: 'steps', label: 'Étapes', description: 'Un exemple résolu, étape par étape', icone: '≣' },
-  { type: 'exercise', label: 'Exercice', description: 'Un exercice sur feuille', icone: '✎' },
+  {
+    type: 'exercise',
+    exerciseType: 'multiple-choice',
+    label: 'QCM',
+    description: 'Une question à choix, corrigée automatiquement',
+    icone: '◉',
+  },
+  {
+    type: 'exercise',
+    exerciseType: 'short-answer',
+    label: 'Réponse courte',
+    description: 'Un mot ou une expression à saisir, corrigé automatiquement',
+    icone: '✍',
+  },
+  {
+    type: 'exercise',
+    exerciseType: 'numeric',
+    label: 'Numérique',
+    description: 'Une valeur numérique, corrigée automatiquement',
+    icone: '#',
+  },
+  {
+    type: 'exercise',
+    exerciseType: 'paper',
+    label: 'Sur feuille',
+    description: 'Un exercice résolu sur feuille, en auto-évaluation',
+    icone: '✎',
+  },
 ]
 
 export const BLOC_LABELS: Record<BlocType, string> = {
@@ -90,7 +134,7 @@ function hashCode(s: string): number {
 }
 
 /** Un bloc neuf du type demandé, avec des valeurs par défaut vides mais valides. */
-export function nouveauBloc(type: BlocType): Bloc {
+export function nouveauBloc(type: BlocType, exerciseType?: ExerciceType): Bloc {
   switch (type) {
     case 'heading':
       return { id: genId(), type, text: '', level: 1 }
@@ -108,9 +152,35 @@ export function nouveauBloc(type: BlocType): Bloc {
       // Un exemple résolu : un titre optionnel et une première étape prête à remplir.
       return { id: genId(), type, title: '', steps: [{ text: '' }] as Etape[] }
     case 'exercise':
-      // « Sur feuille » : auto-corrigé, sans note serveur — le seul type dont l'afficheur
-      // connaît tous les champs (prompt + statement + solution).
-      return { id: genId(), type, exerciseType: 'paper', prompt: '', statement: '', solution: '' }
+      return nouvelExercice(exerciseType ?? 'paper')
+  }
+}
+
+// Chaque type d'exercice démarre avec ses seuls champs du schéma, vides mais de la bonne forme.
+// Les champs de correction (choices.correct, acceptedAnswers, answer/tolerance) sont saisis ici
+// puis retirés à la publication : ils n'atteignent jamais un client élève (ADR 0019 §4).
+function nouvelExercice(exerciseType: ExerciceType): Bloc {
+  const base = { id: genId(), type: 'exercise' as const, exerciseType, prompt: '' }
+  switch (exerciseType) {
+    case 'multiple-choice':
+      return {
+        ...base,
+        multiple: false,
+        choices: [
+          { id: genId(), text: '', correct: false },
+          { id: genId(), text: '', correct: false },
+        ] as Choix[],
+      }
+    case 'short-answer':
+      return { ...base, acceptedAnswers: [''], caseSensitive: false }
+    case 'numeric':
+      // `answer` et `unit` sont ajoutés à la saisie : un `answer` absent (et non 0) distingue
+      // « pas encore rempli » de « la réponse est zéro » ; une `unit` vide n'est pas dans le schéma.
+      return { ...base, tolerance: 0 }
+    case 'paper':
+      // Pré-existant. Dette connue (#142) : `paper`/`statement`/`solution` ne sont pas dans le
+      // schéma ; laissé tel quel, hors périmètre de ce lot.
+      return { ...base, statement: '', solution: '' }
   }
 }
 

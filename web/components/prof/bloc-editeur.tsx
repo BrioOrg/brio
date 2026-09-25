@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 import { ChampFormule } from '@/components/maths/champ-formule'
-import { CALLOUT_VARIANTES, type Bloc, type Etape } from '@/lib/cours-editeur'
+import { CALLOUT_VARIANTES, genId, type Bloc, type Choix, type Etape } from '@/lib/cours-editeur'
 
 // Édition « dans la page » (piste A) : chaque bloc s'écrit là où il s'affichera, sans fiche ni
 // étiquette. On tape comme dans un document ; les zones grandissent avec le texte.
@@ -255,38 +255,282 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
     }
 
     case 'exercise':
-      return (
-        <div className="rounded-lg border border-line bg-surface-panel p-4">
-          <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
-            Exercice
+      return <ExerciceEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+  }
+}
+
+// --- Éditeurs d'exercice, un par type -----------------------------------------
+// Chaque formulaire ne saisit que les champs du schéma pour son `exerciseType`. Les champs de
+// correction (bonnes réponses) sont marqués « non montré à l'élève » : ils sont figés au serveur
+// et retirés à la publication (ADR 0019 §4), mais l'enseignant doit voir ce qu'il corrige.
+
+const EXERCICE_LABELS: Record<string, string> = {
+  'multiple-choice': 'QCM',
+  'short-answer': 'Réponse courte',
+  numeric: 'Numérique',
+  paper: 'Exercice sur feuille',
+}
+
+/** Étiquette « champ de correction, invisible pour l'élève ». */
+function LabelCorrection({ children }: { children: ReactNode }) {
+  return (
+    <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+      {children}
+      <span className="ml-1 font-normal normal-case tracking-normal text-ink-muted/70">
+        · non montré à l’élève
+      </span>
+    </span>
+  )
+}
+
+const champCorrection =
+  'rounded-md border border-line bg-surface-page px-2 py-1 font-prose text-sm text-ink focus:border-accent focus:outline-none'
+
+function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const exerciseType = (bloc.exerciseType as string) ?? 'paper'
+
+  // « Sur feuille » : pré-existant, laissé tel quel (dette #142). Auto-évalué côté élève.
+  if (exerciseType === 'paper') {
+    return (
+      <div className="rounded-lg border border-line bg-surface-panel p-4">
+        <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+          {EXERCICE_LABELS.paper}
+        </p>
+        <ZoneAuto
+          value={(bloc.prompt as string) ?? ''}
+          onChange={(v) => onModifier({ prompt: v })}
+          onFocus={onFocusBloc}
+          placeholder="L’énoncé de l’exercice…"
+          className="font-prose text-base leading-relaxed text-ink"
+        />
+        <ZoneAuto
+          value={(bloc.statement as string) ?? ''}
+          onChange={(v) => onModifier({ statement: v })}
+          onFocus={onFocusBloc}
+          placeholder="Données / précisions (facultatif)"
+          className="mt-2 font-prose text-sm leading-relaxed text-ink-muted"
+        />
+        <div className="mt-3 border-t border-line pt-3">
+          <p className="mb-1 font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+            Corrigé
           </p>
           <ZoneAuto
-            value={(bloc.prompt as string) ?? ''}
-            onChange={(v) => onModifier({ prompt: v })}
+            value={(bloc.solution as string) ?? ''}
+            onChange={(v) => onModifier({ solution: v })}
             onFocus={onFocusBloc}
-            placeholder="L’énoncé de l’exercice…"
+            placeholder="La solution rédigée…"
             className="font-prose text-base leading-relaxed text-ink"
           />
-          <ZoneAuto
-            value={(bloc.statement as string) ?? ''}
-            onChange={(v) => onModifier({ statement: v })}
-            onFocus={onFocusBloc}
-            placeholder="Données / précisions (facultatif)"
-            className="mt-2 font-prose text-sm leading-relaxed text-ink-muted"
-          />
-          <div className="mt-3 border-t border-line pt-3">
-            <p className="mb-1 font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
-              Corrigé
-            </p>
-            <ZoneAuto
-              value={(bloc.solution as string) ?? ''}
-              onChange={(v) => onModifier({ solution: v })}
-              onFocus={onFocusBloc}
-              placeholder="La solution rédigée…"
-              className="font-prose text-base leading-relaxed text-ink"
-            />
-          </div>
         </div>
-      )
+      </div>
+    )
   }
+
+  // Types auto-corrigés : énoncé partagé, champs du type, puis explication facultative.
+  return (
+    <div className="rounded-lg border border-line bg-surface-panel p-4">
+      <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+        {EXERCICE_LABELS[exerciseType] ?? 'Exercice'}
+      </p>
+      <ZoneAuto
+        value={(bloc.prompt as string) ?? ''}
+        onChange={(v) => onModifier({ prompt: v })}
+        onFocus={onFocusBloc}
+        placeholder="La question posée à l’élève…"
+        className="font-prose text-base leading-relaxed text-ink"
+      />
+
+      <div className="mt-3 border-t border-line pt-3">
+        {exerciseType === 'multiple-choice' && (
+          <ChoixEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+        )}
+        {exerciseType === 'short-answer' && (
+          <ReponseCourteEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+        )}
+        {exerciseType === 'numeric' && (
+          <NumeriqueEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+        )}
+      </div>
+
+      <div className="mt-3 border-t border-line pt-3">
+        <ZoneAuto
+          value={(bloc.explanation as string) ?? ''}
+          onChange={(v) => onModifier({ explanation: v || undefined })}
+          onFocus={onFocusBloc}
+          placeholder="Explication montrée après la réponse (facultatif)"
+          className="font-prose text-sm leading-relaxed text-ink-muted"
+        />
+      </div>
+    </div>
+  )
+}
+
+function ChoixEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const choix = (Array.isArray(bloc.choices) ? bloc.choices : []) as Choix[]
+  const multiple = bloc.multiple === true
+  const maj = (next: Choix[]) => onModifier({ choices: next })
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <LabelCorrection>Coche la ou les bonnes réponses</LabelCorrection>
+        <label className="flex shrink-0 items-center gap-1.5 font-prose text-xs text-ink-muted">
+          <input
+            type="checkbox"
+            checked={multiple}
+            onChange={(e) => onModifier({ multiple: e.target.checked })}
+            className="accent-accent"
+          />
+          Plusieurs bonnes réponses
+        </label>
+      </div>
+      <ul className="flex flex-col gap-1.5">
+        {choix.map((c, i) => (
+          <li key={c.id} className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              aria-label={`Bonne réponse ${i + 1}`}
+              checked={c.correct}
+              onChange={(e) =>
+                maj(choix.map((x, j) => (j === i ? { ...x, correct: e.target.checked } : x)))
+              }
+              className="shrink-0 accent-accent"
+            />
+            <input
+              className={`${inline} font-prose text-base text-ink`}
+              value={c.text}
+              onChange={(e) =>
+                maj(choix.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))
+              }
+              onFocus={onFocusBloc}
+              placeholder={`Réponse ${i + 1}`}
+            />
+            <button
+              type="button"
+              aria-label="Supprimer la réponse"
+              onClick={() => maj(choix.filter((_, j) => j !== i))}
+              disabled={choix.length <= 2}
+              className="shrink-0 text-ink-muted hover:text-danger disabled:opacity-30"
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={() => maj([...choix, { id: genId(), text: '', correct: false }])}
+        className="mt-2 font-display text-sm font-bold text-accent-ink hover:underline"
+      >
+        ＋ Ajouter une réponse
+      </button>
+    </div>
+  )
+}
+
+function ReponseCourteEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const reponses = (Array.isArray(bloc.acceptedAnswers) ? bloc.acceptedAnswers : []) as string[]
+  const maj = (next: string[]) => onModifier({ acceptedAnswers: next })
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <LabelCorrection>Réponses acceptées</LabelCorrection>
+        <label className="flex shrink-0 items-center gap-1.5 font-prose text-xs text-ink-muted">
+          <input
+            type="checkbox"
+            checked={bloc.caseSensitive === true}
+            onChange={(e) => onModifier({ caseSensitive: e.target.checked })}
+            className="accent-accent"
+          />
+          Sensible à la casse
+        </label>
+      </div>
+      <ul className="flex flex-col gap-1.5">
+        {reponses.map((r, i) => (
+          <li key={i} className="flex items-center gap-2">
+            <input
+              className={`${inline} font-prose text-base text-ink`}
+              value={r}
+              onChange={(e) => maj(reponses.map((x, j) => (j === i ? e.target.value : x)))}
+              onFocus={onFocusBloc}
+              placeholder="Ex. hypoténuse"
+            />
+            <button
+              type="button"
+              aria-label="Supprimer la réponse acceptée"
+              onClick={() => maj(reponses.filter((_, j) => j !== i))}
+              disabled={reponses.length <= 1}
+              className="shrink-0 text-ink-muted hover:text-danger disabled:opacity-30"
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={() => maj([...reponses, ''])}
+        className="mt-2 font-display text-sm font-bold text-accent-ink hover:underline"
+      >
+        ＋ Ajouter une réponse acceptée
+      </button>
+    </div>
+  )
+}
+
+function NumeriqueEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const answer = typeof bloc.answer === 'number' ? String(bloc.answer) : ''
+  const tolerance = typeof bloc.tolerance === 'number' ? String(bloc.tolerance) : ''
+  return (
+    <div className="flex flex-wrap items-end gap-4">
+      <label className="flex flex-col gap-1">
+        <LabelCorrection>Réponse attendue</LabelCorrection>
+        <input
+          type="number"
+          step="any"
+          inputMode="decimal"
+          aria-label="Réponse attendue"
+          className={`${champCorrection} w-32`}
+          value={answer}
+          onChange={(e) =>
+            onModifier({ answer: e.target.value === '' ? undefined : Number(e.target.value) })
+          }
+          onFocus={onFocusBloc}
+          placeholder="Ex. 5"
+        />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+          Tolérance ±
+        </span>
+        <input
+          type="number"
+          step="any"
+          min={0}
+          inputMode="decimal"
+          aria-label="Tolérance"
+          className={`${champCorrection} w-24`}
+          value={tolerance}
+          onChange={(e) =>
+            onModifier({ tolerance: e.target.value === '' ? undefined : Number(e.target.value) })
+          }
+          onFocus={onFocusBloc}
+          placeholder="0"
+        />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+          Unité (facultatif)
+        </span>
+        <input
+          type="text"
+          aria-label="Unité"
+          className={`${champCorrection} w-24`}
+          value={(bloc.unit as string) ?? ''}
+          onChange={(e) => onModifier({ unit: e.target.value || undefined })}
+          onFocus={onFocusBloc}
+          placeholder="Ex. cm"
+        />
+      </label>
+    </div>
+  )
 }
