@@ -21,3 +21,21 @@ export {
   SerieInfoSchema,
 } from './progression.js'
 export type { ProgressionInfo, ParcoursChapitre, SerieInfo } from './progression.js'
+export {
+  listerMesCours,
+  getCoursBrouillon,
+  creerCours,
+  enregistrerCours,
+  definirPortees,
+  publierCours,
+  CoursApiError,
+} from './cours-edition.js'
+export type {
+  CoursResume,
+  CoursDetail,
+  PublicationResult,
+  CreerCoursInput,
+  EnregistrerCoursInput,
+} from './cours-edition.js'
+export { listerMesClasses } from './prof-classes.js'
+export type { ClasseInfo } from './prof-classes.js'
