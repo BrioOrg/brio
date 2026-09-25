@@ -100,6 +100,43 @@
         }
       }
     },
+    "/api/classes/{id}/enseignant-principal" : {
+      "put" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "assignerEnseignant",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AssignerEnseignantRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/cours" : {
       "post" : {
         "tags" : [ "Édition de cours" ],
@@ -1158,6 +1195,45 @@
         },
         "required" : [ "classeIds" ]
       },
+      "AssignerEnseignantRequest" : {
+        "type" : "object",
+        "properties" : {
+          "enseignantId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "enseignantId" ]
+      },
+      "ClasseInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "anneeScolaire" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "enseignantPrincipalId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }
+      },
       "CreerCoursRequest" : {
         "type" : "object",
         "properties" : {
@@ -1445,34 +1521,13 @@
             "type" : "string",
             "minLength" : 1,
             "pattern" : "\\d{4}-\\d{4}"
+          },
+          "enseignantPrincipalId" : {
+            "type" : "string",
+            "format" : "uuid"
           }
         },
         "required" : [ "anneeScolaire", "etablissementId", "libelle", "niveauCode" ]
-      },
-      "ClasseInfo" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "etablissementId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "niveauCode" : {
-            "type" : "string"
-          },
-          "libelle" : {
-            "type" : "string"
-          },
-          "anneeScolaire" : {
-            "type" : "string"
-          },
-          "statut" : {
-            "type" : "string"
-          }
-        }
       },
       "GenererCodeRequest" : {
         "type" : "object",
