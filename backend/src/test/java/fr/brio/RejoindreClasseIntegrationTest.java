@@ -86,9 +86,12 @@ class RejoindreClasseIntegrationTest {
                 .andExpect(jsonPath("$.nomAffiche").value("Léa"))
                 .andExpect(jsonPath("$.classeLibelle").value("4e B"));
 
-        var compte = compteRepository.findAll().stream()
-                .filter(c -> c.getRole().name().equals("eleve"))
+        // Locate the élève created by this join via its inscription — filtering by the
+        // freshly-created classeId isolates it from élèves committed by sibling tests.
+        var inscription = inscriptionRepository.findAll().stream()
+                .filter(i -> i.getId().classeId().equals(classeId) && i.getNomAffiche().equals("Léa"))
                 .findFirst().orElseThrow();
+        var compte = compteRepository.findById(inscription.getId().compteId()).orElseThrow();
         assertThat(compte.getStatut()).isEqualTo(StatutCompte.actif);
         assertThat(compte.getBaseLegale()).isEqualTo(BaseLegale.mission_etablissement);
         assertThat(compte.getEmailTitulaireLegal()).isNull();
@@ -118,13 +121,10 @@ class RejoindreClasseIntegrationTest {
                                 """.formatted(rawCode)))
                 .andExpect(status().isCreated());
 
-        var compte = compteRepository.findAll().stream()
-                .filter(c -> c.getRole().name().equals("eleve"))
-                .findFirst().orElseThrow();
-
+        // Filter by the freshly-created classeId so élèves committed by sibling
+        // (non-transactional) integration tests can't be mistaken for this join.
         assertThat(inscriptionRepository.findAll())
-                .anyMatch(i -> i.getId().compteId().equals(compte.getId())
-                               && i.getId().classeId().equals(classeId)
+                .anyMatch(i -> i.getId().classeId().equals(classeId)
                                && i.getNomAffiche().equals("Zoé"));
     }
 
