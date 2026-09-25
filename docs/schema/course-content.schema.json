@@ -660,14 +660,19 @@
     },
 
     "objectivesBlock": {
-      "description": "Chapter objectives, anchored in the competency referential (ADR 0009). Codes follow the referential grammar here; existence is validated against contenu.competences at publish time.",
+      "description": "Chapter objectives. Two independent facets: 'items' are the free-text objective sentences a teacher writes ('what you'll be able to do'); 'competencies' are coded references into the controlled referential (ADR 0009), a separate machine-readable facet. Either may be empty, but a block with neither carries no information.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "type", "competencies"],
+      "required": ["id", "type"],
       "properties": {
         "id": { "$ref": "#/$defs/nodeId" },
         "type": { "const": "objectives" },
         "title": { "$ref": "#/$defs/plainText" },
+        "items": {
+          "description": "Free-text objective statements authored by the teacher, rendered as a checklist. Rich-text (inline markup allowed), like prose. Distinct from 'competencies', which is the coded referential grid.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/richText" }
+        },
         "competencies": { "$ref": "#/$defs/competencies" }
       }
     },
