@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,7 +27,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 class SecurityConfig {
 
+    // Catch-all chain: matches any request, so Spring Security requires it to be
+    // registered last (lowest precedence). The local-only chain below runs first.
     @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE)
     SecurityFilterChain filterChain(HttpSecurity http,
                                     AuthenticationSuccessHandler loginSuccess,
                                     AuthenticationFailureHandler loginFailure,
@@ -94,8 +99,11 @@ class SecurityConfig {
         return http.build();
     }
 
+    // Local-only chain for actuator + API docs behind HTTP Basic. Scoped via
+    // securityMatcher, so it must be ordered before the catch-all chain above.
     @Bean
     @Profile("local")
+    @Order(1)
     SecurityFilterChain localHttpBasicChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**")
