@@ -127,10 +127,25 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
-    void shouldRejectObjectivesWithoutCompetencies() {
+    void shouldAcceptObjectivesWithFreeTextItemsAndNoCompetencies() {
+        // A teacher may state objectives as free-text sentences without attaching coded
+        // competencies (the two facets are independent; ADR 0019 §2). The compétences picker
+        // does not exist yet, so requiring codes here would block every teacher course.
         String block =
                 """
-                { "id": "obj", "type": "objectives", "title": "Objectifs" }
+                {
+                  "id": "obj", "type": "objectives", "title": "Objectifs",
+                  "items": ["Calculer une longueur avec **Pythagore**", "Reconnaître un triangle rectangle"]
+                }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectObjectivesItemsThatAreNotStrings() {
+        String block =
+                """
+                { "id": "obj", "type": "objectives", "items": [ { "text": "nope" } ] }
                 """;
         assertThatThrownBy(() -> validator.validate(chapterWith(block)))
                 .isInstanceOf(InvalidContentException.class);
