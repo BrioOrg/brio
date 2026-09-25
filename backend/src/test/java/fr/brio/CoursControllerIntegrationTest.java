@@ -63,10 +63,11 @@ class CoursControllerIntegrationTest {
         studentInScope = classeService.rejoindreParCode(codeA.code(), "motdepasse123", "Alice").id();
         studentOutOfScope = classeService.rejoindreParCode(codeB.code(), "motdepasse123", "Bob").id();
 
+        UUID auteur = UUID.randomUUID();
         coursId = coursEditionService.creerBrouillon(new CreerBrouillonCommand(
-                UUID.randomUUID(), etab.id(), "Mon cours", "3e", "mathematiques", draftContent()));
-        coursEditionService.definirPortees(coursId, Set.of(classeA.id()));
-        coursEditionService.publier(coursId);
+                auteur, etab.id(), "Mon cours", "3e", "mathematiques", draftContent()));
+        coursEditionService.definirPortees(coursId, auteur, Set.of(classeA.id()));
+        coursEditionService.publier(coursId, auteur);
     }
 
     @Test

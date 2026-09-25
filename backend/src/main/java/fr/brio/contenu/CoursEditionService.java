@@ -67,21 +67,18 @@ public class CoursEditionService {
         return cours.getId();
     }
 
-    /** Overwrite an existing draft's title and content. */
+    /** Overwrite an existing draft's title and content. Only the course's author may do so. */
     @Transactional
-    public void enregistrerBrouillon(UUID coursId, ModifierBrouillonCommand cmd) {
-        Cours cours = coursRepository.findById(coursId)
-                .orElseThrow(() -> new CoursIntrouvableException(coursId));
+    public void enregistrerBrouillon(UUID coursId, UUID auteurId, ModifierBrouillonCommand cmd) {
+        Cours cours = chargerEnVerifiantProprietaire(coursId, auteurId);
         cours.modifierBrouillon(cmd.titre(), serialize(cmd.content()));
         coursRepository.save(cours);
     }
 
-    /** Replace the set of classes a course is visible to. */
+    /** Replace the set of classes a course is visible to. Only the course's author may do so. */
     @Transactional
-    public void definirPortees(UUID coursId, Set<UUID> classeIds) {
-        if (!coursRepository.existsById(coursId)) {
-            throw new CoursIntrouvableException(coursId);
-        }
+    public void definirPortees(UUID coursId, UUID auteurId, Set<UUID> classeIds) {
+        chargerEnVerifiantProprietaire(coursId, auteurId);
         coursPorteeRepository.deleteByIdCoursId(coursId);
         // Flush the delete before re-inserting so re-adding a class doesn't collide on the PK.
         coursPorteeRepository.flush();
@@ -98,9 +95,8 @@ public class CoursEditionService {
      * {@code version_publiee}).
      */
     @Transactional
-    public PublicationResult publier(UUID coursId) {
-        Cours cours = coursRepository.findById(coursId)
-                .orElseThrow(() -> new CoursIntrouvableException(coursId));
+    public PublicationResult publier(UUID coursId, UUID auteurId) {
+        Cours cours = chargerEnVerifiantProprietaire(coursId, auteurId);
 
         String brouillon = cours.getBrouillonContent();
         if (brouillon == null || brouillon.isBlank()) {
@@ -121,6 +117,16 @@ public class CoursEditionService {
         coursRepository.save(cours);
 
         return new PublicationResult(coursId, version);
+    }
+
+    /** Load a course, refusing the caller if they are not its author. */
+    private Cours chargerEnVerifiantProprietaire(UUID coursId, UUID auteurId) {
+        Cours cours = coursRepository.findById(coursId)
+                .orElseThrow(() -> new CoursIntrouvableException(coursId));
+        if (!cours.getAuteurId().equals(auteurId)) {
+            throw new CoursAccesRefuseException(coursId, auteurId);
+        }
+        return cours;
     }
 
     private String serialize(JsonNode content) {

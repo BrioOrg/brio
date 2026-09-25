@@ -1,8 +1,10 @@
 package fr.brio;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.identite.domain.StatutCompte;
 import fr.brio.identite.infrastructure.CompteRepository;
 import fr.brio.identite.infrastructure.RecordingEmailSender;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +51,11 @@ class InscriptionEleveIntegrationTest {
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andReturn();
 
-        // Account is in the database in the expected state
-        var comptes = compteRepository.findAll();
-        var eleve = comptes.stream()
-                .filter(c -> c.getRole().name().equals("eleve"))
-                .findFirst()
-                .orElseThrow();
+        // Account is in the database in the expected state. Look it up by the id the response
+        // returned — other (committed) tests may leave élèves around, so findFirst() is not safe.
+        UUID eleveId = UUID.fromString(
+                new ObjectMapper().readTree(result.getResponse().getContentAsString()).path("id").asText());
+        var eleve = compteRepository.findById(eleveId).orElseThrow();
         assertThat(eleve.getStatut()).isEqualTo(StatutCompte.en_attente_consentement);
         assertThat(eleve.getNiveauDeclare()).isEqualTo("4e");
         assertThat(eleve.getEmailTitulaireLegal()).isEqualTo("parent@example.com");

@@ -54,11 +54,12 @@ class CoursLectureIntegrationTest {
     }
 
     private UUID publishCourseScopedTo(UUID classeId) throws Exception {
+        UUID auteur = UUID.randomUUID();
         UUID coursId = coursEditionService.creerBrouillon(new CreerBrouillonCommand(
-                UUID.randomUUID(), UUID.randomUUID(), "Mon cours",
+                auteur, UUID.randomUUID(), "Mon cours",
                 "3e", "mathematiques", draftContent()));
-        coursEditionService.definirPortees(coursId, Set.of(classeId));
-        coursEditionService.publier(coursId);
+        coursEditionService.definirPortees(coursId, auteur, Set.of(classeId));
+        coursEditionService.publier(coursId, auteur);
         return coursId;
     }
 
@@ -80,10 +81,11 @@ class CoursLectureIntegrationTest {
     @Test
     void shouldExposeAnUnpublishedCourseToNoOne() throws Exception {
         UUID classeId = UUID.randomUUID();
+        UUID auteur = UUID.randomUUID();
         UUID coursId = coursEditionService.creerBrouillon(new CreerBrouillonCommand(
-                UUID.randomUUID(), UUID.randomUUID(), "Brouillon",
+                auteur, UUID.randomUUID(), "Brouillon",
                 "3e", "mathematiques", draftContent()));
-        coursEditionService.definirPortees(coursId, Set.of(classeId));
+        coursEditionService.definirPortees(coursId, auteur, Set.of(classeId));
         // Not published.
 
         assertThat(coursLectureService.contenuPublie(coursId)).isEmpty();

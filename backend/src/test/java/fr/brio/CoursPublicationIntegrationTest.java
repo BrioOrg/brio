@@ -80,21 +80,23 @@ class CoursPublicationIntegrationTest {
     }
 
     private UUID createPublishedCourse() throws Exception {
+        UUID auteur = UUID.randomUUID();
         UUID coursId = coursEditionService.creerBrouillon(new CreerBrouillonCommand(
-                UUID.randomUUID(), UUID.randomUUID(), "Mon cours",
+                auteur, UUID.randomUUID(), "Mon cours",
                 "3e", "mathematiques", draftContent("Mon cours")));
-        coursEditionService.definirPortees(coursId, Set.of(UUID.randomUUID()));
-        coursEditionService.publier(coursId);
+        coursEditionService.definirPortees(coursId, auteur, Set.of(UUID.randomUUID()));
+        coursEditionService.publier(coursId, auteur);
         return coursId;
     }
 
     @Test
     void shouldFreezeVersionStrippedOfCorrectionFields() throws Exception {
+        UUID auteur = UUID.randomUUID();
         UUID coursId = coursEditionService.creerBrouillon(new CreerBrouillonCommand(
-                UUID.randomUUID(), UUID.randomUUID(), "Mon cours",
+                auteur, UUID.randomUUID(), "Mon cours",
                 "3e", "mathematiques", draftContent("Mon cours")));
 
-        PublicationResult result = coursEditionService.publier(coursId);
+        PublicationResult result = coursEditionService.publier(coursId, auteur);
         assertThat(result.version()).isEqualTo(1);
 
         CoursVersion version = coursVersionRepository
@@ -124,19 +126,20 @@ class CoursPublicationIntegrationTest {
 
     @Test
     void shouldMintNewVersionAndLeaveEarlierVersionUnchanged() throws Exception {
+        UUID auteur = UUID.randomUUID();
         UUID coursId = coursEditionService.creerBrouillon(new CreerBrouillonCommand(
-                UUID.randomUUID(), UUID.randomUUID(), "V1",
+                auteur, UUID.randomUUID(), "V1",
                 "3e", "mathematiques", draftContent("V1")));
-        coursEditionService.publier(coursId);
+        coursEditionService.publier(coursId, auteur);
 
         String v1ContentBefore = coursVersionRepository
                 .findById(new CoursVersionId(coursId, 1)).orElseThrow().getContent();
         Set<UUID> v1ExerciceIds = idsOf(exerciceRepository.findByCoursId(coursId));
 
         // Edit the draft and publish again.
-        coursEditionService.enregistrerBrouillon(coursId,
+        coursEditionService.enregistrerBrouillon(coursId, auteur,
                 new ModifierBrouillonCommand("V2", draftContent("V2")));
-        PublicationResult second = coursEditionService.publier(coursId);
+        PublicationResult second = coursEditionService.publier(coursId, auteur);
         assertThat(second.version()).isEqualTo(2);
 
         // The v1 snapshot is immutable — untouched by the v2 publish.
