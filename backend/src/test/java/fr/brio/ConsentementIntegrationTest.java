@@ -14,11 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,7 +28,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
-@Transactional
+// Not @Transactional: consent e-mails leave after commit, asynchronously
+// (ConsentementEmailListener). Each test commits for real — hence the unique
+// identifiants — and waits for the e-mails sent to its own parent address (a previous
+// test's e-mail may still land after clear()).
 class ConsentementIntegrationTest {
 
     @Autowired MockMvc mockMvc;
@@ -36,12 +41,16 @@ class ConsentementIntegrationTest {
     @Autowired RecordingEmailSender emailSender;
 
     private Compte eleveEnAttente;
+    private String identifiantEleve;
+    private String emailParent;
 
     @BeforeEach
     void setup() {
         emailSender.clear();
+        identifiantEleve = "eleve.consent." + UUID.randomUUID();
+        emailParent = "parent." + UUID.randomUUID() + "@example.fr";
         eleveEnAttente = compteRepository.save(
-                Compte.creerEleve("eleve.consent.test", "{noop}motdepasse", "parent@example.fr", "4e"));
+                Compte.creerEleve(identifiantEleve, "{noop}motdepasse", emailParent, "4e"));
     }
 
     // ── Confirmation flow ──────────────────────────────────────────────────────
@@ -50,9 +59,8 @@ class ConsentementIntegrationTest {
     void shouldSendConsentEmailOnDemande() {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
 
-        var sent = emailSender.getSent();
-        assertThat(sent).hasSize(1);
-        assertThat(sent.get(0).to()).isEqualTo("parent@example.fr");
+        var sent = sentEmails(1);
+        assertThat(sent.get(0).to()).isEqualTo(emailParent);
         assertThat(sent.get(0).kind()).isEqualTo("consent-request");
         assertThat(sent.get(0).url()).contains("/consentement/");
     }
@@ -60,7 +68,7 @@ class ConsentementIntegrationTest {
     @Test
     void shouldActivateAccountOnValidation() throws Exception {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String confirmUrl = emailSender.getSent().get(0).url();
+        String confirmUrl = sentEmail(0).url();
         String token = extractTokenFromUrl(confirmUrl);
 
         mockMvc.perform(post("/api/consentements/{token}/validation", token))
@@ -73,14 +81,13 @@ class ConsentementIntegrationTest {
     @Test
     void shouldSendRevocationEmailAfterConfirmation() throws Exception {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String token = extractTokenFromUrl(emailSender.getSent().get(0).url());
+        String token = extractTokenFromUrl(sentEmail(0).url());
 
         mockMvc.perform(post("/api/consentements/{token}/validation", token))
                 .andExpect(status().isOk());
 
-        assertThat(emailSender.getSent()).hasSize(2);
-        var revocationEmail = emailSender.getSent().get(1);
-        assertThat(revocationEmail.to()).isEqualTo("parent@example.fr");
+        var revocationEmail = sentEmails(2).get(1);
+        assertThat(revocationEmail.to()).isEqualTo(emailParent);
         assertThat(revocationEmail.kind()).isEqualTo("consent-confirmed");
         assertThat(revocationEmail.url()).contains("/consentement/revocation/");
     }
@@ -88,7 +95,7 @@ class ConsentementIntegrationTest {
     @Test
     void shouldRejectTokenOnSecondUse() throws Exception {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String token = extractTokenFromUrl(emailSender.getSent().get(0).url());
+        String token = extractTokenFromUrl(sentEmail(0).url());
 
         mockMvc.perform(post("/api/consentements/{token}/validation", token))
                 .andExpect(status().isOk());
@@ -100,10 +107,10 @@ class ConsentementIntegrationTest {
     @Test
     void shouldInvalidatePreviousTokenOnResend() throws Exception {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String firstToken = extractTokenFromUrl(emailSender.getSent().get(0).url());
+        String firstToken = extractTokenFromUrl(sentEmail(0).url());
 
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String secondToken = extractTokenFromUrl(emailSender.getSent().get(1).url());
+        String secondToken = extractTokenFromUrl(sentEmail(1).url());
 
         mockMvc.perform(post("/api/consentements/{token}/validation", firstToken))
                 .andExpect(status().isBadRequest());
@@ -123,11 +130,11 @@ class ConsentementIntegrationTest {
     @Test
     void shouldSuspendAccountOnParentRevocation() throws Exception {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String confirmToken = extractTokenFromUrl(emailSender.getSent().get(0).url());
+        String confirmToken = extractTokenFromUrl(sentEmail(0).url());
         mockMvc.perform(post("/api/consentements/{token}/validation", confirmToken))
                 .andExpect(status().isOk());
 
-        String revocationToken = extractTokenFromUrl(emailSender.getSent().get(1).url());
+        String revocationToken = extractTokenFromUrl(sentEmail(1).url());
         mockMvc.perform(post("/api/consentements/revocation/{token}", revocationToken))
                 .andExpect(status().isOk());
 
@@ -138,11 +145,11 @@ class ConsentementIntegrationTest {
     @Test
     void shouldReturn409OnDoubleRevocation() throws Exception {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String confirmToken = extractTokenFromUrl(emailSender.getSent().get(0).url());
+        String confirmToken = extractTokenFromUrl(sentEmail(0).url());
         mockMvc.perform(post("/api/consentements/{token}/validation", confirmToken))
                 .andExpect(status().isOk());
 
-        String revocationToken = extractTokenFromUrl(emailSender.getSent().get(1).url());
+        String revocationToken = extractTokenFromUrl(sentEmail(1).url());
         mockMvc.perform(post("/api/consentements/revocation/{token}", revocationToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/consentements/revocation/{token}", revocationToken))
@@ -152,20 +159,21 @@ class ConsentementIntegrationTest {
     @Test
     void shouldSuspendAccountOnAdminRevocation() throws Exception {
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String confirmToken = extractTokenFromUrl(emailSender.getSent().get(0).url());
+        String confirmToken = extractTokenFromUrl(sentEmail(0).url());
         mockMvc.perform(post("/api/consentements/{token}/validation", confirmToken))
                 .andExpect(status().isOk());
 
         // Admin-authenticated request
-        Compte admin = compteRepository.save(
-                Compte.creerEnseignant("admin.brio", "{noop}admin123", "Admin", "admin@brio.fr"));
+        String suffixe = UUID.randomUUID().toString();
+        compteRepository.save(Compte.creerEnseignant(
+                "admin.brio." + suffixe, "{noop}admin123", "Admin", "admin." + suffixe + "@brio.fr"));
 
         UUID eleveId = eleveEnAttente.getId();
         var session = new MockHttpSession();
         mockMvc.perform(post("/api/sessions")
                         .session(session)
                         .contentType("application/x-www-form-urlencoded")
-                        .param("identifiant", "admin.brio")
+                        .param("identifiant", "admin.brio." + suffixe)
                         .param("mot_de_passe", "admin123")
                         .with(csrf()))
                 .andExpect(status().isOk());
@@ -183,7 +191,7 @@ class ConsentementIntegrationTest {
     void shouldInvalidateSessionAfterRevocation() throws Exception {
         // 1. Confirm consent → account actif
         consentementService.envoyerDemandeConsentement(eleveEnAttente.getId());
-        String confirmToken = extractTokenFromUrl(emailSender.getSent().get(0).url());
+        String confirmToken = extractTokenFromUrl(sentEmail(0).url());
         mockMvc.perform(post("/api/consentements/{token}/validation", confirmToken))
                 .andExpect(status().isOk());
 
@@ -192,7 +200,7 @@ class ConsentementIntegrationTest {
         mockMvc.perform(post("/api/sessions")
                         .session(session)
                         .contentType("application/x-www-form-urlencoded")
-                        .param("identifiant", "eleve.consent.test")
+                        .param("identifiant", identifiantEleve)
                         .param("mot_de_passe", "motdepasse")
                         .with(csrf()))
                 .andExpect(status().isOk());
@@ -202,7 +210,7 @@ class ConsentementIntegrationTest {
                 .andExpect(status().isOk());
 
         // 4. Revoke consent
-        String revocationToken = extractTokenFromUrl(emailSender.getSent().get(1).url());
+        String revocationToken = extractTokenFromUrl(sentEmail(1).url());
         mockMvc.perform(post("/api/consentements/revocation/{token}", revocationToken))
                 .andExpect(status().isOk());
 
@@ -212,6 +220,22 @@ class ConsentementIntegrationTest {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private List<RecordingEmailSender.SentEmail> sentEmails(int count) {
+        return await().atMost(Duration.ofSeconds(5))
+                .until(this::sentToParent, sent -> sent.size() == count);
+    }
+
+    /** Callers read e-mails in send order, each awaited before the next action. */
+    private RecordingEmailSender.SentEmail sentEmail(int index) {
+        return await().atMost(Duration.ofSeconds(5))
+                .until(this::sentToParent, sent -> sent.size() > index)
+                .get(index);
+    }
+
+    private List<RecordingEmailSender.SentEmail> sentToParent() {
+        return emailSender.getSent().stream().filter(e -> e.to().equals(emailParent)).toList();
+    }
 
     private static String extractTokenFromUrl(String url) {
         return url.substring(url.lastIndexOf('/') + 1);

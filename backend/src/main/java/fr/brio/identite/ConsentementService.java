@@ -1,12 +1,14 @@
 package fr.brio.identite;
 
-import fr.brio.identite.api.EmailSender;
 import fr.brio.identite.domain.Consentement;
+import fr.brio.identite.domain.ConsentementDonne;
 import fr.brio.identite.domain.DemandeConsentement;
+import fr.brio.identite.domain.DemandeConsentementEmise;
 import fr.brio.identite.infrastructure.CompteRepository;
 import fr.brio.identite.infrastructure.ConsentementRepository;
 import fr.brio.identite.infrastructure.DemandeConsentementRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,18 +30,18 @@ public class ConsentementService {
     private final CompteRepository comptes;
     private final ConsentementRepository consentements;
     private final DemandeConsentementRepository demandes;
-    private final EmailSender emailSender;
+    private final ApplicationEventPublisher events;
     private final String frontendBaseUrl;
 
     ConsentementService(CompteRepository comptes,
                         ConsentementRepository consentements,
                         DemandeConsentementRepository demandes,
-                        EmailSender emailSender,
+                        ApplicationEventPublisher events,
                         @Value("${brio.frontend.base-url:http://localhost:3000}") String frontendBaseUrl) {
         this.comptes = comptes;
         this.consentements = consentements;
         this.demandes = demandes;
-        this.emailSender = emailSender;
+        this.events = events;
         this.frontendBaseUrl = frontendBaseUrl;
     }
 
@@ -67,8 +69,9 @@ public class ConsentementService {
 
         demandes.save(DemandeConsentement.creer(compteId, TYPE_PARENTAL, hash, parentEmail));
 
-        emailSender.sendConsentEmail(parentEmail,
-                frontendBaseUrl + "/consentement/" + token);
+        // Sent after commit by ConsentementEmailListener.
+        events.publishEvent(new DemandeConsentementEmise(parentEmail,
+                frontendBaseUrl + "/consentement/" + token));
     }
 
     /**
@@ -100,9 +103,9 @@ public class ConsentementService {
 
         demandes.delete(demande);
 
-        emailSender.sendConsentConfirmationEmail(
+        events.publishEvent(new ConsentementDonne(
                 demande.getEnvoyeA(),
-                frontendBaseUrl + "/consentement/revocation/" + revocationToken);
+                frontendBaseUrl + "/consentement/revocation/" + revocationToken));
     }
 
     /**
