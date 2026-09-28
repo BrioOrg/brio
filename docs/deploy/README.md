@@ -35,8 +35,13 @@ vCPU count matters less: 2 is enough, more makes deploys faster.
 2. Tick the **automated backup** option.
 3. When asked for an SSH key, paste your **public** key (🖥 `cat ~/.ssh/id_ed25519.pub`;
    if you have none: `ssh-keygen -t ed25519`). OVH puts it on the `ubuntu` user.
-4. Once delivered, note the VPS's **IPv4** and **IPv6** addresses (OVH e-mail or
-   the VPS page in the control panel).
+   Check the image is exactly **Ubuntu 24.04** (not a newer release) and the key
+   field is really filled: without a key, the `ubuntu` user only has a password
+   sent by e-mail. If either went wrong, *Reinstall* the VPS from the control panel
+   (same IPs, nothing lost at this stage).
+4. Once delivered, note the VPS's name (`vps-xxxxxxxx.vps.ovh.net`) and its
+   **IPv4** and **IPv6** addresses: the VPS page in the control panel (*Home* tab),
+   or 🖥 `dig +short A vps-xxxxxxxx.vps.ovh.net` and `dig +short AAAA …`.
 
 ## 3. Buy the domain 🌐
 
@@ -50,20 +55,34 @@ production. The rest of this page calls it `<domain>`.
 
 ## 4. Point the DNS at the VPS 🌐
 
-In the domain's DNS zone, add:
+DNS maps the name to the VPS's addresses: an `A` record for IPv4, an `AAAA` record
+for IPv6. At OVH: *Web Cloud* → *Domain names* → the domain → *DNS zone*.
 
-| Type | Name | Value |
-|---|---|---|
-| `A` | the hostname (empty for the bare domain, `prive` for a subdomain) | the VPS IPv4 |
-| `AAAA` | same | the VPS IPv6 |
+A new OVH domain already points at a parking page ("site en construction"). For
+the chosen name, **every** `A` and `AAAA` record must end up pointing at the VPS —
+one leftover parking record is enough to send part of the traffic (and Let's
+Encrypt) elsewhere:
 
-Remove any default `A`/`AAAA` record the registrar created for that name (parking
-page). Then wait until both answer with the VPS's addresses:
+| Type | Sub-domain | Value | Action |
+|---|---|---|---|
+| `A` | `@` for the bare domain, `prive` for a subdomain | the VPS IPv4 | **modify** the existing parking record (`213.186.33.5`) |
+| `AAAA` | same | the VPS IPv6 | modify the parking record if there is one (`2001:41d0:301::…`), otherwise add |
+
+OVH's form requires the sub-domain field: `@` means the bare domain. Also delete
+`www`'s parking `A` and its `TXT "3|welcome"` if you serve the bare domain (the
+environment serves one name only). Leave `NS`, `MX` and `SPF` alone.
+
+Check against OVH's own DNS server, which answers immediately (the zone's `NS`
+records name it, e.g. `ns111.ovh.net`), then against your usual resolver:
 
 ```sh
-dig +short A <domain>      # 🖥 must print the IPv4
-dig +short AAAA <domain>   # 🖥 must print the IPv6
+dig +short A <domain> @ns111.ovh.net      # 🖥 exactly one line: the VPS IPv4
+dig +short AAAA <domain> @ns111.ovh.net   # 🖥 exactly one line: the VPS IPv6
+dig +short A <domain>
 ```
+
+A browser that opened the domain earlier may keep showing the parking page for up
+to an hour (its own DNS cache): use a private window.
 
 Do not start the stack before this is true: Caddy would fail Let's Encrypt's
 validation, which rate-limits repeated failures.
@@ -74,12 +93,27 @@ On the Mac, add to `~/.ssh/config`:
 
 ```
 Host brio
-  HostName <VPS IPv4>
+  HostName <domain>
   User ubuntu
+  # Keeps idle sessions alive through home routers and NAT64 gateways.
+  ServerAliveInterval 30
+  ServerAliveCountMax 4
 ```
 
-Then `ssh brio`. On the VPS, give it read-only access to the repository with a
-**deploy key**:
+Then `ssh brio`, and answer `yes` to the host fingerprint question.
+
+- **It asks for `ubuntu@<domain>'s password`**: the VPS does not have your key.
+  `Ctrl+C` — do not type your Mac password — and reinstall with the key (step 2).
+- **"You are required to change your password"**: OVH expires the `ubuntu`
+  password on first login. Connect with a plain `ssh brio` (not `ssh brio 'cmd'`,
+  which has no terminal to prompt in), choose a new password — `sudo` asks for it
+  later — and reconnect after it closes the session.
+- After a reinstall, SSH refuses with "REMOTE HOST IDENTIFICATION HAS CHANGED":
+  `ssh-keygen -R <domain>`, then connect again.
+
+The prompt shows where a command runs: `ubuntu@vps-…:~$` is the VPS, your Mac's
+prompt is the Mac. Everything below marked ☁ runs on the VPS. There, give it
+read-only access to the repository with a **deploy key**:
 
 ```sh
 ssh-keygen -t ed25519 -f ~/.ssh/brio_deploy -N "" -C "brio-vps deploy key"
@@ -100,6 +134,8 @@ EOF
 git clone -b develop git@github.com:BrioOrg/brio.git ~/brio
 ```
 
+GitHub's fingerprint is `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU`.
+
 ## 6. Harden the server ☁
 
 ```sh
@@ -112,9 +148,19 @@ installs Docker with bounded logs, adds 4 GB of swap, creates `/var/backups/brio
 and the nightly snapshot timer. It refuses to run if `ubuntu` has no SSH key, so
 it cannot lock you out.
 
-**Before closing your session**, check from a **second** terminal that `ssh brio`
-still works. Then log out and back in (the `docker` group applies to new sessions)
-and check `docker ps` runs without `sudo`.
+Keep a **second** `ssh brio` session open while it runs. **Before closing
+anything**, check from a new terminal that `ssh brio` still works. Then log out and
+back in (the `docker` group applies to new sessions) and check:
+
+```sh
+docker ps                                   # an empty table, no "permission denied"
+sudo ufw status                             # active: 22, 80, 443, 443/udp
+swapon --show                               # /swapfile, 4G
+systemctl list-timers brio-snapshot.timer   # next run at 03:00
+```
+
+If the login banner says `*** System restart required ***`, run `sudo reboot` now,
+while nothing is running yet.
 
 ## 7. Anthropic key with a spending cap 🌐
 
@@ -142,9 +188,11 @@ Fill in every value (the comments in the file explain each one):
 - `BRIO_DOMAIN=<domain>`
 - `CADDY_USER_1` / `CADDY_HASH_1` and `CADDY_USER_2` / `CADDY_HASH_2`: one account
   each for Pierce and Gabrielle. Each person picks their own password and generates
-  its hash:
-  `docker run --rm caddy:2.10-alpine caddy hash-password --plaintext '<password>'`.
-  Keep the hash in single quotes.
+  its hash with `docker run --rm -it caddy:2.10-alpine caddy hash-password` (it
+  prompts twice; the password never lands in the shell history). The hash is not
+  tied to a name: `CADDY_HASH_1` goes with `CADDY_USER_1`, and so on. A hash cannot
+  be reversed, so Gabrielle can send hers over any channel. Keep each hash in single
+  quotes.
 - `POSTGRES_PASSWORD`: `openssl rand -base64 32`.
 - `BRIO_IA_API_KEY`: the key from step 7.
 - Leave the SMTP values (Mailpit) and `BRIO_RESET_ALLOWED=true` as they are.
