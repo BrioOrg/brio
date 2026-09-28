@@ -56,6 +56,7 @@ docs/adr/   Architecture Decision Records
 - `docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d --build` — full stack behind Caddy
 - `docker compose -f docker-compose.prod.yml --env-file deploy/.env --profile ingest run --rm ingest` — load the catalogue
 - Images build from the repo root: `docker build -f backend/Dockerfile .`, `docker build -f web/Dockerfile .`
+- E-mails (consent links) land in Mailpit: `https://<BRIO_DOMAIN>/mailpit`. Locally (`local` profile) they are only recorded in memory.
 
 ## Backend architecture
 
