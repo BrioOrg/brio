@@ -18,6 +18,7 @@ import {
   nouvelleSection,
   supprimerBrouillon,
   synchroniserTrous,
+  tableauACelluleVide,
   type Bloc,
   type BlocType,
 } from '@/lib/cours-editeur'
@@ -301,6 +302,57 @@ describe('texte à trous', () => {
       trous({ template: '{} {}', expected: ['zèbre', 'âne'], bank: ['zèbre', 'âne', '', 'lion'] }),
     ]
     expect(contenuDepuisBrouillon(b).sections[0].blocks[0].bank).toEqual(['âne', 'lion', 'zèbre'])
+  })
+})
+
+describe('champs facultatifs vides (#158)', () => {
+  // Le schéma exige `minLength: 1` sur les champs facultatifs présents ; les formulaires les
+  // initialisent à ''. Le document enregistré ne doit pas les porter vides.
+  function servi(...blocs: Bloc[]): Bloc[] {
+    const b = nouveauBrouillon()
+    b.sections[0].blocks = blocs
+    return contenuDepuisBrouillon(b).sections[0].blocks
+  }
+
+  it('retire le titre vide et les lignes vides d’un bloc objectifs neuf', () => {
+    const obj = { ...nouveauBloc('objectives'), items: ['Calculer une hypoténuse', ''] }
+    const [b] = servi(obj)
+    expect(b).not.toHaveProperty('title')
+    expect(b.items).toEqual(['Calculer une hypoténuse'])
+  })
+
+  it('retire le titre vide d’un encadré et d’un bloc étapes, et une formule d’étape vide', () => {
+    const etapes = { ...nouveauBloc('steps'), steps: [{ text: 'Poser', formula: '' }] }
+    const [encadre, e] = servi({ ...nouveauBloc('callout'), text: 'x' }, etapes)
+    expect(encadre).not.toHaveProperty('title')
+    expect(e).not.toHaveProperty('title')
+    expect(e.steps).toEqual([{ text: 'Poser' }])
+  })
+
+  it('garde un titre renseigné et le titre requis d’une référence', () => {
+    const [encadre, ref] = servi(
+      { ...nouveauBloc('callout'), title: 'Définition', text: 'x' },
+      nouveauBloc('reference')
+    )
+    expect(encadre.title).toBe('Définition')
+    expect(ref).toHaveProperty('title', '')
+  })
+
+  it('retire une ligne d’en-têtes entièrement vide, pas une ligne partiellement remplie', () => {
+    const [sansEntetes, partiel] = servi(
+      { ...nouveauBloc('table'), rows: [['a', 'b']] },
+      { ...nouveauBloc('table'), headers: ['x', ''], rows: [['a', 'b']] }
+    )
+    expect(sansEntetes).not.toHaveProperty('headers')
+    expect(partiel.headers).toEqual(['x', ''])
+  })
+
+  it('signale une cellule vide, mais pas une ligne d’en-têtes entièrement vide', () => {
+    expect(tableauACelluleVide({ ...nouveauBloc('table'), rows: [['a', 'b']] })).toBe(false)
+    expect(tableauACelluleVide({ ...nouveauBloc('table'), rows: [['a', '']] })).toBe(true)
+    expect(
+      tableauACelluleVide({ ...nouveauBloc('table'), headers: ['x', ''], rows: [['a', 'b']] })
+    ).toBe(true)
   })
 })
 

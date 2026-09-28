@@ -109,6 +109,27 @@ describe('PublierCours', () => {
     expect(screen.getByRole('button', { name: 'Publier' })).toBeDisabled()
   })
 
+  it('signale une case de tableau vide avant publication', async () => {
+    const user = userEvent.setup()
+    await setup({
+      brouillon: {
+        ...brouillon,
+        sections: [
+          {
+            id: 's1',
+            title: 'Leçon',
+            kind: 'lesson',
+            blocks: [{ id: 't1', type: 'table', rows: [['a', '']] }],
+          },
+        ],
+      },
+    })
+
+    await user.click(await screen.findByRole('checkbox', { name: /3e A/ }))
+    expect(screen.getByText(/Chaque case d’un tableau doit être remplie/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier' })).toBeDisabled()
+  })
+
   it('affiche le motif serveur en cas de 422', async () => {
     const user = userEvent.setup()
     const { CoursApiError } = await import('@brio/api-client')

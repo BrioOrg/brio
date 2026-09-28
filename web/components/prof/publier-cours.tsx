@@ -12,7 +12,7 @@ import {
 } from '@brio/api-client'
 
 import { Icon } from '@/components/ui/icon'
-import type { Brouillon } from '@/lib/cours-editeur'
+import { tableauACelluleVide, type Brouillon } from '@/lib/cours-editeur'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
@@ -80,6 +80,9 @@ export function PublierCours({
         const expected = Array.isArray(b.expected) ? (b.expected as unknown[]) : []
         return expected.length === 0 || expected.some((e) => String(e ?? '').trim() === '')
       })
+    if (brouillon.sections.flatMap((s) => s.blocks).some(tableauACelluleVide)) {
+      p.push('Chaque case d’un tableau doit être remplie.')
+    }
     if (trousIncomplets) {
       p.push('Chaque texte à trous doit avoir au moins un trou, et une réponse pour chaque trou.')
     }

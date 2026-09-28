@@ -191,7 +191,8 @@ export function nouveauBloc(type: BlocType, exerciseType?: ExerciceType): Bloc {
     case 'table':
       // Une grille 2×1 prête à remplir : une ligne d'en-têtes (facultative dans le schéma, mais
       // proposée par défaut) et une première ligne de corps. Le schéma exige au moins une ligne
-      // d'au moins une cellule ; les cellules vides sont remplacées à la publication.
+      // d'au moins une cellule. Une ligne d'en-têtes laissée vide est retirée à l'enregistrement
+      // (blocServi) ; une cellule de corps vide est signalée avant publication.
       return { id: genId(), type, headers: ['', ''], rows: [['', '']] }
     case 'reference':
       // Externe par défaut (le cas le plus courant : renvoyer vers une ressource en ligne).
@@ -298,11 +299,57 @@ function banqueServie(bank: unknown): string[] {
     .sort((a, b) => a.localeCompare(b, 'fr'))
 }
 
-function blocServi(bloc: Bloc): Bloc {
-  if (bloc.type === 'exercise' && bloc.exerciseType === 'fill-blank') {
-    return { ...bloc, bank: banqueServie(bloc.bank) }
+const vide = (v: unknown) => typeof v === 'string' && v.trim() === ''
+
+// Champs facultatifs du schéma qui, présents, doivent être non vides (`minLength: 1`). Les
+// formulaires les initialisent à '' : laissés vides, on les retire plutôt que d'envoyer un
+// document que le validateur refuserait. Le `title` d'une référence est requis : il reste, et
+// le validateur le signale s'il est vide.
+const CHAMPS_FACULTATIFS = ['title', 'caption', 'source', 'unit', 'explanation', 'statement']
+
+function sansChampsVides(bloc: Bloc): Bloc {
+  const propre: Bloc = { ...bloc }
+  for (const champ of CHAMPS_FACULTATIFS) {
+    if (champ === 'title' && bloc.type === 'reference') continue
+    if (vide(propre[champ])) delete propre[champ]
   }
-  return bloc
+  return propre
+}
+
+/**
+ * Le bloc tel qu'il est enregistré et servi : sans champ facultatif vide, sans ligne vide
+ * (objectifs, en-têtes de tableau entièrement vides, formule d'étape vide), et avec la banque du
+ * texte à trous triée. Appliqué à chaque enregistrement, il répare aussi un brouillon ancien.
+ */
+function blocServi(bloc: Bloc): Bloc {
+  const b = sansChampsVides(bloc)
+  switch (b.type) {
+    case 'objectives':
+      if (Array.isArray(b.items)) b.items = (b.items as unknown[]).filter((i) => !vide(i))
+      return b
+    case 'steps':
+      if (Array.isArray(b.steps)) {
+        b.steps = (b.steps as Etape[]).map((e) => (vide(e.formula) ? { text: e.text } : e))
+      }
+      return b
+    case 'table':
+      if (Array.isArray(b.headers) && (b.headers as unknown[]).every(vide)) delete b.headers
+      return b
+    case 'exercise':
+      return b.exerciseType === 'fill-blank' ? { ...b, bank: banqueServie(b.bank) } : b
+    default:
+      return b
+  }
+}
+
+/** Vrai si un tableau a une cellule vide (en-têtes conservés ou corps) : non représentable. */
+export function tableauACelluleVide(bloc: Bloc): boolean {
+  if (bloc.type !== 'table') return false
+  const entetes = Array.isArray(bloc.headers) ? (bloc.headers as unknown[]) : []
+  const corps = Array.isArray(bloc.rows) ? (bloc.rows as unknown[][]).flat() : []
+  // Une ligne d'en-têtes entièrement vide est retirée à l'enregistrement : pas un problème.
+  const entetesUtiles = entetes.every(vide) ? [] : entetes
+  return [...entetesUtiles, ...corps].some(vide)
 }
 
 /** Une section neuve (une leçon par défaut) avec un titre vide et aucun bloc. */
