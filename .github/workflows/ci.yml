@@ -53,3 +53,27 @@ jobs:
           node-version: '22'
       - run: node scripts/check-competencies.mjs
       - run: node scripts/check-content.mjs
+
+  docker:
+    # Builds the deployable images (ADR 0024) so a broken Dockerfile fails the PR,
+    # not the deployment. Nothing is pushed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: false
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: web/Dockerfile
+          push: false
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
