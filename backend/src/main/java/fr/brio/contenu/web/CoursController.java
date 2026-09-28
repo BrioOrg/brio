@@ -2,12 +2,17 @@ package fr.brio.contenu.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.brio.contenu.CoursLectureService;
+import fr.brio.contenu.CoursVisible;
+import fr.brio.identite.api.EnseignantContexteQuery;
 import fr.brio.identite.api.InscriptionsQuery;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +36,32 @@ class CoursController {
 
     private final CoursLectureService coursLectureService;
     private final InscriptionsQuery inscriptionsQuery;
+    private final EnseignantContexteQuery enseignantContexteQuery;
 
-    CoursController(CoursLectureService coursLectureService, InscriptionsQuery inscriptionsQuery) {
+    CoursController(
+            CoursLectureService coursLectureService,
+            InscriptionsQuery inscriptionsQuery,
+            EnseignantContexteQuery enseignantContexteQuery) {
         this.coursLectureService = coursLectureService;
         this.inscriptionsQuery = inscriptionsQuery;
+        this.enseignantContexteQuery = enseignantContexteQuery;
+    }
+
+    @GetMapping(value = "/cours", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Liste les cours d'enseignant visibles par l'élève",
+            description = "Retourne les cours publiés portés à l'une des classes de l'élève connecté, "
+                    + "du plus récemment publié au plus ancien. Liste vide pour un compte sans classe.")
+    @ApiResponse(responseCode = "200", description = "Cours visibles (éventuellement aucun)")
+    @ApiResponse(responseCode = "401", description = "Authentification requise")
+    List<CoursVisibleResponse> getCoursVisibles(@AuthenticationPrincipal UserDetails principal) {
+        Set<UUID> classesEleve = inscriptionsQuery.classesDeLEleve(UUID.fromString(principal.getUsername()));
+        List<CoursVisible> cours = coursLectureService.coursVisiblesPour(classesEleve);
+        Map<UUID, String> noms = enseignantContexteQuery.nomsDesEnseignants(
+                cours.stream().map(CoursVisible::auteurId).collect(Collectors.toSet()));
+        return cours.stream()
+                .map(c -> CoursVisibleResponse.from(c, noms.get(c.auteurId())))
+                .toList();
     }
 
     @GetMapping(value = "/cours/{coursId}", produces = MediaType.APPLICATION_JSON_VALUE)

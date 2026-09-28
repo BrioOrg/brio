@@ -7,9 +7,12 @@ import fr.brio.contenu.domain.CoursVersionId;
 import fr.brio.contenu.infrastructure.CoursPorteeRepository;
 import fr.brio.contenu.infrastructure.CoursRepository;
 import fr.brio.contenu.infrastructure.CoursVersionRepository;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +66,30 @@ public class CoursLectureService {
         }
         return coursPorteeRepository.findByIdCoursId(coursId).stream()
                 .anyMatch(p -> classesEleve.contains(p.getClasseId()));
+    }
+
+    /**
+     * The published courses visible to at least one of the given classes, most recently
+     * published first — a student's course list. Same rule as {@link #estVisiblePour}: a
+     * draft or a course with no intersecting portée is never listed. A course scoped to
+     * several of the student's classes appears once.
+     */
+    @Transactional(readOnly = true)
+    public List<CoursVisible> coursVisiblesPour(Set<UUID> classesEleve) {
+        if (classesEleve.isEmpty()) {
+            return List.of();
+        }
+        Set<UUID> coursIds = coursPorteeRepository.findByIdClasseIdIn(classesEleve).stream()
+                .map(p -> p.getCoursId())
+                .collect(Collectors.toSet());
+        return coursRepository.findAllById(coursIds).stream()
+                .filter(c -> Cours.STATUT_PUBLIE.equals(c.getStatut()) && c.getVersionPubliee() != null)
+                .flatMap(c -> coursVersionRepository.findById(new CoursVersionId(c.getId(), c.getVersionPubliee()))
+                        .map(v -> new CoursVisible(c.getId(), c.getTitre(), c.getNiveauCode(),
+                                c.getMatiereCode(), c.getAuteurId(), v.getPublieAt()))
+                        .stream())
+                .sorted(Comparator.comparing(CoursVisible::publieAt).reversed())
+                .toList();
     }
 
     private Optional<String> versionPubliee(UUID coursId) {
