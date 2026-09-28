@@ -20,7 +20,7 @@ criteria (ADR 0024 §1). Read prices on the order page itself; they change.
 
 | Criterion | What to look for |
 |---|---|
-| RAM | **≥ 4 GB required, 8 GB recommended.** Images are built on the server, next to the running stack: Maven and the Next.js build are the memory peaks. `bootstrap.sh` adds 4 GB of swap, which prevents crashes but not slowness. |
+| RAM | **≥ 4 GB required, 8 GB recommended.** Images are built on the server, next to the running stack: Maven and the Next.js build are the memory peaks. `deploy.sh` builds the two images one after the other and `bootstrap.sh` adds 4 GB of swap, so 4 GB works (the plan chosen on 2026-09-28 is OVH VPS-1); more makes deploys faster. |
 | Disk | ≥ 40 GB. Docker images and build cache take ~10 GB; dumps and logs the rest. |
 | Location | A **French** datacenter (Gravelines, Roubaix or Strasbourg). The location is chosen during the order — check it before paying. |
 | Image | **Ubuntu 24.04 LTS** (the scripts are written for it). |

@@ -26,8 +26,16 @@ git checkout --quiet "$branch"
 git merge --quiet --ff-only "origin/$branch"
 echo "  at $(git log -1 --format='%h %s')"
 
-info "Building images and restarting services"
-compose up -d --build --remove-orphans
+# One image at a time: on a 4 GB VPS (ADR 0024 §1), the Maven and Next.js builds in
+# parallel, next to the running stack, would push it deep into swap or get a
+# container killed. The stack keeps serving the previous images meanwhile.
+info "Building the backend image"
+compose build backend
+info "Building the web image"
+compose build web
+
+info "Restarting services"
+compose up -d --remove-orphans
 wait_for_backend
 
 # Images are built here, so every deploy leaves the previous layers behind. Keep a
