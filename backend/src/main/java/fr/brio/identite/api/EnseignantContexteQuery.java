@@ -1,5 +1,6 @@
 package fr.brio.identite.api;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -28,4 +29,12 @@ public interface EnseignantContexteQuery {
      * in both cases the caller cannot unambiguously attribute a new course. Never {@code null}.
      */
     Optional<UUID> etablissementDeLEnseignant(UUID compteId);
+
+    /**
+     * Display names of the given teacher accounts, keyed by account ID — how a student's
+     * course list shows who wrote each course. Only accounts that are teachers and have a name
+     * appear; any other ID is simply absent (never a student's name). One lookup for the whole
+     * set. Never {@code null}.
+     */
+    Map<UUID, String> nomsDesEnseignants(Set<UUID> compteIds);
 }

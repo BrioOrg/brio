@@ -201,3 +201,48 @@ describe('catalogue public', () => {
     expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get('Authorization')).toBeNull()
   })
 })
+
+describe('getCoursVisibles', () => {
+  beforeEach(() => {
+    vi.resetModules()
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('relays the cookie and accepts a course without a teacher name', async () => {
+    const fetchMock = vi.fn<typeof fetch>(
+      async () =>
+        new Response(
+          JSON.stringify([
+            {
+              id: 'c-1',
+              titre: 'Pythagore',
+              niveauCode: '3e',
+              matiereCode: 'mathematiques',
+              enseignant: null,
+              publieAt: '2026-09-28T10:00:00Z',
+            },
+          ]),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const { getCoursVisibles } = await import('@/lib/api')
+
+    const cours = await getCoursVisibles('JSESSIONID=abc')
+
+    expect(cours).toEqual([expect.objectContaining({ id: 'c-1', enseignant: null })])
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/cours$/)
+    expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get('cookie')).toBe('JSESSIONID=abc')
+  })
+
+  it('throws on 401 so the page can hide the section', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 401 }))
+    )
+    const { getCoursVisibles } = await import('@/lib/api')
+    await expect(getCoursVisibles('')).rejects.toThrow()
+  })
+})

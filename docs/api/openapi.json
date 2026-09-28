@@ -1105,6 +1105,42 @@
         }
       }
     },
+    "/api/cours" : {
+      "get" : {
+        "tags" : [ "Contenu" ],
+        "summary" : "Liste les cours d'enseignant visibles par l'élève",
+        "description" : "Retourne les cours publiés portés à l'une des classes de l'élève connecté, du plus récemment publié au plus ancien. Liste vide pour un compte sans classe.",
+        "operationId" : "getCoursVisibles",
+        "responses" : {
+          "200" : {
+            "description" : "Cours visibles (éventuellement aucun)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CoursVisibleResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CoursVisibleResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/cours/{coursId}" : {
       "get" : {
         "tags" : [ "Contenu" ],
@@ -2006,6 +2042,31 @@
           }
         },
         "required" : [ "status", "timestamp", "version" ]
+      },
+      "CoursVisibleResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "enseignant" : {
+            "type" : "string"
+          },
+          "publieAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
       },
       "CodeClasseInfo" : {
         "type" : "object",

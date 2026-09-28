@@ -88,6 +88,35 @@ export async function getCoursPublie(
   return res.json() as Promise<ChapitreResponse>
 }
 
+const CoursVisibleSchema = z.object({
+  id: z.string(),
+  titre: z.string(),
+  niveauCode: z.string(),
+  matiereCode: z.string(),
+  // Absent when identite has no name for the author: the card then shows none.
+  enseignant: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? null),
+  publieAt: z.string(),
+})
+
+export type CoursVisible = z.infer<typeof CoursVisibleSchema>
+
+/**
+ * The teacher courses published to the logged-in student's classes, newest first (#160).
+ * Server-side, like getCoursPublie: the caller relays the request's cookies. A visitor
+ * without a session gets a 401, surfaced as an error the page treats as "no courses".
+ */
+export async function getCoursVisibles(cookieHeader: string): Promise<CoursVisible[]> {
+  const res = await fetch(`${API_URL}/api/cours`, {
+    headers: { cookie: cookieHeader },
+    cache: 'no-store',
+  })
+  if (!res.ok) throw new Error('Cours indisponibles')
+  return z.array(CoursVisibleSchema).parse(await res.json())
+}
+
 // ---------------------------------------------------------------------------
 // Exercise submission — rides the session cookie (ADR 0018), see soumettre().
 // ---------------------------------------------------------------------------
