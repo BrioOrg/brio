@@ -277,6 +277,10 @@
         {
           "if": { "properties": { "exerciseType": { "const": "ordering" } } },
           "then": { "$ref": "#/$defs/orderingFields" }
+        },
+        {
+          "if": { "properties": { "exerciseType": { "const": "paper" } } },
+          "then": { "$ref": "#/$defs/paperFields" }
         }
       ]
     },
@@ -391,6 +395,22 @@
           "description": "Optional grading criteria to ground AI feedback.",
           "type": "array",
           "items": { "$ref": "#/$defs/plainText" }
+        }
+      }
+    },
+
+    "paperFields": {
+      "description": "Extra fields required when exerciseType = 'paper' (\"sur feuille\"). The student works on paper, reveals 'solution' and self-assesses: no submission, no grading. 'solution' is therefore meant for the student and is NOT a correction field \u2014 it must stay out of the fields the ExerciceExtractor strips.",
+      "type": "object",
+      "required": ["solution"],
+      "properties": {
+        "statement": {
+          "description": "Optional data or details completing the prompt (figures, values, constraints).",
+          "$ref": "#/$defs/richText"
+        },
+        "solution": {
+          "description": "Model solution, shown to the student on request for self-comparison.",
+          "$ref": "#/$defs/richText"
         }
       }
     },

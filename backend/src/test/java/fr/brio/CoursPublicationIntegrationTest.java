@@ -79,7 +79,7 @@ class CoursPublicationIntegrationTest {
                       { "id": "ex-trous", "type": "exercise", "exerciseType": "fill-blank",
                         "prompt": "Complète l'égalité de Pythagore.",
                         "template": "BC{} = AB{} + AC{}",
-                        "bank": ["²", "³", "×2"],
+                        "bank": ["²", "²", "²", "³", "×2"],
                         "expected": ["²", "²", "²"] }
                     ] }
                   ]

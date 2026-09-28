@@ -172,3 +172,45 @@ describe('BlocEditeur — figure', () => {
     expect(segs[0]).toEqual({ from: 'A', to: 'B' })
   })
 })
+
+describe('BlocEditeur — texte à trous', () => {
+  it('ajoute une réponse attendue par trou et la met dans la banque', async () => {
+    render(<Harnais exerciseType="fill-blank" />)
+
+    await userEvent.type(screen.getByLabelText('Phrase à compléter'), 'Le côté ')
+    await userEvent.click(screen.getByRole('button', { name: '＋ trou' }))
+    await userEvent.type(screen.getByLabelText('Réponse attendue 1'), 'hypoténuse')
+
+    expect(etat()).toMatchObject({
+      template: 'Le côté {}',
+      expected: ['hypoténuse'],
+      bank: ['hypoténuse'],
+    })
+  })
+
+  it('suit les {} tapés à la main', async () => {
+    render(<Harnais exerciseType="fill-blank" />)
+
+    // `{{` tape une accolade littérale avec user-event.
+    await userEvent.type(screen.getByLabelText('Phrase à compléter'), '{{} + {{} = 4')
+
+    expect(screen.getByLabelText('Réponse attendue 1')).toBeInTheDocument()
+    expect(screen.getByLabelText('Réponse attendue 2')).toBeInTheDocument()
+    expect(etat().expected).toEqual(['', ''])
+  })
+
+  it('ajoute des étiquettes pièges à la banque, à côté des réponses', async () => {
+    render(<Harnais exerciseType="fill-blank" />)
+
+    await userEvent.click(screen.getByRole('button', { name: '＋ trou' }))
+    await userEvent.type(screen.getByLabelText('Réponse attendue 1'), 'droit')
+    await userEvent.click(screen.getByRole('button', { name: '＋ Ajouter une étiquette piège' }))
+    await userEvent.type(screen.getByLabelText('Étiquette piège 1'), 'aigu')
+
+    expect(etat().bank).toEqual(['droit', 'aigu'])
+    expect(etat().expected).toEqual(['droit'])
+
+    await userEvent.click(screen.getByRole('button', { name: 'Supprimer l’étiquette piège' }))
+    expect(etat().bank).toEqual(['droit'])
+  })
+})

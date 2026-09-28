@@ -23,7 +23,9 @@ const brouillon: Brouillon = {
   ],
 }
 
-async function setup(overrides: { onPublie?: () => void; onFermer?: () => void } = {}) {
+async function setup(
+  overrides: { onPublie?: () => void; onFermer?: () => void; brouillon?: Brouillon } = {}
+) {
   const { listerMesClasses, definirPortees, publierCours } = await import('@brio/api-client')
   vi.mocked(listerMesClasses).mockResolvedValue([
     { id: 'cl1', libelle: '3e A', niveauCode: '3e' },
@@ -34,7 +36,7 @@ async function setup(overrides: { onPublie?: () => void; onFermer?: () => void }
   render(
     <PublierCours
       coursId="c1"
-      brouillon={brouillon}
+      brouillon={overrides.brouillon ?? brouillon}
       classeIdsInitiales={[]}
       onAvantPublicationAction={onAvant}
       onPublieAction={overrides.onPublie ?? vi.fn()}
@@ -74,6 +76,37 @@ describe('PublierCours', () => {
     expect(definirPortees).toHaveBeenCalledWith(expect.any(String), 'c1', ['cl1'])
     expect(onPublie).toHaveBeenCalledWith(1)
     expect(await screen.findByText(/version 1/i)).toBeInTheDocument()
+  })
+
+  it('bloque un texte à trous dont un trou n’a pas de réponse', async () => {
+    const user = userEvent.setup()
+    await setup({
+      brouillon: {
+        ...brouillon,
+        sections: [
+          {
+            id: 's1',
+            title: 'Exercices',
+            kind: 'exercises',
+            blocks: [
+              {
+                id: 'e1',
+                type: 'exercise',
+                exerciseType: 'fill-blank',
+                prompt: 'Complète.',
+                template: '{} et {}',
+                expected: ['a', ''],
+                bank: ['a'],
+              },
+            ],
+          },
+        ],
+      },
+    })
+
+    await user.click(await screen.findByRole('checkbox', { name: /3e A/ }))
+    expect(screen.getByText(/une réponse pour chaque trou/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publier' })).toBeDisabled()
   })
 
   it('affiche le motif serveur en cas de 422', async () => {

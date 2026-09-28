@@ -137,4 +137,44 @@ class PublicationValidatorTest {
         assertThatCode(() -> validator.validate(doc(objectives)))
                 .doesNotThrowAnyException();
     }
+
+    private static String fillBlank(String template, String bank, String expected) {
+        return """
+                { "id": "ex1", "type": "exercise", "exerciseType": "fill-blank",
+                  "prompt": "Complète.", "template": "%s", "bank": %s, "expected": %s }
+                """.formatted(template, bank, expected);
+    }
+
+    @Test
+    void shouldAcceptConsistentFillBlank() throws Exception {
+        String ex = fillBlank("Le {} est opposé à l'angle {}.", "[\"droit\", \"côté\", \"aigu\"]",
+                "[\"côté\", \"droit\"]");
+        assertThatCode(() -> validator.validate(doc(ex))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldBlockFillBlankWhenBlankCountDiffersFromExpected() throws Exception {
+        String ex = fillBlank("Le {} est opposé à l'angle {}.", "[\"droit\", \"côté\"]",
+                "[\"côté\"]");
+        assertThatThrownBy(() -> validator.validate(doc(ex)))
+                .isInstanceOf(InvalidContentException.class)
+                .hasMessageContaining("2 blank(s) but 1 expected");
+    }
+
+    @Test
+    void shouldBlockFillBlankWhenExpectedAnswerIsNotInBank() throws Exception {
+        String ex = fillBlank("Le {} est long.", "[\"côté\", \"angle\"]", "[\"hypoténuse\"]");
+        assertThatThrownBy(() -> validator.validate(doc(ex)))
+                .isInstanceOf(InvalidContentException.class)
+                .hasMessageContaining("'hypoténuse' is not available in the bank");
+    }
+
+    @Test
+    void shouldBlockFillBlankWhenBankHasTooFewCopiesOfARepeatedAnswer() throws Exception {
+        // The widget uses each tile once: two blanks expecting "2" need two "2" tiles.
+        String ex = fillBlank("{} + {} = 4", "[\"2\", \"3\"]", "[\"2\", \"2\"]");
+        assertThatThrownBy(() -> validator.validate(doc(ex)))
+                .isInstanceOf(InvalidContentException.class)
+                .hasMessageContaining("'2' is not available in the bank");
+    }
 }

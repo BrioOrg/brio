@@ -73,6 +73,16 @@ export function PublierCours({
         return (type === 'image' || type === 'figure') && !String(b.alt ?? '').trim()
       })
     if (imagesSansAlt.length > 0) p.push('Chaque image doit avoir un texte alternatif.')
+    const trousIncomplets = brouillon.sections
+      .flatMap((s) => s.blocks)
+      .some((b) => {
+        if (b.type !== 'exercise' || b.exerciseType !== 'fill-blank') return false
+        const expected = Array.isArray(b.expected) ? (b.expected as unknown[]) : []
+        return expected.length === 0 || expected.some((e) => String(e ?? '').trim() === '')
+      })
+    if (trousIncomplets) {
+      p.push('Chaque texte à trous doit avoir au moins un trou, et une réponse pour chaque trou.')
+    }
     return p
   }, [brouillon])
 
