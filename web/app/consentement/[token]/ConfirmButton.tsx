@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+import { apiBaseUrl } from '@/lib/api-base-url'
 
 export function ConfirmButton({ token }: { token: string }) {
   const [pending, setPending] = useState(false)
@@ -13,7 +12,7 @@ export function ConfirmButton({ token }: { token: string }) {
     setError(null)
     try {
       const res = await fetch(
-        `${API_URL}/api/consentements/${encodeURIComponent(token)}/validation`,
+        `${apiBaseUrl()}/api/consentements/${encodeURIComponent(token)}/validation`,
         { method: 'POST', credentials: 'include' }
       )
       if (res.ok) {

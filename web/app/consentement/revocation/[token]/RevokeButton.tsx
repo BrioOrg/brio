@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+import { apiBaseUrl } from '@/lib/api-base-url'
 
 export function RevokeButton({ token }: { token: string }) {
   const [pending, setPending] = useState(false)
@@ -14,7 +13,7 @@ export function RevokeButton({ token }: { token: string }) {
     setError(null)
     try {
       const res = await fetch(
-        `${API_URL}/api/consentements/revocation/${encodeURIComponent(token)}`,
+        `${apiBaseUrl()}/api/consentements/revocation/${encodeURIComponent(token)}`,
         { method: 'POST', credentials: 'include' }
       )
       if (res.ok) {

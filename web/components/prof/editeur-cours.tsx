@@ -33,8 +33,7 @@ import {
   type Section,
   type SectionKind,
 } from '@/lib/cours-editeur'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Délai d'inactivité avant un enregistrement serveur : assez court pour ne rien perdre, assez
 // long pour ne pas écrire à chaque frappe. Le tampon local, lui, est écrit immédiatement.
@@ -74,7 +73,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
     let vivant = true
     setCharge(false)
     setErreurChargement(null)
-    getCoursBrouillon(API_URL, coursId)
+    getCoursBrouillon(apiBaseUrl(), coursId)
       .then((detail) => {
         if (!vivant) return
         const depuisServeur = brouillonDepuisContenu(coursId, detail.titre ?? '', detail.content)
@@ -107,7 +106,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
   // que de bloquer l'édition). Le référentiel est stable, on ne le recharge pas.
   useEffect(() => {
     let vivant = true
-    listerCompetences(API_URL)
+    listerCompetences(apiBaseUrl())
       .then((liste) => {
         if (vivant) setCompetences(liste)
       })
@@ -129,7 +128,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
     async (b: Brouillon) => {
       setEtat('enregistrement')
       try {
-        await enregistrerCours(API_URL, coursId, {
+        await enregistrerCours(apiBaseUrl(), coursId, {
           titre: b.title,
           content: contenuDepuisBrouillon(b),
         })
