@@ -1,6 +1,6 @@
 # 0024 — Environnement privé déployé
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-09-28
 - **Deciders**: Pierce Broudin, Gabrielle
 
