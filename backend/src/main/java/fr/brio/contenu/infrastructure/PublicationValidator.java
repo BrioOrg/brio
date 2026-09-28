@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.InvalidContentException;
 import fr.brio.contenu.domain.Chapitre;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -44,6 +46,9 @@ public class PublicationValidator {
                     assertInternalReferenceResolves(block);
                 } else if ("image".equals(type) || "figure".equals(type)) {
                     assertAltPresent(block);
+                } else if ("exercise".equals(type)
+                        && "fill-blank".equals(block.path("exerciseType").asText())) {
+                    assertFillBlankConsistent(block);
                 }
             }
         }
@@ -82,6 +87,37 @@ public class PublicationValidator {
             throw new InvalidContentException(
                     "Missing alt text on " + block.path("type").asText()
                     + " block '" + block.path("id").asText() + "'");
+        }
+    }
+
+    /**
+     * The schema checks each fill-blank field on its own; this checks they agree. The evaluator
+     * rejects any answer whose blank count differs from {@code expected}, and the student widget
+     * places each bank tile at most once — so an exercise that fails either check can never be
+     * answered correctly. Compared exactly: the student can only submit tiles as written.
+     */
+    private void assertFillBlankConsistent(JsonNode block) {
+        String id = block.path("id").asText();
+        String template = block.path("template").asText("");
+        int blanks = template.split("\\{}", -1).length - 1;
+        JsonNode expected = block.path("expected");
+        if (expected.size() != blanks) {
+            throw new InvalidContentException(
+                    "Fill-blank exercise '" + id + "' has " + blanks + " blank(s) but "
+                    + expected.size() + " expected answer(s)");
+        }
+
+        Map<String, Integer> tiles = new HashMap<>();
+        for (JsonNode tile : block.path("bank")) {
+            tiles.merge(tile.asText(), 1, Integer::sum);
+        }
+        for (JsonNode answer : expected) {
+            String value = answer.asText();
+            if (tiles.merge(value, -1, Integer::sum) < 0) {
+                throw new InvalidContentException(
+                        "Fill-blank exercise '" + id + "': expected answer '" + value
+                        + "' is not available in the bank");
+            }
         }
     }
 
