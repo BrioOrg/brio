@@ -15,7 +15,6 @@ export async function getPingStatus() {
 export async function getChapitre(id: string): Promise<ChapitreResponse> {
   const { data, error } = await client.GET('/api/chapitres/{id}', {
     params: { path: { id } },
-    headers: { Authorization: buildAuthHeader() },
   })
   if (error) throw new Error(`Chapitre introuvable: ${id}`)
   return data as unknown as ChapitreResponse
@@ -50,9 +49,7 @@ export type Catalogue = z.infer<typeof CatalogueSchema>
 export type CatalogueNiveau = z.infer<typeof CatalogueNiveauSchema>
 
 export async function getCatalogue(): Promise<Catalogue> {
-  const res = await fetch(`${API_URL}/api/catalogue`, {
-    headers: { Authorization: buildAuthHeader() },
-  })
+  const res = await fetch(`${API_URL}/api/catalogue`)
   if (!res.ok) throw new Error('Catalogue unavailable')
   return CatalogueSchema.parse(await res.json())
 }
@@ -63,8 +60,7 @@ export async function getChapitreByTriplet(
   slug: string
 ): Promise<ChapitreResponse> {
   const res = await fetch(
-    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}`,
-    { headers: { Authorization: buildAuthHeader() } }
+    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}`
   )
   if (!res.ok) throw new Error(`Chapitre introuvable: ${slug}`)
   return res.json() as Promise<ChapitreResponse>
@@ -74,19 +70,26 @@ export async function getChapitreByTriplet(
  * A published teacher course, served in the exact same shape as a catalogue chapter
  * (ADR 0019 §1) so it renders through the same <ChapterView/>. Unlike the public
  * catalogue, this endpoint is scoped: the backend enforces the course's portées.
+ *
+ * Called from a Server Component, where no browser cookie rides along: the page passes
+ * the incoming request's cookies (`cookies().toString()`) so the call carries the
+ * student's session. Taken as a parameter rather than read here because this module is
+ * also imported by client components, which cannot import `next/headers`.
  */
-export async function getCoursPublie(coursId: string): Promise<ChapitreResponse> {
+export async function getCoursPublie(
+  coursId: string,
+  cookieHeader: string
+): Promise<ChapitreResponse> {
   const res = await fetch(`${API_URL}/api/cours/${encodeURIComponent(coursId)}`, {
-    headers: { Authorization: buildAuthHeader() },
+    headers: { cookie: cookieHeader },
+    cache: 'no-store',
   })
   if (!res.ok) throw new Error(`Cours indisponible: ${coursId}`)
   return res.json() as Promise<ChapitreResponse>
 }
 
 // ---------------------------------------------------------------------------
-// Exercise submission
-// Dev-only scaffolding: credentials from env vars, replaced when the identite
-// module ships real auth. Never hardcode credentials in source.
+// Exercise submission — rides the session cookie (ADR 0018), see soumettre().
 // ---------------------------------------------------------------------------
 
 const ChoiceFeedbackSchema = z.object({
@@ -111,12 +114,6 @@ export const SoumissionResultSchema = z.object({
 })
 
 export type SoumissionResult = z.infer<typeof SoumissionResultSchema>
-
-function buildAuthHeader(): string {
-  const username = process.env.NEXT_PUBLIC_BRIO_API_USERNAME ?? ''
-  const password = process.env.NEXT_PUBLIC_BRIO_API_PASSWORD ?? ''
-  return 'Basic ' + btoa(`${username}:${password}`)
-}
 
 // ---------------------------------------------------------------------------
 // Tuteur IA
@@ -181,9 +178,13 @@ async function postTuteur(
 ): Promise<TuteurReponse> {
   const body: Record<string, unknown> = { question }
   if (exerciceId) body.exerciceId = exerciceId
+  // The tutor is gated by the student's session (ADR 0018): send the session cookie
+  // and, this being a mutating POST, echo the CSRF token — same as soumettre().
+  const token = await ensureCsrfToken(API_URL)
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: buildAuthHeader() },
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...csrfHeaders(token) },
     body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error('Erreur du tuteur')
