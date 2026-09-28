@@ -100,3 +100,104 @@ describe('soumettre', () => {
     await expect(soumettre('ex-1', { choiceIds: ['a'] })).rejects.toThrow('Non authentifié')
   })
 })
+
+// The tutor, like submissions, is gated by the student's session (#153): no Basic
+// header (the API chain ignores it), the session cookie, and the CSRF echo on POST.
+describe('tuteur', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    clearCookies()
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function stubTuteur() {
+    const posts: Array<{ url: string; init: RequestInit | undefined }> = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input instanceof Request ? input.url : String(input)
+        if (url.endsWith('/api/moi')) {
+          document.cookie = 'XSRF-TOKEN=tok-tut'
+          return new Response(null, { status: 401 })
+        }
+        posts.push({ url, init })
+        return new Response(JSON.stringify({ reponse: 'Bonjour', citations: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      })
+    )
+    return posts
+  }
+
+  it.each([
+    [{ kind: 'cours' as const, coursId: 'c-1' }, /\/api\/cours\/c-1\/tuteur$/],
+    [
+      { kind: 'chapitre' as const, niveau: '3e', matiere: 'mathematiques', slug: 'pythagore' },
+      /\/api\/chapitres\/3e\/mathematiques\/pythagore\/tuteur$/,
+    ],
+  ])('rides the session with the CSRF token (%o)', async (target, urlPattern) => {
+    const posts = stubTuteur()
+    const { askTuteurForTarget } = await import('@/lib/api')
+
+    const reponse = await askTuteurForTarget(target, 'Pourquoi ?', null)
+
+    expect(reponse.reponse).toBe('Bonjour')
+    const post = posts.find((p) => urlPattern.test(p.url))
+    expect(post?.init?.credentials).toBe('include')
+    const headers = new Headers(post?.init?.headers)
+    expect(headers.get('X-XSRF-TOKEN')).toBe('tok-tut')
+    expect(headers.get('Authorization')).toBeNull()
+  })
+})
+
+describe('getCoursPublie', () => {
+  beforeEach(() => {
+    vi.resetModules()
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('relays the incoming request cookie from the server, uncached', async () => {
+    const fetchMock = vi.fn<typeof fetch>(
+      async () =>
+        new Response(JSON.stringify({ id: 'c-1', title: 'Mon cours', sections: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const { getCoursPublie } = await import('@/lib/api')
+
+    await getCoursPublie('c-1', 'JSESSIONID=abc')
+
+    const init = fetchMock.mock.calls[0][1]
+    const headers = new Headers(init?.headers)
+    expect(headers.get('cookie')).toBe('JSESSIONID=abc')
+    expect(headers.get('Authorization')).toBeNull()
+    expect(init?.cache).toBe('no-store')
+  })
+})
+
+describe('catalogue public', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('sends no Authorization header', async () => {
+    vi.resetModules()
+    const fetchMock = vi.fn<typeof fetch>(
+      async () =>
+        new Response('[]', { status: 200, headers: { 'Content-Type': 'application/json' } })
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const { getCatalogue } = await import('@/lib/api')
+
+    await getCatalogue()
+
+    expect(new Headers(fetchMock.mock.calls[0][1]?.headers).get('Authorization')).toBeNull()
+  })
+})

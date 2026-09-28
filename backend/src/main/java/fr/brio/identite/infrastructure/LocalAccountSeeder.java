@@ -2,7 +2,9 @@ package fr.brio.identite.infrastructure;
 
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.api.EtablissementInfo;
+import fr.brio.identite.domain.Classe;
 import fr.brio.identite.domain.Compte;
+import fr.brio.identite.domain.Inscription;
 import java.time.LocalDate;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -39,13 +41,16 @@ class LocalAccountSeeder implements ApplicationRunner {
 
     private final CompteRepository comptes;
     private final ClasseRepository classes;
+    private final InscriptionRepository inscriptions;
     private final ClasseService classeService;
     private final PasswordEncoder passwordEncoder;
 
     LocalAccountSeeder(CompteRepository comptes, ClasseRepository classes,
+                       InscriptionRepository inscriptions,
                        ClasseService classeService, PasswordEncoder passwordEncoder) {
         this.comptes = comptes;
         this.classes = classes;
+        this.inscriptions = inscriptions;
         this.classeService = classeService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -59,6 +64,7 @@ class LocalAccountSeeder implements ApplicationRunner {
         seed("eleve.demo", () -> creerEleveActif(hash));
 
         seedClasseDemo();
+        seedEleveClasse(hash);
     }
 
     /**
@@ -77,6 +83,32 @@ class LocalAccountSeeder implements ApplicationRunner {
                 "Collège Démo", null, "college", LocalDate.now().minusYears(1), "CONV-DEMO");
         classeService.creerClasse(etab.id(), "3e", "3e Démo", "2026-2027", profId);
         log.info("Seeded demo class '3e Démo' for prof.demo — local profile");
+    }
+
+    /**
+     * A student enrolled in prof.demo's class, created exactly as the real class-code flow
+     * does ({@link ClasseService#rejoindreParCode}): a path A account attached to the class's
+     * établissement, plus an inscription. It is the account that can read a course prof.demo
+     * publishes to '3e Démo' (course access is scoped by class). eleve.demo stays the path B,
+     * class-less student. Idempotent: skips when eleve.classe already exists.
+     */
+    private void seedEleveClasse(String hash) {
+        if (comptes.findByIdentifiantConnexion("eleve.classe").isPresent()) {
+            log.debug("Dev account 'eleve.classe' already present — skipping");
+            return;
+        }
+        Classe classe = comptes.findByIdentifiantConnexion("prof.demo")
+                .map(prof -> classes.findByEnseignantPrincipalId(prof.getId()))
+                .flatMap(list -> list.stream().findFirst())
+                .orElse(null);
+        if (classe == null) {
+            return;
+        }
+        Compte eleve = comptes.save(Compte.creerEleveMissionEtablissement(
+                "eleve.classe", hash, classe.getEtablissementId()));
+        inscriptions.save(Inscription.creer(classe.getId(), eleve.getId(), "Élève Classe"));
+        log.info("Seeded dev account 'eleve.classe' (password '{}') in '{}' — local profile",
+                DEV_PASSWORD, classe.getLibelle());
     }
 
     /** Path B élève, activated directly — dev fixture bypasses the parental consent step. */

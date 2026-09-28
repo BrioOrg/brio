@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers'
+
 import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
 import { getCoursPublie } from '@/lib/api'
 import { SiteHeader } from '@/components/site-header'
@@ -11,9 +13,11 @@ import { ChapterInteractionProvider } from '@/components/chapter-interaction-con
 export default async function CoursPage({ params }: { params: Promise<{ coursId: string }> }) {
   const { coursId } = await params
 
+  // The course is scoped to classes: relay the student's session to the API.
+  const cookieStore = await cookies()
   let cours: ChapitreResponse | null = null
   try {
-    cours = await getCoursPublie(coursId)
+    cours = await getCoursPublie(coursId, cookieStore.toString())
   } catch {
     cours = null
   }
