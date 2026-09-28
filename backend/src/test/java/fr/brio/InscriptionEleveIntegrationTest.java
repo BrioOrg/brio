@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.identite.domain.StatutCompte;
 import fr.brio.identite.infrastructure.CompteRepository;
 import fr.brio.identite.infrastructure.RecordingEmailSender;
+import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,16 +14,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
-@Transactional
+// Not @Transactional: the consent e-mail leaves after commit, asynchronously
+// (ConsentementEmailListener).
+// Signup generates a unique identifiant, so committed accounts do not collide.
 class InscriptionEleveIntegrationTest {
 
     @Autowired MockMvc mockMvc;
@@ -60,10 +63,13 @@ class InscriptionEleveIntegrationTest {
         assertThat(eleve.getNiveauDeclare()).isEqualTo("4e");
         assertThat(eleve.getEmailTitulaireLegal()).isEqualTo("parent@example.com");
 
-        // Consent email was sent to the parent
-        assertThat(emailSender.getSent()).hasSize(1);
-        assertThat(emailSender.getSent().get(0).to()).isEqualTo("parent@example.com");
-        assertThat(emailSender.getSent().get(0).kind()).isEqualTo("consent-request");
+        // Consent email was sent to the parent, after commit and asynchronously
+        var sent = await().atMost(Duration.ofSeconds(5))
+                .until(() -> emailSender.getSent().stream()
+                        .filter(e -> e.to().equals("parent@example.com")).toList(),
+                        emails -> emails.size() == 1);
+        assertThat(sent.get(0).to()).isEqualTo("parent@example.com");
+        assertThat(sent.get(0).kind()).isEqualTo("consent-request");
     }
 
     @Test

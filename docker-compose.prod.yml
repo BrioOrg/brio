@@ -16,6 +16,17 @@ x-backend-env: &backend-env
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?}
   SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?}
   SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?}
+  # E-mail (ADR 0024 §6): Mailpit on the private environment, an EU provider at
+  # publication — only deploy/.env changes. Shared with `ingest`, which never sends
+  # but cannot start without an SMTP host outside the local profile.
+  SPRING_MAIL_HOST: ${SMTP_HOST:-mailpit}
+  SPRING_MAIL_PORT: ${SMTP_PORT:-1025}
+  SPRING_MAIL_USERNAME: ${SMTP_USERNAME:-}
+  SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
+  SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SMTP_AUTH:-false}
+  SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS:-false}
+  SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: ${SMTP_STARTTLS:-false}
+  BRIO_MAIL_FROM: Brio <no-reply@${BRIO_DOMAIN:?}>
 
 services:
   postgres:
@@ -68,7 +79,7 @@ services:
     restart: unless-stopped
     environment:
       # UI served under /mailpit on the environment's origin. SMTP listens on 1025,
-      # compose network only.
+      # compose network only; the backend sends every e-mail there (SMTP_HOST).
       MP_WEBROOT: mailpit
       MP_DATABASE: /data/mailpit.db
     volumes:

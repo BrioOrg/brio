@@ -1,6 +1,7 @@
 package fr.brio.identite.infrastructure;
 
 import fr.brio.identite.api.EmailSender;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -8,11 +9,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * In-memory email sender for local dev and tests.
- * Replace with an SMTP-backed implementation when a provider is chosen (EU data
- * residency required — see plan note in issue #60).
+ * In-memory email sender for local dev and tests. It grows without bound, so it must
+ * never back a long-running instance: every other profile gets {@link SmtpEmailSender}
+ * (ADR 0024 §6).
  */
 @Component
+@Profile({"local", "test"})
 public class RecordingEmailSender implements EmailSender {
 
     public record SentEmail(String to, String kind, String url) {}

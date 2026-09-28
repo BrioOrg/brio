@@ -9,7 +9,7 @@ import java.util.UUID;
 @Table(schema = "identite", name = "demandes_consentement")
 public class DemandeConsentement {
 
-    static final Duration TOKEN_TTL = Duration.ofDays(7);
+    public static final Duration TOKEN_TTL = Duration.ofDays(7);
 
     @EmbeddedId
     private DemandeConsentementId id;

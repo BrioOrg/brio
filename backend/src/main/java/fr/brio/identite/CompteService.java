@@ -75,9 +75,7 @@ public class CompteService {
      * Creates an élève account in en_attente_consentement and immediately sends the
      * parent consent email. The identifiantConnexion is returned once so the student
      * can note it; the account becomes active only after the parent validates the link.
-     *
-     * Note: the email send happens inside the transaction. Once a real SMTP sender is
-     * wired in, move it to an ApplicationEvent fired on commit to avoid sending on rollback.
+     * The consent e-mail leaves after commit (ConsentementEmailListener).
      */
     @Transactional
     public InscriptionEleveEnAttenteInfo inscrireEleve(String niveauDeclare, String motDePasse,
