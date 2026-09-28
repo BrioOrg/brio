@@ -6,23 +6,13 @@ import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sideb
 import { ChapterRail } from '@/components/chapter-rail'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
 import { ChapterInteractionProvider } from '@/components/chapter-interaction-context'
+import { tutorRequestCap } from '@/lib/tutor-config'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 
-export const dynamicParams = true
-
-export async function generateStaticParams() {
-  try {
-    const catalogue = await getCatalogue()
-    return catalogue.flatMap(({ niveauCode, matieres }) =>
-      matieres.flatMap(({ matiereCode, chapitres }) =>
-        chapitres.map(({ slug }) => ({ niveau: niveauCode, matiere: matiereCode, slug }))
-      )
-    )
-  } catch {
-    return []
-  }
-}
+// Rendered per request: the catalogue changes on re-ingestion or reset, and a page
+// cached at first render would keep serving the old content (#154).
+export const dynamic = 'force-dynamic'
 
 type NavContext = {
   crumbs: Crumb[]
@@ -110,7 +100,7 @@ export default async function ChapterPage({
     <div className="min-h-screen bg-surface-page font-prose text-ink">
       <SiteHeader crumbs={crumbs} />
 
-      <ChapterInteractionProvider>
+      <ChapterInteractionProvider tutorRequestCap={tutorRequestCap()}>
         <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
           <ChapterSidebar
             niveau={niveau}
