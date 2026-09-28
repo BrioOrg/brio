@@ -1,13 +1,22 @@
 'use client'
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, type MutableRefObject, type ReactNode } from 'react'
 
 import type { Competence } from '@brio/api-client'
 
 import { ChampFormule } from '@/components/maths/champ-formule'
 import { CompetencesPicker } from '@/components/prof/competences-picker'
 import { FigureEditeur } from '@/components/prof/figure-editeur'
-import { CALLOUT_VARIANTES, genId, type Bloc, type Choix, type Etape } from '@/lib/cours-editeur'
+import {
+  CALLOUT_VARIANTES,
+  distracteursDe,
+  genId,
+  MARQUEUR_TROU,
+  synchroniserTrous,
+  type Bloc,
+  type Choix,
+  type Etape,
+} from '@/lib/cours-editeur'
 
 // Édition « dans la page » (piste A) : chaque bloc s'écrit là où il s'affichera, sans fiche ni
 // étiquette. On tape comme dans un document ; les zones grandissent avec le texte.
@@ -27,12 +36,17 @@ function ZoneAuto({
   onFocus,
   placeholder,
   className,
+  ariaLabel,
+  champRef,
 }: {
   value: string
   onChange: (v: string) => void
   onFocus?: () => void
   placeholder?: string
   className?: string
+  ariaLabel?: string
+  /** Accès au <textarea> pour un appelant qui insère au curseur (« ＋ trou »). */
+  champRef?: MutableRefObject<HTMLTextAreaElement | null>
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
@@ -44,8 +58,12 @@ function ZoneAuto({
   }, [value])
   return (
     <textarea
-      ref={ref}
+      ref={(el) => {
+        ref.current = el
+        if (champRef) champRef.current = el
+      }}
       rows={1}
+      aria-label={ariaLabel}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onFocus={onFocus}
@@ -614,6 +632,7 @@ const EXERCICE_LABELS: Record<string, string> = {
   'multiple-choice': 'QCM',
   'short-answer': 'Réponse courte',
   numeric: 'Numérique',
+  'fill-blank': 'Texte à trous',
   paper: 'Exercice sur feuille',
 }
 
@@ -635,7 +654,7 @@ const champCorrection =
 function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
   const exerciseType = (bloc.exerciseType as string) ?? 'paper'
 
-  // « Sur feuille » : pré-existant, laissé tel quel (dette #142). Auto-évalué côté élève.
+  // « Sur feuille » : auto-évalué côté élève ; le corrigé lui est montré (`$defs/paperFields`).
   if (exerciseType === 'paper') {
     return (
       <div className="rounded-lg border border-line bg-surface-panel p-4">
@@ -651,7 +670,7 @@ function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
         />
         <ZoneAuto
           value={(bloc.statement as string) ?? ''}
-          onChange={(v) => onModifier({ statement: v })}
+          onChange={(v) => onModifier({ statement: v || undefined })}
           onFocus={onFocusBloc}
           placeholder="Données / précisions (facultatif)"
           className="mt-2 font-prose text-sm leading-relaxed text-ink-muted"
@@ -695,6 +714,9 @@ function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
         )}
         {exerciseType === 'numeric' && (
           <NumeriqueEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+        )}
+        {exerciseType === 'fill-blank' && (
+          <TexteATrousEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
         )}
       </div>
 
@@ -877,6 +899,146 @@ function NumeriqueEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           placeholder="Ex. cm"
         />
       </label>
+    </div>
+  )
+}
+
+// Texte à trous : l'enseignant écrit la phrase avec des `{}` (ou « ＋ trou ») ; une réponse
+// attendue par trou apparaît d'elle-même, et la banque d'étiquettes est recomposée à chaque
+// frappe (réponses + distracteurs) par synchroniserTrous : il n'y a rien à tenir cohérent à la main.
+function TexteATrousEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const phraseRef = useRef<HTMLTextAreaElement | null>(null)
+  // Position du curseur à rétablir une fois la phrase re-rendue après « ＋ trou ».
+  const curseurEnAttente = useRef<number | null>(null)
+  const template = typeof bloc.template === 'string' ? bloc.template : ''
+  useEffect(() => {
+    const el = phraseRef.current
+    const pos = curseurEnAttente.current
+    if (el && pos !== null) {
+      curseurEnAttente.current = null
+      el.focus()
+      el.setSelectionRange(pos, pos)
+    }
+  }, [template])
+  const expected = (Array.isArray(bloc.expected) ? bloc.expected : []) as string[]
+  const distracteurs = distracteursDe(bloc)
+  const maj = (modif: Parameters<typeof synchroniserTrous>[1]) =>
+    onModifier(synchroniserTrous(bloc, modif))
+
+  function ajouterTrou() {
+    const el = phraseRef.current
+    const debut = el?.selectionStart ?? template.length
+    const fin = el?.selectionEnd ?? template.length
+    curseurEnAttente.current = debut + MARQUEUR_TROU.length
+    maj({ template: template.slice(0, debut) + MARQUEUR_TROU + template.slice(fin) })
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+            Phrase à compléter
+          </span>
+          <button
+            type="button"
+            onClick={ajouterTrou}
+            className="shrink-0 font-display text-sm font-bold text-accent-ink hover:underline"
+          >
+            ＋ trou
+          </button>
+        </div>
+        <ZoneAuto
+          champRef={phraseRef}
+          ariaLabel="Phrase à compléter"
+          value={template}
+          onChange={(v) => maj({ template: v })}
+          onFocus={onFocusBloc}
+          placeholder="Ex. Le côté opposé à l’angle droit s’appelle l’{}."
+          className="font-prose text-base leading-relaxed text-ink"
+        />
+      </div>
+
+      <div>
+        <LabelCorrection>Réponse attendue pour chaque trou</LabelCorrection>
+        {expected.length === 0 ? (
+          <p className="mt-1 font-prose text-sm text-ink-muted">
+            Ajoute un trou dans la phrase : écris {MARQUEUR_TROU} ou utilise « ＋ trou ».
+          </p>
+        ) : (
+          <ol className="mt-1.5 flex flex-col gap-1.5">
+            {expected.map((r, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="w-14 shrink-0 font-display text-xs font-bold text-ink-muted">
+                  Trou {i + 1}
+                </span>
+                <input
+                  aria-label={`Réponse attendue ${i + 1}`}
+                  className={`${inline} font-prose text-base text-ink`}
+                  value={r}
+                  onChange={(e) =>
+                    maj({ expected: expected.map((x, j) => (j === i ? e.target.value : x)) })
+                  }
+                  onFocus={onFocusBloc}
+                  placeholder="L’étiquette à placer ici"
+                />
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+
+      <div>
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
+            Étiquettes pièges (facultatif)
+          </span>
+          <label className="flex shrink-0 items-center gap-1.5 font-prose text-xs text-ink-muted">
+            <input
+              type="checkbox"
+              checked={bloc.caseSensitive === true}
+              onChange={(e) => onModifier({ caseSensitive: e.target.checked })}
+              className="accent-accent"
+            />
+            Sensible à la casse
+          </label>
+        </div>
+        <p className="mb-1.5 font-prose text-xs text-ink-muted">
+          Les réponses attendues sont déjà dans les étiquettes proposées à l’élève, mélangées avec
+          celles-ci.
+        </p>
+        <ul className="flex flex-col gap-1.5">
+          {distracteurs.map((d, i) => (
+            <li key={i} className="flex items-center gap-2">
+              <input
+                aria-label={`Étiquette piège ${i + 1}`}
+                className={`${inline} font-prose text-base text-ink`}
+                value={d}
+                onChange={(e) =>
+                  maj({ distracteurs: distracteurs.map((x, j) => (j === i ? e.target.value : x)) })
+                }
+                onFocus={onFocusBloc}
+                placeholder="Ex. adjacent"
+              />
+              <button
+                type="button"
+                aria-label="Supprimer l’étiquette piège"
+                onClick={() => maj({ distracteurs: distracteurs.filter((_, j) => j !== i) })}
+                className="shrink-0 text-ink-muted hover:text-danger"
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          onClick={() => maj({ distracteurs: [...distracteurs, ''] })}
+          className="mt-2 font-display text-sm font-bold text-accent-ink hover:underline"
+        >
+          ＋ Ajouter une étiquette piège
+        </button>
+      </div>
     </div>
   )
 }

@@ -4,8 +4,10 @@ import {
   apercuBloc,
   brouillonDepuisContenu,
   chargerBrouillon,
+  compterTrous,
   contenuDepuisBrouillon,
   deplacer,
+  distracteursDe,
   ecrireTampon,
   effacerTampon,
   enregistrerBrouillon,
@@ -15,6 +17,8 @@ import {
   nouveauBrouillon,
   nouvelleSection,
   supprimerBrouillon,
+  synchroniserTrous,
+  type Bloc,
   type BlocType,
 } from '@/lib/cours-editeur'
 
@@ -69,6 +73,19 @@ describe('nouveauBloc', () => {
     expect(ex.exerciseType).toBe('paper')
     expect(ex).toHaveProperty('prompt')
     expect(ex).toHaveProperty('solution')
+    // `statement` est facultatif ; une chaîne vide ne serait pas du richText valide.
+    expect(ex).not.toHaveProperty('statement')
+  })
+
+  it('crée un texte à trous sans trou, banque ni réponse', () => {
+    const ex = nouveauBloc('exercise', 'fill-blank')
+    expect(ex).toMatchObject({
+      exerciseType: 'fill-blank',
+      template: '',
+      bank: [],
+      expected: [],
+      caseSensitive: false,
+    })
   })
 
   it('crée un QCM avec deux propositions vides et un drapeau « plusieurs »', () => {
@@ -242,6 +259,48 @@ describe('collection « Mes cours » (localStorage)', () => {
     expect(liste).toHaveLength(1)
     expect(liste[0].title).toBe('Ancien cours')
     expect(window.localStorage.getItem('brio.prof.brouillon')).toBeNull()
+  })
+})
+
+describe('texte à trous', () => {
+  const trous = (champs: Partial<Bloc>): Bloc => ({
+    ...nouveauBloc('exercise', 'fill-blank'),
+    ...champs,
+  })
+
+  it('compte les marqueurs {}', () => {
+    expect(compterTrous('')).toBe(0)
+    expect(compterTrous('Le {} du {}.')).toBe(2)
+  })
+
+  it('crée une réponse attendue par trou, en gardant celles déjà saisies', () => {
+    const b = trous({ template: 'Le {}.', expected: ['côté'], bank: ['côté'] })
+    expect(synchroniserTrous(b, { template: 'Le {} du {}.' }).expected).toEqual(['côté', ''])
+    expect(synchroniserTrous(b, { template: 'Le côté.' }).expected).toEqual([])
+  })
+
+  it('compose la banque : réponses non vides puis distracteurs', () => {
+    const b = trous({ template: '{} et {}', expected: ['a', ''], bank: ['a', 'x'] })
+    expect(distracteursDe(b)).toEqual(['x'])
+    expect(synchroniserTrous(b, { expected: ['a', 'b'] }).bank).toEqual(['a', 'b', 'x'])
+  })
+
+  it('garde un distracteur identique à une réponse (une copie par usage)', () => {
+    const b = trous({ template: '{}', expected: ['2'], bank: ['2', '2'] })
+    expect(distracteursDe(b)).toEqual(['2'])
+  })
+
+  it('remplace la réponse modifiée sans toucher aux distracteurs', () => {
+    const b = trous({ template: '{}', expected: ['cot'], bank: ['cot', 'angle'] })
+    expect(synchroniserTrous(b, { expected: ['côté'] }).bank).toEqual(['côté', 'angle'])
+  })
+
+  it('sert une banque sans étiquette vide, triée pour ne pas révéler l’ordre des trous', () => {
+    const b = nouveauBrouillon()
+    b.sections[0].blocks = [
+      trous({ template: '{} {}', expected: ['zèbre', 'âne'], bank: ['zèbre', 'âne', '', 'lion'] }),
+    ]
+    expect(contenuDepuisBrouillon(b).sections[0].blocks[0].bank).toEqual(['âne', 'lion', 'zèbre'])
   })
 })
 

@@ -52,10 +52,10 @@ export type Brouillon = {
 }
 
 // Les types d'exercice que l'afficheur élève sait rendre ET que le serveur sait corriger :
-// QCM, réponse courte, numérique (schéma « $defs » + evaluators du module exercices). « paper »
-// (sur feuille) existe déjà, auto-corrigé côté élève. Les champs de correction sont retirés à la
-// publication par l'ExerciceExtractor (ADR 0019 §4).
-export type ExerciceType = 'multiple-choice' | 'short-answer' | 'numeric' | 'paper'
+// QCM, réponse courte, numérique, texte à trous (schéma « $defs » + evaluators du module
+// exercices). « paper » (sur feuille, `$defs/paperFields`) est auto-évalué côté élève. Les champs
+// de correction sont retirés à la publication par l'ExerciceExtractor (ADR 0019 §4).
+export type ExerciceType = 'multiple-choice' | 'short-answer' | 'numeric' | 'fill-blank' | 'paper'
 
 // Catalogue des blocs proposés dans la barre « Insérer », dans l'ordre du menu. Un bloc
 // « exercise » porte en plus un `exerciseType` : chaque type a sa propre entrée (pas de
@@ -111,6 +111,13 @@ export const BLOCS: {
     label: 'Numérique',
     description: 'Une valeur numérique, corrigée automatiquement',
     icone: '#',
+  },
+  {
+    type: 'exercise',
+    exerciseType: 'fill-blank',
+    label: 'Texte à trous',
+    description: 'Une phrase à compléter avec des étiquettes, corrigée automatiquement',
+    icone: '⎵',
   },
   {
     type: 'exercise',
@@ -220,11 +227,82 @@ function nouvelExercice(exerciseType: ExerciceType): Bloc {
       // `answer` et `unit` sont ajoutés à la saisie : un `answer` absent (et non 0) distingue
       // « pas encore rempli » de « la réponse est zéro » ; une `unit` vide n'est pas dans le schéma.
       return { ...base, tolerance: 0 }
+    case 'fill-blank':
+      // Pas de trou au départ : `expected` et `bank` suivent la phrase (voir synchroniserTrous).
+      return { ...base, template: '', bank: [], expected: [], caseSensitive: false }
     case 'paper':
-      // Pré-existant. Dette connue (#142) : `paper`/`statement`/`solution` ne sont pas dans le
-      // schéma ; laissé tel quel, hors périmètre de ce lot.
-      return { ...base, statement: '', solution: '' }
+      // `statement` (facultatif) n'est ajouté qu'à la saisie : une chaîne vide n'est pas du
+      // richText valide. `solution` est montré à l'élève : ce n'est pas un champ de correction.
+      return { ...base, solution: '' }
   }
+}
+
+// --- Texte à trous ------------------------------------------------------------
+// Un trou est un marqueur `{}` dans la phrase ; `expected[i]` est la bonne étiquette du i-ème
+// trou. La banque contient toujours les réponses attendues (l'élève ne peut glisser que des
+// étiquettes de la banque, chacune une seule fois) plus les distracteurs de l'enseignant : elle
+// n'est jamais saisie directement, on la recompose, ce qui rend l'incohérence impossible.
+
+export const MARQUEUR_TROU = '{}'
+
+export function compterTrous(template: string): number {
+  return template.split(MARQUEUR_TROU).length - 1
+}
+
+/** Retire de `liste` une occurrence de chaque élément de `aRetirer` (différence de multiensembles). */
+function sansOccurrences(liste: string[], aRetirer: string[]): string[] {
+  const reste = [...liste]
+  for (const x of aRetirer) {
+    const i = reste.indexOf(x)
+    if (i >= 0) reste.splice(i, 1)
+  }
+  return reste
+}
+
+function chaines(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []
+}
+
+/** Les distracteurs : ce qui, dans la banque, n'est pas une réponse attendue. */
+export function distracteursDe(bloc: Bloc): string[] {
+  return sansOccurrences(
+    chaines(bloc.bank),
+    chaines(bloc.expected).filter((e) => e !== '')
+  )
+}
+
+/**
+ * Applique une modification à un texte à trous et renvoie le patch complet et cohérent :
+ * `expected` a exactement une entrée par `{}` (les réponses déjà saisies gardent leur rang), et
+ * `bank` = réponses attendues non vides + distracteurs, dans l'ordre de saisie. L'ordre montré à
+ * l'élève est fixé plus tard, par contenuDepuisBrouillon.
+ */
+export function synchroniserTrous(
+  bloc: Bloc,
+  modif: { template?: string; expected?: string[]; distracteurs?: string[] }
+): { template: string; expected: string[]; bank: string[] } {
+  const template = modif.template ?? (typeof bloc.template === 'string' ? bloc.template : '')
+  const distracteurs = modif.distracteurs ?? distracteursDe(bloc)
+  const saisies = modif.expected ?? chaines(bloc.expected)
+  const expected = Array.from({ length: compterTrous(template) }, (_, i) => saisies[i] ?? '')
+  return { template, expected, bank: [...expected.filter((e) => e !== ''), ...distracteurs] }
+}
+
+/**
+ * La banque telle que l'élève la verra : sans étiquette vide, et triée par ordre alphabétique —
+ * l'ordre de saisie (réponses d'abord, dans l'ordre des trous) donnerait la solution.
+ */
+function banqueServie(bank: unknown): string[] {
+  return chaines(bank)
+    .filter((t) => t.trim() !== '')
+    .sort((a, b) => a.localeCompare(b, 'fr'))
+}
+
+function blocServi(bloc: Bloc): Bloc {
+  if (bloc.type === 'exercise' && bloc.exerciseType === 'fill-blank') {
+    return { ...bloc, bank: banqueServie(bloc.bank) }
+  }
+  return bloc
 }
 
 /** Une section neuve (une leçon par défaut) avec un titre vide et aucun bloc. */
@@ -386,7 +464,7 @@ export function contenuDepuisBrouillon(b: Brouillon): CoursContent {
     title: b.title,
     ...(b.subject ? { subject: b.subject } : {}),
     ...(b.level ? { level: b.level } : {}),
-    sections: b.sections,
+    sections: b.sections.map((s) => ({ ...s, blocks: s.blocks.map(blocServi) })),
   }
 }
 
