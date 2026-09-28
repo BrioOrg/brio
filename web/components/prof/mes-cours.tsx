@@ -17,6 +17,7 @@ import {
   supprimerBrouillon,
   type Brouillon,
 } from '@/lib/cours-editeur'
+import { contenuModele, MODELE_DEFAUT } from '@/lib/cours-modeles'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Accueil de l'espace enseignant : les cours de l'enseignant, servis par l'API (source de vérité),
@@ -56,9 +57,13 @@ export function MesCours() {
     setEnCours(true)
     setErreurDialogue(null)
     try {
+      // `modele` ne fait pas partie du corps envoyé au serveur : il choisit le squelette de départ.
+      const { modele, ...champs } = valeurs
       const content =
-        dialogue?.mode === 'import' ? contenuDepuisBrouillon(dialogue.draft) : undefined
-      const coursId = await creerCours(apiBaseUrl(), { ...valeurs, content })
+        dialogue?.mode === 'import'
+          ? contenuDepuisBrouillon(dialogue.draft)
+          : contenuModele(modele ?? MODELE_DEFAUT)
+      const coursId = await creerCours(apiBaseUrl(), { ...champs, content })
       if (dialogue?.mode === 'import') supprimerBrouillon(dialogue.draft.id)
       router.push(`/prof/cours/${coursId}`)
     } catch (e) {
@@ -172,6 +177,7 @@ export function MesCours() {
           titreInitial={dialogue.mode === 'import' ? dialogue.draft.title : ''}
           intitule={dialogue.mode === 'import' ? 'Importer le brouillon' : 'Nouveau cours'}
           libelleAction={dialogue.mode === 'import' ? 'Importer' : 'Créer le cours'}
+          montrerModeles={dialogue.mode === 'nouveau'}
           enCours={enCours}
           erreur={erreurDialogue}
           onValiderAction={valider}
