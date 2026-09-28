@@ -509,6 +509,50 @@ Un enseignant compose un chapitre complet — texte, formules, figure, tableau,
 méthode en étapes, citations, cinq exercices de types différents —, le publie à sa
 classe, et un élève le lit, le fait, et pose une question au tuteur dessus.
 
+### 8.8 Expérience d'écriture (refonte décidée le 2026-09-28)
+
+L'éditeur ne doit jamais s'ouvrir sur une page vide. Deux décisions produit :
+
+- **On part d'un modèle.** À la création, l'enseignant choisit un squelette déjà
+  structuré (*Cours complet* : objectifs → cours → exemple → exercices ; *Fiche
+  méthode* ; *Série d'exercices* ; *Page blanche*). C'est de la **structure vide,
+  sans aucune IA** — faisable tout de suite.
+- **Ajout par « + » entre les blocs.** Un bouton « + » apparaît entre deux blocs et
+  ouvre le menu des éléments (formule, encadré, étapes, exercice, figure, tableau…)
+  **à l'endroit exact de l'insertion**, à la place de la barre « Insérer » en haut.
+- Un bouton **« ✨ Aide-moi à rédiger — bientôt »** (inactif) est posé dès
+  maintenant dans l'éditeur, comme point d'accroche pour le chantier §8.9.
+
+---
+
+## 8.9 ★ Chantier futur ESSENTIEL — Assistant IA de rédaction (cours + devoirs)
+
+> **Ajouté le 2026-09-28. À NE PAS OUBLIER.** Statut : **engagé, parqué** (gros
+> chantier à part, à lancer plus tard — pas maintenant). Décision de Gabrielle.
+
+Le §8.5 rangeait « génération de cours par IA » dans le hors-périmètre de F3. On le
+sort du flou et on l'inscrit comme un **chantier à part entière, à faire** : l'IA
+doit **assister la rédaction de l'enseignant**, pour ses **cours *et* ses devoirs**
+— pas seulement répondre aux élèves via le tuteur. C'est une brique essentielle de
+la valeur produit côté prof.
+
+**Ce n'est pas « fabriquer un LLM ».** Brio parle déjà à Claude (module `ia`, tuteur
+v1, ADR 0013/0015). La brique « parler à l'IA » existe donc — l'assistant de
+rédaction ne part pas de zéro.
+
+**Le vrai travail (le gros)** est le produit autour du modèle :
+- des prompts d'aide à la rédaction **ancrés sur le référentiel et le programme** ;
+- **garde-fous contenu pour mineurs** : rien de généré n'est publié sans relecture
+  et validation de l'enseignant (même esprit que « aucune note produite par l'IA
+  seule », F5) ;
+- **coût maîtrisé** et **jeu d'éval** obligatoire avant toute mise en service, comme
+  pour le tuteur ;
+- **intégration UI** : le bouton « Aide-moi à rédiger » dans l'éditeur (§8.8) **et**
+  dans la création de devoirs (F4).
+
+**À faire quand on le lancera :** un ADR dédié (assistant IA de rédaction —
+périmètre, ancrage, garde-fous mineurs, coût, éval).
+
 ---
 
 ## 9. F4 — Devoirs, échéances et rendus
