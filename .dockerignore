@@ -1,0 +1,16 @@
+# Build contexts are the repository root (backend/Dockerfile, web/Dockerfile).
+# Keep secrets, local build output and dependencies out of them.
+.git
+.env
+.env.*
+!.env.example
+**/node_modules
+**/.next
+**/.turbo
+**/target
+**/*.tsbuildinfo
+**/.DS_Store
+packages/api-client/src/generated
+docs/design
+evals
+mobile

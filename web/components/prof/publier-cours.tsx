@@ -13,8 +13,7 @@ import {
 
 import { Icon } from '@/components/ui/icon'
 import { tableauACelluleVide, type Brouillon } from '@/lib/cours-editeur'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Écran « Publier » (CDC §8.4) : une relecture avant de figer. Trois choses, dans l'ordre où on
 // les décide : ce qui doit être en règle (checklist), le rappel que la version est figée, et le
@@ -45,7 +44,7 @@ export function PublierCours({
 
   useEffect(() => {
     let vivant = true
-    listerMesClasses(API_URL)
+    listerMesClasses(apiBaseUrl())
       .then((c) => {
         if (vivant) setClasses(c)
       })
@@ -106,8 +105,8 @@ export function PublierCours({
     setErreur(null)
     try {
       await onAvantPublicationAction()
-      await definirPortees(API_URL, coursId, [...selection])
-      const { version } = await publierCours(API_URL, coursId)
+      await definirPortees(apiBaseUrl(), coursId, [...selection])
+      const { version } = await publierCours(apiBaseUrl(), coursId)
       setSucces(version ?? 1)
       onPublieAction(version ?? 1)
     } catch (e) {

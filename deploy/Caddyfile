@@ -1,0 +1,32 @@
+# Edge proxy for the deployed environment (ADR 0024 §2–3). One origin:
+#   /api/*      → backend (Spring Boot; its routes already start with /api)
+#   /mailpit*   → Mailpit UI (served under the same webroot)
+#   everything  → web (Next.js server)
+# Values come from deploy/.env through docker-compose.prod.yml.
+
+{$BRIO_DOMAIN} {
+	encode zstd gzip
+
+	# Private environment: every path, /api and /mailpit included, is behind an
+	# HTTP password — one account per person, so either can be revoked alone.
+	# Removed at publication (ADR 0024 §9).
+	basic_auth {
+		{$CADDY_USER_1} {$CADDY_HASH_1}
+		{$CADDY_USER_2} {$CADDY_HASH_2}
+	}
+
+	# The password is an edge credential, not an application one: never forward it.
+	request_header -Authorization
+
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	handle /mailpit* {
+		reverse_proxy mailpit:8025
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

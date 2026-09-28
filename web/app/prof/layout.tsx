@@ -5,9 +5,7 @@ import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 import { CompteInfoSchema } from '@brio/api-client'
-
-// The URL the server calls for API requests (same var the browser uses).
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+import { apiBaseUrl } from '@/lib/api-base-url'
 
 /**
  * Role gate for the teacher space. The middleware only checks that a session cookie
@@ -17,7 +15,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
  */
 export default async function ProfLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies()
-  const res = await fetch(`${API_URL}/api/moi`, {
+  const res = await fetch(`${apiBaseUrl()}/api/moi`, {
     headers: { cookie: cookieStore.toString() },
     cache: 'no-store',
   })

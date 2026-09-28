@@ -5,16 +5,9 @@ import { SiteHeader } from '@/components/site-header'
 import { Icon } from '@/components/ui/icon'
 import { EmptyState } from '@/components/ui/empty-state'
 
-export const dynamicParams = true
-
-export async function generateStaticParams() {
-  try {
-    const catalogue = await getCatalogue()
-    return catalogue.map(({ niveauCode }) => ({ niveau: niveauCode }))
-  } catch {
-    return []
-  }
-}
+// Rendered per request: the catalogue changes on re-ingestion or reset, and a page
+// cached at first render would keep serving the old content (#154).
+export const dynamic = 'force-dynamic'
 
 // A stable icon per subject so the grid reads at a glance. Falls back to book-open.
 const SUBJECT_ICON: Record<string, string> = {

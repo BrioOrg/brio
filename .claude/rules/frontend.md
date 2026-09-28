@@ -31,11 +31,17 @@ Once they appear in the spec, replace the manual wrapper with a generated typed 
 | Variable | Used by | Purpose |
 |---|---|---|
 | `API_BASE_URL` | `pnpm generate:api` (Node script) | URL of the backend to fetch the OpenAPI spec from |
-| `NEXT_PUBLIC_API_URL` | Next.js app at runtime | URL the browser/SSR calls for API requests |
+| `API_INTERNAL_URL` | Next.js **server** at runtime (SSR, route handlers, dev rewrite) | Backend URL the server calls — `http://localhost:8080` in dev, `http://backend:8080` in compose |
+| `TUTEUR_REQUEST_CAP` | Next.js server at runtime | Tutor per-session question cap (default 20), handed to the client via `ChapterInteractionProvider` |
 
-Keep them separate. In CI, `API_BASE_URL` can point at a deployed instance while
-`NEXT_PUBLIC_API_URL` stays at `http://localhost:8080` for the build.
-Neither variable should be hardcoded anywhere in source — always read from `process.env`.
+- **The browser never gets a backend URL.** It calls `/api` on its own origin — Caddy
+  routes it in a deployed environment, the dev-only rewrite in `next.config.ts` locally
+  (ADR 0024 §5). Resolve the base with `apiBaseUrl()` (`web/lib/api-base-url.ts`), at call
+  time, never in a module-level constant.
+- **No `NEXT_PUBLIC_*` for anything that varies by environment.** Those are inlined at
+  build time, so the image would need a rebuild per environment. Read a server variable
+  at request time and pass the value down as a prop.
+- Never hardcode any of these in source — always read from `process.env`.
 
 ## Formatting vs linting
 

@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -17,9 +19,11 @@ class IngestCommand implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(IngestCommand.class);
 
     private final ChapitreIngestor chapitreIngestor;
+    private final ApplicationContext context;
 
-    IngestCommand(ChapitreIngestor chapitreIngestor) {
+    IngestCommand(ChapitreIngestor chapitreIngestor, ApplicationContext context) {
         this.chapitreIngestor = chapitreIngestor;
+        this.context = context;
     }
 
     @Override
@@ -40,6 +44,11 @@ class IngestCommand implements ApplicationRunner {
             throw new IngestionFailedException(
                     report.countByStatus(ChapterResult.Status.FAILED) + " chapter(s) failed — see above for details");
         }
+
+        // A one-off command, not a server: without this the web context keeps the JVM
+        // alive after a successful run (the compose `ingest` service would never return).
+        // Failures exit non-zero on their own, through the exception above.
+        System.exit(SpringApplication.exit(context, () -> 0));
     }
 
     private void printReport(IngestReport report) {

@@ -6,6 +6,7 @@ import { SiteHeader } from '@/components/site-header'
 import { ChapterRail } from '@/components/chapter-rail'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
 import { ChapterInteractionProvider } from '@/components/chapter-interaction-context'
+import { tutorRequestCap } from '@/lib/tutor-config'
 
 // A teacher course lives outside the public catalogue tree, so it has no niveau/matiere
 // breadcrumb or sibling-chapter sidebar. Same reader, same <ChapterView/> — the content is
@@ -48,7 +49,7 @@ export default async function CoursPage({ params }: { params: Promise<{ coursId:
     <div className="min-h-screen bg-surface-page font-prose text-ink">
       <SiteHeader crumbs={[{ label: cours.title }]} />
 
-      <ChapterInteractionProvider>
+      <ChapterInteractionProvider tutorRequestCap={tutorRequestCap()}>
         <div className="mx-auto max-w-5xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
           <main className="min-w-0">
             <div className="mx-auto max-w-[68ch]">

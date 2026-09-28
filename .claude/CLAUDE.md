@@ -51,6 +51,12 @@ docs/adr/   Architecture Decision Records
 - `pnpm test` — unit tests (Vitest)
 - `pnpm test:e2e` — Playwright e2e
 
+### Deployed environment (ADR 0024)
+- Config: copy `deploy/.env.example` to `deploy/.env` (gitignored); `BRIO_DOMAIN=localhost` to try it locally.
+- `docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d --build` — full stack behind Caddy
+- `docker compose -f docker-compose.prod.yml --env-file deploy/.env --profile ingest run --rm ingest` — load the catalogue
+- Images build from the repo root: `docker build -f backend/Dockerfile .`, `docker build -f web/Dockerfile .`
+
 ## Backend architecture
 
 Domain modules (not layers), enforced by Spring Modulith. Base package `fr.brio`:

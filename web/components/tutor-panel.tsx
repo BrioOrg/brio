@@ -6,10 +6,6 @@ import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 
-// Build-time config via NEXT_PUBLIC_* (inlined by Next.js bundler; changing
-// the cap requires a new deploy, not just a restart).
-const REQUEST_CAP = Number(process.env.NEXT_PUBLIC_TUTEUR_REQUEST_CAP) || 20
-
 const CAP_MESSAGE =
   'Tu as atteint la limite de questions pour cette session. Demande à ton professeur si tu as besoin d’aide supplémentaire.'
 
@@ -20,7 +16,7 @@ type TuteurPanelProps = {
 }
 
 export function TuteurPanel({ target }: TuteurPanelProps) {
-  const { activeExerciceId } = useChapterInteraction()
+  const { activeExerciceId, tutorRequestCap } = useChapterInteraction()
   const [question, setQuestion] = useState('')
   const [history, setHistory] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
@@ -28,7 +24,7 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
   const [requestCount, setRequestCount] = useState(0)
   const answerRegionRef = useRef<HTMLDivElement>(null)
 
-  const capped = requestCount >= REQUEST_CAP
+  const capped = requestCount >= tutorRequestCap
   const sendDisabled = question.trim() === '' || loading || capped
 
   async function handleSubmit(e: React.FormEvent) {
@@ -65,7 +61,7 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
     setTimeout(() => el.removeAttribute('data-cited'), 1500)
   }
 
-  const remaining = REQUEST_CAP - requestCount
+  const remaining = tutorRequestCap - requestCount
 
   return (
     <section aria-label="Tuteur">

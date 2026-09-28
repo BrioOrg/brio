@@ -4,18 +4,9 @@ import { SiteHeader } from '@/components/site-header'
 import { ChapterAtlas } from '@/components/chapter-atlas'
 import { EmptyState } from '@/components/ui/empty-state'
 
-export const dynamicParams = true
-
-export async function generateStaticParams() {
-  try {
-    const catalogue = await getCatalogue()
-    return catalogue.flatMap(({ niveauCode, matieres }) =>
-      matieres.map(({ matiereCode }) => ({ niveau: niveauCode, matiere: matiereCode }))
-    )
-  } catch {
-    return []
-  }
-}
+// Rendered per request: the catalogue changes on re-ingestion or reset, and a page
+// cached at first render would keep serving the old content (#154).
+export const dynamic = 'force-dynamic'
 
 export default async function MatierePage({
   params,

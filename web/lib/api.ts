@@ -1,19 +1,16 @@
 import { createApiClient, ensureCsrfToken, csrfHeaders } from '@brio/api-client'
 import type { ChapitreResponse } from '@/components/chapter-view'
 import { z } from 'zod'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
-
-const client = createApiClient(API_URL)
+import { apiBaseUrl } from '@/lib/api-base-url'
 
 export async function getPingStatus() {
-  const { data, error } = await client.GET('/api/ping')
+  const { data, error } = await createApiClient(apiBaseUrl()).GET('/api/ping')
   if (error) throw new Error('Ping failed')
   return data
 }
 
 export async function getChapitre(id: string): Promise<ChapitreResponse> {
-  const { data, error } = await client.GET('/api/chapitres/{id}', {
+  const { data, error } = await createApiClient(apiBaseUrl()).GET('/api/chapitres/{id}', {
     params: { path: { id } },
   })
   if (error) throw new Error(`Chapitre introuvable: ${id}`)
@@ -49,7 +46,7 @@ export type Catalogue = z.infer<typeof CatalogueSchema>
 export type CatalogueNiveau = z.infer<typeof CatalogueNiveauSchema>
 
 export async function getCatalogue(): Promise<Catalogue> {
-  const res = await fetch(`${API_URL}/api/catalogue`)
+  const res = await fetch(`${apiBaseUrl()}/api/catalogue`)
   if (!res.ok) throw new Error('Catalogue unavailable')
   return CatalogueSchema.parse(await res.json())
 }
@@ -60,7 +57,7 @@ export async function getChapitreByTriplet(
   slug: string
 ): Promise<ChapitreResponse> {
   const res = await fetch(
-    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}`
+    `${apiBaseUrl()}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}`
   )
   if (!res.ok) throw new Error(`Chapitre introuvable: ${slug}`)
   return res.json() as Promise<ChapitreResponse>
@@ -80,7 +77,7 @@ export async function getCoursPublie(
   coursId: string,
   cookieHeader: string
 ): Promise<ChapitreResponse> {
-  const res = await fetch(`${API_URL}/api/cours/${encodeURIComponent(coursId)}`, {
+  const res = await fetch(`${apiBaseUrl()}/api/cours/${encodeURIComponent(coursId)}`, {
     headers: { cookie: cookieHeader },
     cache: 'no-store',
   })
@@ -109,7 +106,7 @@ export type CoursVisible = z.infer<typeof CoursVisibleSchema>
  * without a session gets a 401, surfaced as an error the page treats as "no courses".
  */
 export async function getCoursVisibles(cookieHeader: string): Promise<CoursVisible[]> {
-  const res = await fetch(`${API_URL}/api/cours`, {
+  const res = await fetch(`${apiBaseUrl()}/api/cours`, {
     headers: { cookie: cookieHeader },
     cache: 'no-store',
   })
@@ -163,7 +160,7 @@ export async function askTuteur(
   exerciceId: string | null
 ): Promise<TuteurReponse> {
   return postTuteur(
-    `${API_URL}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}/tuteur`,
+    `${apiBaseUrl()}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}/tuteur`,
     question,
     exerciceId
   )
@@ -175,7 +172,7 @@ export async function askCoursTuteur(
   exerciceId: string | null
 ): Promise<TuteurReponse> {
   return postTuteur(
-    `${API_URL}/api/cours/${encodeURIComponent(coursId)}/tuteur`,
+    `${apiBaseUrl()}/api/cours/${encodeURIComponent(coursId)}/tuteur`,
     question,
     exerciceId
   )
@@ -209,7 +206,7 @@ async function postTuteur(
   if (exerciceId) body.exerciceId = exerciceId
   // The tutor is gated by the student's session (ADR 0018): send the session cookie
   // and, this being a mutating POST, echo the CSRF token — same as soumettre().
-  const token = await ensureCsrfToken(API_URL)
+  const token = await ensureCsrfToken(apiBaseUrl())
   const res = await fetch(url, {
     method: 'POST',
     credentials: 'include',
@@ -227,8 +224,8 @@ export async function soumettre(
   // Submissions are attributed to the logged-in student via the session cookie
   // (createApiClient sends it). Being a mutating POST, it also needs the CSRF
   // token echoed as a header — primed here if the cookie isn't set yet.
-  const token = await ensureCsrfToken(API_URL)
-  const { data, error, response } = await client.POST('/api/exercices/{id}/soumissions', {
+  const token = await ensureCsrfToken(apiBaseUrl())
+  const { data, error, response } = await createApiClient(apiBaseUrl()).POST('/api/exercices/{id}/soumissions', {
     params: { path: { id: exerciceId } },
     body: { answer },
     headers: csrfHeaders(token),

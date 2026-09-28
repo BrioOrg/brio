@@ -17,8 +17,7 @@ import {
   supprimerBrouillon,
   type Brouillon,
 } from '@/lib/cours-editeur'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
+import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Accueil de l'espace enseignant : les cours de l'enseignant, servis par l'API (source de vérité),
 // du plus récent au plus ancien. « Nouveau cours » ouvre une fenêtre (titre + niveau + matière)
@@ -39,7 +38,7 @@ export function MesCours() {
   const recharger = useCallback(async () => {
     setLocaux(listerBrouillons())
     try {
-      setCours(await listerMesCours(API_URL))
+      setCours(await listerMesCours(apiBaseUrl()))
       setErreur(null)
     } catch (e) {
       setCours([])
@@ -59,7 +58,7 @@ export function MesCours() {
     try {
       const content =
         dialogue?.mode === 'import' ? contenuDepuisBrouillon(dialogue.draft) : undefined
-      const coursId = await creerCours(API_URL, { ...valeurs, content })
+      const coursId = await creerCours(apiBaseUrl(), { ...valeurs, content })
       if (dialogue?.mode === 'import') supprimerBrouillon(dialogue.draft.id)
       router.push(`/prof/cours/${coursId}`)
     } catch (e) {

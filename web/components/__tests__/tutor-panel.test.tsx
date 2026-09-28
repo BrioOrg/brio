@@ -85,7 +85,6 @@ describe('TuteurPanel', () => {
 describe('TuteurPanel — session cap', () => {
   it('hides the form and shows the cap message after cap requests', async () => {
     vi.resetModules()
-    vi.stubEnv('NEXT_PUBLIC_TUTEUR_REQUEST_CAP', '2')
 
     const mockAsk = vi.fn().mockResolvedValue({ reponse: 'OK', citations: [] })
     vi.doMock('@/lib/api', () => ({ askTuteurForTarget: mockAsk }))
@@ -95,7 +94,7 @@ describe('TuteurPanel — session cap', () => {
 
     const user = userEvent.setup()
     render(
-      <Provider>
+      <Provider tutorRequestCap={2}>
         <Panel target={TARGET} />
       </Provider>
     )
@@ -114,7 +113,5 @@ describe('TuteurPanel — session cap', () => {
     expect(screen.queryByLabelText('Ta question au tuteur')).toBeNull()
     expect(screen.getByRole('status')).toBeInTheDocument()
     expect(mockAsk).toHaveBeenCalledTimes(2)
-
-    vi.unstubAllEnvs()
   })
 })
