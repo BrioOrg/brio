@@ -3,7 +3,13 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { CoursApiError, enregistrerCours, getCoursBrouillon } from '@brio/api-client'
+import {
+  CoursApiError,
+  enregistrerCours,
+  getCoursBrouillon,
+  listerCompetences,
+  type Competence,
+} from '@brio/api-client'
 
 import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
 import { Icon } from '@/components/ui/icon'
@@ -55,6 +61,9 @@ export function EditeurCours({ coursId }: { coursId: string }) {
   const [versionPubliee, setVersionPubliee] = useState<number | null>(null)
   const [classeIds, setClasseIds] = useState<string[]>([])
   const [publierOuvert, setPublierOuvert] = useState(false)
+  // Niveau du cours (ex. « 6e ») : filtre le picker de compétences aux compétences de ce niveau.
+  const [niveauCode, setNiveauCode] = useState<string>('')
+  const [competences, setCompetences] = useState<Competence[]>([])
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Sauter l'enregistrement déclenché par le tout premier rendu (le chargement lui-même).
@@ -77,6 +86,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
         setStatut(detail.statut ?? 'brouillon')
         setVersionPubliee(detail.versionPubliee ?? null)
         setClasseIds(detail.classeIds ?? [])
+        setNiveauCode(detail.niveauCode ?? '')
         vientDeCharger.current = true
         setCharge(true)
       })
@@ -91,6 +101,29 @@ export function EditeurCours({ coursId }: { coursId: string }) {
       vivant = false
     }
   }, [coursId])
+
+  // --- Référentiel de compétences (picker du bloc « objectifs ») ---
+  // Chargé une fois ; un échec est silencieux (le picker affiche alors une liste vide plutôt
+  // que de bloquer l'édition). Le référentiel est stable, on ne le recharge pas.
+  useEffect(() => {
+    let vivant = true
+    listerCompetences(API_URL)
+      .then((liste) => {
+        if (vivant) setCompetences(liste)
+      })
+      .catch(() => {
+        // Le picker reste utilisable sans référentiel : les objectifs en texte libre suffisent.
+      })
+    return () => {
+      vivant = false
+    }
+  }, [])
+
+  // Compétences proposées au picker : celles du niveau du cours (ou toutes si le niveau est inconnu).
+  const competencesDuNiveau = useMemo(
+    () => (niveauCode ? competences.filter((c) => c.niveaux?.includes(niveauCode)) : competences),
+    [competences, niveauCode]
+  )
 
   const enregistrer = useCallback(
     async (b: Brouillon) => {
@@ -443,6 +476,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
                           bloc={bloc}
                           onModifier={(patch) => majBloc(sectionActive.id, bloc.id, patch)}
                           onFocusBloc={() => setBlocActifId(bloc.id)}
+                          competences={competencesDuNiveau}
                         />
                       </BlocLigne>
                     ))}

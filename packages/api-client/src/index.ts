@@ -39,3 +39,5 @@ export type {
 } from './cours-edition.js'
 export { listerMesClasses } from './prof-classes.js'
 export type { ClasseInfo } from './prof-classes.js'
+export { listerCompetences } from './referentiel.js'
+export type { Competence } from './referentiel.js'

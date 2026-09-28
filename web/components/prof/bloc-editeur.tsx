@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 
+import type { Competence } from '@brio/api-client'
+
 import { ChampFormule } from '@/components/maths/champ-formule'
+import { CompetencesPicker } from '@/components/prof/competences-picker'
 import { FigureEditeur } from '@/components/prof/figure-editeur'
 import { CALLOUT_VARIANTES, genId, type Bloc, type Choix, type Etape } from '@/lib/cours-editeur'
 
@@ -13,6 +16,8 @@ type Props = {
   bloc: Bloc
   onModifier: (patch: Record<string, unknown>) => void
   onFocusBloc?: () => void
+  /** Compétences du référentiel proposées au bloc « objectifs » (déjà filtrées au niveau du cours). */
+  competences?: Competence[]
 }
 
 /** Zone de texte qui grandit toute seule avec son contenu. */
@@ -53,7 +58,7 @@ function ZoneAuto({
 const inline =
   'w-full border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60'
 
-export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Props) {
   switch (bloc.type) {
     case 'heading': {
       const level = (bloc.level as number) ?? 1
@@ -145,6 +150,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
     case 'objectives': {
       const items = (Array.isArray(bloc.items) ? bloc.items : []) as string[]
       const maj = (next: string[]) => onModifier({ items: next })
+      const competencies = (Array.isArray(bloc.competencies) ? bloc.competencies : []) as string[]
       return (
         <div className="rounded-lg border border-accent bg-accent-soft p-4">
           <input
@@ -189,6 +195,12 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           >
             ＋ Ajouter un objectif
           </button>
+          <CompetencesPicker
+            competences={competences ?? []}
+            selection={competencies}
+            onChange={(codes) => onModifier({ competencies: codes })}
+            onFocus={onFocusBloc}
+          />
         </div>
       )
     }
