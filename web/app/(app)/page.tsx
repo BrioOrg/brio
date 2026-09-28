@@ -1,5 +1,7 @@
+import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { getCatalogue } from '@/lib/api'
+import { getCatalogue, getCoursVisibles, type CoursVisible } from '@/lib/api'
+import { CoursDeTaClasse } from '@/components/cours-de-ta-classe'
 import { SiteHeader } from '@/components/site-header'
 import { Icon } from '@/components/ui/icon'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -7,12 +9,12 @@ import { EmptyState } from '@/components/ui/empty-state'
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
-  let catalogue: Awaited<ReturnType<typeof getCatalogue>> = []
-  try {
-    catalogue = await getCatalogue()
-  } catch {
-    catalogue = []
-  }
+  const cookieStore = await cookies()
+  const [catalogue, cours] = await Promise.all([
+    getCatalogue().catch(() => []),
+    // A visitor without a session (401) or any failure simply shows no course section.
+    getCoursVisibles(cookieStore.toString()).catch((): CoursVisible[] => []),
+  ])
 
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">
@@ -33,6 +35,8 @@ export default async function HomePage() {
             Choisis ta classe pour retrouver tes matières et tes chapitres.
           </p>
         </div>
+
+        {cours.length > 0 && <CoursDeTaClasse cours={cours} catalogue={catalogue} />}
 
         <section className="mt-10" aria-labelledby="niveaux-heading">
           <h2
