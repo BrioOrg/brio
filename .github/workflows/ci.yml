@@ -54,6 +54,16 @@ jobs:
       - run: node scripts/check-competencies.mjs
       - run: node scripts/check-content.mjs
 
+  shell:
+    # Deployment scripts (ADR 0024) run on the server only; lint them here so a
+    # mistake surfaces in review, not during a restore. ShellCheck ships with the
+    # runner image.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck --version
+      - run: shellcheck -x -P SCRIPTDIR scripts/env/*.sh
+
   docker:
     # Builds the deployable images (ADR 0024) so a broken Dockerfile fails the PR,
     # not the deployment. Nothing is pushed.
