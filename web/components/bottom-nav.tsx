@@ -6,11 +6,11 @@ import { Icon } from '@/components/ui/icon'
 
 /**
  * App shell bottom navigation (mobile only — hidden ≥ sm, where SiteHeader
- * remains the primary nav). Four tabs: parcours · social · exercices · profil.
+ * remains the primary nav). Tabs: parcours · devoirs · social · exercices · profil.
  *
- * Only "parcours" is wired: it is the catalogue/app home. The other three tabs
- * point at modules that do not exist yet (social, exercices, profil), so they
- * are rendered disabled and non-interactive rather than linking nowhere.
+ * "parcours" (catalogue/app home) and "devoirs" (the student's homework, F4) are
+ * wired. The other three point at modules that do not exist yet (social,
+ * exercices, profil), so they are rendered disabled rather than linking nowhere.
  */
 type Tab = {
   key: string
@@ -25,7 +25,20 @@ type Tab = {
 // shell renders is a parcours route. Kept as a matcher so the other tabs can
 // grow real ones once their sections ship.
 const TABS: Tab[] = [
-  { key: 'parcours', label: 'Parcours', icon: 'compass', href: '/', isActive: () => true },
+  {
+    key: 'parcours',
+    label: 'Parcours',
+    icon: 'compass',
+    href: '/',
+    isActive: (pathname) => !pathname.startsWith('/devoirs'),
+  },
+  {
+    key: 'devoirs',
+    label: 'Devoirs',
+    icon: 'check',
+    href: '/devoirs',
+    isActive: (pathname) => pathname.startsWith('/devoirs'),
+  },
   { key: 'social', label: 'Social', icon: 'chat-circle', isActive: () => false },
   { key: 'exercices', label: 'Exercices', icon: 'barbell', isActive: () => false },
   { key: 'profil', label: 'Profil', icon: 'user', isActive: () => false },
