@@ -1,6 +1,7 @@
 package fr.brio.ia.web;
 
 import fr.brio.contenu.api.CoursAccesApi;
+import fr.brio.contenu.api.ExamenQuery;
 import fr.brio.devoirs.api.ControleQuery;
 import fr.brio.ia.domain.TuteurResult;
 import fr.brio.ia.domain.TuteurService;
@@ -35,19 +36,34 @@ class TuteurController {
     private final CoursAccesApi coursAccesApi;
     private final InscriptionsQuery inscriptionsQuery;
     private final ControleQuery controleQuery;
+    private final ExamenQuery examenQuery;
 
-    // Message renvoyé quand l'élève passe un contrôle : le tuteur se coupe côté serveur (ADR 0025).
+    // Le tuteur se coupe côté serveur pendant un contrôle (ADR 0025) ou un examen d'annale (ADR 0027).
     private static final String REFUS_CONTROLE = "Tuteur indisponible pendant le contrôle.";
+    private static final String REFUS_EXAMEN = "Tuteur indisponible pendant l'examen.";
 
     TuteurController(
             TuteurService tuteurService,
             CoursAccesApi coursAccesApi,
             InscriptionsQuery inscriptionsQuery,
-            ControleQuery controleQuery) {
+            ControleQuery controleQuery,
+            ExamenQuery examenQuery) {
         this.tuteurService = tuteurService;
         this.coursAccesApi = coursAccesApi;
         this.inscriptionsQuery = inscriptionsQuery;
         this.controleQuery = controleQuery;
+        this.examenQuery = examenQuery;
+    }
+
+    /** Le message de refus si l'élève est en contrôle ou en examen, sinon {@code null}. */
+    private String refusVerrouTuteur(UUID eleveId) {
+        if (controleQuery.enControleOuvert(eleveId)) {
+            return REFUS_CONTROLE;
+        }
+        if (examenQuery.enExamenOuvert(eleveId)) {
+            return REFUS_EXAMEN;
+        }
+        return null;
     }
 
     @PostMapping(
@@ -67,8 +83,9 @@ class TuteurController {
             @PathVariable String slug,
             @RequestBody @Valid TuteurRequest request,
             @AuthenticationPrincipal UserDetails principal) {
-        if (controleQuery.enControleOuvert(UUID.fromString(principal.getUsername()))) {
-            return ResponseEntity.ok(new TuteurResponse(REFUS_CONTROLE, List.of()));
+        String refus = refusVerrouTuteur(UUID.fromString(principal.getUsername()));
+        if (refus != null) {
+            return ResponseEntity.ok(new TuteurResponse(refus, List.of()));
         }
         TuteurResult result = tuteurService.ask(
                 niveau, matiere, slug, request.question(), request.exerciceId());
@@ -93,8 +110,9 @@ class TuteurController {
             @RequestBody @Valid TuteurRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
-        if (controleQuery.enControleOuvert(eleveId)) {
-            return ResponseEntity.ok(new TuteurResponse(REFUS_CONTROLE, List.of()));
+        String refus = refusVerrouTuteur(eleveId);
+        if (refus != null) {
+            return ResponseEntity.ok(new TuteurResponse(refus, List.of()));
         }
         Set<UUID> classesEleve = inscriptionsQuery.classesDeLEleve(eleveId);
         if (!coursAccesApi.estVisiblePour(coursId, classesEleve)) {
