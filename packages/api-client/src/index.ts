@@ -63,3 +63,10 @@ export type {
 } from './devoirs.js'
 export { listerCompetences } from './referentiel.js'
 export type { Competence } from './referentiel.js'
+export {
+  listerAnnales,
+  entrainementParCompetence,
+  AnnaleVueSchema,
+  EntrainementExerciceSchema,
+} from './annales.js'
+export type { AnnaleVue, EntrainementExercice } from './annales.js'
