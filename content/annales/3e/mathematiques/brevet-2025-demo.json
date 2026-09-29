@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "brevet-2025-demo",
+  "title": "Brevet blanc — démonstration (Pythagore)",
+  "subject": "mathematiques",
+  "level": "3e",
+  "status": "published",
+  "estimatedDurationMinutes": 20,
+  "sections": [
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "blocks": [
+        {
+          "id": "ex-hypotenuse-demo",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans un triangle ABC rectangle en A, quel côté est l'hypoténuse ?",
+          "competencies": ["c4.geo.pythagore.reconnaitre-hypotenuse"],
+          "difficulty": "introduction",
+          "multiple": false,
+          "choices": [
+            { "id": "c1", "text": "Le côté [BC]", "correct": true },
+            { "id": "c2", "text": "Le côté [AB]", "correct": false },
+            { "id": "c3", "text": "Le côté [AC]", "correct": false }
+          ],
+          "explanation": "L'hypoténuse est le côté opposé à l'angle droit, ici en A, donc [BC]."
+        },
+        {
+          "id": "ex-calcul-demo",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle rectangle a des côtés de l'angle droit de 5 cm et 12 cm. Quelle est la longueur de l'hypoténuse, en cm ?",
+          "competencies": ["c4.geo.pythagore.calculer"],
+          "difficulty": "standard",
+          "answer": 13,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "Hypoténuse = racine de (5² + 12²) = racine de 169 = 13 cm."
+        }
+      ]
+    }
+  ]
+}

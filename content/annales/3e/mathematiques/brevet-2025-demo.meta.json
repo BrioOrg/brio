@@ -1,0 +1,9 @@
+{
+  "examen": "brevet",
+  "session": "juin",
+  "annee": 2025,
+  "centre": "Démo",
+  "dureeMinutes": 120,
+  "licence": "Contenu original Brio (démonstration)",
+  "sourceUrl": "https://example.brio/annales/demo"
+}
