@@ -12,6 +12,8 @@ record CreerDevoirRequest(
         @NotNull UUID classeId,
         @NotBlank String titre,
         String consigne,
+        /** {@code devoir_maison} (défaut) ou {@code controle}. */
+        String type,
         @NotBlank String sourceType,
         @NotBlank String sourceRef,
         Integer sourceVersion,

@@ -9,6 +9,7 @@ public record NouveauDevoir(
         UUID classeId,
         String titre,
         String consigne,
+        String type,
         String sourceType,
         String sourceRef,
         Integer sourceVersion,

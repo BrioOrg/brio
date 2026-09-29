@@ -3,7 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/api', () => ({ askTuteurForTarget: vi.fn() }))
-vi.mock('@brio/api-client', () => ({ createApiClient: vi.fn() }))
+vi.mock('@brio/api-client', () => ({
+  createApiClient: vi.fn(),
+  controleActif: vi.fn().mockResolvedValue({ enControle: false, titre: null, echeanceAt: null }),
+}))
 
 import { TuteurPanel } from '../tutor-panel'
 import { ChapterInteractionProvider } from '../chapter-interaction-context'

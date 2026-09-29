@@ -81,6 +81,8 @@ export type CreerDevoirInput = {
   classeId: string
   titre: string
   consigne?: string
+  /** Type de devoir. Défaut serveur : 'devoir_maison'. Un 'controle' coupe le tuteur (ADR 0025). */
+  type?: 'devoir_maison' | 'controle'
   sourceType: 'cours' | 'chapitre'
   sourceRef: string
   sourceVersion?: number
@@ -152,4 +154,23 @@ export async function listerMesDevoirs(baseUrl: string): Promise<DevoirEleveVue[
   if (res.status === 401) return null
   if (!res.ok) throw devoirError(res.status, 'Impossible de charger tes devoirs.')
   return z.array(DevoirEleveVueSchema).parse(await res.json())
+}
+
+/** Le contrôle actuellement ouvert pour l'élève connecté (verrouille le tuteur), le cas échéant. */
+export const ControleActifSchema = z.object({
+  enControle: z.boolean(),
+  titre: z.string().nullish(),
+  echeanceAt: z.string().nullish(),
+})
+export type ControleActif = z.infer<typeof ControleActifSchema>
+
+/**
+ * Y a-t-il un contrôle ouvert pour l'élève connecté ? Sert à verrouiller le tuteur côté UI — le
+ * serveur reste l'autorité (ADR 0025). Pas de contrôle, ou non connecté (401) → enControle: false.
+ */
+export async function controleActif(baseUrl: string): Promise<ControleActif> {
+  const res = await fetch(`${baseUrl}/api/devoirs/controle-actif`, { credentials: 'include' })
+  if (res.status === 401) return { enControle: false, titre: null, echeanceAt: null }
+  if (!res.ok) throw devoirError(res.status, 'Impossible de vérifier le contrôle en cours.')
+  return ControleActifSchema.parse(await res.json())
 }

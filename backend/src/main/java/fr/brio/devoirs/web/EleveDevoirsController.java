@@ -1,5 +1,6 @@
 package fr.brio.devoirs.web;
 
+import fr.brio.devoirs.ControleActif;
 import fr.brio.devoirs.DevoirEleveVue;
 import fr.brio.devoirs.DevoirService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,5 +32,13 @@ class EleveDevoirsController {
     @ApiResponse(responseCode = "401", description = "Authentification requise")
     List<DevoirEleveVue> mesDevoirs(Authentication auth) {
         return devoirs.listerPourEleve(UUID.fromString(auth.getName()));
+    }
+
+    @GetMapping(value = "/controle-actif", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Le contrôle en cours de l'élève (pour verrouiller le tuteur), le cas échéant")
+    @ApiResponse(responseCode = "200", description = "Contrôle actif (ou aucun)")
+    @ApiResponse(responseCode = "401", description = "Authentification requise")
+    ControleActif controleActif(Authentication auth) {
+        return devoirs.controleActif(UUID.fromString(auth.getName()));
     }
 }

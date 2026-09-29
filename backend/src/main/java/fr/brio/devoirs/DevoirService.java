@@ -14,9 +14,11 @@ import fr.brio.devoirs.infrastructure.RenduRepository;
 import fr.brio.identite.api.EnseignantContexteQuery;
 import fr.brio.identite.api.InscriptionInfo;
 import fr.brio.identite.api.InscriptionsQuery;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.UUID;
@@ -64,6 +66,7 @@ public class DevoirService {
                         auteurId,
                         nouveau.titre(),
                         nouveau.consigne(),
+                        nouveau.type(),
                         nouveau.sourceType(),
                         nouveau.sourceRef(),
                         nouveau.sourceVersion(),
@@ -71,6 +74,38 @@ public class DevoirService {
                         nouveau.ouvreAt(),
                         nouveau.echeanceAt());
         return devoirs.save(devoir).getId();
+    }
+
+    /**
+     * Vrai si l'élève a un contrôle ouvert et non encore rendu (mode contrôle, ADR 0025). Sert au
+     * tuteur (module {@code ia}) pour se couper pendant un contrôle.
+     */
+    @Transactional(readOnly = true)
+    public boolean enControleOuvert(UUID eleveId) {
+        return controleActifDevoir(eleveId).isPresent();
+    }
+
+    /** Le contrôle actif de l'élève (pour verrouiller/afficher côté interface), s'il y en a un. */
+    @Transactional(readOnly = true)
+    public ControleActif controleActif(UUID eleveId) {
+        return controleActifDevoir(eleveId)
+                .map(d -> new ControleActif(true, d.getTitre(), d.getEcheanceAt()))
+                .orElseGet(() -> new ControleActif(false, null, null));
+    }
+
+    private Optional<Devoir> controleActifDevoir(UUID eleveId) {
+        Set<UUID> classes = inscriptions.classesDeLEleve(eleveId);
+        if (classes.isEmpty()) {
+            return Optional.empty();
+        }
+        return devoirs.findControlesOuverts(classes, Instant.now()).stream()
+                .filter(
+                        d ->
+                                rendus
+                                        .findByDevoirIdAndEleveId(d.getId(), eleveId)
+                                        .map(r -> !DerivationRendu.RENDU.equals(r.getStatut()))
+                                        .orElse(true))
+                .findFirst();
     }
 
     /** Les devoirs publiés des classes de l'élève, avec le statut de son rendu pour chacun. */

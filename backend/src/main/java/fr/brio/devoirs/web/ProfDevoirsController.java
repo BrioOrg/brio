@@ -54,6 +54,7 @@ class ProfDevoirsController {
                                 req.classeId(),
                                 req.titre(),
                                 req.consigne(),
+                                req.type(),
                                 req.sourceType(),
                                 req.sourceRef(),
                                 req.sourceVersion(),

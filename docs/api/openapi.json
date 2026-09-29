@@ -1320,6 +1320,35 @@
         }
       }
     },
+    "/api/devoirs/controle-actif" : {
+      "get" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Le contrôle en cours de l'élève (pour verrouiller le tuteur), le cas échéant",
+        "operationId" : "controleActif",
+        "responses" : {
+          "200" : {
+            "description" : "Contrôle actif (ou aucun)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ControleActif"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ControleActif"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/cours" : {
       "get" : {
         "tags" : [ "Contenu" ],
@@ -1692,6 +1721,9 @@
             "minLength" : 1
           },
           "consigne" : {
+            "type" : "string"
+          },
+          "type" : {
             "type" : "string"
           },
           "sourceType" : {
@@ -2436,6 +2468,21 @@
           },
           "statutRendu" : {
             "type" : "string"
+          }
+        }
+      },
+      "ControleActif" : {
+        "type" : "object",
+        "properties" : {
+          "enControle" : {
+            "type" : "boolean"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "echeanceAt" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },

@@ -44,11 +44,13 @@ export {
   listerDevoirsClasse,
   getTableauDeBord,
   listerMesDevoirs,
+  controleActif,
   DevoirEleveVueSchema,
   DevoirClasseVueSchema,
   TableauDeBordDevoirSchema,
   LigneEleveSchema,
   ReussiteCompetenceSchema,
+  ControleActifSchema,
 } from './devoirs.js'
 export type {
   DevoirEleveVue,
@@ -57,6 +59,7 @@ export type {
   LigneEleve,
   ReussiteCompetence,
   CreerDevoirInput,
+  ControleActif,
 } from './devoirs.js'
 export { listerCompetences } from './referentiel.js'
 export type { Competence } from './referentiel.js'
