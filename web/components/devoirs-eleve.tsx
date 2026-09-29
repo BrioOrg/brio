@@ -38,7 +38,7 @@ export function DevoirsEleve() {
 
   return (
     <div className="min-h-screen bg-surface-page px-4 py-6 font-prose text-ink">
-      <div className="mx-auto max-w-[40rem]">
+      <div className="mx-auto max-w-2xl">
         <h1 className="font-display text-2xl font-extrabold text-ink">Mes devoirs</h1>
 
         {deconnecte && (

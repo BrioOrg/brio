@@ -136,7 +136,7 @@ export function CreerDevoir() {
         <h1 className="font-display text-lg font-extrabold text-ink">Nouveau devoir</h1>
       </header>
 
-      <main className="mx-auto max-w-[46rem] px-4 py-6">
+      <main className="mx-auto max-w-3xl px-4 py-6">
         {erreur && (
           <p className="mb-4 rounded-lg border border-danger bg-surface-panel px-4 py-2 text-sm text-danger">
             {erreur}
