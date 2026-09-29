@@ -40,7 +40,7 @@ CREATE TABLE devoirs.rendus (
     eleve_id    UUID NOT NULL,                      -- identite.comptes (élève)
     statut      VARCHAR(15) NOT NULL DEFAULT 'non_commence'
         CHECK (statut IN ('non_commence', 'en_cours', 'rendu')),
-    score       NUMERIC,                            -- moyenne des scores des exercices soumis
+    score       DOUBLE PRECISION,                   -- moyenne des scores des exercices soumis
     rendu_at    TIMESTAMPTZ,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (devoir_id, eleve_id)

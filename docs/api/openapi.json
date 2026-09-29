@@ -1,2147 +1,2656 @@
 {
-  "openapi" : "3.1.0",
-  "info" : {
-    "title" : "OpenAPI definition",
-    "version" : "v0"
-  },
-  "servers" : [ {
-    "url" : "http://localhost",
-    "description" : "Generated server url"
-  } ],
-  "tags" : [ {
-    "name" : "Référentiel de compétences",
-    "description" : "Lecture du référentiel pour l'édition de cours"
-  }, {
-    "name" : "Contenu",
-    "description" : "Accès aux chapitres de cours"
-  }, {
-    "name" : "Exercices",
-    "description" : "Soumission et évaluation des exercices"
-  }, {
-    "name" : "Édition de cours",
-    "description" : "Composition et publication de cours par un enseignant"
-  }, {
-    "name" : "Système",
-    "description" : "Endpoints techniques exposés par le produit"
-  }, {
-    "name" : "IA",
-    "description" : "Tuteur IA par chapitre"
-  } ],
-  "paths" : {
-    "/api/prof/cours/{coursId}" : {
-      "get" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Charge un cours pour l'édition",
-        "description" : "Renvoie le brouillon en cours (métadonnées, contenu, classes portées). Réservé à l'auteur du cours.",
-        "operationId" : "charger",
-        "parameters" : [ {
-          "name" : "coursId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+  "components": {
+    "schemas": {
+      "AssignerEnseignantRequest": {
+        "properties": {
+          "enseignantId": {
+            "format": "uuid",
+            "type": "string"
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Cours chargé",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoursDetailResponse"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Le cours ne vous appartient pas",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoursDetailResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Cours introuvable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoursDetailResponse"
-                }
-              }
-            }
-          }
-        }
+        },
+        "required": [
+          "enseignantId"
+        ],
+        "type": "object"
       },
-      "put" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Enregistre le brouillon (titre + contenu)",
-        "operationId" : "enregistrer",
-        "parameters" : [ {
-          "name" : "coursId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ModifierCoursRequest"
-              }
-            }
+      "CatalogueChapitreDto": {
+        "properties": {
+          "dureeEstimeeMinutes": {
+            "format": "int32",
+            "type": "integer"
           },
-          "required" : true
+          "ordre": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "titre": {
+            "type": "string"
+          }
         },
-        "responses" : {
-          "204" : {
-            "description" : "Brouillon enregistré"
-          },
-          "403" : {
-            "description" : "Le cours ne vous appartient pas"
-          },
-          "404" : {
-            "description" : "Cours introuvable"
-          }
-        }
-      }
-    },
-    "/api/prof/cours/{coursId}/portees" : {
-      "put" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Définit les classes auxquelles le cours est porté",
-        "description" : "Chaque classe doit être une classe de l'enseignant connecté.",
-        "operationId" : "definirPortees",
-        "parameters" : [ {
-          "name" : "coursId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/DefinirPorteesRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "204" : {
-            "description" : "Portées enregistrées"
-          },
-          "403" : {
-            "description" : "Cours non détenu, ou classe hors de vos classes"
-          },
-          "404" : {
-            "description" : "Cours introuvable"
-          }
-        }
-      }
-    },
-    "/api/classes/{id}/enseignant-principal" : {
-      "put" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "assignerEnseignant",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/AssignerEnseignantRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ClasseInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/prof/cours" : {
-      "get" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Liste vos cours",
-        "description" : "Les cours dont vous êtes l'auteur, du plus récemment modifié au plus ancien.",
-        "operationId" : "mesCours",
-        "responses" : {
-          "200" : {
-            "description" : "Vos cours",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoursResumeResponse"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoursResumeResponse"
-                  }
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Réservé aux enseignants",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoursResumeResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
+        "type": "object"
       },
-      "post" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Crée un brouillon de cours",
-        "description" : "L'auteur et l'établissement sont déduits de l'enseignant connecté, jamais lus dans la requête. Le contenu est validé à la publication, pas ici.",
-        "operationId" : "creer",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreerCoursRequest"
-              }
-            }
+      "CatalogueMatiereDto": {
+        "properties": {
+          "chapitres": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogueChapitreDto"
+            },
+            "type": "array"
           },
-          "required" : true
+          "matiereCode": {
+            "type": "string"
+          },
+          "matiereLibelle": {
+            "type": "string"
+          }
         },
-        "responses" : {
-          "201" : {
-            "description" : "Brouillon créé",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoursCreeResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoursCreeResponse"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Réservé aux enseignants",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoursCreeResponse"
-                }
-              }
-            }
-          },
-          "422" : {
-            "description" : "L'enseignant n'a aucune classe : établissement indéterminé",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoursCreeResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/prof/cours/{coursId}/publier" : {
-      "post" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Publie le cours",
-        "description" : "Valide le brouillon et fige une version immuable visible des classes portées. Les réponses de correction sont retirées du contenu figé.",
-        "operationId" : "publier",
-        "parameters" : [ {
-          "name" : "coursId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Cours publié ; version figée",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PublicationResult"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Le cours ne vous appartient pas",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PublicationResult"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Cours introuvable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PublicationResult"
-                }
-              }
-            }
-          },
-          "422" : {
-            "description" : "Le brouillon ne respecte pas le schéma / le référentiel",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PublicationResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/exercices/{id}/soumissions" : {
-      "post" : {
-        "tags" : [ "Exercices" ],
-        "summary" : "Soumettre une réponse à un exercice",
-        "description" : "Évalue la réponse et retourne le résultat avec la correction. Requiert une authentification.",
-        "operationId" : "soumettre",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/SoumissionRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "Réponse évaluée",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SoumissionResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Non authentifié",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SoumissionResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Exercice introuvable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SoumissionResponse"
-                }
-              }
-            }
-          },
-          "422" : {
-            "description" : "Format de réponse invalide ou type d'exercice non supporté",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SoumissionResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/etablissements" : {
-      "post" : {
-        "tags" : [ "etablissement-controller" ],
-        "operationId" : "creer_1",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreerEtablissementRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/EtablissementInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cours/{coursId}/tuteur" : {
-      "post" : {
-        "tags" : [ "IA" ],
-        "summary" : "Pose une question au tuteur IA d'un cours d'enseignant",
-        "description" : "Même tuteur que pour un chapitre, sur la version publiée du cours. Réservé aux élèves des classes portées.",
-        "operationId" : "askCours",
-        "parameters" : [ {
-          "name" : "coursId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/TuteurRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "Réponse du tuteur",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Requête invalide",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Cours non accessible à l'élève (hors portée)",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Cours introuvable ou non publié",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/consentements/{token}/validation" : {
-      "post" : {
-        "tags" : [ "consentement-controller" ],
-        "operationId" : "validerConsentement",
-        "parameters" : [ {
-          "name" : "token",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          }
-        }
-      }
-    },
-    "/api/consentements/revocation/{token}" : {
-      "post" : {
-        "tags" : [ "consentement-controller" ],
-        "operationId" : "revoquerConsentementParent",
-        "parameters" : [ {
-          "name" : "token",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          }
-        }
-      }
-    },
-    "/api/comptes" : {
-      "post" : {
-        "tags" : [ "inscription-controller" ],
-        "operationId" : "inscrireEnseignant",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/InscriptionEnseignantRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CompteInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/comptes/eleve" : {
-      "post" : {
-        "tags" : [ "inscription-controller" ],
-        "operationId" : "inscrireEleve",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/InscriptionEleveRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/InscriptionEleveEnAttenteInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/classes" : {
-      "post" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "creer_2",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreerClasseRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ClasseInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/classes/{id}/codes" : {
-      "post" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "genererCode",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/GenererCodeRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CodeClasseCreee"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/classes/rejoindre" : {
-      "post" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "rejoindre",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/RejoindreClasseRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Created",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/EleveInscritInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/chapitres/{niveau}/{matiere}/{slug}/tuteur" : {
-      "post" : {
-        "tags" : [ "IA" ],
-        "summary" : "Pose une question au tuteur IA du chapitre",
-        "description" : "Répond à partir du contenu du chapitre uniquement, avec citations vérifiées côté serveur.",
-        "operationId" : "ask",
-        "parameters" : [ {
-          "name" : "niveau",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "matiere",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/TuteurRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "Réponse du tuteur",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Requête invalide",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Chapitre introuvable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TuteurResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/chapitres/{id}/sections/{sectionId}/lu" : {
-      "post" : {
-        "tags" : [ "Contenu" ],
-        "summary" : "Marque une section de leçon comme lue",
-        "description" : "Signal léger : enregistre la lecture d'une section pour l'élève connecté. Alimente la progression (XP de section, complétion du chapitre). Requiert une authentification.",
-        "operationId" : "marquerSectionLue",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "sectionId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "Lecture enregistrée"
-          },
-          "401" : {
-            "description" : "Non authentifié"
-          },
-          "404" : {
-            "description" : "Chapitre ou section introuvable"
-          }
-        }
-      }
-    },
-    "/api/classes/{id}/inscriptions/{compteId}" : {
-      "patch" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "renommerEleve",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        }, {
-          "name" : "compteId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/RenommerInscriptionRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/InscriptionInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/progression/serie" : {
-      "get" : {
-        "tags" : [ "progression-controller" ],
-        "operationId" : "serie",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/SerieInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/progression/parcours/{niveau}/{matiere}" : {
-      "get" : {
-        "tags" : [ "progression-controller" ],
-        "operationId" : "parcours",
-        "parameters" : [ {
-          "name" : "niveau",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "matiere",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ParcoursChapitre"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/progression/moi" : {
-      "get" : {
-        "tags" : [ "progression-controller" ],
-        "operationId" : "moi",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ProgressionInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/progression/maitrise" : {
-      "get" : {
-        "tags" : [ "progression-controller" ],
-        "operationId" : "maitrise",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/MaitriseInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/prof/referentiel/competences" : {
-      "get" : {
-        "tags" : [ "Référentiel de compétences" ],
-        "summary" : "Liste les compétences actives du référentiel",
-        "description" : "Chaque entrée porte son code, son libellé, son domaine et ses niveaux. Les codes dépréciés ne sont jamais renvoyés.",
-        "operationId" : "competences",
-        "responses" : {
-          "200" : {
-            "description" : "Compétences actives",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CompetenceDto"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CompetenceDto"
-                  }
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Réservé aux enseignants",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CompetenceDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/prof/classes" : {
-      "get" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Liste les classes de l'enseignant connecté",
-        "description" : "Les classes actives dont l'enseignant est le professeur principal — les seules auxquelles il peut porter un cours.",
-        "operationId" : "mesClasses",
-        "responses" : {
-          "200" : {
-            "description" : "Classes de l'enseignant",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ClasseInfo"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ClasseInfo"
-                  }
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Réservé aux enseignants",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ClasseInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/ping" : {
-      "get" : {
-        "tags" : [ "Système" ],
-        "summary" : "Vérifie que l'API est joignable et renvoie les métadonnées de version",
-        "operationId" : "ping",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PingResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/moi" : {
-      "get" : {
-        "tags" : [ "session-controller" ],
-        "operationId" : "moi_1",
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CompteInfo"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cours" : {
-      "get" : {
-        "tags" : [ "Contenu" ],
-        "summary" : "Liste les cours d'enseignant visibles par l'élève",
-        "description" : "Retourne les cours publiés portés à l'une des classes de l'élève connecté, du plus récemment publié au plus ancien. Liste vide pour un compte sans classe.",
-        "operationId" : "getCoursVisibles",
-        "responses" : {
-          "200" : {
-            "description" : "Cours visibles (éventuellement aucun)",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoursVisibleResponse"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoursVisibleResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cours/{coursId}" : {
-      "get" : {
-        "tags" : [ "Contenu" ],
-        "summary" : "Récupère un cours d'enseignant publié",
-        "description" : "Retourne la version publiée du cours, dans le même format qu'un chapitre de catalogue. Réservé aux élèves des classes portées. Les réponses correctes des exercices ne sont jamais incluses.",
-        "operationId" : "getCoursPublie",
-        "parameters" : [ {
-          "name" : "coursId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Cours trouvé et accessible",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/JsonNode"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/JsonNode"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Cours non accessible à l'élève (hors portée)",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/JsonNode"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Cours introuvable ou non publié",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/JsonNode"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/classes/{id}/inscriptions" : {
-      "get" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "listerInscrits",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/InscriptionInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/classes/{id}/codes/actif" : {
-      "get" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "getCodeInfo",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CodeClasseInfo"
-                }
-              }
-            }
-          }
-        }
+        "type": "object"
       },
-      "delete" : {
-        "tags" : [ "classe-controller" ],
-        "operationId" : "revoquerCode",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "No Content"
-          }
-        }
-      }
-    },
-    "/api/chapitres/{niveau}/{matiere}/{slug}" : {
-      "get" : {
-        "tags" : [ "Contenu" ],
-        "summary" : "Récupère un chapitre par triplet niveau/matière/slug",
-        "description" : "Retourne le contenu du chapitre. Les réponses correctes des exercices ne sont jamais incluses.",
-        "operationId" : "getChapitreByTriplet",
-        "parameters" : [ {
-          "name" : "niveau",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "matiere",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Chapitre trouvé",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "object"
-                }
-              }
-            }
+      "CatalogueNiveauDto": {
+        "properties": {
+          "matieres": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogueMatiereDto"
+            },
+            "type": "array"
           },
-          "404" : {
-            "description" : "Chapitre introuvable",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "object"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/chapitres/{id}" : {
-      "get" : {
-        "tags" : [ "Contenu" ],
-        "summary" : "Redirige vers le chemin canonique triplet (308)",
-        "description" : "L'ancien endpoint par identifiant émet une redirection 308 permanente vers /api/chapitres/{niveau}/{matiere}/{slug}.",
-        "operationId" : "redirectChapitre",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "308" : {
-            "description" : "Redirection permanente vers le chemin triplet"
+          "niveauCode": {
+            "type": "string"
           },
-          "404" : {
-            "description" : "Chapitre introuvable"
+          "niveauLibelle": {
+            "type": "string"
           }
-        }
-      }
-    },
-    "/api/catalogue" : {
-      "get" : {
-        "tags" : [ "Contenu" ],
-        "summary" : "Catalogue des chapitres publiés",
-        "description" : "Retourne l'arbre complet niveau → matière → chapitres. Les données d'évaluation ne sont jamais incluses.",
-        "operationId" : "getCatalogue",
-        "responses" : {
-          "200" : {
-            "description" : "Catalogue retourné",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CatalogueNiveauDto"
-                  }
-                }
-              }
-            }
+        },
+        "type": "object"
+      },
+      "ChoiceFeedback": {
+        "properties": {
+          "choiceId": {
+            "type": "string"
+          },
+          "correct": {
+            "type": "boolean"
           }
-        }
-      }
-    },
-    "/api/comptes/{id}/consentement" : {
-      "delete" : {
-        "tags" : [ "consentement-controller" ],
-        "operationId" : "revoquerConsentementAdmin",
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+        },
+        "type": "object"
+      },
+      "ClasseInfo": {
+        "properties": {
+          "anneeScolaire": {
+            "type": "string"
+          },
+          "enseignantPrincipalId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "etablissementId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "libelle": {
+            "type": "string"
+          },
+          "niveauCode": {
+            "type": "string"
+          },
+          "statut": {
+            "type": "string"
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
+        },
+        "type": "object"
+      },
+      "CodeClasseCreee": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "expireAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "usages": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "usagesMax": {
+            "format": "int32",
+            "type": "integer"
           }
-        }
+        },
+        "type": "object"
+      },
+      "CodeClasseInfo": {
+        "properties": {
+          "expireAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "usages": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "usagesMax": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CompetenceDto": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "domaine": {
+            "type": "string"
+          },
+          "intitule": {
+            "type": "string"
+          },
+          "niveaux": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "CompteInfo": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nom": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "statut": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CoursCreeResponse": {
+        "properties": {
+          "coursId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CoursDetailResponse": {
+        "properties": {
+          "classeIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "content": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "matiereCode": {
+            "type": "string"
+          },
+          "niveauCode": {
+            "type": "string"
+          },
+          "statut": {
+            "type": "string"
+          },
+          "titre": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "versionPubliee": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CoursResumeResponse": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "matiereCode": {
+            "type": "string"
+          },
+          "niveauCode": {
+            "type": "string"
+          },
+          "statut": {
+            "type": "string"
+          },
+          "titre": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "versionPubliee": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CoursVisibleResponse": {
+        "properties": {
+          "enseignant": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "matiereCode": {
+            "type": "string"
+          },
+          "niveauCode": {
+            "type": "string"
+          },
+          "publieAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "titre": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CreerClasseRequest": {
+        "properties": {
+          "anneeScolaire": {
+            "minLength": 1,
+            "pattern": "\\d{4}-\\d{4}",
+            "type": "string"
+          },
+          "enseignantPrincipalId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "etablissementId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "libelle": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "niveauCode": {
+            "maxLength": 10,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "anneeScolaire",
+          "etablissementId",
+          "libelle",
+          "niveauCode"
+        ],
+        "type": "object"
+      },
+      "CreerCoursRequest": {
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "matiereCode": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "niveauCode": {
+            "maxLength": 16,
+            "minLength": 0,
+            "type": "string"
+          },
+          "titre": {
+            "maxLength": 300,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "matiereCode",
+          "niveauCode",
+          "titre"
+        ],
+        "type": "object"
+      },
+      "CreerDevoirRequest": {
+        "properties": {
+          "classeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "consigne": {
+            "type": "string"
+          },
+          "echeanceAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "exerciceIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "ouvreAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "sourceRef": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "sourceType": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "sourceVersion": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "titre": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "classeId",
+          "echeanceAt",
+          "exerciceIds",
+          "ouvreAt",
+          "sourceRef",
+          "sourceType",
+          "titre"
+        ],
+        "type": "object"
+      },
+      "CreerEtablissementRequest": {
+        "properties": {
+          "conventionReference": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string"
+          },
+          "conventionSigneeLe": {
+            "format": "date",
+            "type": "string"
+          },
+          "nom": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string"
+          },
+          "type": {
+            "minLength": 1,
+            "pattern": "college|lycee",
+            "type": "string"
+          },
+          "uai": {
+            "maxLength": 8,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nom",
+          "type"
+        ],
+        "type": "object"
+      },
+      "DefinirPorteesRequest": {
+        "properties": {
+          "classeIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "classeIds"
+        ],
+        "type": "object"
+      },
+      "DevoirEleveVue": {
+        "properties": {
+          "consigne": {
+            "type": "string"
+          },
+          "echeanceAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nombreExercices": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "statutRendu": {
+            "type": "string"
+          },
+          "titre": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "EleveInscritInfo": {
+        "properties": {
+          "classeLibelle": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "identifiantConnexion": {
+            "type": "string"
+          },
+          "nomAffiche": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "EtablissementInfo": {
+        "properties": {
+          "conventionReference": {
+            "type": "string"
+          },
+          "conventionSigneeLe": {
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nom": {
+            "type": "string"
+          },
+          "pathAActif": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string"
+          },
+          "uai": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "GenererCodeRequest": {
+        "properties": {
+          "expireDansJours": {
+            "format": "int32",
+            "maximum": 60,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "usagesMax": {
+            "format": "int32",
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "InscriptionEleveEnAttenteInfo": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "identifiantConnexion": {
+            "type": "string"
+          },
+          "statut": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "InscriptionEleveRequest": {
+        "properties": {
+          "emailParent": {
+            "format": "email",
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string"
+          },
+          "motDePasse": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "niveauDeclare": {
+            "minLength": 1,
+            "pattern": "6e|5e|4e|3e",
+            "type": "string"
+          }
+        },
+        "required": [
+          "emailParent",
+          "motDePasse",
+          "niveauDeclare"
+        ],
+        "type": "object"
+      },
+      "InscriptionEnseignantRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string"
+          },
+          "identifiantConnexion": {
+            "maxLength": 100,
+            "minLength": 3,
+            "type": "string"
+          },
+          "motDePasse": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "nom": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "identifiantConnexion",
+          "motDePasse",
+          "nom"
+        ],
+        "type": "object"
+      },
+      "InscriptionInfo": {
+        "properties": {
+          "compteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "depuis": {
+            "format": "date",
+            "type": "string"
+          },
+          "homonyme": {
+            "type": "boolean"
+          },
+          "nomAffiche": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "JsonNode": {},
+      "LigneEleve": {
+        "properties": {
+          "eleveId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nomAffiche": {
+            "type": "string"
+          },
+          "score": {
+            "format": "double",
+            "type": "number"
+          },
+          "statut": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MaitriseInfo": {
+        "properties": {
+          "competenceCode": {
+            "type": "string"
+          },
+          "echantillon": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "niveau": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ModifierCoursRequest": {
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "titre": {
+            "maxLength": 300,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "titre"
+        ],
+        "type": "object"
+      },
+      "ParcoursChapitre": {
+        "properties": {
+          "chapitreId": {
+            "type": "string"
+          },
+          "etat": {
+            "enum": [
+              "fait",
+              "en_cours",
+              "verrouille"
+            ],
+            "type": "string"
+          },
+          "ordre": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pourcentage": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PingResponse": {
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "timestamp",
+          "version"
+        ],
+        "type": "object"
+      },
+      "ProgressionInfo": {
+        "properties": {
+          "niveau": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "xpTotal": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PublicationResult": {
+        "properties": {
+          "coursId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "version": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "RejoindreClasseRequest": {
+        "properties": {
+          "code": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "motDePasse": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "nomAffiche": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "motDePasse",
+          "nomAffiche"
+        ],
+        "type": "object"
+      },
+      "RenommerInscriptionRequest": {
+        "properties": {
+          "nomAffiche": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nomAffiche"
+        ],
+        "type": "object"
+      },
+      "ReussiteCompetence": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "nombreReponses": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "tauxReussite": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "SerieInfo": {
+        "properties": {
+          "actifAujourdhui": {
+            "type": "boolean"
+          },
+          "dernierJourActif": {
+            "format": "date",
+            "type": "string"
+          },
+          "gelsRestants": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "joursConsecutifs": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SoumissionRequest": {
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/JsonNode"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "type": "object"
+      },
+      "SoumissionResponse": {
+        "properties": {
+          "choiceFeedback": {
+            "items": {
+              "$ref": "#/components/schemas/ChoiceFeedback"
+            },
+            "type": "array"
+          },
+          "correct": {
+            "type": "boolean"
+          },
+          "expectedValue": {
+            "format": "double",
+            "type": "number"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "score": {
+            "format": "double",
+            "type": "number"
+          },
+          "soumissionId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TableauDeBordDevoir": {
+        "properties": {
+          "devoirId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "echeanceAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "eleves": {
+            "items": {
+              "$ref": "#/components/schemas/LigneEleve"
+            },
+            "type": "array"
+          },
+          "moyenne": {
+            "format": "double",
+            "type": "number"
+          },
+          "nbEnCours": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "nbNonCommence": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "nbRendu": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "parCompetence": {
+            "items": {
+              "$ref": "#/components/schemas/ReussiteCompetence"
+            },
+            "type": "array"
+          },
+          "titre": {
+            "type": "string"
+          },
+          "total": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "TuteurRequest": {
+        "properties": {
+          "exerciceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "question": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "type": "object"
+      },
+      "TuteurResponse": {
+        "properties": {
+          "citations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reponse": {
+            "type": "string"
+          }
+        },
+        "type": "object"
       }
     }
   },
-  "components" : {
-    "schemas" : {
-      "JsonNode" : { },
-      "ModifierCoursRequest" : {
-        "type" : "object",
-        "properties" : {
-          "titre" : {
-            "type" : "string",
-            "maxLength" : 300,
-            "minLength" : 0
-          },
-          "content" : {
-            "$ref" : "#/components/schemas/JsonNode"
-          }
-        },
-        "required" : [ "titre" ]
-      },
-      "DefinirPorteesRequest" : {
-        "type" : "object",
-        "properties" : {
-          "classeIds" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string",
-              "format" : "uuid"
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/catalogue": {
+      "get": {
+        "description": "Retourne l'arbre complet niveau → matière → chapitres. Les données d'évaluation ne sont jamais incluses.",
+        "operationId": "getCatalogue",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogueNiveauDto"
+                  },
+                  "type": "array"
+                }
+              }
             },
-            "uniqueItems" : true
+            "description": "Catalogue retourné"
           }
         },
-        "required" : [ "classeIds" ]
-      },
-      "AssignerEnseignantRequest" : {
-        "type" : "object",
-        "properties" : {
-          "enseignantId" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        },
-        "required" : [ "enseignantId" ]
-      },
-      "ClasseInfo" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "etablissementId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "niveauCode" : {
-            "type" : "string"
-          },
-          "libelle" : {
-            "type" : "string"
-          },
-          "anneeScolaire" : {
-            "type" : "string"
-          },
-          "statut" : {
-            "type" : "string"
-          },
-          "enseignantPrincipalId" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        }
-      },
-      "CreerCoursRequest" : {
-        "type" : "object",
-        "properties" : {
-          "titre" : {
-            "type" : "string",
-            "maxLength" : 300,
-            "minLength" : 0
-          },
-          "niveauCode" : {
-            "type" : "string",
-            "maxLength" : 16,
-            "minLength" : 0
-          },
-          "matiereCode" : {
-            "type" : "string",
-            "maxLength" : 64,
-            "minLength" : 0
-          },
-          "content" : {
-            "$ref" : "#/components/schemas/JsonNode"
-          }
-        },
-        "required" : [ "matiereCode", "niveauCode", "titre" ]
-      },
-      "CoursCreeResponse" : {
-        "type" : "object",
-        "properties" : {
-          "coursId" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        }
-      },
-      "PublicationResult" : {
-        "type" : "object",
-        "properties" : {
-          "coursId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "version" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "SoumissionRequest" : {
-        "type" : "object",
-        "properties" : {
-          "answer" : {
-            "$ref" : "#/components/schemas/JsonNode"
-          }
-        },
-        "required" : [ "answer" ]
-      },
-      "ChoiceFeedback" : {
-        "type" : "object",
-        "properties" : {
-          "choiceId" : {
-            "type" : "string"
-          },
-          "correct" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "SoumissionResponse" : {
-        "type" : "object",
-        "properties" : {
-          "soumissionId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "correct" : {
-            "type" : "boolean"
-          },
-          "score" : {
-            "type" : "number",
-            "format" : "double"
-          },
-          "choiceFeedback" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ChoiceFeedback"
-            }
-          },
-          "expectedValue" : {
-            "type" : "number",
-            "format" : "double"
-          },
-          "explanation" : {
-            "type" : "string"
-          }
-        }
-      },
-      "CreerEtablissementRequest" : {
-        "type" : "object",
-        "properties" : {
-          "nom" : {
-            "type" : "string",
-            "maxLength" : 200,
-            "minLength" : 0
-          },
-          "uai" : {
-            "type" : "string",
-            "maxLength" : 8,
-            "minLength" : 0
-          },
-          "type" : {
-            "type" : "string",
-            "minLength" : 1,
-            "pattern" : "college|lycee"
-          },
-          "conventionSigneeLe" : {
-            "type" : "string",
-            "format" : "date"
-          },
-          "conventionReference" : {
-            "type" : "string",
-            "maxLength" : 200,
-            "minLength" : 0
-          }
-        },
-        "required" : [ "nom", "type" ]
-      },
-      "EtablissementInfo" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "nom" : {
-            "type" : "string"
-          },
-          "uai" : {
-            "type" : "string"
-          },
-          "type" : {
-            "type" : "string"
-          },
-          "conventionSigneeLe" : {
-            "type" : "string",
-            "format" : "date"
-          },
-          "conventionReference" : {
-            "type" : "string"
-          },
-          "pathAActif" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "TuteurRequest" : {
-        "type" : "object",
-        "properties" : {
-          "question" : {
-            "type" : "string",
-            "minLength" : 1
-          },
-          "exerciceId" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        },
-        "required" : [ "question" ]
-      },
-      "TuteurResponse" : {
-        "type" : "object",
-        "properties" : {
-          "reponse" : {
-            "type" : "string"
-          },
-          "citations" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
+        "summary": "Catalogue des chapitres publiés",
+        "tags": [
+          "Contenu"
+        ]
+      }
+    },
+    "/api/chapitres/{id}": {
+      "get": {
+        "description": "L'ancien endpoint par identifiant émet une redirection 308 permanente vers /api/chapitres/{niveau}/{matiere}/{slug}.",
+        "operationId": "redirectChapitre",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        }
-      },
-      "InscriptionEnseignantRequest" : {
-        "type" : "object",
-        "properties" : {
-          "identifiantConnexion" : {
-            "type" : "string",
-            "maxLength" : 100,
-            "minLength" : 3
+        ],
+        "responses": {
+          "308": {
+            "description": "Redirection permanente vers le chemin triplet"
           },
-          "motDePasse" : {
-            "type" : "string",
-            "maxLength" : 128,
-            "minLength" : 8
-          },
-          "nom" : {
-            "type" : "string",
-            "maxLength" : 200,
-            "minLength" : 0
-          },
-          "email" : {
-            "type" : "string",
-            "format" : "email",
-            "maxLength" : 200,
-            "minLength" : 0
+          "404": {
+            "description": "Chapitre introuvable"
           }
         },
-        "required" : [ "email", "identifiantConnexion", "motDePasse", "nom" ]
-      },
-      "CompteInfo" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
+        "summary": "Redirige vers le chemin canonique triplet (308)",
+        "tags": [
+          "Contenu"
+        ]
+      }
+    },
+    "/api/chapitres/{id}/sections/{sectionId}/lu": {
+      "post": {
+        "description": "Signal léger : enregistre la lecture d'une section pour l'élève connecté. Alimente la progression (XP de section, complétion du chapitre). Requiert une authentification.",
+        "operationId": "marquerSectionLue",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "role" : {
-            "type" : "string"
-          },
-          "statut" : {
-            "type" : "string"
-          },
-          "nom" : {
-            "type" : "string"
-          },
-          "email" : {
-            "type" : "string"
-          }
-        }
-      },
-      "InscriptionEleveRequest" : {
-        "type" : "object",
-        "properties" : {
-          "niveauDeclare" : {
-            "type" : "string",
-            "minLength" : 1,
-            "pattern" : "6e|5e|4e|3e"
-          },
-          "motDePasse" : {
-            "type" : "string",
-            "maxLength" : 128,
-            "minLength" : 8
-          },
-          "emailParent" : {
-            "type" : "string",
-            "format" : "email",
-            "maxLength" : 200,
-            "minLength" : 0
-          }
-        },
-        "required" : [ "emailParent", "motDePasse", "niveauDeclare" ]
-      },
-      "InscriptionEleveEnAttenteInfo" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "identifiantConnexion" : {
-            "type" : "string"
-          },
-          "statut" : {
-            "type" : "string"
-          }
-        }
-      },
-      "CreerClasseRequest" : {
-        "type" : "object",
-        "properties" : {
-          "etablissementId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "niveauCode" : {
-            "type" : "string",
-            "maxLength" : 10,
-            "minLength" : 0
-          },
-          "libelle" : {
-            "type" : "string",
-            "maxLength" : 100,
-            "minLength" : 0
-          },
-          "anneeScolaire" : {
-            "type" : "string",
-            "minLength" : 1,
-            "pattern" : "\\d{4}-\\d{4}"
-          },
-          "enseignantPrincipalId" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        },
-        "required" : [ "anneeScolaire", "etablissementId", "libelle", "niveauCode" ]
-      },
-      "GenererCodeRequest" : {
-        "type" : "object",
-        "properties" : {
-          "expireDansJours" : {
-            "type" : "integer",
-            "format" : "int32",
-            "maximum" : 60,
-            "minimum" : 1
-          },
-          "usagesMax" : {
-            "type" : "integer",
-            "format" : "int32",
-            "maximum" : 200,
-            "minimum" : 1
-          }
-        }
-      },
-      "CodeClasseCreee" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "code" : {
-            "type" : "string"
-          },
-          "expireAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "usages" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "usagesMax" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "RejoindreClasseRequest" : {
-        "type" : "object",
-        "properties" : {
-          "code" : {
-            "type" : "string",
-            "minLength" : 1
-          },
-          "motDePasse" : {
-            "type" : "string",
-            "maxLength" : 128,
-            "minLength" : 8
-          },
-          "nomAffiche" : {
-            "type" : "string",
-            "maxLength" : 30,
-            "minLength" : 0
-          }
-        },
-        "required" : [ "code", "motDePasse", "nomAffiche" ]
-      },
-      "EleveInscritInfo" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "identifiantConnexion" : {
-            "type" : "string"
-          },
-          "nomAffiche" : {
-            "type" : "string"
-          },
-          "classeLibelle" : {
-            "type" : "string"
-          }
-        }
-      },
-      "RenommerInscriptionRequest" : {
-        "type" : "object",
-        "properties" : {
-          "nomAffiche" : {
-            "type" : "string",
-            "maxLength" : 30,
-            "minLength" : 0
-          }
-        },
-        "required" : [ "nomAffiche" ]
-      },
-      "InscriptionInfo" : {
-        "type" : "object",
-        "properties" : {
-          "compteId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "nomAffiche" : {
-            "type" : "string"
-          },
-          "depuis" : {
-            "type" : "string",
-            "format" : "date"
-          },
-          "homonyme" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "SerieInfo" : {
-        "type" : "object",
-        "properties" : {
-          "joursConsecutifs" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "dernierJourActif" : {
-            "type" : "string",
-            "format" : "date"
-          },
-          "gelsRestants" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "actifAujourdhui" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "ParcoursChapitre" : {
-        "type" : "object",
-        "properties" : {
-          "chapitreId" : {
-            "type" : "string"
-          },
-          "ordre" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "etat" : {
-            "type" : "string",
-            "enum" : [ "fait", "en_cours", "verrouille" ]
-          },
-          "pourcentage" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "ProgressionInfo" : {
-        "type" : "object",
-        "properties" : {
-          "xpTotal" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "niveau" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "MaitriseInfo" : {
-        "type" : "object",
-        "properties" : {
-          "competenceCode" : {
-            "type" : "string"
-          },
-          "niveau" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "echantillon" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "CompetenceDto" : {
-        "type" : "object",
-        "properties" : {
-          "code" : {
-            "type" : "string"
-          },
-          "intitule" : {
-            "type" : "string"
-          },
-          "domaine" : {
-            "type" : "string"
-          },
-          "niveaux" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
+          {
+            "in": "path",
+            "name": "sectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        }
-      },
-      "CoursResumeResponse" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
+        ],
+        "responses": {
+          "204": {
+            "description": "Lecture enregistrée"
           },
-          "titre" : {
-            "type" : "string"
+          "401": {
+            "description": "Non authentifié"
           },
-          "niveauCode" : {
-            "type" : "string"
-          },
-          "matiereCode" : {
-            "type" : "string"
-          },
-          "statut" : {
-            "type" : "string"
-          },
-          "versionPubliee" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "updatedAt" : {
-            "type" : "string",
-            "format" : "date-time"
+          "404": {
+            "description": "Chapitre ou section introuvable"
           }
-        }
-      },
-      "CoursDetailResponse" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
+        },
+        "summary": "Marque une section de leçon comme lue",
+        "tags": [
+          "Contenu"
+        ]
+      }
+    },
+    "/api/chapitres/{niveau}/{matiere}/{slug}": {
+      "get": {
+        "description": "Retourne le contenu du chapitre. Les réponses correctes des exercices ne sont jamais incluses.",
+        "operationId": "getChapitreByTriplet",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "niveau",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "titre" : {
-            "type" : "string"
+          {
+            "in": "path",
+            "name": "matiere",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "niveauCode" : {
-            "type" : "string"
-          },
-          "matiereCode" : {
-            "type" : "string"
-          },
-          "statut" : {
-            "type" : "string"
-          },
-          "versionPubliee" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "content" : {
-            "$ref" : "#/components/schemas/JsonNode"
-          },
-          "classeIds" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string",
-              "format" : "uuid"
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
             },
-            "uniqueItems" : true
+            "description": "Chapitre trouvé"
           },
-          "updatedAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          }
-        }
-      },
-      "PingResponse" : {
-        "type" : "object",
-        "properties" : {
-          "status" : {
-            "type" : "string"
-          },
-          "version" : {
-            "type" : "string"
-          },
-          "timestamp" : {
-            "type" : "string",
-            "format" : "date-time"
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Chapitre introuvable"
           }
         },
-        "required" : [ "status", "timestamp", "version" ]
-      },
-      "CoursVisibleResponse" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
+        "summary": "Récupère un chapitre par triplet niveau/matière/slug",
+        "tags": [
+          "Contenu"
+        ]
+      }
+    },
+    "/api/chapitres/{niveau}/{matiere}/{slug}/tuteur": {
+      "post": {
+        "description": "Répond à partir du contenu du chapitre uniquement, avec citations vérifiées côté serveur.",
+        "operationId": "ask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "niveau",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "titre" : {
-            "type" : "string"
+          {
+            "in": "path",
+            "name": "matiere",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "niveauCode" : {
-            "type" : "string"
-          },
-          "matiereCode" : {
-            "type" : "string"
-          },
-          "enseignant" : {
-            "type" : "string"
-          },
-          "publieAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          }
-        }
-      },
-      "CodeClasseInfo" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "expireAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "usages" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "usagesMax" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "CatalogueChapitreDto" : {
-        "type" : "object",
-        "properties" : {
-          "slug" : {
-            "type" : "string"
-          },
-          "titre" : {
-            "type" : "string"
-          },
-          "dureeEstimeeMinutes" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "ordre" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        }
-      },
-      "CatalogueMatiereDto" : {
-        "type" : "object",
-        "properties" : {
-          "matiereCode" : {
-            "type" : "string"
-          },
-          "matiereLibelle" : {
-            "type" : "string"
-          },
-          "chapitres" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/CatalogueChapitreDto"
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        }
-      },
-      "CatalogueNiveauDto" : {
-        "type" : "object",
-        "properties" : {
-          "niveauCode" : {
-            "type" : "string"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TuteurRequest"
+              }
+            }
           },
-          "niveauLibelle" : {
-            "type" : "string"
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Réponse du tuteur"
           },
-          "matieres" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/CatalogueMatiereDto"
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Requête invalide"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Chapitre introuvable"
+          }
+        },
+        "summary": "Pose une question au tuteur IA du chapitre",
+        "tags": [
+          "IA"
+        ]
+      }
+    },
+    "/api/classes": {
+      "post": {
+        "operationId": "creer_3",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreerClasseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClasseInfo"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      }
+    },
+    "/api/classes/rejoindre": {
+      "post": {
+        "operationId": "rejoindre",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejoindreClasseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EleveInscritInfo"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      }
+    },
+    "/api/classes/{id}/codes": {
+      "post": {
+        "operationId": "genererCode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
             }
           }
-        }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenererCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodeClasseCreee"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      }
+    },
+    "/api/classes/{id}/codes/actif": {
+      "delete": {
+        "operationId": "revoquerCode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      },
+      "get": {
+        "operationId": "getCodeInfo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodeClasseInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      }
+    },
+    "/api/classes/{id}/enseignant-principal": {
+      "put": {
+        "operationId": "assignerEnseignant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignerEnseignantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClasseInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      }
+    },
+    "/api/classes/{id}/inscriptions": {
+      "get": {
+        "operationId": "listerInscrits",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InscriptionInfo"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      }
+    },
+    "/api/classes/{id}/inscriptions/{compteId}": {
+      "patch": {
+        "operationId": "renommerEleve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "compteId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenommerInscriptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/InscriptionInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "classe-controller"
+        ]
+      }
+    },
+    "/api/comptes": {
+      "post": {
+        "operationId": "inscrireEnseignant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InscriptionEnseignantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompteInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "inscription-controller"
+        ]
+      }
+    },
+    "/api/comptes/eleve": {
+      "post": {
+        "operationId": "inscrireEleve",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InscriptionEleveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/InscriptionEleveEnAttenteInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "inscription-controller"
+        ]
+      }
+    },
+    "/api/comptes/{id}/consentement": {
+      "delete": {
+        "operationId": "revoquerConsentementAdmin",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "consentement-controller"
+        ]
+      }
+    },
+    "/api/consentements/revocation/{token}": {
+      "post": {
+        "operationId": "revoquerConsentementParent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "consentement-controller"
+        ]
+      }
+    },
+    "/api/consentements/{token}/validation": {
+      "post": {
+        "operationId": "validerConsentement",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "consentement-controller"
+        ]
+      }
+    },
+    "/api/cours": {
+      "get": {
+        "description": "Retourne les cours publiés portés à l'une des classes de l'élève connecté, du plus récemment publié au plus ancien. Liste vide pour un compte sans classe.",
+        "operationId": "getCoursVisibles",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CoursVisibleResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Cours visibles (éventuellement aucun)"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CoursVisibleResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          }
+        },
+        "summary": "Liste les cours d'enseignant visibles par l'élève",
+        "tags": [
+          "Contenu"
+        ]
+      }
+    },
+    "/api/cours/{coursId}": {
+      "get": {
+        "description": "Retourne la version publiée du cours, dans le même format qu'un chapitre de catalogue. Réservé aux élèves des classes portées. Les réponses correctes des exercices ne sont jamais incluses.",
+        "operationId": "getCoursPublie",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coursId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonNode"
+                }
+              }
+            },
+            "description": "Cours trouvé et accessible"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonNode"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonNode"
+                }
+              }
+            },
+            "description": "Cours non accessible à l'élève (hors portée)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonNode"
+                }
+              }
+            },
+            "description": "Cours introuvable ou non publié"
+          }
+        },
+        "summary": "Récupère un cours d'enseignant publié",
+        "tags": [
+          "Contenu"
+        ]
+      }
+    },
+    "/api/cours/{coursId}/tuteur": {
+      "post": {
+        "description": "Même tuteur que pour un chapitre, sur la version publiée du cours. Réservé aux élèves des classes portées.",
+        "operationId": "askCours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coursId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TuteurRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Réponse du tuteur"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Requête invalide"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Cours non accessible à l'élève (hors portée)"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuteurResponse"
+                }
+              }
+            },
+            "description": "Cours introuvable ou non publié"
+          }
+        },
+        "summary": "Pose une question au tuteur IA d'un cours d'enseignant",
+        "tags": [
+          "IA"
+        ]
+      }
+    },
+    "/api/devoirs": {
+      "get": {
+        "operationId": "mesDevoirs",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DevoirEleveVue"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Devoirs de l'élève"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DevoirEleveVue"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          }
+        },
+        "summary": "Liste les devoirs de l'élève connecté, avec le statut de son rendu",
+        "tags": [
+          "Devoirs"
+        ]
+      }
+    },
+    "/api/etablissements": {
+      "post": {
+        "operationId": "creer_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreerEtablissementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EtablissementInfo"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "etablissement-controller"
+        ]
+      }
+    },
+    "/api/exercices/{id}/soumissions": {
+      "post": {
+        "description": "Évalue la réponse et retourne le résultat avec la correction. Requiert une authentification.",
+        "operationId": "soumettre",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SoumissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoumissionResponse"
+                }
+              }
+            },
+            "description": "Réponse évaluée"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoumissionResponse"
+                }
+              }
+            },
+            "description": "Non authentifié"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoumissionResponse"
+                }
+              }
+            },
+            "description": "Exercice introuvable"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoumissionResponse"
+                }
+              }
+            },
+            "description": "Format de réponse invalide ou type d'exercice non supporté"
+          }
+        },
+        "summary": "Soumettre une réponse à un exercice",
+        "tags": [
+          "Exercices"
+        ]
+      }
+    },
+    "/api/moi": {
+      "get": {
+        "operationId": "moi_1",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompteInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "session-controller"
+        ]
+      }
+    },
+    "/api/ping": {
+      "get": {
+        "operationId": "ping",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Vérifie que l'API est joignable et renvoie les métadonnées de version",
+        "tags": [
+          "Système"
+        ]
+      }
+    },
+    "/api/prof/classes": {
+      "get": {
+        "description": "Les classes actives dont l'enseignant est le professeur principal — les seules auxquelles il peut porter un cours.",
+        "operationId": "mesClasses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClasseInfo"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Classes de l'enseignant"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClasseInfo"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClasseInfo"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Réservé aux enseignants"
+          }
+        },
+        "summary": "Liste les classes de l'enseignant connecté",
+        "tags": [
+          "Édition de cours"
+        ]
+      }
+    },
+    "/api/prof/cours": {
+      "get": {
+        "description": "Les cours dont vous êtes l'auteur, du plus récemment modifié au plus ancien.",
+        "operationId": "mesCours",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CoursResumeResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Vos cours"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CoursResumeResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CoursResumeResponse"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Réservé aux enseignants"
+          }
+        },
+        "summary": "Liste vos cours",
+        "tags": [
+          "Édition de cours"
+        ]
+      },
+      "post": {
+        "description": "L'auteur et l'établissement sont déduits de l'enseignant connecté, jamais lus dans la requête. Le contenu est validé à la publication, pas ici.",
+        "operationId": "creer_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreerCoursRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            },
+            "description": "Brouillon créé"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            },
+            "description": "Réservé aux enseignants"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursCreeResponse"
+                }
+              }
+            },
+            "description": "L'enseignant n'a aucune classe : établissement indéterminé"
+          }
+        },
+        "summary": "Crée un brouillon de cours",
+        "tags": [
+          "Édition de cours"
+        ]
+      }
+    },
+    "/api/prof/cours/{coursId}": {
+      "get": {
+        "description": "Renvoie le brouillon en cours (métadonnées, contenu, classes portées). Réservé à l'auteur du cours.",
+        "operationId": "charger",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coursId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursDetailResponse"
+                }
+              }
+            },
+            "description": "Cours chargé"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursDetailResponse"
+                }
+              }
+            },
+            "description": "Le cours ne vous appartient pas"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoursDetailResponse"
+                }
+              }
+            },
+            "description": "Cours introuvable"
+          }
+        },
+        "summary": "Charge un cours pour l'édition",
+        "tags": [
+          "Édition de cours"
+        ]
+      },
+      "put": {
+        "operationId": "enregistrer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coursId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifierCoursRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Brouillon enregistré"
+          },
+          "403": {
+            "description": "Le cours ne vous appartient pas"
+          },
+          "404": {
+            "description": "Cours introuvable"
+          }
+        },
+        "summary": "Enregistre le brouillon (titre + contenu)",
+        "tags": [
+          "Édition de cours"
+        ]
+      }
+    },
+    "/api/prof/cours/{coursId}/portees": {
+      "put": {
+        "description": "Chaque classe doit être une classe de l'enseignant connecté.",
+        "operationId": "definirPortees",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coursId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DefinirPorteesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Portées enregistrées"
+          },
+          "403": {
+            "description": "Cours non détenu, ou classe hors de vos classes"
+          },
+          "404": {
+            "description": "Cours introuvable"
+          }
+        },
+        "summary": "Définit les classes auxquelles le cours est porté",
+        "tags": [
+          "Édition de cours"
+        ]
+      }
+    },
+    "/api/prof/cours/{coursId}/publier": {
+      "post": {
+        "description": "Valide le brouillon et fige une version immuable visible des classes portées. Les réponses de correction sont retirées du contenu figé.",
+        "operationId": "publier",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "coursId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationResult"
+                }
+              }
+            },
+            "description": "Cours publié ; version figée"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationResult"
+                }
+              }
+            },
+            "description": "Le cours ne vous appartient pas"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationResult"
+                }
+              }
+            },
+            "description": "Cours introuvable"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationResult"
+                }
+              }
+            },
+            "description": "Le brouillon ne respecte pas le schéma / le référentiel"
+          }
+        },
+        "summary": "Publie le cours",
+        "tags": [
+          "Édition de cours"
+        ]
+      }
+    },
+    "/api/prof/devoirs": {
+      "post": {
+        "operationId": "creer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreerDevoirRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Devoir créé"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Réservé à l'enseignant de la classe"
+          }
+        },
+        "summary": "Crée un devoir pour une de ses classes",
+        "tags": [
+          "Devoirs"
+        ]
+      }
+    },
+    "/api/prof/devoirs/{id}/tableau-de-bord": {
+      "get": {
+        "operationId": "tableauDeBord",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            },
+            "description": "Tableau de bord"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            },
+            "description": "Réservé à l'enseignant de la classe"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            },
+            "description": "Devoir introuvable"
+          }
+        },
+        "summary": "Le tableau de bord d'un devoir (qui a rendu, réussite par compétence)",
+        "tags": [
+          "Devoirs"
+        ]
+      }
+    },
+    "/api/prof/referentiel/competences": {
+      "get": {
+        "description": "Chaque entrée porte son code, son libellé, son domaine et ses niveaux. Les codes dépréciés ne sont jamais renvoyés.",
+        "operationId": "competences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompetenceDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Compétences actives"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompetenceDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Authentification requise"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompetenceDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Réservé aux enseignants"
+          }
+        },
+        "summary": "Liste les compétences actives du référentiel",
+        "tags": [
+          "Référentiel de compétences"
+        ]
+      }
+    },
+    "/api/progression/maitrise": {
+      "get": {
+        "operationId": "maitrise",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MaitriseInfo"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "progression-controller"
+        ]
+      }
+    },
+    "/api/progression/moi": {
+      "get": {
+        "operationId": "moi",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressionInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "progression-controller"
+        ]
+      }
+    },
+    "/api/progression/parcours/{niveau}/{matiere}": {
+      "get": {
+        "operationId": "parcours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "niveau",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "matiere",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ParcoursChapitre"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "progression-controller"
+        ]
+      }
+    },
+    "/api/progression/serie": {
+      "get": {
+        "operationId": "serie",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SerieInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "progression-controller"
+        ]
       }
     }
-  }
+  },
+  "servers": [
+    {
+      "description": "Generated server url",
+      "url": "http://localhost:8080"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Lecture du référentiel pour l'édition de cours",
+      "name": "Référentiel de compétences"
+    },
+    {
+      "description": "Accès aux chapitres de cours",
+      "name": "Contenu"
+    },
+    {
+      "description": "Soumission et évaluation des exercices",
+      "name": "Exercices"
+    },
+    {
+      "description": "Composition et publication de cours par un enseignant",
+      "name": "Édition de cours"
+    },
+    {
+      "description": "Devoirs assignés par un enseignant à sa classe (F4)",
+      "name": "Devoirs"
+    },
+    {
+      "description": "Les devoirs de l'élève connecté (F4)",
+      "name": "Devoirs"
+    },
+    {
+      "description": "Endpoints techniques exposés par le produit",
+      "name": "Système"
+    },
+    {
+      "description": "Tuteur IA par chapitre",
+      "name": "IA"
+    }
+  ]
 }
