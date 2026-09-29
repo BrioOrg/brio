@@ -90,6 +90,12 @@ export function MesCours() {
             </p>
             <h1 className="font-display text-2xl font-black tracking-tight text-ink">Mes cours</h1>
           </div>
+          <Link
+            href="/prof/devoirs"
+            className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-page px-4 py-2.5 font-display text-sm font-extrabold text-ink hover:border-accent"
+          >
+            Devoirs
+          </Link>
           <button
             type="button"
             onClick={() => {
