@@ -66,7 +66,12 @@ export type { Competence } from './referentiel.js'
 export {
   listerAnnales,
   entrainementParCompetence,
+  demarrerExamen,
+  rendreExamen,
+  examenActif,
   AnnaleVueSchema,
   EntrainementExerciceSchema,
+  ExamenActifSchema,
+  ExamenDemarreSchema,
 } from './annales.js'
-export type { AnnaleVue, EntrainementExercice } from './annales.js'
+export type { AnnaleVue, EntrainementExercice, ExamenActif, ExamenDemarre } from './annales.js'

@@ -21,6 +21,9 @@
     "name" : "Édition de cours",
     "description" : "Composition et publication de cours par un enseignant"
   }, {
+    "name" : "Annales",
+    "description" : "Sujets d'examen : parcours, entraînement par compétence, mode examen (F7)"
+  }, {
     "name" : "Devoirs",
     "description" : "Devoirs assignés par un enseignant à sa classe (F4)"
   }, {
@@ -32,9 +35,6 @@
   }, {
     "name" : "IA",
     "description" : "Tuteur IA par chapitre"
-  }, {
-    "name" : "Annales",
-    "description" : "Sujets d'examen : parcours et entraînement par compétence (F7)"
   } ],
   "paths" : {
     "/api/prof/cours/{coursId}" : {
@@ -957,6 +957,81 @@
         }
       }
     },
+    "/api/annales/{id}/examen" : {
+      "post" : {
+        "tags" : [ "Annales" ],
+        "summary" : "Démarre un examen sur une annale (mode examen, ADR 0027)",
+        "description" : "Ouvre une session chronométrée ; le tuteur est coupé jusqu'à la fin.",
+        "operationId" : "demarrerExamen",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Session démarrée (ou déjà en cours)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExamenDemarre"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExamenDemarre"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Annale introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExamenDemarre"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/annales/examen/{sessionId}/rendre" : {
+      "post" : {
+        "tags" : [ "Annales" ],
+        "summary" : "Termine une session d'examen (rendu)",
+        "operationId" : "rendreExamen",
+        "parameters" : [ {
+          "name" : "sessionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Session terminée"
+          },
+          "401" : {
+            "description" : "Authentification requise"
+          },
+          "404" : {
+            "description" : "Session introuvable"
+          }
+        }
+      }
+    },
     "/api/classes/{id}/inscriptions/{compteId}" : {
       "patch" : {
         "tags" : [ "classe-controller" ],
@@ -1667,6 +1742,35 @@
         }
       }
     },
+    "/api/annales/examen-actif" : {
+      "get" : {
+        "tags" : [ "Annales" ],
+        "summary" : "L'examen en cours de l'élève (pour le chrono + verrou tuteur), le cas échéant",
+        "operationId" : "examenActif",
+        "responses" : {
+          "200" : {
+            "description" : "Examen actif (ou aucun)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExamenActif"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExamenActif"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/annales/entrainement" : {
       "get" : {
         "tags" : [ "Annales" ],
@@ -2211,6 +2315,19 @@
           }
         }
       },
+      "ExamenDemarre" : {
+        "type" : "object",
+        "properties" : {
+          "sessionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "endsAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
       "RenommerInscriptionRequest" : {
         "type" : "object",
         "properties" : {
@@ -2696,6 +2813,27 @@
           "dureeMinutes" : {
             "type" : "integer",
             "format" : "int32"
+          }
+        }
+      },
+      "ExamenActif" : {
+        "type" : "object",
+        "properties" : {
+          "enExamen" : {
+            "type" : "boolean"
+          },
+          "sessionId" : {
+            "type" : "string"
+          },
+          "annaleId" : {
+            "type" : "string"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "endsAt" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },

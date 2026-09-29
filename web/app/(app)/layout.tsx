@@ -1,4 +1,5 @@
 import { BottomNav } from '@/components/bottom-nav'
+import { ExamenBanner } from '@/components/examen-banner'
 import { ProgressionProvider } from '@/components/progression-context'
 
 /**
@@ -12,6 +13,7 @@ import { ProgressionProvider } from '@/components/progression-context'
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ProgressionProvider>
+      <ExamenBanner />
       <div className="pb-16 sm:pb-0">{children}</div>
       <BottomNav />
     </ProgressionProvider>
