@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   CoursApiError,
@@ -30,6 +30,7 @@ import {
   type BlocType,
   type Brouillon,
   type ExerciceType,
+  type ExercicePreset,
   type Section,
   type SectionKind,
 } from '@/lib/cours-editeur'
@@ -254,13 +255,23 @@ export function EditeurCours({ coursId }: { coursId: string }) {
     setBrouillon({ ...brouillon!, sections })
   }
 
-  // Insère un bloc juste après celui en cours d'écriture (sinon à la fin de la partie).
-  function insererBloc(type: BlocType, exerciseType?: ExerciceType) {
-    const bloc = nouveauBloc(type, exerciseType)
+  // Insère un bloc à la position `index` (le « + » entre les blocs le fournit). Sans index, on
+  // retombe sur l'ancien comportement : juste après le bloc en cours d'écriture, sinon à la fin.
+  function insererBloc(
+    type: BlocType,
+    exerciseType?: ExerciceType,
+    index?: number,
+    preset?: ExercicePreset
+  ) {
+    const bloc = nouveauBloc(type, exerciseType, preset)
     const blocks = [...sectionActive.blocks]
-    const idx = blocks.findIndex((b) => b.id === blocActifId)
-    if (idx >= 0) blocks.splice(idx + 1, 0, bloc)
-    else blocks.push(bloc)
+    if (typeof index === 'number') {
+      blocks.splice(index, 0, bloc)
+    } else {
+      const idx = blocks.findIndex((b) => b.id === blocActifId)
+      if (idx >= 0) blocks.splice(idx + 1, 0, bloc)
+      else blocks.push(bloc)
+    }
     majSection(sectionActive.id, { blocks })
     setBlocActifId(bloc.id)
   }
@@ -334,6 +345,21 @@ export function EditeurCours({ coursId }: { coursId: string }) {
             ))}
           </div>
 
+          {/* Point d'accroche pour le futur assistant IA de rédaction (CDC §8.9) : posé mais
+              inactif tant que ce chantier n'est pas lancé — aucune fausse IA. */}
+          <button
+            type="button"
+            disabled
+            title="L’aide de l’IA à la rédaction arrivera dans une prochaine version."
+            className="hidden cursor-not-allowed items-center gap-1.5 rounded-lg border border-dashed border-line px-3 py-2 font-display text-sm font-bold text-ink-muted/70 sm:inline-flex"
+          >
+            <span aria-hidden="true">✨</span>
+            Aide-moi à rédiger
+            <span className="rounded-pill bg-surface-page px-1.5 py-0.5 font-display text-[9px] font-extrabold uppercase tracking-wide text-ink-muted">
+              bientôt
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={() => setPublierOuvert(true)}
@@ -343,28 +369,6 @@ export function EditeurCours({ coursId }: { coursId: string }) {
           </button>
         </header>
 
-        {/* -------- Barre d'outils (insertion) -------- */}
-        {mode === 'edition' && (
-          <div className="flex items-center gap-1.5 overflow-x-auto border-b border-line bg-surface-panel/95 px-4 py-2 backdrop-blur">
-            <span className="mr-1 shrink-0 font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
-              Insérer :
-            </span>
-            {BLOCS.map((b) => (
-              <button
-                key={b.exerciseType ?? b.type}
-                type="button"
-                title={b.description}
-                onClick={() => insererBloc(b.type, b.exerciseType)}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface-page px-2.5 py-1.5 font-display text-[13px] font-bold text-ink transition-colors hover:border-accent hover:bg-accent-soft"
-              >
-                <span aria-hidden="true" className="text-accent">
-                  {b.icone}
-                </span>
-                {b.label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* -------- Corps : plan + page -------- */}
@@ -454,30 +458,35 @@ export function EditeurCours({ coursId }: { coursId: string }) {
                 <div className="mt-1 h-px bg-line" />
 
                 {sectionActive.blocks.length === 0 ? (
-                  <p className="mt-6 font-prose text-ink-muted">
-                    Commence à écrire, ou utilise la barre « Insérer » en haut pour ajouter une
-                    formule, un exemple, un exercice…
-                  </p>
+                  <div className="mt-6">
+                    <p className="mb-3 font-prose text-ink-muted">
+                      Cette partie est encore vide. Ajoute ton premier bloc :
+                    </p>
+                    <AjoutBloc prominent onInserer={(t, e, p) => insererBloc(t, e, 0, p)} />
+                  </div>
                 ) : (
                   <div className="mt-4 flex flex-col">
+                    <AjoutBloc onInserer={(t, e, p) => insererBloc(t, e, 0, p)} />
                     {sectionActive.blocks.map((bloc, i) => (
-                      <BlocLigne
-                        key={bloc.id}
-                        actif={bloc.id === blocActifId}
-                        premier={i === 0}
-                        dernier={i === sectionActive.blocks.length - 1}
-                        onMonter={() => deplacerBloc(i, -1)}
-                        onDescendre={() => deplacerBloc(i, 1)}
-                        onDupliquer={() => dupliquerBloc(bloc, i)}
-                        onSupprimer={() => supprimerBloc(bloc.id)}
-                      >
-                        <BlocEditeur
-                          bloc={bloc}
-                          onModifier={(patch) => majBloc(sectionActive.id, bloc.id, patch)}
-                          onFocusBloc={() => setBlocActifId(bloc.id)}
-                          competences={competencesDuNiveau}
-                        />
-                      </BlocLigne>
+                      <Fragment key={bloc.id}>
+                        <BlocLigne
+                          actif={bloc.id === blocActifId}
+                          premier={i === 0}
+                          dernier={i === sectionActive.blocks.length - 1}
+                          onMonter={() => deplacerBloc(i, -1)}
+                          onDescendre={() => deplacerBloc(i, 1)}
+                          onDupliquer={() => dupliquerBloc(bloc, i)}
+                          onSupprimer={() => supprimerBloc(bloc.id)}
+                        >
+                          <BlocEditeur
+                            bloc={bloc}
+                            onModifier={(patch) => majBloc(sectionActive.id, bloc.id, patch)}
+                            onFocusBloc={() => setBlocActifId(bloc.id)}
+                            competences={competencesDuNiveau}
+                          />
+                        </BlocLigne>
+                        <AjoutBloc onInserer={(t, e, p) => insererBloc(t, e, i + 1, p)} />
+                      </Fragment>
                     ))}
                   </div>
                 )}
@@ -535,6 +544,145 @@ function EtatEnregistre({ etat }: { etat: EtatEnregistrement }) {
       <span className={`h-2 w-2 rounded-full ${couleur}`} aria-hidden="true" />
       {texte}
     </span>
+  )
+}
+
+// Un « + » entre deux blocs : discret (une fine ligne au survol), il ouvre au clic le menu des
+// blocs — contenu d'un côté, exercices de l'autre — et insère le bloc choisi juste à cet endroit.
+// Remplace l'ancienne barre « Insérer » du haut : on ajoute là où on est, jamais « quelque part ».
+function AjoutBloc({
+  onInserer,
+  prominent,
+}: {
+  onInserer: (type: BlocType, exerciseType?: ExerciceType, preset?: ExercicePreset) => void
+  prominent?: boolean
+}) {
+  const [ouvert, setOuvert] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ouvert) return
+    function surClic(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOuvert(false)
+    }
+    function surTouche(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOuvert(false)
+    }
+    document.addEventListener('mousedown', surClic)
+    document.addEventListener('keydown', surTouche)
+    return () => {
+      document.removeEventListener('mousedown', surClic)
+      document.removeEventListener('keydown', surTouche)
+    }
+  }, [ouvert])
+
+  const contenu = BLOCS.filter((b) => b.type !== 'exercise')
+  const exercices = BLOCS.filter((b) => b.type === 'exercise')
+
+  function choisir(type: BlocType, exerciseType?: ExerciceType, preset?: ExercicePreset) {
+    onInserer(type, exerciseType, preset)
+    setOuvert(false)
+  }
+
+  const itemClass =
+    'flex items-center gap-2 rounded-md px-2 py-1.5 text-left font-prose text-[13px] text-ink hover:bg-accent-soft'
+  const iconClass =
+    'grid h-6 w-6 shrink-0 place-items-center rounded border border-line bg-surface-page font-display text-xs text-accent'
+
+  return (
+    <div ref={ref} className="relative">
+      <div
+        className={`group flex items-center gap-2 ${
+          prominent ? '' : 'py-0.5 opacity-45 transition-opacity hover:opacity-100'
+        } ${ouvert ? 'opacity-100' : ''}`}
+      >
+        {!prominent && (
+          <span className="h-px flex-1 bg-line transition-colors group-hover:bg-accent/40" />
+        )}
+        <button
+          type="button"
+          onClick={() => setOuvert((o) => !o)}
+          aria-expanded={ouvert}
+          aria-haspopup="menu"
+          aria-label="Ajouter un bloc ici"
+          className={
+            prominent
+              ? 'inline-flex items-center gap-2 rounded-lg border border-dashed border-line px-4 py-2.5 font-display text-sm font-bold text-accent-ink hover:border-accent hover:bg-accent-soft'
+              : 'grid h-6 w-6 place-items-center rounded-full border border-line bg-surface-panel font-display text-base font-bold leading-none text-ink-muted group-hover:border-accent group-hover:text-accent'
+          }
+        >
+          <span aria-hidden="true">＋</span>
+          {prominent && 'Ajouter un bloc'}
+        </button>
+        {!prominent && (
+          <span className="h-px flex-1 bg-line transition-colors group-hover:bg-accent/40" />
+        )}
+      </div>
+
+      {ouvert && (
+        <div
+          role="menu"
+          className="absolute left-1/2 top-full z-30 mt-1 w-[min(340px,90vw)] -translate-x-1/2 rounded-xl border border-line bg-surface-panel p-2 shadow-lg"
+        >
+          <p className="px-2 pb-1 pt-1 font-display text-[10px] font-extrabold uppercase tracking-widest text-ink-muted">
+            Contenu
+          </p>
+          <div className="grid grid-cols-2 gap-0.5">
+            {contenu.map((b) => (
+              <button
+                key={b.type}
+                type="button"
+                role="menuitem"
+                title={b.description}
+                onClick={() => choisir(b.type, b.exerciseType)}
+                className={itemClass}
+              >
+                <span aria-hidden="true" className={iconClass}>
+                  {b.icone}
+                </span>
+                {b.label}
+              </button>
+            ))}
+          </div>
+          <p className="px-2 pb-1 pt-2 font-display text-[10px] font-extrabold uppercase tracking-widest text-ink-muted">
+            Exercices
+          </p>
+          <div className="grid grid-cols-2 gap-0.5">
+            {exercices.map((b) => (
+              <button
+                key={b.label}
+                type="button"
+                role="menuitem"
+                title={b.description}
+                onClick={() => choisir(b.type, b.exerciseType, b.preset)}
+                className={itemClass}
+              >
+                <span aria-hidden="true" className={iconClass}>
+                  {b.icone}
+                </span>
+                {b.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Accroche du futur assistant IA (CDC §8.9) : visible mais inactif. */}
+          <div
+            role="menuitem"
+            aria-disabled="true"
+            title="L’aide de l’IA à la rédaction arrivera dans une prochaine version."
+            className="mt-1 flex items-center gap-2 border-t border-line px-2 pb-1 pt-2 font-prose text-[13px] text-ink-muted/70"
+          >
+            <span aria-hidden="true" className={iconClass}>
+              ✨
+            </span>
+            Rédiger avec l’IA
+            <span className="ml-auto rounded-pill bg-surface-page px-1.5 py-0.5 font-display text-[9px] font-extrabold uppercase tracking-wide text-ink-muted">
+              bientôt
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

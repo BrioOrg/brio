@@ -3,22 +3,27 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 
 import { getCatalogue, type Catalogue } from '@/lib/api'
+import { MODELES, MODELE_DEFAUT, type ModeleId } from '@/lib/cours-modeles'
 
 // Petite fenêtre de création d'un cours : titre + niveau + matière. Le niveau et la matière sont
 // exigés par le serveur (ils déterminent la colonne du cours) mais ne se règlent pas dans
 // l'éditeur ; on les collecte donc ici, une fois, avant d'ouvrir la page. Les listes viennent du
 // catalogue réel (ADR 0011) — jamais de valeurs inventées.
+// À la création (montrerModeles), on choisit aussi un modèle de départ : le cours s'ouvre déjà
+// structuré, on ne tombe jamais sur une page vide.
 
 export type NouveauCoursValeurs = {
   titre: string
   niveauCode: string
   matiereCode: string
+  modele?: ModeleId
 }
 
 export function NouveauCoursDialog({
   titreInitial = '',
   intitule = 'Nouveau cours',
   libelleAction = 'Créer le cours',
+  montrerModeles = false,
   enCours = false,
   erreur = null,
   onValiderAction,
@@ -27,6 +32,7 @@ export function NouveauCoursDialog({
   titreInitial?: string
   intitule?: string
   libelleAction?: string
+  montrerModeles?: boolean
   enCours?: boolean
   erreur?: string | null
   onValiderAction: (valeurs: NouveauCoursValeurs) => void
@@ -41,6 +47,7 @@ export function NouveauCoursDialog({
   const [titre, setTitre] = useState(titreInitial)
   const [niveauCode, setNiveauCode] = useState('')
   const [matiereCode, setMatiereCode] = useState('')
+  const [modele, setModele] = useState<ModeleId>(MODELE_DEFAUT)
 
   useEffect(() => {
     let vivant = true
@@ -70,7 +77,12 @@ export function NouveauCoursDialog({
 
   function valider() {
     if (!pretAValider) return
-    onValiderAction({ titre: titre.trim(), niveauCode, matiereCode })
+    onValiderAction({
+      titre: titre.trim(),
+      niveauCode,
+      matiereCode,
+      ...(montrerModeles ? { modele } : {}),
+    })
   }
 
   return (
@@ -83,7 +95,7 @@ export function NouveauCoursDialog({
         if (e.key === 'Escape') onFermerAction()
       }}
     >
-      <div className="w-full max-w-md rounded-xl border border-line bg-surface-panel p-6 shadow-lg">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-line bg-surface-panel p-6 shadow-lg">
         <h2 className="font-display text-lg font-extrabold text-ink">{intitule}</h2>
 
         <div className="mt-4 flex flex-col gap-4">
@@ -145,6 +157,47 @@ export function NouveauCoursDialog({
               </select>
             </div>
           </div>
+
+          {montrerModeles && (
+            <fieldset className="flex flex-col gap-1.5">
+              <legend className="font-display text-sm font-bold text-ink">
+                Partir d’un modèle
+              </legend>
+              <p className="font-prose text-xs text-ink-muted">
+                Le cours s’ouvrira déjà structuré — tu n’auras plus qu’à remplir.
+              </p>
+              <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {MODELES.map((m) => {
+                  const actif = modele === m.id
+                  return (
+                    <label
+                      key={m.id}
+                      className={`flex cursor-pointer flex-col gap-1 rounded-lg border p-3 transition-colors ${
+                        actif
+                          ? 'border-accent bg-accent-soft'
+                          : 'border-line bg-surface-page hover:border-accent-edge'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="modele"
+                          value={m.id}
+                          checked={actif}
+                          onChange={() => setModele(m.id)}
+                          className="h-4 w-4"
+                        />
+                        <span className="font-display text-sm font-extrabold text-ink">
+                          {m.libelle}
+                        </span>
+                      </span>
+                      <span className="pl-6 font-prose text-xs text-ink-muted">{m.description}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </fieldset>
+          )}
 
           {erreur && (
             <p role="alert" className="font-prose text-sm text-danger">

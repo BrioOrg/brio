@@ -57,12 +57,18 @@ export type Brouillon = {
 // de correction sont retirés à la publication par l'ExerciceExtractor (ADR 0019 §4).
 export type ExerciceType = 'multiple-choice' | 'short-answer' | 'numeric' | 'fill-blank' | 'paper'
 
+// Un « préréglage » d'exercice : même `exerciseType` côté schéma, mais pré-rempli pour un usage
+// courant. `true-false` = un QCM à deux propositions « Vrai » / « Faux » — aucun changement de
+// schéma ni de correction côté serveur, c'est un QCM comme un autre.
+export type ExercicePreset = 'true-false'
+
 // Catalogue des blocs proposés dans la barre « Insérer », dans l'ordre du menu. Un bloc
 // « exercise » porte en plus un `exerciseType` : chaque type a sa propre entrée (pas de
 // sélecteur caché dans le bloc), pour qu'insérer un QCM ou une réponse courte soit un seul geste.
 export const BLOCS: {
   type: BlocType
   exerciseType?: ExerciceType
+  preset?: ExercicePreset
   label: string
   description: string
   icone: string
@@ -97,6 +103,14 @@ export const BLOCS: {
     label: 'QCM',
     description: 'Une question à choix, corrigée automatiquement',
     icone: '◉',
+  },
+  {
+    type: 'exercise',
+    exerciseType: 'multiple-choice',
+    preset: 'true-false',
+    label: 'Vrai / Faux',
+    description: 'Un QCM à deux choix : Vrai / Faux',
+    icone: '✓✗',
   },
   {
     type: 'exercise',
@@ -171,7 +185,11 @@ function hashCode(s: string): number {
 }
 
 /** Un bloc neuf du type demandé, avec des valeurs par défaut vides mais valides. */
-export function nouveauBloc(type: BlocType, exerciseType?: ExerciceType): Bloc {
+export function nouveauBloc(
+  type: BlocType,
+  exerciseType?: ExerciceType,
+  preset?: ExercicePreset
+): Bloc {
   switch (type) {
     case 'heading':
       return { id: genId(), type, text: '', level: 1 }
@@ -203,25 +221,31 @@ export function nouveauBloc(type: BlocType, exerciseType?: ExerciceType): Bloc {
       // publication) et une `spec` vide mais valide, que le constructeur remplit primitive à primitive.
       return { id: genId(), type, alt: '', spec: { points: [], segments: [] } }
     case 'exercise':
-      return nouvelExercice(exerciseType ?? 'paper')
+      return nouvelExercice(exerciseType ?? 'paper', preset)
   }
 }
 
 // Chaque type d'exercice démarre avec ses seuls champs du schéma, vides mais de la bonne forme.
 // Les champs de correction (choices.correct, acceptedAnswers, answer/tolerance) sont saisis ici
 // puis retirés à la publication : ils n'atteignent jamais un client élève (ADR 0019 §4).
-function nouvelExercice(exerciseType: ExerciceType): Bloc {
+function nouvelExercice(exerciseType: ExerciceType, preset?: ExercicePreset): Bloc {
   const base = { id: genId(), type: 'exercise' as const, exerciseType, prompt: '' }
   switch (exerciseType) {
-    case 'multiple-choice':
-      return {
-        ...base,
-        multiple: false,
-        choices: [
-          { id: genId(), text: '', correct: false },
-          { id: genId(), text: '', correct: false },
-        ] as Choix[],
-      }
+    case 'multiple-choice': {
+      // Préréglage « Vrai / Faux » : deux propositions déjà nommées, aucune cochée bonne (le prof
+      // choisit). Sinon, deux propositions vides à remplir. Dans les deux cas, un vrai QCM.
+      const choices: Choix[] =
+        preset === 'true-false'
+          ? [
+              { id: genId(), text: 'Vrai', correct: false },
+              { id: genId(), text: 'Faux', correct: false },
+            ]
+          : [
+              { id: genId(), text: '', correct: false },
+              { id: genId(), text: '', correct: false },
+            ]
+      return { ...base, multiple: false, choices }
+    }
     case 'short-answer':
       return { ...base, acceptedAnswers: [''], caseSensitive: false }
     case 'numeric':
