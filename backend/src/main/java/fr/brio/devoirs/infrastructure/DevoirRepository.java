@@ -1,6 +1,7 @@
 package fr.brio.devoirs.infrastructure;
 
 import fr.brio.devoirs.domain.Devoir;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -21,4 +22,12 @@ public interface DevoirRepository extends JpaRepository<Devoir, UUID> {
                     + "where e = :exerciceId and d.classeId in :classeIds and d.statut = 'publie'")
     List<Devoir> findPubliesAvecExercice(
             @Param("exerciceId") UUID exerciceId, @Param("classeIds") Collection<UUID> classeIds);
+
+    /** Les contrôles publiés d'une classe de l'élève actuellement ouverts (mode contrôle, ADR 0025). */
+    @Query(
+            "select d from Devoir d where d.type = 'controle' and d.statut = 'publie' "
+                    + "and d.classeId in :classeIds and d.ouvreAt <= :maintenant "
+                    + "and d.echeanceAt >= :maintenant order by d.echeanceAt asc")
+    List<Devoir> findControlesOuverts(
+            @Param("classeIds") Collection<UUID> classeIds, @Param("maintenant") Instant maintenant);
 }

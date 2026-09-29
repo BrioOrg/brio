@@ -1,7 +1,9 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { controleActif } from '@brio/api-client'
 import { askTuteurForTarget, type TutorTarget, type TuteurReponse } from '@/lib/api'
+import { apiBaseUrl } from '@/lib/api-base-url'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
@@ -22,7 +24,22 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [requestCount, setRequestCount] = useState(0)
+  const [enControle, setEnControle] = useState(false)
   const answerRegionRef = useRef<HTMLDivElement>(null)
+
+  // Pendant un contrôle ouvert, le tuteur est coupé (ADR 0025). Le serveur refuse déjà ; ici on
+  // verrouille l'UI de façon proactive. Une vérification qui échoue ne verrouille pas.
+  useEffect(() => {
+    let vivant = true
+    controleActif(apiBaseUrl())
+      .then((c) => {
+        if (vivant) setEnControle(c.enControle)
+      })
+      .catch(() => {})
+    return () => {
+      vivant = false
+    }
+  }, [])
 
   const capped = requestCount >= tutorRequestCap
   const sendDisabled = question.trim() === '' || loading || capped
@@ -103,7 +120,17 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
         </div>
       )}
 
-      {capped && (
+      {enControle && (
+        <p
+          role="status"
+          className="mb-3 rounded-md border border-line bg-surface-raised p-3 font-prose text-sm text-ink"
+        >
+          🔒 <span className="font-display font-extrabold">Contrôle en cours.</span> Le tuteur est
+          indisponible pendant le contrôle.
+        </p>
+      )}
+
+      {!enControle && capped && (
         <p
           role="status"
           className="mb-3 rounded-md border border-line bg-surface-raised p-3 font-prose text-sm text-ink-muted"
@@ -112,13 +139,13 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
         </p>
       )}
 
-      {error && (
+      {!enControle && error && (
         <p role="alert" className="mb-3 font-prose text-sm text-danger">
           {error}
         </p>
       )}
 
-      {!capped && (
+      {!enControle && !capped && (
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           <label htmlFor="tutor-question" className="sr-only">
             Ta question au tuteur

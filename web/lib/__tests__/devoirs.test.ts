@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   CoursApiError,
+  controleActif,
   creerDevoir,
   getTableauDeBord,
   listerDevoirsClasse,
@@ -153,5 +154,31 @@ describe('getTableauDeBord', () => {
     expect(tdb.nbRendu).toBe(1)
     expect(tdb.eleves[0].nomAffiche).toBe('Léa')
     expect(tdb.parCompetence[0].tauxReussite).toBe(0.5)
+  })
+})
+
+describe('controleActif', () => {
+  it('signale un contrôle en cours', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            enControle: true,
+            titre: 'Contrôle Pythagore',
+            echeanceAt: '2026-10-03T18:00:00Z',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      )
+    )
+    const c = await controleActif(BASE)
+    expect(c.enControle).toBe(true)
+    expect(c.titre).toBe('Contrôle Pythagore')
+  })
+
+  it('ne verrouille pas si déconnecté (401)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })))
+    expect((await controleActif(BASE)).enControle).toBe(false)
   })
 })

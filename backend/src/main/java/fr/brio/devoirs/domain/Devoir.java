@@ -82,6 +82,7 @@ public class Devoir {
             UUID auteurId,
             String titre,
             String consigne,
+            String type,
             String sourceType,
             String sourceRef,
             Integer sourceVersion,
@@ -92,7 +93,7 @@ public class Devoir {
         this.auteurId = auteurId;
         this.titre = titre;
         this.consigne = consigne;
-        this.type = "devoir_maison";
+        this.type = normaliserType(type);
         this.sourceType = sourceType;
         this.sourceRef = sourceRef;
         this.sourceVersion = sourceVersion;
@@ -102,6 +103,14 @@ public class Devoir {
         this.correctionVisibleAt = echeanceAt; // v1 : la correction se dévoile à l'échéance
         this.statut = "publie";
         this.createdAt = Instant.now();
+    }
+
+    public static final String DEVOIR_MAISON = "devoir_maison";
+    public static final String CONTROLE = "controle";
+
+    /** Type par défaut {@code devoir_maison} ; seul {@code controle} est l'autre valeur reconnue. */
+    private static String normaliserType(String type) {
+        return CONTROLE.equals(type) ? CONTROLE : DEVOIR_MAISON;
     }
 
     public int nombreExercices() {

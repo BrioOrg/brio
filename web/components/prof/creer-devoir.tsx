@@ -49,6 +49,7 @@ export function CreerDevoir() {
   const [coursId, setCoursId] = useState('')
   const [titre, setTitre] = useState('')
   const [consigne, setConsigne] = useState('')
+  const [type, setType] = useState<'devoir_maison' | 'controle'>('devoir_maison')
   const [ouvreAt, setOuvreAt] = useState('')
   const [echeanceAt, setEcheanceAt] = useState('')
   const [exercices, setExercices] = useState<ExerciceChoisi[]>([])
@@ -108,6 +109,7 @@ export function CreerDevoir() {
         classeId,
         titre: titre.trim(),
         consigne: consigne.trim() || undefined,
+        type,
         sourceType: 'cours',
         sourceRef: coursId,
         exerciceIds: exercices.filter((e) => choisis.has(e.id)).map((e) => e.id),
@@ -156,6 +158,36 @@ export function CreerDevoir() {
               </option>
             ))}
           </select>
+        </Champ>
+
+        <Champ label="Type de devoir">
+          <div className="flex gap-2">
+            {(
+              [
+                { v: 'devoir_maison', l: 'Devoir maison' },
+                { v: 'controle', l: 'Contrôle' },
+              ] as const
+            ).map((o) => (
+              <button
+                key={o.v}
+                type="button"
+                onClick={() => setType(o.v)}
+                aria-pressed={type === o.v}
+                className={`rounded-lg border px-4 py-2 font-display text-sm font-bold ${
+                  type === o.v
+                    ? 'border-accent bg-accent-soft text-accent-ink'
+                    : 'border-line bg-surface-panel text-ink-muted hover:border-accent'
+                }`}
+              >
+                {o.l}
+              </button>
+            ))}
+          </div>
+          {type === 'controle' && (
+            <p className="mt-1 text-xs text-ink-muted">
+              Le tuteur sera coupé pendant le contrôle ; la correction s’affiche après l’échéance.
+            </p>
+          )}
         </Champ>
 
         <Champ label="À partir d'un cours publié">
