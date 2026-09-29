@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { CoursApiError } from './cours-edition.js'
+import { csrfHeaders, ensureCsrfToken } from './csrf.js'
 
 /**
  * Annales client (F7, ADR 0026) — wrappers Zod manuels.
@@ -62,4 +63,55 @@ export async function entrainementParCompetence(
   )
   if (!res.ok) throw annaleError(res.status, "Impossible de charger les exercices d'entraînement.")
   return z.array(EntrainementExerciceSchema).parse(await res.json())
+}
+
+// --- Mode examen (F7, ADR 0027) ---
+//   POST /api/annales/{id}/examen                 200 -> { sessionId, endsAt }
+//   POST /api/annales/examen/{sessionId}/rendre   204
+//   GET  /api/annales/examen-actif                200 -> ExamenActif
+
+/** L'examen d'annale en cours de l'élève (chrono + verrou tuteur). */
+export const ExamenActifSchema = z.object({
+  enExamen: z.boolean(),
+  sessionId: z.string().nullish(),
+  annaleId: z.string().nullish(),
+  titre: z.string().nullish(),
+  endsAt: z.string().nullish(),
+})
+export type ExamenActif = z.infer<typeof ExamenActifSchema>
+
+/** Résultat du démarrage d'un examen. */
+export const ExamenDemarreSchema = z.object({
+  sessionId: z.string(),
+  endsAt: z.string(),
+})
+export type ExamenDemarre = z.infer<typeof ExamenDemarreSchema>
+
+/** Démarre (ou reprend) un examen chronométré sur une annale. */
+export async function demarrerExamen(baseUrl: string, annaleId: string): Promise<ExamenDemarre> {
+  const token = await ensureCsrfToken(baseUrl)
+  const res = await fetch(`${baseUrl}/api/annales/${encodeURIComponent(annaleId)}/examen`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: csrfHeaders(token),
+  })
+  if (!res.ok) throw annaleError(res.status, "Impossible de démarrer l'examen.")
+  return ExamenDemarreSchema.parse(await res.json())
+}
+
+/** Termine (rend) une session d'examen. */
+export async function rendreExamen(baseUrl: string, sessionId: string): Promise<void> {
+  const token = await ensureCsrfToken(baseUrl)
+  const res = await fetch(
+    `${baseUrl}/api/annales/examen/${encodeURIComponent(sessionId)}/rendre`,
+    { method: 'POST', credentials: 'include', headers: csrfHeaders(token) }
+  )
+  if (!res.ok) throw annaleError(res.status, "Impossible de rendre l'examen.")
+}
+
+/** L'examen en cours de l'élève (pour le bandeau/chrono + verrou tuteur). Résilient : pas de verrou si l'appel échoue. */
+export async function examenActif(baseUrl: string): Promise<ExamenActif> {
+  const res = await fetch(`${baseUrl}/api/annales/examen-actif`, { credentials: 'include' })
+  if (!res.ok) return { enExamen: false, sessionId: null, annaleId: null, titre: null, endsAt: null }
+  return ExamenActifSchema.parse(await res.json())
 }

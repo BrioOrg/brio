@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { controleActif } from '@brio/api-client'
+import { controleActif, examenActif } from '@brio/api-client'
 import { askTuteurForTarget, type TutorTarget, type TuteurReponse } from '@/lib/api'
 import { apiBaseUrl } from '@/lib/api-base-url'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
@@ -25,10 +25,11 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
   const [error, setError] = useState<string | null>(null)
   const [requestCount, setRequestCount] = useState(0)
   const [enControle, setEnControle] = useState(false)
+  const [enExamen, setEnExamen] = useState(false)
   const answerRegionRef = useRef<HTMLDivElement>(null)
 
-  // Pendant un contrôle ouvert, le tuteur est coupé (ADR 0025). Le serveur refuse déjà ; ici on
-  // verrouille l'UI de façon proactive. Une vérification qui échoue ne verrouille pas.
+  // Pendant un contrôle (ADR 0025) ou un examen d'annale (ADR 0027), le tuteur est coupé. Le serveur
+  // refuse déjà ; ici on verrouille l'UI de façon proactive. Une vérification qui échoue ne verrouille pas.
   useEffect(() => {
     let vivant = true
     controleActif(apiBaseUrl())
@@ -36,11 +37,17 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
         if (vivant) setEnControle(c.enControle)
       })
       .catch(() => {})
+    examenActif(apiBaseUrl())
+      .then((e) => {
+        if (vivant) setEnExamen(e.enExamen)
+      })
+      .catch(() => {})
     return () => {
       vivant = false
     }
   }, [])
 
+  const verrouille = enControle || enExamen
   const capped = requestCount >= tutorRequestCap
   const sendDisabled = question.trim() === '' || loading || capped
 
@@ -120,17 +127,20 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
         </div>
       )}
 
-      {enControle && (
+      {verrouille && (
         <p
           role="status"
           className="mb-3 rounded-md border border-line bg-surface-raised p-3 font-prose text-sm text-ink"
         >
-          🔒 <span className="font-display font-extrabold">Contrôle en cours.</span> Le tuteur est
-          indisponible pendant le contrôle.
+          🔒{' '}
+          <span className="font-display font-extrabold">
+            {enControle ? 'Contrôle' : 'Examen'} en cours.
+          </span>{' '}
+          Le tuteur est indisponible pendant {enControle ? 'le contrôle' : "l'examen"}.
         </p>
       )}
 
-      {!enControle && capped && (
+      {!verrouille && capped && (
         <p
           role="status"
           className="mb-3 rounded-md border border-line bg-surface-raised p-3 font-prose text-sm text-ink-muted"
@@ -139,13 +149,13 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
         </p>
       )}
 
-      {!enControle && error && (
+      {!verrouille && error && (
         <p role="alert" className="mb-3 font-prose text-sm text-danger">
           {error}
         </p>
       )}
 
-      {!enControle && !capped && (
+      {!verrouille && !capped && (
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           <label htmlFor="tutor-question" className="sr-only">
             Ta question au tuteur

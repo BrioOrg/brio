@@ -6,6 +6,9 @@ vi.mock('@/lib/api', () => ({ askTuteurForTarget: vi.fn() }))
 vi.mock('@brio/api-client', () => ({
   createApiClient: vi.fn(),
   controleActif: vi.fn().mockResolvedValue({ enControle: false, titre: null, echeanceAt: null }),
+  examenActif: vi
+    .fn()
+    .mockResolvedValue({ enExamen: false, annaleId: null, titre: null, endsAt: null }),
 }))
 
 import { TuteurPanel } from '../tutor-panel'

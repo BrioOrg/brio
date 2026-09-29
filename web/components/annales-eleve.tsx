@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
+  demarrerExamen,
   entrainementParCompetence,
   listerAnnales,
   listerCompetences,
@@ -79,6 +81,17 @@ export function AnnalesEleve() {
 }
 
 function VueSujets({ annales }: { annales: AnnaleVue[] }) {
+  const router = useRouter()
+
+  async function demarrerExamenSurAnnale(a: AnnaleVue) {
+    try {
+      await demarrerExamen(apiBaseUrl(), a.id)
+    } catch {
+      // Le serveur reste l'autorité ; on ouvre quand même le sujet.
+    }
+    router.push(`/${a.niveau}/${a.matiere}/${a.id}`)
+  }
+
   // Regroupées par examen puis année décroissante.
   const groupes = useMemo(() => {
     const parExamen = new Map<string, AnnaleVue[]>()
@@ -104,17 +117,29 @@ function VueSujets({ annales }: { annales: AnnaleVue[] }) {
           </h2>
           <ul className="flex flex-col gap-3">
             {liste.map((a) => (
-              <li key={a.id}>
-                <Link
-                  href={`/${a.niveau}/${a.matiere}/${a.id}`}
-                  className="block rounded-2xl border border-line bg-surface-panel p-4 hover:border-accent"
-                >
+              <li key={a.id} className="rounded-2xl border border-line bg-surface-panel p-4">
+                <Link href={`/${a.niveau}/${a.matiere}/${a.id}`} className="block hover:opacity-80">
                   <div className="font-display text-base font-extrabold text-ink">{a.titre}</div>
                   <div className="mt-0.5 text-xs text-ink-muted">
                     {[a.session, a.annee, a.centre].filter(Boolean).join(' · ')}
                     {a.dureeMinutes ? ` · ${a.dureeMinutes} min` : ''}
                   </div>
                 </Link>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    href={`/${a.niveau}/${a.matiere}/${a.id}`}
+                    className="rounded-md border border-line px-3 py-1.5 font-display text-sm font-bold text-ink hover:border-accent"
+                  >
+                    S’entraîner
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => demarrerExamenSurAnnale(a)}
+                    className="rounded-md bg-accent px-3 py-1.5 font-display text-sm font-extrabold text-surface-panel"
+                  >
+                    Démarrer en mode examen
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
