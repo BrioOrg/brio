@@ -194,6 +194,61 @@
       }
     },
     "/api/prof/devoirs" : {
+      "get" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Liste les devoirs d'une de ses classes",
+        "operationId" : "listerClasse",
+        "parameters" : [ {
+          "name" : "classeId",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Devoirs de la classe",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirClasseVue"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirClasseVue"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé à l'enseignant de la classe",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirClasseVue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post" : {
         "tags" : [ "Devoirs" ],
         "summary" : "Crée un devoir pour une de ses classes",
@@ -2160,6 +2215,33 @@
             "items" : {
               "type" : "string"
             }
+          }
+        }
+      },
+      "DevoirClasseVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "ouvreAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "echeanceAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "nombreExercices" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

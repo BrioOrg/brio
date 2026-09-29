@@ -99,6 +99,25 @@ public class DevoirService {
                 .toList();
     }
 
+    /** Les devoirs d'une classe (vue enseignant). Refuse si le demandeur n'est pas l'enseignant. */
+    @Transactional(readOnly = true)
+    public List<DevoirClasseVue> listerPourClasse(UUID classeId, UUID demandeurId) {
+        if (!enseignantContexte.classesEnseignees(demandeurId).contains(classeId)) {
+            throw new PasEnseignantDeLaClasseException(classeId);
+        }
+        return devoirs.findByClasseIdOrderByEcheanceAtAsc(classeId).stream()
+                .map(
+                        d ->
+                                new DevoirClasseVue(
+                                        d.getId(),
+                                        d.getTitre(),
+                                        d.getOuvreAt(),
+                                        d.getEcheanceAt(),
+                                        d.getStatut(),
+                                        d.nombreExercices()))
+                .toList();
+    }
+
     /**
      * Le tableau de bord d'un devoir pour son enseignant : le roster complet de la classe (y compris
      * les élèves « pas commencé »), les compteurs, et la réussite par compétence. Refuse si le

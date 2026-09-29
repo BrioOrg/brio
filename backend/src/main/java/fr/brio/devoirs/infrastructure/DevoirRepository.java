@@ -12,6 +12,9 @@ public interface DevoirRepository extends JpaRepository<Devoir, UUID> {
 
     List<Devoir> findByClasseIdInAndStatut(Collection<UUID> classeIds, String statut);
 
+    /** Tous les devoirs d'une classe, du plus proche au plus lointain (vue enseignant). */
+    List<Devoir> findByClasseIdOrderByEcheanceAtAsc(UUID classeId);
+
     /** Les devoirs publiés d'une classe de l'élève qui contiennent l'exercice soumis. */
     @Query(
             "select d from Devoir d join d.exerciceIds e "
