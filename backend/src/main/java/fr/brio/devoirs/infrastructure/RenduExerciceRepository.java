@@ -1,6 +1,7 @@
 package fr.brio.devoirs.infrastructure;
 
 import fr.brio.devoirs.domain.RenduExercice;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,4 +12,6 @@ public interface RenduExerciceRepository extends JpaRepository<RenduExercice, UU
     Optional<RenduExercice> findByRenduIdAndExerciceId(UUID renduId, UUID exerciceId);
 
     List<RenduExercice> findByRenduId(UUID renduId);
+
+    List<RenduExercice> findByRenduIdIn(Collection<UUID> renduIds);
 }

@@ -12,4 +12,6 @@ public interface RenduRepository extends JpaRepository<Rendu, UUID> {
     Optional<Rendu> findByDevoirIdAndEleveId(UUID devoirId, UUID eleveId);
 
     List<Rendu> findByEleveIdAndDevoirIdIn(UUID eleveId, Collection<UUID> devoirIds);
+
+    List<Rendu> findByDevoirId(UUID devoirId);
 }

@@ -325,7 +325,7 @@ public class ClasseService {
                 c.getEnseignantPrincipalId());
     }
 
-    static List<InscriptionInfo> withHomonymeFlag(List<Inscription> inscriptions) {
+    public static List<InscriptionInfo> withHomonymeFlag(List<Inscription> inscriptions) {
         Map<String, Long> countByNom = inscriptions.stream()
                 .collect(Collectors.groupingBy(Inscription::getNomAffiche, Collectors.counting()));
         return inscriptions.stream()

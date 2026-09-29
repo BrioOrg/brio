@@ -59,7 +59,11 @@ class RenduProjection {
                 renduExercices
                         .findByRenduIdAndExerciceId(rendu.getId(), evenement.exerciceId())
                         .orElseGet(() -> new RenduExercice(rendu.getId(), evenement.exerciceId()));
-        ligne.maj(evenement.correct(), evenement.score(), evenement.submittedAt());
+        ligne.maj(
+                evenement.correct(),
+                evenement.score(),
+                evenement.submittedAt(),
+                evenement.competencies());
         renduExercices.save(ligne);
 
         List<RenduExercice> lignes = renduExercices.findByRenduId(rendu.getId());

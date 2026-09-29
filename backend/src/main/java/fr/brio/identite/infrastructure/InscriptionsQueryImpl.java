@@ -1,7 +1,10 @@
 package fr.brio.identite.infrastructure;
 
+import fr.brio.identite.ClasseService;
+import fr.brio.identite.api.InscriptionInfo;
 import fr.brio.identite.api.InscriptionsQuery;
 import fr.brio.identite.domain.Inscription;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,5 +27,15 @@ class InscriptionsQueryImpl implements InscriptionsQuery {
                 .filter(i -> "eleve".equals(i.getRoleDansClasse()))
                 .map(i -> i.getId().classeId())
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InscriptionInfo> elevesDeLaClasse(UUID classeId) {
+        List<Inscription> eleves =
+                inscriptions.findByIdClasseId(classeId).stream()
+                        .filter(i -> "eleve".equals(i.getRoleDansClasse()))
+                        .toList();
+        return ClasseService.withHomonymeFlag(eleves);
     }
 }

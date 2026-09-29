@@ -1,5 +1,6 @@
 package fr.brio.identite.api;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,4 +18,14 @@ public interface InscriptionsQuery {
      * (or is a teacher only). Never {@code null}.
      */
     Set<UUID> classesDeLEleve(UUID compteId);
+
+    /**
+     * The élève roster of a class: every account enrolled as a student
+     * ({@code role_dans_classe = 'eleve'}), with its per-class display name and a homonyme flag.
+     * Empty when the class has no students (or does not exist). Never {@code null}.
+     *
+     * <p>Authorisation is the caller's responsibility — this port does not check who asks (the
+     * {@code devoirs} module verifies the teacher owns the class before using it).
+     */
+    List<InscriptionInfo> elevesDeLaClasse(UUID classeId);
 }
