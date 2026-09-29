@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { listerMesDevoirs, type DevoirEleveVue } from '@brio/api-client'
 
+import { DeposerCopie } from '@/components/deposer-copie'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 // « Mes devoirs » côté élève (F4) — thème Arcade (tokens par défaut). On sépare « à faire » et
@@ -100,6 +101,7 @@ function CarteDevoir({ devoir, aFaire }: { devoir: DevoirEleveVue; aFaire?: bool
           {STATUT_LABEL[devoir.statutRendu] ?? devoir.statutRendu}
         </span>
       </div>
+      {aFaire && <DeposerCopie devoirId={devoir.id} />}
     </li>
   )
 }

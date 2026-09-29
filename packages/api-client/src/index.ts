@@ -51,6 +51,11 @@ export {
   LigneEleveSchema,
   ReussiteCompetenceSchema,
   ControleActifSchema,
+  deposerCopie,
+  listerPiecesRendu,
+  corrigerRendu,
+  urlPiece,
+  PieceInfoSchema,
 } from './devoirs.js'
 export type {
   DevoirEleveVue,
@@ -60,6 +65,7 @@ export type {
   ReussiteCompetence,
   CreerDevoirInput,
   ControleActif,
+  PieceInfo,
 } from './devoirs.js'
 export { listerCompetences } from './referentiel.js'
 export type { Competence } from './referentiel.js'

@@ -39,6 +39,17 @@ public class Rendu {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    // Correction d'une copie déposée par l'enseignant (F5, ADR 0028) — jamais de note IA.
+    @Column private java.math.BigDecimal note;
+
+    @Column private String appreciation;
+
+    @Column(name = "corrige_par")
+    private UUID corrigePar;
+
+    @Column(name = "corrige_at")
+    private Instant corrigeAt;
+
     protected Rendu() {}
 
     public Rendu(UUID devoirId, UUID eleveId) {
@@ -53,6 +64,14 @@ public class Rendu {
         this.statut = statut;
         this.score = score;
         this.renduAt = renduAt;
+    }
+
+    /** Correction manuelle par l'enseignant d'une copie déposée (F5, ADR 0028). */
+    public void corriger(java.math.BigDecimal note, String appreciation, UUID corrigePar) {
+        this.note = note;
+        this.appreciation = appreciation;
+        this.corrigePar = corrigePar;
+        this.corrigeAt = Instant.now();
     }
 
     public UUID getId() {
@@ -77,5 +96,21 @@ public class Rendu {
 
     public Instant getRenduAt() {
         return renduAt;
+    }
+
+    public java.math.BigDecimal getNote() {
+        return note;
+    }
+
+    public String getAppreciation() {
+        return appreciation;
+    }
+
+    public UUID getCorrigePar() {
+        return corrigePar;
+    }
+
+    public Instant getCorrigeAt() {
+        return corrigeAt;
     }
 }

@@ -174,3 +174,71 @@ export async function controleActif(baseUrl: string): Promise<ControleActif> {
   if (!res.ok) throw devoirError(res.status, 'Impossible de vérifier le contrôle en cours.')
   return ControleActifSchema.parse(await res.json())
 }
+
+// --- F5 : dépôt et correction de copie (ADR 0028) ---
+
+/** Métadonnées d'une copie déposée (le binaire se sert via `urlPiece`). */
+export const PieceInfoSchema = z.object({
+  id: z.string(),
+  filename: z.string().nullish(),
+  contentType: z.string(),
+  tailleOctets: z.number(),
+  uploadedAt: z.string(),
+})
+export type PieceInfo = z.infer<typeof PieceInfoSchema>
+
+/** URL pour afficher/télécharger une copie (accès restreint côté serveur : auteur ou enseignant). */
+export function urlPiece(baseUrl: string, pieceId: string): string {
+  return `${baseUrl}/api/devoirs/pieces/${encodeURIComponent(pieceId)}`
+}
+
+/** L'élève dépose une copie (JPEG/PNG/PDF) sur son rendu d'un devoir. */
+export async function deposerCopie(
+  baseUrl: string,
+  devoirId: string,
+  fichier: File
+): Promise<PieceInfo> {
+  const form = new FormData()
+  form.append('fichier', fichier)
+  const res = await fetch(`${baseUrl}/api/devoirs/${encodeURIComponent(devoirId)}/rendu/pieces`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: csrfHeaders(await ensureCsrfToken(baseUrl)),
+    body: form,
+  })
+  if (!res.ok) throw devoirError(res.status, 'Impossible de déposer la copie.')
+  return PieceInfoSchema.parse(await res.json())
+}
+
+/** Les copies déposées par un élève, pour l'enseignant du devoir. */
+export async function listerPiecesRendu(
+  baseUrl: string,
+  devoirId: string,
+  eleveId: string
+): Promise<PieceInfo[]> {
+  const res = await fetch(
+    `${baseUrl}/api/prof/devoirs/${encodeURIComponent(devoirId)}/rendus/${encodeURIComponent(eleveId)}/pieces`,
+    { credentials: 'include' }
+  )
+  if (!res.ok) throw devoirError(res.status, 'Impossible de charger les copies.')
+  return z.array(PieceInfoSchema).parse(await res.json())
+}
+
+/** L'enseignant corrige le rendu d'un élève (note et/ou appréciation). */
+export async function corrigerRendu(
+  baseUrl: string,
+  devoirId: string,
+  eleveId: string,
+  correction: { note?: number; appreciation?: string }
+): Promise<void> {
+  const res = await fetch(
+    `${baseUrl}/api/prof/devoirs/${encodeURIComponent(devoirId)}/rendus/${encodeURIComponent(eleveId)}/correction`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...csrfHeaders(await ensureCsrfToken(baseUrl)) },
+      body: JSON.stringify(correction),
+    }
+  )
+  if (!res.ok) throw devoirError(res.status, 'Impossible d’enregistrer la correction.')
+}
