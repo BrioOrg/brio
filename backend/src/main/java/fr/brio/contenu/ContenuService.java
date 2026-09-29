@@ -6,20 +6,24 @@ import fr.brio.contenu.api.CatalogueChapitreDto;
 import fr.brio.contenu.api.CatalogueMatiereDto;
 import fr.brio.contenu.api.CatalogueNiveauDto;
 import fr.brio.contenu.api.SectionTerminee;
+import fr.brio.contenu.domain.Annale;
 import fr.brio.contenu.domain.Chapitre;
 import fr.brio.contenu.domain.Exercice;
 import fr.brio.contenu.domain.Matiere;
 import fr.brio.contenu.domain.Niveau;
+import fr.brio.contenu.infrastructure.AnnaleRepository;
 import fr.brio.contenu.infrastructure.ChapitreRepository;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
 import fr.brio.contenu.infrastructure.MatiereRepository;
 import fr.brio.contenu.infrastructure.NiveauRepository;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,6 +49,7 @@ public class ContenuService {
     private final ExerciceRepository exerciceRepository;
     private final NiveauRepository niveauRepository;
     private final MatiereRepository matiereRepository;
+    private final AnnaleRepository annaleRepository;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher events;
 
@@ -53,12 +58,14 @@ public class ContenuService {
             ExerciceRepository exerciceRepository,
             NiveauRepository niveauRepository,
             MatiereRepository matiereRepository,
+            AnnaleRepository annaleRepository,
             ObjectMapper objectMapper,
             ApplicationEventPublisher events) {
         this.chapitreRepository = chapitreRepository;
         this.exerciceRepository = exerciceRepository;
         this.niveauRepository = niveauRepository;
         this.matiereRepository = matiereRepository;
+        this.annaleRepository = annaleRepository;
         this.objectMapper = objectMapper;
         this.events = events;
     }
@@ -70,9 +77,14 @@ public class ContenuService {
 
         List<Chapitre> published = chapitreRepository
                 .findByStatutOrderByNiveauCodeAscMatiereCodeAscOrdreAsc("published");
+        // Les annales sont des chapitres spécialisés (ADR 0026) : on les exclut du catalogue des cours.
+        Set<String> annaleIds = annaleRepository.findAllChapitreIds();
 
         Map<String, Map<String, List<CatalogueChapitreDto>>> grouped = new LinkedHashMap<>();
         for (Chapitre ch : published) {
+            if (annaleIds.contains(ch.getId())) {
+                continue;
+            }
             grouped
                     .computeIfAbsent(ch.getNiveauCode(), k -> new LinkedHashMap<>())
                     .computeIfAbsent(ch.getMatiereCode(), k -> new ArrayList<>())
@@ -150,5 +162,80 @@ public class ContenuService {
         }
         events.publishEvent(new SectionTerminee(eleveId, chapitreId, sectionId, Instant.now()));
         return true;
+    }
+
+    /**
+     * Les annales (F7, ADR 0026), de la plus récente à la plus ancienne, avec filtres optionnels.
+     * {@code id} = slug du chapitre → le sujet se lit via l'endpoint chapitre par triplet.
+     */
+    public List<AnnaleDto> listerAnnales(String niveau, String matiere, Integer annee) {
+        List<Annale> annales = annaleRepository.findAllByOrderByAnneeDescSessionAsc().stream()
+                .filter(a -> niveau == null || niveau.equals(a.getNiveauCode()))
+                .filter(a -> matiere == null || matiere.equals(a.getMatiereCode()))
+                .filter(a -> annee == null || annee == a.getAnnee())
+                .toList();
+
+        Map<String, String> titres = new HashMap<>();
+        chapitreRepository.findAllById(annales.stream().map(Annale::getChapitreId).toList())
+                .forEach(ch -> titres.put(ch.getId(), ch.getTitre()));
+
+        return annales.stream()
+                .map(a -> new AnnaleDto(
+                        a.getChapitreId(),
+                        titres.getOrDefault(a.getChapitreId(), a.getChapitreId()),
+                        a.getExamen(), a.getSession(), a.getAnnee(), a.getCentre(),
+                        a.getNiveauCode(), a.getMatiereCode(), a.getDureeMinutes()))
+                .toList();
+    }
+
+    /**
+     * Les exercices d'annales portant une compétence donnée, pour l'entraînement ciblé (F7). La
+     * correction n'est jamais renvoyée ; l'énoncé (prompt) est lu du contenu servi de l'annale.
+     */
+    public List<ExerciceEntrainementDto> entrainementParCompetence(String competence) {
+        List<Exercice> exercices = exerciceRepository.findAnnaleExercicesByCompetence(competence);
+        if (exercices.isEmpty()) {
+            return List.of();
+        }
+
+        // Regroupe par chapitre (annale) pour ne charger chaque contenu qu'une fois.
+        Set<String> chapitreIds = exercices.stream()
+                .map(Exercice::getChapitreId)
+                .collect(Collectors.toSet());
+        Map<String, String> titres = new HashMap<>();
+        Map<String, Map<String, String>> promptsParChapitre = new HashMap<>();
+        chapitreRepository.findAllById(chapitreIds).forEach(ch -> {
+            titres.put(ch.getId(), ch.getTitre());
+            promptsParChapitre.put(ch.getId(), promptsParExerciceId(ch.getContent()));
+        });
+
+        return exercices.stream()
+                .map(e -> new ExerciceEntrainementDto(
+                        e.getId(),
+                        promptsParChapitre.getOrDefault(e.getChapitreId(), Map.of())
+                                .getOrDefault(e.getId().toString(), ""),
+                        e.getType(),
+                        e.getChapitreId(),
+                        titres.getOrDefault(e.getChapitreId(), e.getChapitreId())))
+                .toList();
+    }
+
+    // Associe l'id d'exercice (dont le bloc servi est taggé "exerciceId") à son énoncé "prompt".
+    private Map<String, String> promptsParExerciceId(String contentJson) {
+        Map<String, String> prompts = new HashMap<>();
+        try {
+            JsonNode doc = objectMapper.readTree(contentJson);
+            for (JsonNode section : doc.path("sections")) {
+                for (JsonNode block : section.path("blocks")) {
+                    String exerciceId = block.path("exerciceId").asText(null);
+                    if (exerciceId != null) {
+                        prompts.put(exerciceId, block.path("prompt").asText(""));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Stored annale content is not valid JSON", e);
+        }
+        return prompts;
     }
 }

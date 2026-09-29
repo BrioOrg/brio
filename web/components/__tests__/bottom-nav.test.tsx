@@ -18,13 +18,15 @@ describe('BottomNav', () => {
     vi.resetModules()
   })
 
-  it('renders the four app-shell tabs', async () => {
+  it('renders the wired and disabled app-shell tabs', async () => {
     await setup()
     expect(screen.getByRole('navigation', { name: 'Navigation principale' })).toBeInTheDocument()
+    // Wired tabs are links.
     expect(screen.getByRole('link', { name: 'Parcours' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Devoirs' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Annales' })).toBeInTheDocument()
     // Disabled tabs are buttons, not links.
     expect(screen.getByRole('button', { name: /Social/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Exercices/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Profil/ })).toBeInTheDocument()
   })
 
@@ -35,16 +37,15 @@ describe('BottomNav', () => {
     expect(parcours).toHaveAttribute('aria-current', 'page')
   })
 
-  it('renders social, exercices and profil as disabled and non-interactive', async () => {
+  it('renders social and profil as disabled and non-interactive', async () => {
     await setup()
-    for (const label of [/Social/, /Exercices/, /Profil/]) {
+    for (const label of [/Social/, /Profil/]) {
       const tab = screen.getByRole('button', { name: label })
       expect(tab).toBeDisabled()
       expect(tab).toHaveAttribute('aria-disabled', 'true')
     }
     // None of the disabled sections are links.
     expect(screen.queryByRole('link', { name: /Social/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /Exercices/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Profil/ })).not.toBeInTheDocument()
   })
 })

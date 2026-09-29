@@ -19,10 +19,13 @@ class IngestCommand implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(IngestCommand.class);
 
     private final ChapitreIngestor chapitreIngestor;
+    private final AnnaleIngestor annaleIngestor;
     private final ApplicationContext context;
 
-    IngestCommand(ChapitreIngestor chapitreIngestor, ApplicationContext context) {
+    IngestCommand(ChapitreIngestor chapitreIngestor, AnnaleIngestor annaleIngestor,
+                  ApplicationContext context) {
         this.chapitreIngestor = chapitreIngestor;
+        this.annaleIngestor = annaleIngestor;
         this.context = context;
     }
 
@@ -37,6 +40,7 @@ class IngestCommand implements ApplicationRunner {
         log.info("Ingesting content from {}", contentDir.toAbsolutePath());
 
         IngestReport report = chapitreIngestor.ingestAll(contentDir);
+        annaleIngestor.ingestAll(contentDir);
 
         printReport(report);
 

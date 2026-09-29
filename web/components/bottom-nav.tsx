@@ -6,11 +6,11 @@ import { Icon } from '@/components/ui/icon'
 
 /**
  * App shell bottom navigation (mobile only — hidden ≥ sm, where SiteHeader
- * remains the primary nav). Tabs: parcours · devoirs · social · exercices · profil.
+ * remains the primary nav). Tabs: parcours · devoirs · annales · social · profil.
  *
- * "parcours" (catalogue/app home) and "devoirs" (the student's homework, F4) are
- * wired. The other three point at modules that do not exist yet (social,
- * exercices, profil), so they are rendered disabled rather than linking nowhere.
+ * "parcours" (catalogue/app home), "devoirs" (homework, F4) and "annales" (exam
+ * papers, F7) are wired. "social" and "profil" point at modules that do not exist
+ * yet, so they are rendered disabled rather than linking nowhere.
  */
 type Tab = {
   key: string
@@ -30,7 +30,7 @@ const TABS: Tab[] = [
     label: 'Parcours',
     icon: 'compass',
     href: '/',
-    isActive: (pathname) => !pathname.startsWith('/devoirs'),
+    isActive: (pathname) => !pathname.startsWith('/devoirs') && !pathname.startsWith('/annales'),
   },
   {
     key: 'devoirs',
@@ -39,8 +39,14 @@ const TABS: Tab[] = [
     href: '/devoirs',
     isActive: (pathname) => pathname.startsWith('/devoirs'),
   },
+  {
+    key: 'annales',
+    label: 'Annales',
+    icon: 'book-open',
+    href: '/annales',
+    isActive: (pathname) => pathname.startsWith('/annales'),
+  },
   { key: 'social', label: 'Social', icon: 'chat-circle', isActive: () => false },
-  { key: 'exercices', label: 'Exercices', icon: 'barbell', isActive: () => false },
   { key: 'profil', label: 'Profil', icon: 'user', isActive: () => false },
 ]
 

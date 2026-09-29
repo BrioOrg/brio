@@ -32,6 +32,9 @@
   }, {
     "name" : "IA",
     "description" : "Tuteur IA par chapitre"
+  }, {
+    "name" : "Annales",
+    "description" : "Sujets d'examen : parcours et entraînement par compétence (F7)"
   } ],
   "paths" : {
     "/api/prof/cours/{coursId}" : {
@@ -1618,6 +1621,83 @@
         }
       }
     },
+    "/api/annales" : {
+      "get" : {
+        "tags" : [ "Annales" ],
+        "summary" : "Liste les annales",
+        "description" : "Sujets d'examen, du plus récent au plus ancien. Filtres optionnels niveau/matière/année. Le sujet se lit via l'endpoint chapitre par triplet.",
+        "operationId" : "lister",
+        "parameters" : [ {
+          "name" : "niveau",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "matiere",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "annee",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Annales retournées",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AnnaleDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/annales/entrainement" : {
+      "get" : {
+        "tags" : [ "Annales" ],
+        "summary" : "Entraînement par compétence",
+        "description" : "Les exercices d'annales portant la compétence donnée. La correction n'est jamais incluse ; la soumission passe par le flux exercices habituel.",
+        "operationId" : "entrainement",
+        "parameters" : [ {
+          "name" : "competence",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Exercices retournés",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ExerciceEntrainementDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/comptes/{id}/consentement" : {
       "delete" : {
         "tags" : [ "consentement-controller" ],
@@ -2582,6 +2662,61 @@
             "items" : {
               "$ref" : "#/components/schemas/CatalogueMatiereDto"
             }
+          }
+        }
+      },
+      "AnnaleDto" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "examen" : {
+            "type" : "string"
+          },
+          "session" : {
+            "type" : "string"
+          },
+          "annee" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "centre" : {
+            "type" : "string"
+          },
+          "niveau" : {
+            "type" : "string"
+          },
+          "matiere" : {
+            "type" : "string"
+          },
+          "dureeMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "ExerciceEntrainementDto" : {
+        "type" : "object",
+        "properties" : {
+          "exerciceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "prompt" : {
+            "type" : "string"
+          },
+          "exerciseType" : {
+            "type" : "string"
+          },
+          "annaleId" : {
+            "type" : "string"
+          },
+          "annaleTitre" : {
+            "type" : "string"
           }
         }
       }

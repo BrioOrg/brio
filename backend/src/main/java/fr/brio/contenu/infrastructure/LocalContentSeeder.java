@@ -18,12 +18,15 @@ class LocalContentSeeder implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(LocalContentSeeder.class);
 
     private final ChapitreIngestor chapitreIngestor;
+    private final AnnaleIngestor annaleIngestor;
     private final Path contentDir;
 
     LocalContentSeeder(
             ChapitreIngestor chapitreIngestor,
+            AnnaleIngestor annaleIngestor,
             @Value("${brio.content.dir:../content}") String contentDirProperty) {
         this.chapitreIngestor = chapitreIngestor;
+        this.annaleIngestor = annaleIngestor;
         this.contentDir = Path.of(contentDirProperty);
     }
 
@@ -32,6 +35,7 @@ class LocalContentSeeder implements ApplicationRunner {
         log.info("Seeding content from {} (local profile)", contentDir.toAbsolutePath());
         try {
             chapitreIngestor.ingestAll(contentDir);
+            annaleIngestor.ingestAll(contentDir);
         } catch (Exception e) {
             log.error("Content seeding failed: {} — the app will start without seeded content", e.getMessage(), e);
         }
