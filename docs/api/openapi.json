@@ -21,6 +21,12 @@
     "name" : "Édition de cours",
     "description" : "Composition et publication de cours par un enseignant"
   }, {
+    "name" : "Devoirs",
+    "description" : "Devoirs assignés par un enseignant à sa classe (F4)"
+  }, {
+    "name" : "Devoirs",
+    "description" : "Les devoirs de l'élève connecté (F4)"
+  }, {
     "name" : "Système",
     "description" : "Endpoints techniques exposés par le produit"
   }, {
@@ -187,6 +193,122 @@
         }
       }
     },
+    "/api/prof/devoirs" : {
+      "get" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Liste les devoirs d'une de ses classes",
+        "operationId" : "listerClasse",
+        "parameters" : [ {
+          "name" : "classeId",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Devoirs de la classe",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirClasseVue"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirClasseVue"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé à l'enseignant de la classe",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirClasseVue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Crée un devoir pour une de ses classes",
+        "operationId" : "creer",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreerDevoirRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Devoir créé",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé à l'enseignant de la classe",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/cours" : {
       "get" : {
         "tags" : [ "Édition de cours" ],
@@ -239,7 +361,7 @@
         "tags" : [ "Édition de cours" ],
         "summary" : "Crée un brouillon de cours",
         "description" : "L'auteur et l'établissement sont déduits de l'enseignant connecté, jamais lus dans la requête. Le contenu est validé à la publication, pas ici.",
-        "operationId" : "creer",
+        "operationId" : "creer_1",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -425,7 +547,7 @@
     "/api/etablissements" : {
       "post" : {
         "tags" : [ "etablissement-controller" ],
-        "operationId" : "creer_1",
+        "operationId" : "creer_2",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -626,7 +748,7 @@
     "/api/classes" : {
       "post" : {
         "tags" : [ "classe-controller" ],
-        "operationId" : "creer_2",
+        "operationId" : "creer_3",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -1019,6 +1141,64 @@
         }
       }
     },
+    "/api/prof/devoirs/{id}/tableau-de-bord" : {
+      "get" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Le tableau de bord d'un devoir (qui a rendu, réussite par compétence)",
+        "operationId" : "tableauDeBord",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Tableau de bord",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé à l'enseignant de la classe",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Devoir introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TableauDeBordDevoir"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/classes" : {
       "get" : {
         "tags" : [ "Édition de cours" ],
@@ -1098,6 +1278,41 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/CompteInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devoirs" : {
+      "get" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Liste les devoirs de l'élève connecté, avec le statut de son rendu",
+        "operationId" : "mesDevoirs",
+        "responses" : {
+          "200" : {
+            "description" : "Devoirs de l'élève",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirEleveVue"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DevoirEleveVue"
+                  }
                 }
               }
             }
@@ -1464,6 +1679,51 @@
             "format" : "uuid"
           }
         }
+      },
+      "CreerDevoirRequest" : {
+        "type" : "object",
+        "properties" : {
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "consigne" : {
+            "type" : "string"
+          },
+          "sourceType" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "sourceRef" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "sourceVersion" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "exerciceIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "minItems" : 1
+          },
+          "ouvreAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "echeanceAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "classeId", "echeanceAt", "exerciceIds", "ouvreAt", "sourceRef", "sourceType", "titre" ]
       },
       "CreerCoursRequest" : {
         "type" : "object",
@@ -1958,6 +2218,116 @@
           }
         }
       },
+      "DevoirClasseVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "ouvreAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "echeanceAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "nombreExercices" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "LigneEleve" : {
+        "type" : "object",
+        "properties" : {
+          "eleveId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nomAffiche" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "score" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }
+      },
+      "ReussiteCompetence" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "tauxReussite" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "nombreReponses" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "TableauDeBordDevoir" : {
+        "type" : "object",
+        "properties" : {
+          "devoirId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "echeanceAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nbRendu" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nbEnCours" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nbNonCommence" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "moyenne" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "eleves" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LigneEleve"
+            }
+          },
+          "parCompetence" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReussiteCompetence"
+            }
+          }
+        }
+      },
       "CoursResumeResponse" : {
         "type" : "object",
         "properties" : {
@@ -2042,6 +2412,32 @@
           }
         },
         "required" : [ "status", "timestamp", "version" ]
+      },
+      "DevoirEleveVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "consigne" : {
+            "type" : "string"
+          },
+          "echeanceAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "nombreExercices" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "statutRendu" : {
+            "type" : "string"
+          }
+        }
       },
       "CoursVisibleResponse" : {
         "type" : "object",

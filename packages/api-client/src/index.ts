@@ -39,5 +39,24 @@ export type {
 } from './cours-edition.js'
 export { listerMesClasses } from './prof-classes.js'
 export type { ClasseInfo } from './prof-classes.js'
+export {
+  creerDevoir,
+  listerDevoirsClasse,
+  getTableauDeBord,
+  listerMesDevoirs,
+  DevoirEleveVueSchema,
+  DevoirClasseVueSchema,
+  TableauDeBordDevoirSchema,
+  LigneEleveSchema,
+  ReussiteCompetenceSchema,
+} from './devoirs.js'
+export type {
+  DevoirEleveVue,
+  DevoirClasseVue,
+  TableauDeBordDevoir,
+  LigneEleve,
+  ReussiteCompetence,
+  CreerDevoirInput,
+} from './devoirs.js'
 export { listerCompetences } from './referentiel.js'
 export type { Competence } from './referentiel.js'
