@@ -55,6 +55,9 @@ PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin no
 EOF
+# Ubuntu 24.04 starts sshd on demand (ssh.socket), so its privilege separation
+# directory may not exist yet — and `sshd -t` fails without it.
+install -d -m 0755 /run/sshd
 sshd -t || die "sshd rejected the configuration — not restarting it."
 systemctl restart ssh
 
