@@ -9,6 +9,12 @@
     "description" : "Generated server url"
   } ],
   "tags" : [ {
+    "name" : "Devoirs",
+    "description" : "Dépôt et consultation de copies (F5)"
+  }, {
+    "name" : "Devoirs",
+    "description" : "Correction des copies déposées (F5)"
+  }, {
     "name" : "Référentiel de compétences",
     "description" : "Lecture du référentiel pour l'édition de cours"
   }, {
@@ -312,6 +318,48 @@
         }
       }
     },
+    "/api/prof/devoirs/{devoirId}/rendus/{eleveId}/correction" : {
+      "post" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Corrige le rendu d'un élève (note, appréciation)",
+        "operationId" : "corriger",
+        "parameters" : [ {
+          "name" : "devoirId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "eleveId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CorrectionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Correction enregistrée"
+          },
+          "403" : {
+            "description" : "Réservé à l'enseignant de la classe"
+          }
+        }
+      }
+    },
     "/api/prof/cours" : {
       "get" : {
         "tags" : [ "Édition de cours" ],
@@ -568,6 +616,70 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/EtablissementInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devoirs/{devoirId}/rendu/pieces" : {
+      "post" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Dépose une copie (photo/scan) sur son rendu",
+        "operationId" : "deposer",
+        "parameters" : [ {
+          "name" : "devoirId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "fichier" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "fichier" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Copie déposée",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PieceInfo"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Fichier invalide (format, taille, nombre)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PieceInfo"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PieceInfo"
                 }
               }
             }
@@ -1202,6 +1314,58 @@
         }
       }
     },
+    "/api/prof/devoirs/{devoirId}/rendus/{eleveId}/pieces" : {
+      "get" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Liste les copies déposées par un élève, pour l'enseignant du devoir",
+        "operationId" : "pieces",
+        "parameters" : [ {
+          "name" : "devoirId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "eleveId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Copies de l'élève",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PieceInfo"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé à l'enseignant de la classe",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PieceInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/classes" : {
       "get" : {
         "tags" : [ "Édition de cours" ],
@@ -1316,6 +1480,57 @@
                   "items" : {
                     "$ref" : "#/components/schemas/DevoirEleveVue"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devoirs/pieces/{pieceId}" : {
+      "get" : {
+        "tags" : [ "Devoirs" ],
+        "summary" : "Sert une copie (élève auteur ou enseignant du devoir uniquement)",
+        "operationId" : "servir",
+        "parameters" : [ {
+          "name" : "pieceId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Le fichier",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Accès refusé",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Pièce introuvable",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
                 }
               }
             }
@@ -1837,6 +2052,17 @@
         },
         "required" : [ "classeId", "echeanceAt", "exerciceIds", "ouvreAt", "sourceRef", "sourceType", "titre" ]
       },
+      "CorrectionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "note" : {
+            "type" : "number"
+          },
+          "appreciation" : {
+            "type" : "string"
+          }
+        }
+      },
       "CreerCoursRequest" : {
         "type" : "object",
         "properties" : {
@@ -1987,6 +2213,29 @@
           },
           "pathAActif" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "PieceInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "filename" : {
+            "type" : "string"
+          },
+          "contentType" : {
+            "type" : "string"
+          },
+          "tailleOctets" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "uploadedAt" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },

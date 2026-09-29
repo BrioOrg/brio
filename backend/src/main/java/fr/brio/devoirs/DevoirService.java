@@ -5,7 +5,16 @@ import fr.brio.devoirs.domain.DerivationRendu;
 import fr.brio.devoirs.domain.Devoir;
 import fr.brio.devoirs.domain.Rendu;
 import fr.brio.devoirs.domain.RenduExercice;
+import fr.brio.devoirs.domain.RenduPiece;
 import fr.brio.devoirs.domain.TableauDeBord;
+import fr.brio.devoirs.infrastructure.RenduPieceRepository;
+import fr.brio.devoirs.infrastructure.StockageCopies;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import javax.imageio.ImageIO;
 import fr.brio.devoirs.domain.TableauDeBord.ReussiteCompetence;
 import fr.brio.devoirs.domain.TableauDeBord.ScoreCompetence;
 import fr.brio.devoirs.infrastructure.DevoirRepository;
@@ -40,18 +49,24 @@ public class DevoirService {
     private final RenduExerciceRepository renduExercices;
     private final EnseignantContexteQuery enseignantContexte;
     private final InscriptionsQuery inscriptions;
+    private final RenduPieceRepository renduPieces;
+    private final StockageCopies stockage;
 
     DevoirService(
             DevoirRepository devoirs,
             RenduRepository rendus,
             RenduExerciceRepository renduExercices,
             EnseignantContexteQuery enseignantContexte,
-            InscriptionsQuery inscriptions) {
+            InscriptionsQuery inscriptions,
+            RenduPieceRepository renduPieces,
+            StockageCopies stockage) {
         this.devoirs = devoirs;
         this.rendus = rendus;
         this.renduExercices = renduExercices;
         this.enseignantContexte = enseignantContexte;
         this.inscriptions = inscriptions;
+        this.renduPieces = renduPieces;
+        this.stockage = stockage;
     }
 
     /** Crée un devoir. Refuse si l'auteur n'est pas l'enseignant de la classe visée. */
@@ -244,5 +259,127 @@ public class DevoirService {
                         d.getEcheanceAt(),
                         d.getCorrectionVisibleAt(),
                         d.getStatut());
+    }
+
+    // --- F5 : dépôt et correction de copie (ADR 0028) ---
+
+    private static final long TAILLE_MAX_OCTETS = 10L * 1024 * 1024; // 10 Mo
+    private static final int PIECES_MAX = 5;
+    private static final Set<String> TYPES_ACCEPTES =
+            Set.of("image/jpeg", "image/png", "application/pdf");
+
+    /** L'élève dépose une pièce (photo/scan) sur son rendu (créé si besoin). */
+    @Transactional
+    public PieceInfo deposerPiece(
+            UUID eleveId, UUID devoirId, byte[] contenu, String contentType, String filename) {
+        if (contentType == null || !TYPES_ACCEPTES.contains(contentType)) {
+            throw new PieceInvalideException("Format non accepté : JPEG, PNG ou PDF uniquement.");
+        }
+        if (contenu == null || contenu.length == 0) {
+            throw new PieceInvalideException("Fichier vide.");
+        }
+        if (contenu.length > TAILLE_MAX_OCTETS) {
+            throw new PieceInvalideException("Fichier trop volumineux (10 Mo maximum).");
+        }
+        devoirs.findById(devoirId).orElseThrow(() -> new DevoirNotFoundException(devoirId));
+
+        Rendu rendu =
+                rendus
+                        .findByDevoirIdAndEleveId(devoirId, eleveId)
+                        .orElseGet(() -> rendus.save(new Rendu(devoirId, eleveId)));
+        if (renduPieces.countByRenduId(rendu.getId()) >= PIECES_MAX) {
+            throw new PieceInvalideException("Trop de copies (5 maximum).");
+        }
+
+        byte[] propre = nettoyer(contenu, contentType);
+        String key = stockage.store(propre, contentType);
+        int ordre = renduPieces.countByRenduId(rendu.getId());
+        RenduPiece piece =
+                renduPieces.save(
+                        new RenduPiece(rendu.getId(), key, filename, contentType, propre.length, ordre));
+        return toInfo(piece);
+    }
+
+    /** Les copies déposées par un élève, pour l'enseignant du devoir. */
+    @Transactional(readOnly = true)
+    public List<PieceInfo> listerPiecesPourProf(UUID devoirId, UUID eleveId, UUID demandeurId) {
+        Devoir devoir =
+                devoirs.findById(devoirId).orElseThrow(() -> new DevoirNotFoundException(devoirId));
+        if (!enseignantContexte.classesEnseignees(demandeurId).contains(devoir.getClasseId())) {
+            throw new PasEnseignantDeLaClasseException(devoir.getClasseId());
+        }
+        return rendus
+                .findByDevoirIdAndEleveId(devoirId, eleveId)
+                .map(r -> renduPieces.findByRenduIdOrderByOrdreAsc(r.getId()))
+                .orElseGet(List::of)
+                .stream()
+                .map(DevoirService::toInfo)
+                .toList();
+    }
+
+    /** L'enseignant corrige le rendu d'un élève (note + appréciation). Crée le rendu si besoin. */
+    @Transactional
+    public void corrigerRendu(
+            UUID devoirId, UUID eleveId, UUID demandeurId, BigDecimal note, String appreciation) {
+        Devoir devoir =
+                devoirs.findById(devoirId).orElseThrow(() -> new DevoirNotFoundException(devoirId));
+        if (!enseignantContexte.classesEnseignees(demandeurId).contains(devoir.getClasseId())) {
+            throw new PasEnseignantDeLaClasseException(devoir.getClasseId());
+        }
+        Rendu rendu =
+                rendus
+                        .findByDevoirIdAndEleveId(devoirId, eleveId)
+                        .orElseGet(() -> rendus.save(new Rendu(devoirId, eleveId)));
+        rendu.corriger(note, appreciation, demandeurId);
+        rendus.save(rendu);
+    }
+
+    /** Sert une pièce, réservée à l'élève auteur OU à l'enseignant du devoir (sinon refus). */
+    @Transactional(readOnly = true)
+    public ContenuPiece chargerPiece(UUID pieceId, UUID demandeurId) {
+        RenduPiece piece =
+                renduPieces.findById(pieceId).orElseThrow(() -> new PieceNotFoundException(pieceId));
+        Rendu rendu =
+                rendus
+                        .findById(piece.getRenduId())
+                        .orElseThrow(() -> new PieceNotFoundException(pieceId));
+        Devoir devoir =
+                devoirs
+                        .findById(rendu.getDevoirId())
+                        .orElseThrow(() -> new PieceNotFoundException(pieceId));
+        boolean auteur = rendu.getEleveId().equals(demandeurId);
+        boolean enseignant =
+                enseignantContexte.classesEnseignees(demandeurId).contains(devoir.getClasseId());
+        if (!auteur && !enseignant) {
+            throw new AccesPieceRefuseException();
+        }
+        return new ContenuPiece(
+                stockage.load(piece.getStorageKey()), piece.getContentType(), piece.getFilename());
+    }
+
+    private static PieceInfo toInfo(RenduPiece p) {
+        return new PieceInfo(
+                p.getId(), p.getFilename(), p.getContentType(), p.getTailleOctets(), p.getUploadedAt());
+    }
+
+    /** Retire l'EXIF des images en les ré-encodant ; les PDF passent tels quels (ADR 0028). */
+    private static byte[] nettoyer(byte[] contenu, String contentType) {
+        if (!contentType.startsWith("image/")) {
+            return contenu;
+        }
+        String format = contentType.equals("image/png") ? "png" : "jpg";
+        try {
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(contenu));
+            if (image == null) {
+                throw new PieceInvalideException("Image illisible.");
+            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            if (!ImageIO.write(image, format, out)) {
+                throw new PieceInvalideException("Format d'image non pris en charge.");
+            }
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new PieceInvalideException("Image illisible.");
+        }
     }
 }
