@@ -3,8 +3,14 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-import { CoursApiError, getTableauDeBord, type TableauDeBordDevoir } from '@brio/api-client'
+import {
+  CoursApiError,
+  getTableauDeBord,
+  type LigneEleve,
+  type TableauDeBordDevoir,
+} from '@brio/api-client'
 
+import { CorrigerCopie } from '@/components/prof/corriger-copie'
 import { Icon } from '@/components/ui/icon'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
@@ -73,26 +79,7 @@ export function TableauDeBordDevoirVue({ devoirId }: { devoirId: string }) {
                 </h2>
                 <ul className="rounded-lg border border-line bg-surface-panel">
                   {tdb.eleves.map((el) => (
-                    <li
-                      key={el.eleveId}
-                      className="flex items-center gap-3 border-b border-line px-3 py-2 last:border-b-0"
-                    >
-                      <span className="min-w-0 flex-1 truncate text-sm text-ink">{el.nomAffiche}</span>
-                      <span
-                        className={`rounded-pill px-2 py-0.5 font-display text-[11px] font-bold ${
-                          el.statut === 'rendu'
-                            ? 'bg-accent-soft text-accent-ink'
-                            : el.statut === 'en_cours'
-                              ? 'bg-surface-page text-ink-muted'
-                              : 'bg-surface-page text-ink-muted'
-                        }`}
-                      >
-                        {STATUT_LABEL[el.statut] ?? el.statut}
-                      </span>
-                      <span className="w-12 text-right font-mono text-xs text-ink-muted">
-                        {el.score == null ? '—' : `${Math.round(el.score * 100)} %`}
-                      </span>
-                    </li>
+                    <LigneEleveRow key={el.eleveId} devoirId={devoirId} el={el} />
                   ))}
                   {tdb.eleves.length === 0 && (
                     <li className="px-3 py-3 text-sm text-ink-muted">Aucun élève dans cette classe.</li>
@@ -142,5 +129,40 @@ function Tuile({ valeur, label }: { valeur: number | string; label: string }) {
       <div className="font-display text-2xl font-extrabold tabular-nums text-ink">{valeur}</div>
       <div className="mt-0.5 text-xs text-ink-muted">{label}</div>
     </div>
+  )
+}
+
+// Une ligne élève du tableau de bord, dépliable pour corriger sa copie (F5, ADR 0028).
+function LigneEleveRow({ devoirId, el }: { devoirId: string; el: LigneEleve }) {
+  const [ouvert, setOuvert] = useState(false)
+  return (
+    <li className="border-b border-line last:border-b-0">
+      <div className="flex items-center gap-3 px-3 py-2">
+        <span className="min-w-0 flex-1 truncate text-sm text-ink">{el.nomAffiche}</span>
+        <span
+          className={`rounded-pill px-2 py-0.5 font-display text-[11px] font-bold ${
+            el.statut === 'rendu' ? 'bg-accent-soft text-accent-ink' : 'bg-surface-page text-ink-muted'
+          }`}
+        >
+          {STATUT_LABEL[el.statut] ?? el.statut}
+        </span>
+        <span className="w-12 text-right font-mono text-xs text-ink-muted">
+          {el.score == null ? '—' : `${Math.round(el.score * 100)} %`}
+        </span>
+        <button
+          type="button"
+          onClick={() => setOuvert((o) => !o)}
+          aria-expanded={ouvert}
+          className="rounded-md border border-line px-2 py-0.5 font-display text-[11px] font-bold text-ink-muted hover:text-ink"
+        >
+          {ouvert ? 'Fermer' : 'Corriger'}
+        </button>
+      </div>
+      {ouvert && (
+        <div className="px-3 pb-3">
+          <CorrigerCopie devoirId={devoirId} eleveId={el.eleveId} />
+        </div>
+      )}
+    </li>
   )
 }
