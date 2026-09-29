@@ -57,6 +57,7 @@ docs/adr/   Architecture Decision Records
 - `docker compose -f docker-compose.prod.yml --env-file deploy/.env --profile ingest run --rm ingest` — load the catalogue
 - Images build from the repo root: `docker build -f backend/Dockerfile .`, `docker build -f web/Dockerfile .`
 - E-mails (consent links) land in Mailpit: `https://<BRIO_DOMAIN>/mailpit`. Locally (`local` profile) they are only recorded in memory.
+- On the VPS (runbook: `docs/deploy/README.md`): `scripts/env/deploy.sh` (pull `develop`, build, restart), `scripts/env/snapshot.sh [name|--list]`, `scripts/env/restore.sh <file>`, `scripts/env/reset.sh`. Dumps go to `/var/backups/brio` (`BRIO_SNAPSHOT_DIR` to override when trying them locally).
 
 ## Backend architecture
 
