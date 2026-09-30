@@ -3,11 +3,13 @@ import { Icon } from '@/components/ui/icon'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { XpBadge } from '@/components/xp-badge'
 import { StreakBadge } from '@/components/streak-badge'
+import { SessionLogoutButton } from '@/components/session-logout-button'
 
 export type Crumb = { label: string; href?: string }
 
 /**
- * Top bar shared by every page: brand wordmark, a breadcrumb trail, theme toggle.
+ * Top bar shared by every page: brand wordmark, a breadcrumb trail, theme toggle
+ * and, when a session exists, the logout button.
  * The breadcrumb is the app's primary "where am I" signal on desktop; on narrow
  * screens the intermediate crumbs collapse so only the current context shows.
  */
@@ -74,6 +76,7 @@ export function SiteHeader({ crumbs = [] }: { crumbs?: Crumb[] }) {
           <StreakBadge />
           <XpBadge />
           <ThemeToggle />
+          <SessionLogoutButton />
         </div>
       </div>
     </header>

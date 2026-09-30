@@ -1,3 +1,4 @@
+import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // The teacher-space role gate. It asks the backend who the caller is (forwarding the
@@ -8,7 +9,10 @@ const redirectMock = vi.fn((url: string) => {
   throw new Error(`REDIRECT:${url}`)
 })
 
-vi.mock('next/navigation', () => ({ redirect: redirectMock }))
+vi.mock('next/navigation', () => ({
+  redirect: redirectMock,
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}))
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({ toString: () => 'JSESSIONID=abc' })),
 }))
@@ -27,7 +31,7 @@ describe('ProfLayout role gate', () => {
     redirectMock.mockClear()
   })
 
-  it('renders children for an enseignant', async () => {
+  it('renders children and the logout button for an enseignant', async () => {
     stubMoi(
       new Response(
         JSON.stringify({ id: '1', role: 'enseignant', statut: 'actif', nom: 'P', email: 'p@t.fr' }),
@@ -39,10 +43,11 @@ describe('ProfLayout role gate', () => {
     )
     const { default: ProfLayout } = await import('../layout')
 
-    const result = await ProfLayout({ children: 'CONTENU' })
+    render(await ProfLayout({ children: 'CONTENU' }))
 
     expect(redirectMock).not.toHaveBeenCalled()
-    expect(result).toBeTruthy()
+    expect(screen.getByText('CONTENU')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
   })
 
   it('redirects a non-enseignant to the home page', async () => {

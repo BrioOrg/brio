@@ -3,6 +3,7 @@ import {
   logout as apiLogout,
   getMoi as apiGetMoi,
   LoginError,
+  LogoutError,
 } from '@brio/api-client'
 import type { CompteInfo } from '@brio/api-client'
 import { apiBaseUrl } from '@/lib/api-base-url'
@@ -13,7 +14,7 @@ export function login(identifiant: string, motDePasse: string): Promise<CompteIn
   return apiLogin(apiBaseUrl(), identifiant, motDePasse)
 }
 
-/** End the current session. */
+/** End the current session. Throws LogoutError when the session is still open. */
 export function logout(): Promise<void> {
   return apiLogout(apiBaseUrl())
 }
@@ -23,5 +24,5 @@ export function getMoi(): Promise<CompteInfo | null> {
   return apiGetMoi(apiBaseUrl())
 }
 
-export { LoginError }
+export { LoginError, LogoutError }
 export type { CompteInfo }

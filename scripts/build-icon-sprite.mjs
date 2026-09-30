@@ -29,6 +29,7 @@ const ICONS = [
   'info',
   'lightning',
   'lock-simple',
+  'sign-out',
   'smiley',
   'sparkle',
   'star',

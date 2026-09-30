@@ -6,6 +6,8 @@ vi.mock('@brio/api-client', () => ({
   // The page's SiteHeader renders the streak flame, which reads getSerie.
   // Plain async fn (not vi.fn) so vi.resetAllMocks() in beforeEach can't wipe it.
   getSerie: async () => null,
+  // The SiteHeader also asks whether a session exists before showing the logout button.
+  getMoi: async () => null,
   // The TuteurPanel checks for an open control/exam on mount (ADR 0025/0027) — default: none.
   controleActif: async () => ({ enControle: false, titre: null, echeanceAt: null }),
   examenActif: async () => ({ enExamen: false, annaleId: null, titre: null, endsAt: null }),
