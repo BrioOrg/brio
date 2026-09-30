@@ -2374,11 +2374,6 @@
       "InscriptionEnseignantRequest" : {
         "type" : "object",
         "properties" : {
-          "identifiantConnexion" : {
-            "type" : "string",
-            "maxLength" : 100,
-            "minLength" : 3
-          },
           "motDePasse" : {
             "type" : "string",
             "maxLength" : 128,
@@ -2392,11 +2387,11 @@
           "email" : {
             "type" : "string",
             "format" : "email",
-            "maxLength" : 200,
+            "maxLength" : 100,
             "minLength" : 0
           }
         },
-        "required" : [ "email", "identifiantConnexion", "motDePasse", "nom" ]
+        "required" : [ "email", "motDePasse", "nom" ]
       },
       "CompteInfo" : {
         "type" : "object",

@@ -77,7 +77,7 @@ class CoursControllerIntegrationTest {
         // A real teacher account, so the course list can show the author's name.
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         auteur = compteService.creerEnseignant(
-                "prof-" + suffix, "motdepasse123", "Mme Durand", "prof-" + suffix + "@example.fr").id();
+                "motdepasse123", "Mme Durand", "prof-" + suffix + "@example.fr").id();
         coursId = publierCours("Mon cours", Set.of(classeA.id()));
     }
 

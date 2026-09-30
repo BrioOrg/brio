@@ -39,7 +39,7 @@ class ProfReferentielControllerIntegrationTest {
         mockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         teacher = compteService.creerEnseignant(
-                "prof-" + suffix, "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
+                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
     }
 
     @Test

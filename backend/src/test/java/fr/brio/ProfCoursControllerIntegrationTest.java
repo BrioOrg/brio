@@ -66,7 +66,7 @@ class ProfCoursControllerIntegrationTest {
     private UUID creerEnseignant() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         return compteService.creerEnseignant(
-                "prof-" + suffix, "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
+                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
     }
 
     @Test

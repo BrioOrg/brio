@@ -56,6 +56,32 @@ class SessionIntegrationTest {
     }
 
     @Test
+    void shouldLoginWithEmailWhateverItsCase() throws Exception {
+        // prof.test predates e-mail logins: its identifiant is not its e-mail.
+        mockMvc.perform(post("/api/sessions")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("identifiant", "Prof@Test.fr")
+                        .param("mot_de_passe", "motdepasse")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("enseignant"));
+    }
+
+    @Test
+    void shouldNotLoginWithAParentEmail() throws Exception {
+        // email_titulaire_legal is a contact address, never a login.
+        eleveEnAttente.activer();
+        compteRepository.save(eleveEnAttente);
+
+        mockMvc.perform(post("/api/sessions")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("identifiant", "parent@test.fr")
+                        .param("mot_de_passe", "motdepasse")
+                        .with(csrf()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void shouldReturnCurrentUserOnMoi() throws Exception {
         var session = new MockHttpSession();
 

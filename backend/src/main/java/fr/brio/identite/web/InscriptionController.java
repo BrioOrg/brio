@@ -26,7 +26,6 @@ class InscriptionController {
     @PostMapping("/comptes")
     ResponseEntity<CompteInfo> inscrireEnseignant(@RequestBody @Valid InscriptionEnseignantRequest req) {
         CompteInfo created = compteService.creerEnseignant(
-                req.identifiantConnexion(),
                 req.motDePasse(),
                 req.nom(),
                 req.email());
