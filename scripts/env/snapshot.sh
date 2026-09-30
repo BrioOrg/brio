@@ -2,9 +2,10 @@
 #
 # Dump the deployed environment's database (ADR 0024 §7).
 #
-#   scripts/env/snapshot.sh [name]     named snapshot, never deleted automatically
-#   scripts/env/snapshot.sh --nightly  nightly snapshot; only the last 7 are kept
-#   scripts/env/snapshot.sh --list     list the snapshots, newest first
+#   scripts/env/snapshot.sh [name]        named snapshot, never deleted automatically
+#   scripts/env/snapshot.sh --nightly     nightly snapshot; only the last 7 are kept
+#   scripts/env/snapshot.sh --pre-deploy  taken by deploy.sh; only the last 5 are kept
+#   scripts/env/snapshot.sh --list        list the snapshots, newest first
 #
 # Dumps land in $BRIO_SNAPSHOT_DIR (/var/backups/brio) as <name>-<YYYYMMDD-HHMMSS>.dump
 # (pg_dump custom format). They live on the server: a convenience before a risky test,
@@ -14,6 +15,7 @@
 . "$(dirname "$0")/lib.sh"
 
 NIGHTLY_KEEP=7
+PRE_DEPLOY_KEEP=5
 
 list_snapshots() {
   ls -lht "$BRIO_SNAPSHOT_DIR"/*.dump 2>/dev/null || echo "(no snapshot in $BRIO_SNAPSHOT_DIR)"
@@ -26,6 +28,7 @@ case "${1:-}" in
     exit 0
     ;;
   --nightly) name=nightly ;;
+  --pre-deploy) name=pre-deploy ;;
   "") ;;
   *) name=$1 ;;
 esac
@@ -48,10 +51,17 @@ fi
 mv "$partial" "$file"
 echo "✓ Snapshot $(basename "$file") ($(du -h "$file" | cut -f1))."
 
-if [ "$name" = nightly ]; then
-  # Timestamps sort lexically, so the oldest come last in reverse order.
-  find "$BRIO_SNAPSHOT_DIR" -maxdepth 1 -name 'nightly-*.dump' -type f | sort -r \
-    | tail -n +$((NIGHTLY_KEEP + 1)) | while read -r old; do
+case "$name" in
+  nightly) keep=$NIGHTLY_KEEP ;;
+  pre-deploy) keep=$PRE_DEPLOY_KEEP ;;
+  *) keep=0 ;;
+esac
+
+if [ "$keep" -gt 0 ]; then
+  # Match the timestamp exactly, so a named snapshot such as pre-deploy-essai-… is
+  # left alone. Timestamps sort lexically: the oldest come last in reverse order.
+  find "$BRIO_SNAPSHOT_DIR" -maxdepth 1 -name "$name-????????-??????.dump" -type f | sort -r \
+    | tail -n +$((keep + 1)) | while read -r old; do
       rm -f "$old"
       echo "  pruned $(basename "$old")"
     done

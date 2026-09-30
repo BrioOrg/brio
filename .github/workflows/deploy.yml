@@ -1,0 +1,55 @@
+name: Deploy
+
+# Deploys develop on the private environment (ADR 0024) once CI has passed on it.
+# The job only opens an SSH connection: on the server, the key it uses is bound to
+# scripts/env/deploy.sh by a forced command in authorized_keys, so nothing else can
+# be run with it. Setup and troubleshooting: docs/deploy/README.md.
+#
+# This repository is public, and so are these logs. The domain is a secret, which
+# keeps it masked in the output of deploy.sh.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [develop]
+  # "Run workflow" button: redeploys develop without waiting for a CI run.
+  workflow_dispatch:
+
+# The job reads nothing from the repository.
+permissions: {}
+
+# Never interrupt a deploy half-way (images being built, containers restarting): a
+# second merge waits for the first deploy. Separate from CI, which cancels
+# superseded runs.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # CI also completes for pull requests and for failed runs: deploy only what was
+    # pushed to develop and passed.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    # Holds the secrets, and is restricted to develop in the repository settings.
+    environment: prive
+    timeout-minutes: 45
+    steps:
+      - name: Run deploy.sh on the server
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          (umask 077 && printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key)
+          # No command: the server runs deploy.sh whatever is asked. The keepalive
+          # holds the connection through the quiet phases of the image builds.
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 -o ServerAliveCountMax=4 \
+            "ubuntu@$DEPLOY_HOST"
