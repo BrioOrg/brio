@@ -2,7 +2,10 @@
 
 import { useEffect, useId, useMemo, useState } from 'react'
 
+import { listerMesEtablissements, type EtablissementPublic } from '@brio/api-client'
+
 import { getCatalogue, type Catalogue } from '@/lib/api'
+import { apiBaseUrl } from '@/lib/api-base-url'
 import { MODELES, MODELE_DEFAUT, type ModeleId } from '@/lib/cours-modeles'
 
 // Petite fenêtre de création d'un cours : titre + niveau + matière. Le niveau et la matière sont
@@ -11,11 +14,14 @@ import { MODELES, MODELE_DEFAUT, type ModeleId } from '@/lib/cours-modeles'
 // catalogue réel (ADR 0011) — jamais de valeurs inventées.
 // À la création (montrerModeles), on choisit aussi un modèle de départ : le cours s'ouvre déjà
 // structuré, on ne tombe jamais sur une page vide.
+// Un enseignant rattaché à plusieurs établissements précise aussi celui du cours (ADR 0029 §4) ;
+// avec un seul, le serveur le déduit et rien n'est demandé.
 
 export type NouveauCoursValeurs = {
   titre: string
   niveauCode: string
   matiereCode: string
+  etablissementId?: string
   modele?: ModeleId
 }
 
@@ -41,6 +47,7 @@ export function NouveauCoursDialog({
   const titreId = useId()
   const niveauId = useId()
   const matiereId = useId()
+  const etablissementChampId = useId()
 
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null)
   const [chargementCatalogue, setChargementCatalogue] = useState(true)
@@ -48,6 +55,23 @@ export function NouveauCoursDialog({
   const [niveauCode, setNiveauCode] = useState('')
   const [matiereCode, setMatiereCode] = useState('')
   const [modele, setModele] = useState<ModeleId>(MODELE_DEFAUT)
+  const [etablissements, setEtablissements] = useState<EtablissementPublic[]>([])
+  const [etablissementId, setEtablissementId] = useState('')
+
+  useEffect(() => {
+    let vivant = true
+    // On failure nothing is asked: the server still refuses an ambiguous établissement.
+    listerMesEtablissements(apiBaseUrl())
+      .then((e) => {
+        if (vivant) setEtablissements(e)
+      })
+      .catch(() => {})
+    return () => {
+      vivant = false
+    }
+  }, [])
+
+  const choisirEtablissement = etablissements.length > 1
 
   useEffect(() => {
     let vivant = true
@@ -73,7 +97,11 @@ export function NouveauCoursDialog({
   }, [catalogue, niveauCode])
 
   const pretAValider =
-    titre.trim().length > 0 && niveauCode.length > 0 && matiereCode.length > 0 && !enCours
+    titre.trim().length > 0 &&
+    niveauCode.length > 0 &&
+    matiereCode.length > 0 &&
+    (!choisirEtablissement || etablissementId.length > 0) &&
+    !enCours
 
   function valider() {
     if (!pretAValider) return
@@ -81,6 +109,7 @@ export function NouveauCoursDialog({
       titre: titre.trim(),
       niveauCode,
       matiereCode,
+      ...(choisirEtablissement ? { etablissementId } : {}),
       ...(montrerModeles ? { modele } : {}),
     })
   }
@@ -158,6 +187,30 @@ export function NouveauCoursDialog({
             </div>
           </div>
 
+          {choisirEtablissement && (
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor={etablissementChampId}
+                className="font-display text-sm font-bold text-ink"
+              >
+                Établissement
+              </label>
+              <select
+                id={etablissementChampId}
+                value={etablissementId}
+                onChange={(e) => setEtablissementId(e.target.value)}
+                className="rounded-lg border border-line bg-surface-page px-3 py-2 font-prose text-ink focus:border-accent focus:outline-none"
+              >
+                <option value="">Choisir…</option>
+                {etablissements.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nom}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {montrerModeles && (
             <fieldset className="flex flex-col gap-1.5">
               <legend className="font-display text-sm font-bold text-ink">
@@ -191,7 +244,9 @@ export function NouveauCoursDialog({
                           {m.libelle}
                         </span>
                       </span>
-                      <span className="pl-6 font-prose text-xs text-ink-muted">{m.description}</span>
+                      <span className="pl-6 font-prose text-xs text-ink-muted">
+                        {m.description}
+                      </span>
                     </label>
                   )
                 })}
