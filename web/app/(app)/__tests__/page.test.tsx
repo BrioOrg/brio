@@ -14,7 +14,11 @@ vi.mock('next/headers', () => ({
 const redirect = vi.fn((url: string) => {
   throw new Error(`REDIRECT:${url}`)
 })
-vi.mock('next/navigation', () => ({ redirect: (url: string) => redirect(url) }))
+vi.mock('next/navigation', () => ({
+  redirect: (url: string) => redirect(url),
+  // Read by the SiteHeader's section links.
+  usePathname: () => '/',
+}))
 
 function stubMoi(status: number) {
   const fetchMock = vi.fn().mockResolvedValue({ ok: status === 200, status })

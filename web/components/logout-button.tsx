@@ -11,8 +11,11 @@ import { Icon } from '@/components/ui/icon'
  * guilt-tripping on logout), then lands on /connexion — the next person on a
  * shared computer logs in from there. On failure the session is still open on
  * the server, and the message says so rather than pretending otherwise.
+ *
+ * `labelFrom` is the breakpoint from which the label shows next to the icon; the
+ * student header, which also carries the section links, only has room from lg.
  */
-export function LogoutButton() {
+export function LogoutButton({ labelFrom = 'sm' }: { labelFrom?: 'sm' | 'lg' }) {
   const router = useRouter()
   const [failed, setFailed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -40,12 +43,16 @@ export function LogoutButton() {
         size="sm"
         loading={submitting}
         onClick={handleClick}
-        className="px-2 sm:px-4"
+        className={labelFrom === 'lg' ? 'px-2 lg:px-4' : 'px-2 sm:px-4'}
       >
         <span className="flex items-center gap-2">
           <Icon name="sign-out" weight="bold" size={18} />
           {/* Narrow screens keep the icon only; the label stays for screen readers. */}
-          <span className="sr-only sm:not-sr-only">Se déconnecter</span>
+          <span
+            className={labelFrom === 'lg' ? 'sr-only lg:not-sr-only' : 'sr-only sm:not-sr-only'}
+          >
+            Se déconnecter
+          </span>
         </span>
       </Button>
       {failed && (

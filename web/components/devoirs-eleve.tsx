@@ -38,7 +38,7 @@ export function DevoirsEleve() {
   const termines = (devoirs ?? []).filter((d) => d.statutRendu === 'rendu')
 
   return (
-    <div className="min-h-screen bg-surface-page px-4 py-6 font-prose text-ink">
+    <main className="px-4 py-6">
       <div className="mx-auto max-w-2xl">
         <h1 className="font-display text-2xl font-extrabold text-ink">Mes devoirs</h1>
 
@@ -78,7 +78,7 @@ export function DevoirsEleve() {
           </section>
         )}
       </div>
-    </div>
+    </main>
   )
 }
 

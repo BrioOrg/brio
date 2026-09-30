@@ -45,7 +45,7 @@ export function AnnalesEleve() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-surface-page px-4 py-6 font-prose text-ink">
+    <main className="px-4 py-6">
       <div className="mx-auto max-w-2xl">
         <h1 className="font-display text-2xl font-extrabold text-ink">Annales</h1>
         <p className="mt-1 text-sm text-ink-muted">
@@ -76,7 +76,7 @@ export function AnnalesEleve() {
           <VueEntrainement competences={competences} annales={annales} />
         )}
       </div>
-    </div>
+    </main>
   )
 }
 
