@@ -140,6 +140,50 @@ class SessionIntegrationTest {
     }
 
     @Test
+    void shouldExpireSessionCookieOnLogout() throws Exception {
+        var session = new MockHttpSession();
+
+        mockMvc.perform(post("/api/sessions")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("identifiant", "prof.test")
+                        .param("mot_de_passe", "motdepasse")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        // The browser must drop the cookie: the web middleware only checks its presence.
+        mockMvc.perform(delete("/api/sessions").session(session).with(csrf()))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge("JSESSIONID", 0));
+    }
+
+    @Test
+    void shouldLogoutWithoutSession() throws Exception {
+        // Idempotent: a session that already expired must not make the logout button fail.
+        mockMvc.perform(delete("/api/sessions").with(csrf()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldRejectLogoutWithoutCsrfTokenAndKeepSession() throws Exception {
+        var session = new MockHttpSession();
+
+        mockMvc.perform(post("/api/sessions")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("identifiant", "prof.test")
+                        .param("mot_de_passe", "motdepasse")
+                        .session(session)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/sessions").session(session))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/moi").session(session))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void shouldReturn401OnMoiWithoutSession() throws Exception {
         mockMvc.perform(get("/api/moi"))
                 .andExpect(status().isUnauthorized());
