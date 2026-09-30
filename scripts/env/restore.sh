@@ -28,6 +28,7 @@ fi
 
 require_reset_allowed
 confirm_destruction "replace the database with $(basename "$snapshot")" "$assume_yes"
+acquire_lock 0
 
 "$BRIO_ROOT/scripts/env/snapshot.sh" pre-restore
 

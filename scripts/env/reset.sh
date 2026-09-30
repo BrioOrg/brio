@@ -16,6 +16,7 @@ assume_yes=false
 
 require_reset_allowed
 confirm_destruction "reset the database to an empty one" "$assume_yes"
+acquire_lock 0
 
 "$BRIO_ROOT/scripts/env/snapshot.sh" pre-reset
 

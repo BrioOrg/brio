@@ -49,6 +49,26 @@ compose() {
   docker compose -f "$BRIO_ROOT/docker-compose.prod.yml" --env-file "$BRIO_ENV_FILE" "$@"
 }
 
+# deploy, restore and reset must never overlap: a deploy can start on its own (after
+# a merge into develop) while someone works on the server by hand. They share one
+# lock, held until the script exits. $1 is how many seconds to wait for it; 0 gives
+# up at once. The lock is taken on deploy/.env: it always exists here, and a
+# dedicated lock file in the clone would count as a local change for deploy.sh.
+acquire_lock() {
+  local wait=$1
+  if ! command -v flock >/dev/null 2>&1; then
+    # Not the server (flock ships with Ubuntu): a laptop trying the scripts.
+    echo "! flock not found — running without the lock against concurrent scripts." >&2
+    return
+  fi
+  exec 9<"$BRIO_ENV_FILE"
+  flock -n 9 && return
+  [ "$wait" -gt 0 ] \
+    || die "A deploy, restore or reset is already running on $BRIO_DOMAIN — try again when it is done."
+  info "A deploy, restore or reset is already running — waiting up to $((wait / 60)) min"
+  flock -w "$wait" 9 || die "Still running after $((wait / 60)) min — giving up."
+}
+
 # psql / pg_dump / pg_restore run inside the postgres container, as the database
 # owner the container was created with, so no credential is handled here. The command
 # is expanded by the container's shell, where $POSTGRES_USER and $POSTGRES_DB are set.
