@@ -203,6 +203,29 @@ Breaking this rule — even "just one real class to try" — means doing F1b fir
 | Data | fictional, resettable | real; `reset.sh` disabled |
 | Images, compose file | this ADR | unchanged |
 
+### 10. Deploys follow `develop` automatically
+
+*Added on 2026-09-30 (issue #186). Deploy on merge was first left to F1b; it is
+brought forward for the private environment only.*
+
+- A separate workflow, `deploy.yml`, runs when CI **succeeds** on a push to
+  `develop` (or on demand). It opens an SSH connection to the VPS and nothing more.
+- On the VPS, the key it uses is bound to `scripts/env/deploy.sh` by a forced
+  command in `authorized_keys`: it gives no shell and cannot run anything else. A
+  leaked key can, at worst, redeploy what is already on `develop`.
+- The key, the host and the host's fingerprint are secrets of a GitHub environment
+  restricted to `develop`.
+- Images are still built on the server (§1): no registry, and no secret of the
+  environment ever reaches GitHub.
+- `deploy.sh` dumps the database before every deploy and stops if the dump fails,
+  because the restart applies Flyway migrations unattended. `deploy.sh`,
+  `restore.sh` and `reset.sh` share a lock, so an automatic deploy cannot overlap
+  an operation run by hand.
+- The repository is public, so the deploy logs are too. They show build output and
+  commit hashes; the domain is masked. Accepted: nothing in them is a credential,
+  and a failed deploy can be diagnosed without logging in to the server.
+- Catalogue ingestion stays a manual step.
+
 ## Consequences
 
 ### Positive
@@ -224,9 +247,11 @@ Breaking this rule — even "just one real class to try" — means doing F1b fir
   the VPS.
 - The web app needs a change (§5) before it can be containerised properly — a
   small cost now that would otherwise surface as a per-environment rebuild.
-- Everything outside CDC §6's private subset (monitoring, deploy on merge,
-  recette/production split, bounded log retention with truncated IPs, DPA) is
-  explicitly not done yet.
+- Everything outside CDC §6's private subset (monitoring, recette/production
+  split, bounded log retention with truncated IPs, DPA) is explicitly not done
+  yet. Deploy on merge was on this list until §10.
+- Automatic deploys add an inbound credential held by GitHub, and public deploy
+  logs (§10).
 
 ### Follow-ups
 - **Tranche 2 — containers**: backend and web Dockerfiles, `docker-compose.prod.yml`,
@@ -239,8 +264,8 @@ Breaking this rule — even "just one real class to try" — means doing F1b fir
   domain, DNS, SSH/firewall hardening, `scripts/env/deploy.sh`, `snapshot.sh` /
   `restore.sh` / `reset.sh`, nightly snapshot, one dated restore, Anthropic
   spending cap.
-- **F1b — public launch** (separate issue): recette/production, deploy on merge,
-  dashboard (availability, 5xx, tutor failures, daily cost), bounded log retention
+- **F1b — public launch** (separate issue): recette/production, deploy on merge
+  for those (the private environment has it, §10), dashboard (availability, 5xx, tutor failures, daily cost), bounded log retention
   with truncated IPs, Anthropic DPA + privacy policy, real SMTP provider, removal
   of the HTTP password.
 

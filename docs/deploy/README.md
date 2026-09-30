@@ -238,6 +238,54 @@ Check the second account is gone and the first one still logs in. Then record it
 [`restaurations.md`](restaurations.md) (date, snapshot, what was checked, result)
 and in a comment on issue #154.
 
+## 12. Automatic deploys 🖥 → 🌐
+
+Once this is in place, every merge into `develop` whose CI passes is deployed by
+`.github/workflows/deploy.yml` (ADR 0024 §10): a GitHub runner opens an SSH
+connection to the VPS with a dedicated key, and the VPS runs `deploy.sh` for that
+key — and nothing else, whatever the connection asks for.
+
+**The key.** Generate it on the Mac and authorise it on the VPS, bound to the
+deploy script (`restrict` also denies a terminal and every kind of forwarding):
+
+```sh
+ssh-keygen -t ed25519 -f ~/.ssh/brio_ci -N "" -C "brio-ci-deploy"
+{ printf 'restrict,command="$HOME/brio/scripts/env/deploy.sh" '; cat ~/.ssh/brio_ci.pub; } \
+  | ssh brio 'cat >> ~/.ssh/authorized_keys'
+```
+
+**The GitHub environment.** The secrets live in an environment named `prive`, not
+at repository level. From the clone on the Mac:
+
+```sh
+gh api -X PUT repos/BrioOrg/brio/environments/prive
+gh secret set DEPLOY_SSH_KEY --env prive < ~/.ssh/brio_ci
+gh secret set DEPLOY_HOST --env prive --body "<domain>"
+ssh-keygen -F <domain> | grep -v '^#' | gh secret set DEPLOY_KNOWN_HOSTS --env prive
+```
+
+The last line hands GitHub the server fingerprint your Mac already trusts, so the
+runner refuses to talk to any other machine. 🌐 Then GitHub → *Settings* →
+*Environments* → `prive` → *Deployment branches and tags* → *Selected branches and
+tags* → add `develop`: no other branch can read the secrets.
+
+**Check the key is locked.** Ask for something else than a deploy:
+
+```sh
+ssh -i ~/.ssh/brio_ci -o IdentitiesOnly=yes ubuntu@<domain> whoami
+```
+
+It must run a deploy (`→ Updating develop` … `✓ Deployed`) and never print
+`ubuntu`. Then remove the Mac's copy — GitHub holds the only one needed:
+
+```sh
+rm ~/.ssh/brio_ci ~/.ssh/brio_ci.pub
+```
+
+**Check the workflow.** 🌐 GitHub → *Actions* → *Deploy* → *Run workflow*. The run
+ends with `✓ Deployed <commit> on https://***` (the domain is a secret, so GitHub
+masks it: the repository and its logs are public).
+
 ---
 
 ## Day-to-day operations ☁
@@ -246,7 +294,7 @@ All commands run from `~/brio`.
 
 | Task | Command |
 |---|---|
-| Deploy the latest `develop` | `scripts/env/deploy.sh` |
+| Deploy the latest `develop` | automatic after each merge (step 12); by hand: `scripts/env/deploy.sh`, or 🌐 *Actions* → *Deploy* → *Run workflow* |
 | Reload the catalogue after content changes | `docker compose -f docker-compose.prod.yml --env-file deploy/.env --profile ingest run --rm ingest` |
 | Named snapshot before a risky test | `scripts/env/snapshot.sh <name>` |
 | List snapshots | `scripts/env/snapshot.sh --list` |
@@ -258,6 +306,16 @@ All commands run from `~/brio`.
 - `restore.sh` and `reset.sh` snapshot the current database first (`pre-restore-…`,
   `pre-reset-…`), ask you to type the domain back, and refuse unless
   `BRIO_RESET_ALLOWED=true` is in `deploy/.env`.
+- A merge into `develop` is live about 10 to 15 minutes later: CI first, then the
+  build on the VPS. Follow it in 🌐 *Actions* → *Deploy*. Content changes still
+  need the catalogue reload above: it is never automatic.
+- `deploy.sh` snapshots the database first (`pre-deploy-…`, last 5 kept) and does
+  nothing if that dump fails.
+- `deploy.sh`, `restore.sh` and `reset.sh` never run at the same time. A deploy
+  waits up to 15 minutes for the other to finish; a restore or a reset refuses
+  while a deploy is running.
+- To pause automatic deploys: 🌐 *Actions* → *Deploy* → *…* → *Disable workflow*.
+  To end them, also delete the `brio-ci-deploy` line from `~/.ssh/authorized_keys`.
 - Nightly snapshots (03:00) keep the last 7. Named snapshots are never deleted
   automatically: remove old ones from `/var/backups/brio` yourself.
 - Dumps live on the VPS. Losing the VPS loses them; only OVH's automated backup
@@ -295,6 +353,18 @@ Everyone types their password once more.
 - **`deploy.sh`: "The clone has local changes".** Something was edited on the
   server. Changes belong in a PR; inspect them with `git status` / `git diff`, then
   discard them with `git checkout -- .`.
+- **The *Deploy* run is red.** Its log is the output of `deploy.sh`: read the last
+  lines. The stack keeps serving the previous version unless the failure is after
+  `→ Restarting services`. Fix the cause, then *Re-run jobs* (or merge the fix).
+  - `Permission denied (publickey)` or `Host key verification failed`: the secrets
+    of step 12 no longer match the server (reinstalled VPS, key line removed).
+    Redo step 12.
+  - `The backend does not answer`: usually a migration that failed on start —
+    `docker compose … logs backend`. Revert the change with a PR; if the database
+    was altered, restore the snapshot taken just before:
+    `scripts/env/restore.sh pre-deploy-<timestamp>.dump` (`snapshot.sh --list`).
+  - A run cancelled while waiting is normal: only the newest waiting deploy is
+    kept, and it deploys everything merged so far.
 - **Build killed / very slow.** Out of memory: check `free -h`. Stop the stack
   during the build (`docker compose … stop web backend`) or move to a plan with
   more RAM.
