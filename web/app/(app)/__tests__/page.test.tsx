@@ -10,6 +10,18 @@ vi.mock('next/headers', () => ({
   cookies: async () => ({ toString: () => 'JSESSIONID=abc' }),
 }))
 
+// The real redirect() throws to stop rendering; mirror that so the page stops too.
+const redirect = vi.fn((url: string) => {
+  throw new Error(`REDIRECT:${url}`)
+})
+vi.mock('next/navigation', () => ({ redirect: (url: string) => redirect(url) }))
+
+function stubMoi(status: number) {
+  const fetchMock = vi.fn().mockResolvedValue({ ok: status === 200, status })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
 const COURS = {
   id: 'c-1',
   titre: 'Pythagore en pratique',
@@ -44,6 +56,25 @@ describe('HomePage', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.resetAllMocks()
+    redirect.mockImplementation((url: string) => {
+      throw new Error(`REDIRECT:${url}`)
+    })
+    stubMoi(200)
+  })
+
+  it('redirige vers /connexion quand la session n’est plus valide', async () => {
+    const { getCatalogue, getCoursVisibles } = await import('@/lib/api')
+    const fetchMock = stubMoi(401)
+
+    const { default: Page } = await import('../page')
+    await expect(Page()).rejects.toThrow('REDIRECT:/connexion?from=/')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/moi'),
+      expect.objectContaining({ headers: { cookie: 'JSESSIONID=abc' } })
+    )
+    expect(getCatalogue).not.toHaveBeenCalled()
+    expect(getCoursVisibles).not.toHaveBeenCalled()
   })
 
   it('affiche le titre et un lien vers le niveau 3e', async () => {
@@ -95,7 +126,7 @@ describe('HomePage', () => {
 
   it.each([
     ['aucun cours', () => Promise.resolve([])],
-    ['pas de session (401)', () => Promise.reject(new Error('Cours indisponibles'))],
+    ['une erreur du backend', () => Promise.reject(new Error('Cours indisponibles'))],
   ])('n’affiche pas la section quand il y a %s', async (_cas, reponse) => {
     const { getCatalogue, getCoursVisibles } = await import('@/lib/api')
     vi.mocked(getCatalogue).mockResolvedValue(FIXTURE_CATALOGUE)

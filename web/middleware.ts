@@ -3,18 +3,24 @@ import type { NextRequest } from 'next/server'
 
 /**
  * Routes that require a live session. Add a prefix here whenever a new
- * protected page is created. Everything else (catalogue, connexion, consent,
- * home) is public — the backend enforces auth on individual API calls.
+ * protected page is created. Everything else (catalogue, connexion, consent)
+ * is public — the backend enforces auth on individual API calls.
  *
  * The middleware is a UX guard, not a security boundary. Spring Security is
  * the enforcement point; this just avoids showing a broken page.
  */
 const PROTECTED_PREFIXES = ['/ma-classe', '/profil', '/tableau-de-bord', '/enseignant', '/prof']
 
+/** Protected routes matched exactly: as a prefix, `/` would cover the whole site. */
+const PROTECTED_PATHS = ['/']
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (!PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+  if (
+    !PROTECTED_PATHS.includes(pathname) &&
+    !PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  ) {
     return NextResponse.next()
   }
 
