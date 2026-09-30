@@ -56,11 +56,12 @@ describe('session client', () => {
 
   it('does not re-prime when an XSRF-TOKEN cookie already exists', async () => {
     document.cookie = 'XSRF-TOKEN=existing'
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify(COMPTE), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify(COMPTE), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
     )
     vi.stubGlobal('fetch', fetchMock)
 
@@ -77,10 +78,11 @@ describe('session client', () => {
     document.cookie = 'XSRF-TOKEN=tok'
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(JSON.stringify({ error: 'Identifiant ou mot de passe incorrect' }), {
-          status: 401,
-        })
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: 'Identifiant ou mot de passe incorrect' }), {
+            status: 401,
+          })
       )
     )
 
@@ -92,8 +94,61 @@ describe('session client', () => {
     await expect(login('prof.test', 'faux')).rejects.toBeInstanceOf(LoginError)
   })
 
+  it('logout sends a DELETE with the CSRF token', async () => {
+    document.cookie = 'XSRF-TOKEN=tok'
+    const calls: Array<[string, RequestInit | undefined]> = []
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push([url, init])
+      return new Response(null, { status: 204 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { logout } = await import('@/lib/session')
+    await expect(logout()).resolves.toBeUndefined()
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = calls[0]
+    expect(url.endsWith('/api/sessions')).toBe(true)
+    expect(init?.method).toBe('DELETE')
+    expect(init?.credentials).toBe('include')
+    expect(new Headers(init?.headers).get('X-XSRF-TOKEN')).toBe('tok')
+  })
+
+  it('logout primes the CSRF cookie when it is missing', async () => {
+    const calls: Array<[string, RequestInit | undefined]> = []
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      calls.push([url, init])
+      if (url.endsWith('/api/moi')) {
+        document.cookie = 'XSRF-TOKEN=primed'
+        return new Response(null, { status: 200 })
+      }
+      return new Response(null, { status: 204 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { logout } = await import('@/lib/session')
+    await logout()
+
+    const del = calls.find(([u]) => u.endsWith('/api/sessions'))!
+    expect(new Headers(del[1]?.headers).get('X-XSRF-TOKEN')).toBe('primed')
+  })
+
+  it('logout throws LogoutError when the backend refuses, the session being still open', async () => {
+    document.cookie = 'XSRF-TOKEN=stale'
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 403 }))
+    )
+
+    const { logout } = await import('@/lib/session')
+    await expect(logout()).rejects.toMatchObject({ name: 'LogoutError', status: 403 })
+  })
+
   it('getMoi returns null when unauthenticated', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 401 }))
+    )
     const { getMoi } = await import('@/lib/session')
     expect(await getMoi()).toBeNull()
   })

@@ -1,6 +1,6 @@
 export { createApiClient } from './client.js'
 export type { paths, components, operations } from './generated/schema.js'
-export { login, logout, getMoi, LoginError, CompteInfoSchema } from './session.js'
+export { login, logout, getMoi, LoginError, LogoutError, CompteInfoSchema } from './session.js'
 export type { CompteInfo } from './session.js'
 export { ensureCsrfToken, csrfHeaders, readXsrfToken } from './csrf.js'
 export { rejoindreClasse, RejoindreError, EleveInscritInfoSchema } from './enrollment.js'

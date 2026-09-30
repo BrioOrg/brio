@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ensureCsrfToken, csrfHeaders, readXsrfToken } from './csrf.js'
+import { ensureCsrfToken, csrfHeaders } from './csrf.js'
 
 /**
  * Session (authentication) client — manual Zod wrapper.
@@ -12,7 +12,7 @@ import { ensureCsrfToken, csrfHeaders, readXsrfToken } from './csrf.js'
  * Backend contract (fr.brio.identite / fr.brio.system.web.SecurityConfig):
  *   POST   /api/sessions   form-encoded `identifiant` + `mot_de_passe`
  *                          200 -> CompteInfo · 401 -> { error }
- *   DELETE /api/sessions   204
+ *   DELETE /api/sessions   204 (with or without a session) · 403 without a CSRF token
  *   GET    /api/moi        200 -> CompteInfo · 401 when no session
  *
  * CSRF: the backend uses CookieCsrfTokenRepository (XSRF-TOKEN cookie, readable
@@ -77,14 +77,28 @@ export async function login(
   return CompteInfoSchema.parse(await res.json())
 }
 
-/** End the current session. Idempotent from the caller's point of view. */
+/** Thrown when logout fails: the session is still open on the server. */
+export class LogoutError extends Error {
+  constructor(readonly status: number) {
+    super('La déconnexion a échoué.')
+    this.name = 'LogoutError'
+  }
+}
+
+/**
+ * End the current session. Idempotent: the backend answers 204 even when the
+ * session already expired. Throws LogoutError on any other status — notably a
+ * 403 for a missing or stale CSRF token, where the session is still open and the
+ * caller must not tell the user otherwise.
+ */
 export async function logout(baseUrl: string): Promise<void> {
-  const token = readXsrfToken()
-  await fetch(`${baseUrl}/api/sessions`, {
+  const token = await ensureCsrfToken(baseUrl)
+  const res = await fetch(`${baseUrl}/api/sessions`, {
     method: 'DELETE',
     credentials: 'include',
     headers: csrfHeaders(token),
   })
+  if (!res.ok) throw new LogoutError(res.status)
 }
 
 /** Return the currently authenticated account, or null when not logged in. */
