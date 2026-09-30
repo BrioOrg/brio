@@ -5,6 +5,7 @@ import { Panel } from '@/components/ui/panel'
 import { OptionRow } from '@/components/ui/option-row'
 import { ProgressBar } from '@/components/ui/progress-bar'
 import { Chip } from '@/components/ui/chip'
+import { SelectInput } from '@/components/ui/select-input'
 import { TextInput } from '@/components/ui/text-input'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton, SkeletonText } from '@/components/ui/skeleton'
@@ -388,6 +389,16 @@ export default function DesignPage() {
               defaultValue="360 degrés"
               error="Ce n'est pas la bonne valeur — relis la définition."
             />
+          </div>
+        </Section>
+
+        {/* ── Select ────────────────────────────────────────────────────────── */}
+        <Section title="Liste de choix">
+          <div className="flex flex-col gap-4 max-w-sm">
+            <SelectInput label="Votre établissement" defaultValue="">
+              <option value="">Choisir…</option>
+              <option value="a">Collège pilote</option>
+            </SelectInput>
           </div>
         </Section>
 

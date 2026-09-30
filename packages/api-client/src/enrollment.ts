@@ -7,9 +7,10 @@ import type { CompteInfo } from './session.js'
  *
  * Chemin A — POST /api/classes/rejoindre (ClasseController).
  * Chemin B — POST /api/comptes/eleve   (InscriptionController).
- * Enseignant — POST /api/comptes       (InscriptionController).
+ * Enseignant — POST /api/comptes       (InscriptionController),
+ *              GET  /api/etablissements (the établissements to pick from).
  *
- * All three endpoints are public and CSRF-exempt (account creation, no prior session).
+ * All of these endpoints are public and CSRF-exempt (account creation, no prior session).
  */
 
 /**
@@ -101,10 +102,27 @@ export async function inscrireEleve(
 
 // ── Enseignant — active at once, logs in with the e-mail ────────────────────
 
+/** What anyone may know of an établissement: enough to pick it in a list (ADR 0029 §1). */
+export const EtablissementPublicSchema = z.object({
+  id: z.string(),
+  nom: z.string(),
+  type: z.string(), // 'college' | 'lycee'
+})
+export type EtablissementPublic = z.infer<typeof EtablissementPublicSchema>
+
+/** Every établissement a teacher may pick at signup. Public, no session. */
+export async function listerEtablissements(baseUrl: string): Promise<EtablissementPublic[]> {
+  const res = await fetch(`${baseUrl}/api/etablissements`, { cache: 'no-store' })
+  if (!res.ok) throw new Error('Établissements indisponibles')
+  return z.array(EtablissementPublicSchema).parse(await res.json())
+}
+
 export type InscrireEnseignantInput = {
   nom: string
   email: string
   motDePasse: string
+  /** An existing établissement: a teacher picks one, never creates it. */
+  etablissementId: string
 }
 
 export class InscrireEnseignantError extends Error {

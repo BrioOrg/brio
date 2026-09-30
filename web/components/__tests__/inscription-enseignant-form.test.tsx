@@ -24,16 +24,22 @@ const COMPTE = {
   email: 'durand@exemple.fr',
 }
 
-async function setup() {
+const ETABLISSEMENTS = [
+  { id: 'etab-1', nom: 'Collège pilote', type: 'college' },
+  { id: 'etab-2', nom: 'Lycée Voisin', type: 'lycee' },
+]
+
+async function setup(etablissements = ETABLISSEMENTS) {
   const { inscrireEnseignant } = await import('@/lib/enrollment')
   const { InscriptionEnseignantForm } = await import('../inscription-enseignant-form')
-  render(<InscriptionEnseignantForm />)
+  render(<InscriptionEnseignantForm etablissements={etablissements} />)
   return { inscrireEnseignant: vi.mocked(inscrireEnseignant) }
 }
 
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/votre nom/i), 'Mme Durand')
   await user.type(screen.getByLabelText(/votre e-mail/i), 'durand@exemple.fr')
+  await user.selectOptions(screen.getByLabelText(/votre établissement/i), 'Lycée Voisin')
   await user.type(screen.getByLabelText(/mot de passe/i), 'motdepasse1')
 }
 
@@ -63,7 +69,32 @@ describe('InscriptionEnseignantForm', () => {
       nom: 'Mme Durand',
       email: 'durand@exemple.fr',
       motDePasse: 'motdepasse1',
+      etablissementId: 'etab-2',
     })
+  })
+
+  it('demande de choisir un établissement avant d’appeler l’API', async () => {
+    const { inscrireEnseignant } = await setup()
+    const user = userEvent.setup()
+
+    await user.type(screen.getByLabelText(/votre nom/i), 'Mme Durand')
+    await user.type(screen.getByLabelText(/votre e-mail/i), 'durand@exemple.fr')
+    await user.type(screen.getByLabelText(/mot de passe/i), 'motdepasse1')
+    await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/choisissez votre établissement/i)
+    expect(inscrireEnseignant).not.toHaveBeenCalled()
+  })
+
+  it('présélectionne l’établissement quand il n’y en a qu’un', async () => {
+    await setup([ETABLISSEMENTS[0]])
+    expect(screen.getByLabelText(/votre établissement/i)).toHaveValue('etab-1')
+  })
+
+  it('n’offre pas de formulaire quand aucun établissement n’existe', async () => {
+    await setup([])
+    expect(screen.getByRole('status')).toHaveTextContent(/aucun établissement/i)
+    expect(screen.queryByRole('button', { name: /créer mon compte/i })).not.toBeInTheDocument()
   })
 
   it('refuse un mot de passe trop court sans appeler l’API', async () => {
@@ -72,6 +103,7 @@ describe('InscriptionEnseignantForm', () => {
 
     await user.type(screen.getByLabelText(/votre nom/i), 'Mme Durand')
     await user.type(screen.getByLabelText(/votre e-mail/i), 'durand@exemple.fr')
+    await user.selectOptions(screen.getByLabelText(/votre établissement/i), 'Collège pilote')
     await user.type(screen.getByLabelText(/mot de passe/i), 'court')
     await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
 

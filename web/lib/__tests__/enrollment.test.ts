@@ -135,6 +135,7 @@ describe('enrollment client', () => {
       nom: 'Mme Durand',
       email: 'durand@exemple.fr',
       motDePasse: 'motdepasse1',
+      etablissementId: 'etab-1',
     })
 
     expect(compte).toEqual(COMPTE)
@@ -145,6 +146,7 @@ describe('enrollment client', () => {
       nom: 'Mme Durand',
       email: 'durand@exemple.fr',
       motDePasse: 'motdepasse1',
+      etablissementId: 'etab-1',
     })
   })
 
@@ -158,7 +160,30 @@ describe('enrollment client', () => {
 
     const { inscrireEnseignant } = await import('@/lib/enrollment')
     await expect(
-      inscrireEnseignant({ nom: 'X', email: 'x@y.fr', motDePasse: 'motdepasse1' })
+      inscrireEnseignant({
+        nom: 'X',
+        email: 'x@y.fr',
+        motDePasse: 'motdepasse1',
+        etablissementId: 'etab-1',
+      })
     ).rejects.toMatchObject({ name: 'InscrireEnseignantError', status: 409 })
+  })
+
+  it('lists the établissements a teacher may pick, without a session', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify([{ id: 'etab-1', nom: 'Collège pilote', type: 'college' }]), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { listerEtablissements } = await import('@/lib/enrollment')
+    expect(await listerEtablissements()).toEqual([
+      { id: 'etab-1', nom: 'Collège pilote', type: 'college' },
+    ])
+    const [url] = fetchMock.mock.calls[0] as unknown as [string]
+    expect(url).toMatch(/\/api\/etablissements$/)
   })
 })

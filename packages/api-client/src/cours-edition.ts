@@ -25,6 +25,8 @@ export type EnregistrerCoursInput = {
 export type CreerCoursInput = EnregistrerCoursInput & {
   niveauCode: string
   matiereCode: string
+  /** Only needed when the teacher is attached to several établissements (ADR 0029 §4). */
+  etablissementId?: string
 }
 
 /** A failed authoring call. `status` lets a caller branch; `message` is ready-to-show French copy. */
@@ -79,7 +81,7 @@ export async function getCoursBrouillon(baseUrl: string, coursId: string): Promi
   return data
 }
 
-/** Create a draft; returns its server id. Author + établissement are derived server-side. */
+/** Create a draft; returns its server id. The author is derived server-side. */
 export async function creerCours(baseUrl: string, input: CreerCoursInput): Promise<string> {
   const client = createApiClient(baseUrl)
   const headers = csrfHeaders(await ensureCsrfToken(baseUrl))
