@@ -71,7 +71,10 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/classes/rejoindre").permitAll()
                 // Teacher course authoring (create/save/scope/publish): ENSEIGNANT only.
                 .requestMatchers("/api/prof/**").hasRole("ENSEIGNANT")
-                // Class and établissement management: ADMIN_BRIO only
+                // The signup pick-list of établissements: names and types only (ADR 0029 §1).
+                .requestMatchers(HttpMethod.GET, "/api/etablissements").permitAll()
+                // Établissement creation and class administration: ADMIN_BRIO only. Teachers
+                // create their own classes and codes under /api/prof/** above.
                 .requestMatchers(HttpMethod.POST, "/api/etablissements").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.PUT, "/api/classes/*/enseignant-principal").hasRole("ADMIN_BRIO")

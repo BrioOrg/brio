@@ -8,6 +8,7 @@ vi.mock('@brio/api-client', async () => {
   return {
     ...actual,
     listerMesCours: vi.fn(),
+    listerMesClasses: vi.fn(),
     creerCours: vi.fn(),
   }
 })
@@ -22,10 +23,18 @@ async function mockCours() {
   return vi.mocked(listerMesCours)
 }
 
+async function mockClasses() {
+  const { listerMesClasses } = await import('@brio/api-client')
+  return vi.mocked(listerMesClasses)
+}
+
+const CLASSE = { id: 'cl1', etablissementId: 'e1', libelle: '4e B', niveauCode: '4e' }
+
 describe('MesCours', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
     window.localStorage.clear()
+    ;(await mockClasses()).mockResolvedValue([CLASSE])
   })
 
   it('liste les cours renvoyés par le serveur', async () => {
@@ -48,5 +57,24 @@ describe('MesCours', () => {
     ;(await mockCours()).mockResolvedValue([])
     await renderMesCours()
     expect(await screen.findByText(/Aucun cours pour l’instant/)).toBeInTheDocument()
+  })
+
+  it('guide un enseignant sans classe vers la création de sa classe', async () => {
+    ;(await mockCours()).mockResolvedValue([])
+    ;(await mockClasses()).mockResolvedValue([])
+    await renderMesCours()
+    expect(await screen.findByText(/Commencez par créer votre classe/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Créer ma classe/ })).toHaveAttribute(
+      'href',
+      '/prof/classes'
+    )
+  })
+
+  it('ne montre pas ce guide à un enseignant qui a une classe, ni si l’appel échoue', async () => {
+    ;(await mockCours()).mockResolvedValue([])
+    ;(await mockClasses()).mockRejectedValue(new Error('réseau'))
+    await renderMesCours()
+    expect(await screen.findByText(/Aucun cours pour l’instant/)).toBeInTheDocument()
+    expect(screen.queryByText(/Commencez par créer votre classe/)).not.toBeInTheDocument()
   })
 })

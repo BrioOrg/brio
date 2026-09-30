@@ -68,14 +68,21 @@ export function DevoirsProf() {
         {!donnees && !erreur && <p className="text-ink-muted">Chargement…</p>}
 
         {donnees?.length === 0 && (
-          <p className="text-ink-muted">Tu n’as pas encore de classe.</p>
+          <p className="text-ink-muted">
+            Tu n’as pas encore de classe.{' '}
+            <Link href="/prof/classes" className="font-bold text-accent-ink hover:text-accent">
+              Créer ma classe
+            </Link>
+          </p>
         )}
 
         {donnees?.map(({ classe, devoirs }) => (
           <section key={classe.id} className="mb-8">
             <h2 className="mb-2 font-display text-sm font-extrabold text-ink">
               {classe.libelle}{' '}
-              <span className="font-prose text-xs font-normal text-ink-muted">({classe.niveauCode})</span>
+              <span className="font-prose text-xs font-normal text-ink-muted">
+                ({classe.niveauCode})
+              </span>
             </h2>
             {devoirs.length === 0 ? (
               <p className="rounded-lg border border-dashed border-line px-4 py-3 text-sm text-ink-muted">
@@ -94,11 +101,16 @@ export function DevoirsProf() {
                           {d.titre}
                         </span>
                         <span className="block text-xs text-ink-muted">
-                          {d.nombreExercices} exercice{d.nombreExercices > 1 ? 's' : ''} · à rendre le{' '}
-                          {formatDate(d.echeanceAt)}
+                          {d.nombreExercices} exercice{d.nombreExercices > 1 ? 's' : ''} · à rendre
+                          le {formatDate(d.echeanceAt)}
                         </span>
                       </span>
-                      <Icon name="arrow-right" size={16} className="text-ink-muted" aria-hidden="true" />
+                      <Icon
+                        name="arrow-right"
+                        size={16}
+                        className="text-ink-muted"
+                        aria-hidden="true"
+                      />
                     </Link>
                   </li>
                 ))}

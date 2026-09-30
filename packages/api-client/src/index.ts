@@ -11,8 +11,13 @@ export {
   InscriptionEleveEnAttenteInfoSchema,
 } from './enrollment.js'
 export type { InscriptionEleveEnAttenteInfo, InscrireEleveInput } from './enrollment.js'
-export { inscrireEnseignant, InscrireEnseignantError } from './enrollment.js'
-export type { InscrireEnseignantInput } from './enrollment.js'
+export {
+  inscrireEnseignant,
+  InscrireEnseignantError,
+  listerEtablissements,
+  EtablissementPublicSchema,
+} from './enrollment.js'
+export type { InscrireEnseignantInput, EtablissementPublic } from './enrollment.js'
 export {
   getProgression,
   ProgressionInfoSchema,
@@ -39,8 +44,26 @@ export type {
   CreerCoursInput,
   EnregistrerCoursInput,
 } from './cours-edition.js'
-export { listerMesClasses } from './prof-classes.js'
-export type { ClasseInfo } from './prof-classes.js'
+export {
+  listerMesClasses,
+  listerMesEtablissements,
+  rattacherEtablissement,
+  creerMaClasse,
+  genererCodeClasse,
+  getCodeClasse,
+  listerInscrits,
+  renommerEleve,
+  CodeClasseCreeeSchema,
+  CodeClasseInfoSchema,
+  InscriptionInfoSchema,
+} from './prof-classes.js'
+export type {
+  ClasseInfo,
+  CodeClasseCreee,
+  CodeClasseInfo,
+  InscriptionInfo,
+  CreerMaClasseInput,
+} from './prof-classes.js'
 export {
   creerDevoir,
   listerDevoirsClasse,

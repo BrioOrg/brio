@@ -16,6 +16,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class ClasseService {
     private final CodeClasseRepository codesClasses;
     private final InscriptionRepository inscriptions;
     private final CompteRepository comptes;
+    private final RattachementRepository rattachements;
     private final PasswordEncoder passwordEncoder;
     private final IdentifiantGenerator identifiantGenerator;
 
@@ -45,6 +47,7 @@ public class ClasseService {
                          CodeClasseRepository codesClasses,
                          InscriptionRepository inscriptions,
                          CompteRepository comptes,
+                         RattachementRepository rattachements,
                          PasswordEncoder passwordEncoder,
                          IdentifiantGenerator identifiantGenerator) {
         this.etablissements = etablissements;
@@ -52,6 +55,7 @@ public class ClasseService {
         this.codesClasses = codesClasses;
         this.inscriptions = inscriptions;
         this.comptes = comptes;
+        this.rattachements = rattachements;
         this.passwordEncoder = passwordEncoder;
         this.identifiantGenerator = identifiantGenerator;
     }
@@ -74,6 +78,7 @@ public class ClasseService {
                         "Établissement introuvable"));
         if (enseignantPrincipalId != null) {
             verifierEstEnseignant(enseignantPrincipalId);
+            assurerRattachement(enseignantPrincipalId, etablissementId);
         }
         Classe classe = classes.save(
                 Classe.creer(etablissementId, niveauCode, libelle, anneeScolaire, enseignantPrincipalId));
@@ -93,8 +98,83 @@ public class ClasseService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Classe introuvable"));
         verifierEstEnseignant(enseignantId);
+        assurerRattachement(enseignantId, classe.getEtablissementId());
         classe.assignerEnseignantPrincipal(enseignantId);
         return toClasseInfo(classes.save(classe));
+    }
+
+    /** Every établissement, as the public pick-list of the teacher signup (ADR 0029 §1). */
+    @Transactional(readOnly = true)
+    public List<EtablissementPublicInfo> listerEtablissements() {
+        return toPublicInfos(etablissements.findAll());
+    }
+
+    /** The établissements the given teacher is attached to. Never {@code null}. */
+    @Transactional(readOnly = true)
+    public List<EtablissementPublicInfo> etablissementsDeLEnseignant(UUID enseignantId) {
+        List<UUID> ids = rattachements.findByIdCompteId(enseignantId).stream()
+                .map(r -> r.getId().etablissementId())
+                .toList();
+        return toPublicInfos(etablissements.findAllById(ids));
+    }
+
+    /**
+     * Attaches the teacher to one more établissement — a replacement teacher serves several
+     * (ADR 0029 §2). Attaching twice is a no-op.
+     *
+     * @throws ResponseStatusException 404 if the établissement is unknown
+     */
+    @Transactional
+    public EtablissementPublicInfo rattacher(UUID enseignantId, UUID etablissementId) {
+        Etablissement etab = etablissements.findById(etablissementId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Établissement introuvable"));
+        assurerRattachement(enseignantId, etablissementId);
+        return toPublicInfo(etab);
+    }
+
+    /**
+     * A teacher creates their own class, in one of their établissements, and becomes its
+     * principal teacher. The school year is the current one (ADR 0029 §3).
+     *
+     * @throws ResponseStatusException 403 if the teacher is not attached to the établissement
+     */
+    @Transactional
+    public ClasseInfo creerClassePourEnseignant(UUID enseignantId, UUID etablissementId,
+                                                 String niveauCode, String libelle) {
+        if (!rattachements.existsById(new RattachementId(enseignantId, etablissementId))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Vous n'êtes pas rattaché à cet établissement");
+        }
+        Classe classe = classes.save(Classe.creer(etablissementId, niveauCode.trim(),
+                libelle.trim(), AnneeScolaire.du(LocalDate.now()), enseignantId));
+        return toClasseInfo(classe);
+    }
+
+    /**
+     * A teacher generates the code of a class they are the principal of, with the default
+     * lifetime and usage cap (ADR 0029 §3, amending ADR 0018 §6).
+     *
+     * @throws ResponseStatusException 404 if the class is unknown
+     * @throws ResponseStatusException 403 if the caller is not its principal teacher
+     */
+    @Transactional
+    public CodeClasseCreee genererCodePourEnseignant(UUID classeId, UUID enseignantId) {
+        Classe classe = classes.findById(classeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Classe introuvable"));
+        if (!enseignantId.equals(classe.getEnseignantPrincipalId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return genererCode(classeId, enseignantId, DEFAULT_TTL_JOURS, DEFAULT_USAGES_MAX);
+    }
+
+    // A principal teacher always belongs to the class's établissement.
+    private void assurerRattachement(UUID enseignantId, UUID etablissementId) {
+        var id = new RattachementId(enseignantId, etablissementId);
+        if (!rattachements.existsById(id)) {
+            rattachements.save(Rattachement.creer(enseignantId, etablissementId));
+        }
     }
 
     private void verifierEstEnseignant(UUID compteId) {
@@ -299,6 +379,17 @@ public class ClasseService {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 unavailable", e);
         }
+    }
+
+    private static List<EtablissementPublicInfo> toPublicInfos(List<Etablissement> etabs) {
+        return etabs.stream()
+                .sorted(Comparator.comparing(Etablissement::getNom, String.CASE_INSENSITIVE_ORDER))
+                .map(ClasseService::toPublicInfo)
+                .toList();
+    }
+
+    private static EtablissementPublicInfo toPublicInfo(Etablissement e) {
+        return new EtablissementPublicInfo(e.getId(), e.getNom(), e.getType());
     }
 
     private static EtablissementInfo toEtabInfo(Etablissement e) {

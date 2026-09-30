@@ -47,6 +47,7 @@ class ProfCoursControllerIntegrationTest {
 
     MockMvc mockMvc;
 
+    private UUID etablissementId;
     private UUID teacher;
     private ClasseInfo classeA;
 
@@ -56,6 +57,7 @@ class ProfCoursControllerIntegrationTest {
 
         var etab = classeService.creerEtablissement(
                 "Collège Test", null, "college", LocalDate.now().minusYears(1), "CONV-2025");
+        etablissementId = etab.id();
         classeA = classeService.creerClasse(etab.id(), "3e", "3e A", "2025-2026", null);
 
         // A real, active teacher account — StatutCheckFilter re-checks statut on every request.
@@ -66,7 +68,7 @@ class ProfCoursControllerIntegrationTest {
     private UUID creerEnseignant() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         return compteService.creerEnseignant(
-                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
+                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr", etablissementId).id();
     }
 
     @Test
@@ -163,12 +165,38 @@ class ProfCoursControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturn422WhenTeacherHasNoClass() throws Exception {
+    void shouldLetATeacherWithoutAClassStartACourseInTheirEtablissement() throws Exception {
         UUID teacherWithoutClass = creerEnseignant();
         mockMvc.perform(post("/api/prof/cours").with(user(teacherWithoutClass.toString()).roles("ENSEIGNANT"))
                         .with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content(creerBody()))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldAskWhichEtablissementWhenTheTeacherHasSeveral() throws Exception {
+        UUID second = classeService.creerEtablissement("Lycée Voisin", null, "lycee", null, null).id();
+        classeService.rattacher(teacher, second);
+
+        mockMvc.perform(post("/api/prof/cours").with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(creerBody()))
                 .andExpect(status().isUnprocessableEntity());
+
+        mockMvc.perform(post("/api/prof/cours").with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(creerBody(second)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldRefuseACourseInAnEtablissementTheTeacherDoesNotBelongTo() throws Exception {
+        UUID etranger = classeService.creerEtablissement("Collège Ailleurs", null, "college", null, null).id();
+
+        mockMvc.perform(post("/api/prof/cours").with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(creerBody(etranger)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -199,6 +227,11 @@ class ProfCoursControllerIntegrationTest {
 
     private String creerBody() {
         return "{\"titre\":\"Pythagore\",\"niveauCode\":\"3e\",\"matiereCode\":\"mathematiques\"}";
+    }
+
+    private String creerBody(UUID etablissementId) {
+        return "{\"titre\":\"Pythagore\",\"niveauCode\":\"3e\",\"matiereCode\":\"mathematiques\","
+                + "\"etablissementId\":\"" + etablissementId + "\"}";
     }
 
     private JsonNode draftContent() throws Exception {

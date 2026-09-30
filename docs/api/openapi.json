@@ -27,6 +27,9 @@
     "name" : "Édition de cours",
     "description" : "Composition et publication de cours par un enseignant"
   }, {
+    "name" : "Classes de l'enseignant",
+    "description" : "Établissements et classes de l'enseignant connecté"
+  }, {
     "name" : "Annales",
     "description" : "Sujets d'examen : parcours, entraînement par compétence, mode examen (F7)"
   }, {
@@ -195,6 +198,65 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ClasseInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/etablissements" : {
+      "get" : {
+        "tags" : [ "Classes de l'enseignant" ],
+        "summary" : "Liste les établissements de l'enseignant connecté",
+        "operationId" : "mesEtablissements",
+        "responses" : {
+          "200" : {
+            "description" : "Établissements de l'enseignant",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EtablissementPublicInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Classes de l'enseignant" ],
+        "summary" : "Rattache l'enseignant connecté à un établissement supplémentaire",
+        "operationId" : "rattacher",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RattacherEtablissementRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Rattachement enregistré",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtablissementPublicInfo"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Établissement introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EtablissementPublicInfo"
                 }
               }
             }
@@ -411,7 +473,7 @@
       "post" : {
         "tags" : [ "Édition de cours" ],
         "summary" : "Crée un brouillon de cours",
-        "description" : "L'auteur et l'établissement sont déduits de l'enseignant connecté, jamais lus dans la requête. Le contenu est validé à la publication, pas ici.",
+        "description" : "L'auteur est l'enseignant connecté, jamais lu dans la requête. L'établissement est le sien ; s'il en a plusieurs, la requête précise lequel. Le contenu est validé à la publication, pas ici.",
         "operationId" : "creer_1",
         "requestBody" : {
           "content" : {
@@ -445,7 +507,7 @@
             }
           },
           "403" : {
-            "description" : "Réservé aux enseignants",
+            "description" : "Réservé aux enseignants, dans un de leurs établissements",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -455,7 +517,7 @@
             }
           },
           "422" : {
-            "description" : "L'enseignant n'a aucune classe : établissement indéterminé",
+            "description" : "Établissement indéterminé : aucun, ou plusieurs sans précision",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -519,6 +581,152 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/PublicationResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/classes" : {
+      "get" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Liste les classes de l'enseignant connecté",
+        "description" : "Les classes actives dont l'enseignant est le professeur principal — les seules auxquelles il peut porter un cours.",
+        "operationId" : "mesClasses",
+        "responses" : {
+          "200" : {
+            "description" : "Classes de l'enseignant",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseInfo"
+                  }
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Réservé aux enseignants",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Crée une classe pour l'enseignant connecté",
+        "description" : "L'enseignant en devient le professeur principal. L'année scolaire est calculée par le serveur.",
+        "operationId" : "creer_2",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreerMaClasseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Classe créée",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseInfo"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Champs invalides",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseInfo"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "L'enseignant n'est pas rattaché à cet établissement",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClasseInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/classes/{id}/code" : {
+      "post" : {
+        "tags" : [ "Édition de cours" ],
+        "summary" : "Génère le code d'une classe de l'enseignant connecté",
+        "description" : "Le code n'est renvoyé qu'une fois. Un nouveau code invalide le précédent.",
+        "operationId" : "genererCode",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Code généré",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeClasseCreee"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "La classe n'est pas celle de l'enseignant",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeClasseCreee"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Classe introuvable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CodeClasseCreee"
                 }
               }
             }
@@ -596,9 +804,28 @@
       }
     },
     "/api/etablissements" : {
+      "get" : {
+        "tags" : [ "etablissement-controller" ],
+        "operationId" : "lister",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EtablissementPublicInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post" : {
         "tags" : [ "etablissement-controller" ],
-        "operationId" : "creer_2",
+        "operationId" : "creer_3",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -863,7 +1090,7 @@
     "/api/classes" : {
       "post" : {
         "tags" : [ "classe-controller" ],
-        "operationId" : "creer_3",
+        "operationId" : "creer_4",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -891,7 +1118,7 @@
     "/api/classes/{id}/codes" : {
       "post" : {
         "tags" : [ "classe-controller" ],
-        "operationId" : "genererCode",
+        "operationId" : "genererCode_1",
         "parameters" : [ {
           "name" : "id",
           "in" : "path",
@@ -1441,55 +1668,6 @@
         }
       }
     },
-    "/api/prof/classes" : {
-      "get" : {
-        "tags" : [ "Édition de cours" ],
-        "summary" : "Liste les classes de l'enseignant connecté",
-        "description" : "Les classes actives dont l'enseignant est le professeur principal — les seules auxquelles il peut porter un cours.",
-        "operationId" : "mesClasses",
-        "responses" : {
-          "200" : {
-            "description" : "Classes de l'enseignant",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ClasseInfo"
-                  }
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ClasseInfo"
-                  }
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Réservé aux enseignants",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/ClasseInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/ping" : {
       "get" : {
         "tags" : [ "Système" ],
@@ -1916,7 +2094,7 @@
         "tags" : [ "Annales" ],
         "summary" : "Liste les annales",
         "description" : "Sujets d'examen, du plus récent au plus ancien. Filtres optionnels niveau/matière/année. Le sujet se lit via l'endpoint chapitre par triplet.",
-        "operationId" : "lister",
+        "operationId" : "lister_1",
         "parameters" : [ {
           "name" : "niveau",
           "in" : "query",
@@ -2108,6 +2286,31 @@
           }
         }
       },
+      "RattacherEtablissementRequest" : {
+        "type" : "object",
+        "properties" : {
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "etablissementId" ]
+      },
+      "EtablissementPublicInfo" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nom" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        }
+      },
       "CreerDevoirRequest" : {
         "type" : "object",
         "properties" : {
@@ -2185,6 +2388,10 @@
             "maxLength" : 64,
             "minLength" : 0
           },
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
           "content" : {
             "$ref" : "#/components/schemas/JsonNode"
           }
@@ -2208,6 +2415,50 @@
             "format" : "uuid"
           },
           "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "CreerMaClasseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "niveauCode" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          },
+          "libelle" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "etablissementId", "libelle", "niveauCode" ]
+      },
+      "CodeClasseCreee" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "expireAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "usages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "usagesMax" : {
             "type" : "integer",
             "format" : "int32"
           }
@@ -2389,9 +2640,13 @@
             "format" : "email",
             "maxLength" : 100,
             "minLength" : 0
+          },
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
           }
         },
-        "required" : [ "email", "motDePasse", "nom" ]
+        "required" : [ "email", "etablissementId", "motDePasse", "nom" ]
       },
       "CompteInfo" : {
         "type" : "object",
@@ -2494,30 +2749,6 @@
             "format" : "int32",
             "maximum" : 200,
             "minimum" : 1
-          }
-        }
-      },
-      "CodeClasseCreee" : {
-        "type" : "object",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "code" : {
-            "type" : "string"
-          },
-          "expireAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "usages" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "usagesMax" : {
-            "type" : "integer",
-            "format" : "int32"
           }
         }
       },

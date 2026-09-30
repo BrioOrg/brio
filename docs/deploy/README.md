@@ -199,6 +199,9 @@ Fill in every value (the comments in the file explain each one):
 - `POSTGRES_PASSWORD`: `openssl rand -base64 32`.
 - `BRIO_IA_API_KEY`: the key from step 7.
 - Leave the SMTP values (Mailpit) and `BRIO_RESET_ALLOWED=true` as they are.
+- `BRIO_ETABLISSEMENT_PILOTE_NOM`: the name of the fictional établissement teachers
+  pick at signup (ADR 0029 §5). Keep the default or rename it; the backend creates
+  it at startup, and again after a reset.
 
 ## 9. First deploy ☁
 
@@ -219,6 +222,9 @@ The first build takes several minutes. `deploy.sh` ends with
 - [ ] **Complete student signup**: create a student account (level, password, a
       fictional parent address such as `parent@example.test`). The consent e-mail
       appears in `/mailpit`; follow its link and give consent; the student logs in.
+- [ ] **Complete teacher path** (issue #185): a teacher signs up, picks the
+      établissement, creates a class and generates its code; a student joins with
+      the code; the teacher publishes a course to the class. No `psql`, no `curl`.
 - [ ] **Restore**: step 11.
 - [ ] **Reset**: `scripts/env/reset.sh` → the student account no longer exists,
       the catalogue is back, `/mailpit` is empty.
@@ -323,19 +329,21 @@ All commands run from `~/brio`.
 
 ## Accounts and roles
 
-Teacher and student accounts come from the real signup flows. Nothing creates an
-**`admin_brio`** account outside the `local` profile, and creating an établissement
-or a class requires one. Until an admin flow exists, promote a fictional account by
-hand, in a `psql` session:
+Teacher and student accounts come from the real signup flows, with no access to
+the database (ADR 0029):
 
-```sh
-docker compose -f docker-compose.prod.yml --env-file deploy/.env exec postgres \
-  sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
-```
+1. A teacher signs up at `/inscription/enseignant` and picks the fictional
+   établissement named by `BRIO_ETABLISSEMENT_PILOTE_NOM`.
+2. From `/prof/classes` they create a class and generate its code.
+3. A student enters the code at `/rejoindre`.
 
-```sql
-UPDATE identite.comptes SET role = 'admin_brio' WHERE email = '<address>';
-```
+If the signup page says no établissement is open, `BRIO_ETABLISSEMENT_PILOTE_NOM`
+is missing from `deploy/.env`: add it (see `deploy/.env.example`) and restart the
+backend with `scripts/env/deploy.sh`.
+
+Nothing creates an **`admin_brio`** account outside the `local` profile, and nothing
+on this environment needs one. Creating a real établissement does; that flow comes
+before a public opening (ADR 0029, follow-ups).
 
 ## Revoking access
 
@@ -375,6 +383,6 @@ Everyone types their password once more.
 
 ## At publication (F1b)
 
-Not now — for the record (ADR 0024 §9): remove `BRIO_RESET_ALLOWED` from
-`deploy/.env`, remove `basic_auth` and the gate cookie from the Caddyfile, point
+Not now — for the record (ADR 0024 §9): remove `BRIO_RESET_ALLOWED` and
+`BRIO_ETABLISSEMENT_PILOTE_NOM` (ADR 0029 §5) from `deploy/.env`, remove `basic_auth` and the gate cookie from the Caddyfile, point
 the SMTP variables at an EU provider.

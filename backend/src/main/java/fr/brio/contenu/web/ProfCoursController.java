@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -91,23 +92,41 @@ class ProfCoursController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Crée un brouillon de cours",
-            description = "L'auteur et l'établissement sont déduits de l'enseignant connecté, "
-                    + "jamais lus dans la requête. Le contenu est validé à la publication, pas ici.")
+            description = "L'auteur est l'enseignant connecté, jamais lu dans la requête. "
+                    + "L'établissement est le sien ; s'il en a plusieurs, la requête précise lequel. "
+                    + "Le contenu est validé à la publication, pas ici.")
     @ApiResponse(responseCode = "201", description = "Brouillon créé")
     @ApiResponse(responseCode = "401", description = "Authentification requise")
-    @ApiResponse(responseCode = "403", description = "Réservé aux enseignants")
-    @ApiResponse(responseCode = "422", description = "L'enseignant n'a aucune classe : établissement indéterminé")
+    @ApiResponse(responseCode = "403", description = "Réservé aux enseignants, dans un de leurs établissements")
+    @ApiResponse(responseCode = "422", description = "Établissement indéterminé : aucun, ou plusieurs sans précision")
     ResponseEntity<CoursCreeResponse> creer(
             @Valid @RequestBody CreerCoursRequest req,
             @AuthenticationPrincipal UserDetails principal) {
         UUID auteurId = auteurId(principal);
-        UUID etablissementId = enseignantContexte.etablissementDeLEnseignant(auteurId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                        "Aucune classe rattachée : impossible de déterminer l'établissement du cours."));
+        UUID etablissementId = etablissementDuCours(auteurId, req.etablissementId());
 
         UUID coursId = editionService.creerBrouillon(new CreerBrouillonCommand(
                 auteurId, etablissementId, req.titre(), req.niveauCode(), req.matiereCode(), req.content()));
         return ResponseEntity.status(HttpStatus.CREATED).body(new CoursCreeResponse(coursId));
+    }
+
+    // The teacher's only établissement, or the one they named among theirs.
+    private UUID etablissementDuCours(UUID auteurId, UUID demande) {
+        Set<UUID> sesEtablissements = enseignantContexte.etablissementsDeLEnseignant(auteurId);
+        if (demande != null) {
+            if (!sesEtablissements.contains(demande)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Vous n'êtes pas rattaché à cet établissement.");
+            }
+            return demande;
+        }
+        if (sesEtablissements.size() != 1) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    sesEtablissements.isEmpty()
+                            ? "Aucun établissement rattaché : impossible de déterminer celui du cours."
+                            : "Plusieurs établissements rattachés : précisez celui du cours.");
+        }
+        return sesEtablissements.iterator().next();
     }
 
     @PutMapping(value = "/{coursId}", produces = MediaType.APPLICATION_JSON_VALUE)

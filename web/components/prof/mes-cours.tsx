@@ -4,7 +4,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
-import { CoursApiError, creerCours, listerMesCours, type CoursResume } from '@brio/api-client'
+import {
+  CoursApiError,
+  creerCours,
+  listerMesClasses,
+  listerMesCours,
+  type CoursResume,
+} from '@brio/api-client'
 
 import { Icon } from '@/components/ui/icon'
 import {
@@ -24,6 +30,8 @@ import { apiBaseUrl } from '@/lib/api-base-url'
 // du plus récent au plus ancien. « Nouveau cours » ouvre une fenêtre (titre + niveau + matière)
 // puis crée le cours côté serveur. Les anciens brouillons restés en local (avant la bascule
 // serveur) sont proposés à l'import — migration douce, jamais silencieuse.
+// Un enseignant sans classe est d'abord guidé vers la création de sa classe (ADR 0029) : sans
+// elle, il n'a personne à qui publier un cours ni donner un devoir.
 
 type Dialogue = { mode: 'nouveau' } | { mode: 'import'; draft: Brouillon }
 
@@ -35,6 +43,7 @@ export function MesCours() {
   const [dialogue, setDialogue] = useState<Dialogue | null>(null)
   const [enCours, setEnCours] = useState(false)
   const [erreurDialogue, setErreurDialogue] = useState<string | null>(null)
+  const [sansClasse, setSansClasse] = useState(false)
 
   const recharger = useCallback(async () => {
     setLocaux(listerBrouillons())
@@ -52,6 +61,13 @@ export function MesCours() {
   useEffect(() => {
     void recharger()
   }, [recharger])
+
+  useEffect(() => {
+    // Only a confirmed empty list shows the guidance; a failed call shows nothing.
+    listerMesClasses(apiBaseUrl())
+      .then((classes) => setSansClasse(classes.length === 0))
+      .catch(() => setSansClasse(false))
+  }, [])
 
   async function valider(valeurs: NouveauCoursValeurs) {
     setEnCours(true)
@@ -91,6 +107,12 @@ export function MesCours() {
             <h1 className="font-display text-2xl font-black tracking-tight text-ink">Mes cours</h1>
           </div>
           <Link
+            href="/prof/classes"
+            className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-page px-4 py-2.5 font-display text-sm font-extrabold text-ink hover:border-accent"
+          >
+            Classes
+          </Link>
+          <Link
             href="/prof/devoirs"
             className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-page px-4 py-2.5 font-display text-sm font-extrabold text-ink hover:border-accent"
           >
@@ -117,6 +139,26 @@ export function MesCours() {
           >
             {erreur}
           </p>
+        )}
+
+        {sansClasse && (
+          <div className="mb-6 flex flex-wrap items-center gap-4 rounded-xl border border-accent-edge bg-accent-soft px-5 py-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-base font-extrabold text-ink">
+                Commencez par créer votre classe
+              </p>
+              <p className="mt-1 font-prose text-sm text-ink">
+                Vos élèves la rejoignent avec un code. Vous pourrez ensuite leur publier un cours ou
+                leur donner un devoir.
+              </p>
+            </div>
+            <Link
+              href="/prof/classes"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 font-display text-sm font-extrabold text-surface-panel"
+            >
+              Créer ma classe <Icon name="arrow-right" size={14} aria-hidden="true" />
+            </Link>
+          </div>
         )}
 
         {cours === null ? (

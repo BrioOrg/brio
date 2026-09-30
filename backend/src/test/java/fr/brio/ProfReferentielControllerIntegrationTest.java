@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
+import fr.brio.identite.ClasseService;
 import fr.brio.identite.CompteService;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,7 @@ class ProfReferentielControllerIntegrationTest {
 
     @Autowired WebApplicationContext webApplicationContext;
     @Autowired CompteService compteService;
+    @Autowired ClasseService classeService;
 
     MockMvc mockMvc;
     private UUID teacher;
@@ -37,9 +39,10 @@ class ProfReferentielControllerIntegrationTest {
     @BeforeEach
     void setup() {
         mockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+        var etab = classeService.creerEtablissement("Collège Test", null, "college", null, null);
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         teacher = compteService.creerEnseignant(
-                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
+                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr", etab.id()).id();
     }
 
     @Test

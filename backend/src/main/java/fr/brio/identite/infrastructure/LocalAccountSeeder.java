@@ -69,7 +69,7 @@ class LocalAccountSeeder implements ApplicationRunner {
 
     /**
      * Gives prof.demo a class they are the enseignant_principal of, so they immediately have a
-     * non-empty établissement (derived from their classes) and can create/publish a course.
+     * class in an établissement they are attached to and can create/publish a course.
      * Idempotent: skips when prof.demo already runs a class.
      */
     private void seedClasseDemo() {

@@ -122,6 +122,10 @@ response type intended for display) remains in force for all other endpoints.
 - Teachers can view code metadata (usage count, expiry) and revoke the code;
   only ADMIN\_BRIO can generate new codes
 
+> **ADR 0029 amendment (2026-09-30):** the principal teacher of a class can also
+> generate its code, with the default TTL and `usages_max`. The convention gate
+> of §3 is unchanged. See ADR 0029 §3.
+
 ## Consequences
 
 ### Positive
@@ -154,6 +158,7 @@ response type intended for display) remains in force for all other endpoints.
 - `ROLE_ADMIN_ETAB` class management (scoped to own établissement) — deferred
   until second établissement onboarded
 - Teacher-class assignment flow (`enseignant_principal_id` currently nullable)
+  — done by ADR 0029: a teacher creates their own classes
 
 ## Alternatives considered
 

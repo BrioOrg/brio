@@ -1,8 +1,11 @@
 package fr.brio;
 
+import fr.brio.identite.ClasseService;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.infrastructure.CompteRepository;
+import fr.brio.identite.infrastructure.RattachementRepository;
 import fr.brio.identite.domain.StatutCompte;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,6 +14,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -25,6 +30,16 @@ class InscriptionIntegrationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired CompteRepository compteRepository;
+    @Autowired RattachementRepository rattachementRepository;
+    @Autowired ClasseService classeService;
+
+    private UUID etablissementId;
+
+    @BeforeEach
+    void setup() {
+        etablissementId = classeService.creerEtablissement(
+                "Collège Test", null, "college", null, null).id();
+    }
 
     @Test
     void shouldCreateEnseignantAndReturnActif() throws Exception {
@@ -33,8 +48,9 @@ class InscriptionIntegrationTest {
                         .content("""
                                 {"motDePasse":"motdepasse123",
                                  "nom":"Martin",
-                                 "email":"Prof.Martin@ecole.fr"}
-                                """))
+                                 "email":"Prof.Martin@ecole.fr",
+                                 "etablissementId":"%s"}
+                                """.formatted(etablissementId)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.role").value("enseignant"))
                 .andExpect(jsonPath("$.statut").value("actif"))
@@ -46,6 +62,34 @@ class InscriptionIntegrationTest {
         var compte = compteRepository.findByIdentifiantConnexion("prof.martin@ecole.fr");
         assertThat(compte).isPresent();
         assertThat(compte.get().getStatut()).isEqualTo(StatutCompte.actif);
+        assertThat(rattachementRepository.findByIdCompteId(compte.get().getId()))
+                .extracting(r -> r.getId().etablissementId())
+                .containsExactly(etablissementId);
+    }
+
+    @Test
+    void shouldReturn422WhenEtablissementUnknown() throws Exception {
+        mockMvc.perform(post("/api/comptes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"motDePasse":"motdepasse123",
+                                 "nom":"Martin",
+                                 "email":"martin@ecole.fr",
+                                 "etablissementId":"%s"}
+                                """.formatted(UUID.randomUUID())))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void shouldReturn400WhenEtablissementMissing() throws Exception {
+        mockMvc.perform(post("/api/comptes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"motDePasse":"motdepasse123",
+                                 "nom":"Martin",
+                                 "email":"martin@ecole.fr"}
+                                """))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -55,8 +99,9 @@ class InscriptionIntegrationTest {
                         .content("""
                                 {"motDePasse":"motdepasse123",
                                  "nom":"Leroy",
-                                 "email":"leroy@ecole.fr"}
-                                """))
+                                 "email":"leroy@ecole.fr",
+                                 "etablissementId":"%s"}
+                                """.formatted(etablissementId)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/sessions")
@@ -73,8 +118,9 @@ class InscriptionIntegrationTest {
         String body = """
                 {"motDePasse":"motdepasse123",
                  "nom":"Dupont",
-                 "email":"dupont@ecole.fr"}
-                """;
+                 "email":"dupont@ecole.fr",
+                 "etablissementId":"%s"}
+                """.formatted(etablissementId);
 
         mockMvc.perform(post("/api/comptes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -98,8 +144,9 @@ class InscriptionIntegrationTest {
                         .content("""
                                 {"motDePasse":"motdepasse123",
                                  "nom":"Autre",
-                                 "email":"ancien@ECOLE.fr"}
-                                """))
+                                 "email":"ancien@ECOLE.fr",
+                                 "etablissementId":"%s"}
+                                """.formatted(etablissementId)))
                 .andExpect(status().isConflict());
     }
 
@@ -110,8 +157,9 @@ class InscriptionIntegrationTest {
                         .content("""
                                 {"motDePasse":"court",
                                  "nom":"X",
-                                 "email":"x@ecole.fr"}
-                                """))
+                                 "email":"x@ecole.fr",
+                                 "etablissementId":"%s"}
+                                """.formatted(etablissementId)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -122,8 +170,9 @@ class InscriptionIntegrationTest {
                         .content("""
                                 {"motDePasse":"motdepasse123",
                                  "nom":"Y",
-                                 "email":"pas-un-email"}
-                                """))
+                                 "email":"pas-un-email",
+                                 "etablissementId":"%s"}
+                                """.formatted(etablissementId)))
                 .andExpect(status().isBadRequest());
     }
 }

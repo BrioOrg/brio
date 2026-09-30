@@ -121,9 +121,9 @@ The URL is public; access is not.
   host and client address it sees are Caddy's forwarded values, not the proxy's.
 - Catalogue content is loaded by the existing `ingest` profile
   (`IngestCommand`), run as a one-off container against the same database.
-  Accounts are created through the **real** flows — teacher signup, établissement
-  and class creation, student signup — which is precisely what F1 exists to
-  exercise.
+  Accounts are created through the **real** flows — teacher signup, class
+  creation, student signup — which is precisely what F1 exists to exercise. The
+  one établissement teachers pick is fictional and seeded at startup (ADR 0029 §5).
 
 ### 5. The web image does not depend on its environment
 
