@@ -28,7 +28,8 @@ class InscriptionController {
         CompteInfo created = compteService.creerEnseignant(
                 req.motDePasse(),
                 req.nom(),
-                req.email());
+                req.email(),
+                req.etablissementId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

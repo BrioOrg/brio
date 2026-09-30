@@ -47,6 +47,7 @@ class ProfCoursControllerIntegrationTest {
 
     MockMvc mockMvc;
 
+    private UUID etablissementId;
     private UUID teacher;
     private ClasseInfo classeA;
 
@@ -56,6 +57,7 @@ class ProfCoursControllerIntegrationTest {
 
         var etab = classeService.creerEtablissement(
                 "Collège Test", null, "college", LocalDate.now().minusYears(1), "CONV-2025");
+        etablissementId = etab.id();
         classeA = classeService.creerClasse(etab.id(), "3e", "3e A", "2025-2026", null);
 
         // A real, active teacher account — StatutCheckFilter re-checks statut on every request.
@@ -66,7 +68,7 @@ class ProfCoursControllerIntegrationTest {
     private UUID creerEnseignant() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         return compteService.creerEnseignant(
-                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
+                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr", etablissementId).id();
     }
 
     @Test

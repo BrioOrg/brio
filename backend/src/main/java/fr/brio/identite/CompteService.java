@@ -3,8 +3,11 @@ package fr.brio.identite;
 import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.api.InscriptionEleveEnAttenteInfo;
 import fr.brio.identite.domain.Compte;
+import fr.brio.identite.domain.Rattachement;
 import fr.brio.identite.domain.StatutCompte;
 import fr.brio.identite.infrastructure.CompteRepository;
+import fr.brio.identite.infrastructure.EtablissementRepository;
+import fr.brio.identite.infrastructure.RattachementRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,15 +22,21 @@ import java.util.UUID;
 public class CompteService {
 
     private final CompteRepository comptes;
+    private final EtablissementRepository etablissements;
+    private final RattachementRepository rattachements;
     private final PasswordEncoder passwordEncoder;
     private final IdentifiantGenerator identifiantGenerator;
     private final ConsentementService consentementService;
 
     public CompteService(CompteRepository comptes,
+                         EtablissementRepository etablissements,
+                         RattachementRepository rattachements,
                          PasswordEncoder passwordEncoder,
                          IdentifiantGenerator identifiantGenerator,
                          ConsentementService consentementService) {
         this.comptes = comptes;
+        this.etablissements = etablissements;
+        this.rattachements = rattachements;
         this.passwordEncoder = passwordEncoder;
         this.identifiantGenerator = identifiantGenerator;
         this.consentementService = consentementService;
@@ -46,12 +55,19 @@ public class CompteService {
     /**
      * Creates an enseignant account. Adults are active immediately — no parental
      * consent needed (ADR 0016 §5). The normalised e-mail doubles as the
-     * identifiant_connexion: a teacher signs up and logs in with their e-mail.
+     * identifiant_connexion: a teacher signs up and logs in with their e-mail. The
+     * account is attached to the établissement the teacher picked (ADR 0029 §2).
      *
      * @throws ResponseStatusException 409 if an account already uses this e-mail
+     * @throws ResponseStatusException 422 if the établissement is unknown
      */
     @Transactional
-    public CompteInfo creerEnseignant(String motDePasse, String nom, String email) {
+    public CompteInfo creerEnseignant(String motDePasse, String nom, String email,
+                                      UUID etablissementId) {
+        if (!etablissements.existsById(etablissementId)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "Établissement introuvable");
+        }
         String emailNormalise = email.trim().toLowerCase(Locale.ROOT);
         if (comptes.existsByEmailIgnoreCase(emailNormalise)
                 || comptes.findByIdentifiantConnexion(emailNormalise).isPresent()) {
@@ -60,6 +76,7 @@ public class CompteService {
         String hash = passwordEncoder.encode(motDePasse);
         Compte compte = comptes.save(
                 Compte.creerEnseignant(emailNormalise, hash, nom.trim(), emailNormalise));
+        rattachements.save(Rattachement.creer(compte.getId(), etablissementId));
         return toInfo(compte);
     }
 
