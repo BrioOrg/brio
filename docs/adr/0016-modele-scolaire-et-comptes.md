@@ -101,6 +101,10 @@ identite.consentements (
 
 No `identite.sessions` table in this ADR — session storage is decided in ADR 0017.
 
+> **ADR 0029 addition (2026-09-30):** `identite.rattachements (compte_id,
+> etablissement_id, depuis)` records the établissements a teacher belongs to —
+> one or several. See ADR 0029 §2.
+
 ### 2. Minors carry no name
 
 An élève account stores no name of any kind. The only identifying fields are
