@@ -138,10 +138,10 @@ describe('enrollment client', () => {
     })
 
     expect(compte).toEqual(COMPTE)
-    const [url, init] = fetchMock.mock.calls[0]
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toMatch(/\/api\/comptes$/)
-    expect(init?.method).toBe('POST')
-    expect(JSON.parse(init?.body as string)).toEqual({
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body as string)).toEqual({
       nom: 'Mme Durand',
       email: 'durand@exemple.fr',
       motDePasse: 'motdepasse1',
