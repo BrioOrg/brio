@@ -239,6 +239,7 @@ export default function DesignPage() {
               'info',
               'lightning',
               'lock-simple',
+              'sign-out',
               'smiley',
               'sparkle',
               'star',
@@ -492,8 +493,8 @@ export default function DesignPage() {
           <Panel raised className="mt-6">
             <p className="text-sm leading-relaxed text-ink">
               Illustration autonome, sans donnée — à poser sur le parcours / l&apos;atlas plus tard.
-              Ses couleurs sont celles du personnage (maquette <code>2-parcours-atlas</code>), pas des
-              tokens : une mascotte est un dessin, pas du chrome d&apos;interface.
+              Ses couleurs sont celles du personnage (maquette <code>2-parcours-atlas</code>), pas
+              des tokens : une mascotte est un dessin, pas du chrome d&apos;interface.
             </p>
           </Panel>
         </Section>
