@@ -27,5 +27,5 @@ export function SessionLogoutButton() {
     }
   }, [])
 
-  return connected ? <LogoutButton /> : null
+  return connected ? <LogoutButton labelFrom="lg" /> : null
 }
