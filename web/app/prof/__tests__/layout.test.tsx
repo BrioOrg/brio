@@ -31,7 +31,7 @@ describe('ProfLayout role gate', () => {
     redirectMock.mockClear()
   })
 
-  it('renders children and the logout button for an enseignant', async () => {
+  it('renders children, the catalogue link and the logout button for an enseignant', async () => {
     stubMoi(
       new Response(
         JSON.stringify({ id: '1', role: 'enseignant', statut: 'actif', nom: 'P', email: 'p@t.fr' }),
@@ -47,6 +47,7 @@ describe('ProfLayout role gate', () => {
 
     expect(redirectMock).not.toHaveBeenCalled()
     expect(screen.getByText('CONTENU')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Voir le catalogue' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
   })
 

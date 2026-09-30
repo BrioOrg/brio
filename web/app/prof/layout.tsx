@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 
 import { CompteInfoSchema } from '@brio/api-client'
 import { LogoutButton } from '@/components/logout-button'
+import { Icon } from '@/components/ui/icon'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 /**
@@ -15,8 +16,9 @@ import { apiBaseUrl } from '@/lib/api-base-url'
  * backend who the caller is and let only ENSEIGNANT accounts through. This mirrors the
  * backend gate on /api/prof/** ; it exists so non-teachers see a redirect, not a broken page.
  *
- * The top bar carries the logout button for every teacher page. The session was just
- * verified above, so the button is rendered without asking again.
+ * The top bar carries the way back to the student catalogue and the logout button for
+ * every teacher page. The session was just verified above, so the button is rendered
+ * without asking again.
  */
 export default async function ProfLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies()
@@ -43,7 +45,17 @@ export default async function ProfLayout({ children }: { children: ReactNode }) 
           >
             br<span className="text-accent">io</span>
           </Link>
-          <LogoutButton />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 font-display text-sm font-bold text-ink-muted transition-colors duration-[var(--duration-fast)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel sm:px-3"
+            >
+              <Icon name="compass" size={20} />
+              {/* Narrow screens keep the icon only; the label stays for screen readers. */}
+              <span className="sr-only sm:not-sr-only">Voir le catalogue</span>
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
       </div>
       {children}
