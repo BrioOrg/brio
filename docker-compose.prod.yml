@@ -98,6 +98,7 @@ services:
       CADDY_HASH_1: ${CADDY_HASH_1:?}
       CADDY_USER_2: ${CADDY_USER_2:?}
       CADDY_HASH_2: ${CADDY_HASH_2:?}
+      BRIO_GATE_TOKEN: ${BRIO_GATE_TOKEN:?}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

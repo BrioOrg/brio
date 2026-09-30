@@ -86,6 +86,14 @@ The URL is public; access is not.
 - Caddy's `basic_auth` protects **every** path, `/api` and `/mailpit` included.
   There is **one account per person** (Pierce, Gabrielle), so one can be revoked
   without rotating the other. Password hashes live in the server's `.env`.
+- The password is asked **once per browser**: a correct one earns a cookie
+  (`brio_gate`, 30 days, `Secure`, `HttpOnly`) whose value is a secret from the
+  server's `.env`, and a request carrying it skips `basic_auth`. Added on
+  2026-09-30 (#182) after the first real deployment: the API answers `401` to a
+  visitor with no Brio session, the browser takes that as a rejection of the HTTP
+  password it had remembered, and asks for it again on the next click. The cookie
+  is shared by both accounts, so revoking a person means changing their hash
+  **and** the secret.
 - Caddy **strips the `Authorization` header** before proxying upstream. The
   environment password is an access-control credential for the edge, not an
   application credential; it has no reason to reach Spring. (Outside the `local`
@@ -190,7 +198,7 @@ Breaking this rule — even "just one real class to try" — means doing F1b fir
 
 | | Now (private) | Publication (F1b) |
 |---|---|---|
-| Access | Caddy `basic_auth`, one account per person | removed |
+| Access | Caddy `basic_auth` (+ gate cookie), one account per person | removed |
 | SMTP | Mailpit | EU e-mail provider |
 | Data | fictional, resettable | real; `reset.sh` disabled |
 | Images, compose file | this ADR | unchanged |
