@@ -17,6 +17,8 @@ vi.mock('next/navigation', () => ({
   notFound: vi.fn(() => {
     throw new Error('NEXT_NOT_FOUND')
   }),
+  // Read by the SiteHeader's section links.
+  usePathname: () => '/3e/mathematiques',
 }))
 
 const FIXTURE_CATALOGUE = [

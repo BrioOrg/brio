@@ -3,49 +3,20 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Icon } from '@/components/ui/icon'
+import { APP_SECTIONS, type AppSection } from '@/lib/app-sections'
 
 /**
  * App shell bottom navigation (mobile only — hidden ≥ sm, where SiteHeader
- * remains the primary nav). Tabs: parcours · devoirs · annales · social · profil.
+ * carries the same sections through HeaderNav). Tabs: parcours · devoirs · annales · social · profil.
  *
  * "parcours" (catalogue/app home), "devoirs" (homework, F4) and "annales" (exam
  * papers, F7) are wired. "social" and "profil" point at modules that do not exist
  * yet, so they are rendered disabled rather than linking nowhere.
  */
-type Tab = {
-  key: string
-  label: string
-  icon: string
-  href?: string
-  /** True when the current route belongs to this tab's section. */
-  isActive: (pathname: string) => boolean
-}
+type Tab = Omit<AppSection, 'href'> & { href?: string }
 
-// The whole catalogue lives under "parcours" for now, so any route on which the
-// shell renders is a parcours route. Kept as a matcher so the other tabs can
-// grow real ones once their sections ship.
 const TABS: Tab[] = [
-  {
-    key: 'parcours',
-    label: 'Parcours',
-    icon: 'compass',
-    href: '/',
-    isActive: (pathname) => !pathname.startsWith('/devoirs') && !pathname.startsWith('/annales'),
-  },
-  {
-    key: 'devoirs',
-    label: 'Devoirs',
-    icon: 'check',
-    href: '/devoirs',
-    isActive: (pathname) => pathname.startsWith('/devoirs'),
-  },
-  {
-    key: 'annales',
-    label: 'Annales',
-    icon: 'book-open',
-    href: '/annales',
-    isActive: (pathname) => pathname.startsWith('/annales'),
-  },
+  ...APP_SECTIONS,
   { key: 'social', label: 'Social', icon: 'chat-circle', isActive: () => false },
   { key: 'profil', label: 'Profil', icon: 'user', isActive: () => false },
 ]
