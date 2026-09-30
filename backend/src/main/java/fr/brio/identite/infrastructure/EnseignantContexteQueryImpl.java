@@ -6,7 +6,6 @@ import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.RoleCompte;
 import fr.brio.identite.domain.StatutClasse;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,10 +17,13 @@ class EnseignantContexteQueryImpl implements EnseignantContexteQuery {
 
     private final ClasseRepository classes;
     private final CompteRepository comptes;
+    private final RattachementRepository rattachements;
 
-    EnseignantContexteQueryImpl(ClasseRepository classes, CompteRepository comptes) {
+    EnseignantContexteQueryImpl(ClasseRepository classes, CompteRepository comptes,
+                                RattachementRepository rattachements) {
         this.classes = classes;
         this.comptes = comptes;
+        this.rattachements = rattachements;
     }
 
     @Override
@@ -32,12 +34,10 @@ class EnseignantContexteQueryImpl implements EnseignantContexteQuery {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UUID> etablissementDeLEnseignant(UUID compteId) {
-        Set<UUID> etablissements = classesActives(compteId).stream()
-                .map(Classe::getEtablissementId)
+    public Set<UUID> etablissementsDeLEnseignant(UUID compteId) {
+        return rattachements.findByIdCompteId(compteId).stream()
+                .map(r -> r.getId().etablissementId())
                 .collect(Collectors.toSet());
-        // Exactly one établissement is unambiguous; zero or several are not.
-        return etablissements.size() == 1 ? Optional.of(etablissements.iterator().next()) : Optional.empty();
     }
 
     @Override

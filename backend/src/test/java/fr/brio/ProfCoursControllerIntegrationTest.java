@@ -165,12 +165,38 @@ class ProfCoursControllerIntegrationTest {
     }
 
     @Test
-    void shouldReturn422WhenTeacherHasNoClass() throws Exception {
+    void shouldLetATeacherWithoutAClassStartACourseInTheirEtablissement() throws Exception {
         UUID teacherWithoutClass = creerEnseignant();
         mockMvc.perform(post("/api/prof/cours").with(user(teacherWithoutClass.toString()).roles("ENSEIGNANT"))
                         .with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content(creerBody()))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldAskWhichEtablissementWhenTheTeacherHasSeveral() throws Exception {
+        UUID second = classeService.creerEtablissement("Lycée Voisin", null, "lycee", null, null).id();
+        classeService.rattacher(teacher, second);
+
+        mockMvc.perform(post("/api/prof/cours").with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(creerBody()))
                 .andExpect(status().isUnprocessableEntity());
+
+        mockMvc.perform(post("/api/prof/cours").with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(creerBody(second)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldRefuseACourseInAnEtablissementTheTeacherDoesNotBelongTo() throws Exception {
+        UUID etranger = classeService.creerEtablissement("Collège Ailleurs", null, "college", null, null).id();
+
+        mockMvc.perform(post("/api/prof/cours").with(user(teacher.toString()).roles("ENSEIGNANT"))
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(creerBody(etranger)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -201,6 +227,11 @@ class ProfCoursControllerIntegrationTest {
 
     private String creerBody() {
         return "{\"titre\":\"Pythagore\",\"niveauCode\":\"3e\",\"matiereCode\":\"mathematiques\"}";
+    }
+
+    private String creerBody(UUID etablissementId) {
+        return "{\"titre\":\"Pythagore\",\"niveauCode\":\"3e\",\"matiereCode\":\"mathematiques\","
+                + "\"etablissementId\":\"" + etablissementId + "\"}";
     }
 
     private JsonNode draftContent() throws Exception {

@@ -21,6 +21,7 @@ class EnseignantContexteQueryImplTest {
 
     @Mock ClasseRepository classes;
     @Mock CompteRepository comptes;
+    @Mock RattachementRepository rattachements;
     @InjectMocks EnseignantContexteQueryImpl query;
 
     @Test

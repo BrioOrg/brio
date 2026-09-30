@@ -1,7 +1,6 @@
 package fr.brio.identite.api;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,8 +10,9 @@ import java.util.UUID;
  * "which établissement does this teacher author for?" and "which classes may a course be
  * scoped to?" without reaching into identite's internals.
  *
- * <p>A teacher has no direct établissement column; both facets are derived from the active
- * classes they are the {@code enseignant_principal} of.
+ * <p>A teacher's classes are the active ones they are the {@code enseignant_principal} of;
+ * their établissements are the ones they are attached to, with or without a class there
+ * (ADR 0029 §2).
  */
 public interface EnseignantContexteQuery {
 
@@ -24,11 +24,11 @@ public interface EnseignantContexteQuery {
     Set<UUID> classesEnseignees(UUID compteId);
 
     /**
-     * The teacher's établissement, derived from their active classes. Empty when the teacher
-     * runs no class, or (defensively) when their classes span more than one établissement —
-     * in both cases the caller cannot unambiguously attribute a new course. Never {@code null}.
+     * The IDs of the établissements the given teacher is attached to. A replacement teacher has
+     * several, so a caller attributing a new course must ask which one when there is more than
+     * one. Empty for an account attached to none. Never {@code null}.
      */
-    Optional<UUID> etablissementDeLEnseignant(UUID compteId);
+    Set<UUID> etablissementsDeLEnseignant(UUID compteId);
 
     /**
      * Display names of the given teacher accounts, keyed by account ID — how a student's
