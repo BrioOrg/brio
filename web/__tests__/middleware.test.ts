@@ -10,8 +10,16 @@ function makeRequest(pathname: string, hasCookie = false) {
 }
 
 describe('middleware', () => {
-  it('passe la page accueil sans session', () => {
+  it('redirige la page accueil vers /connexion sans session', () => {
     const res = middleware(makeRequest('/'))
+    expect(res.status).toBe(302)
+    const location = res.headers.get('location')!
+    expect(location).toContain('/connexion')
+    expect(location).toContain('from=%2F')
+  })
+
+  it('passe la page accueil avec session', () => {
+    const res = middleware(makeRequest('/', true))
     expect(res.status).not.toBe(302)
   })
 
