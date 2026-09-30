@@ -2,6 +2,11 @@ import { rejoindreClasse as apiRejoindreClasse, RejoindreError } from '@brio/api
 import type { EleveInscritInfo, RejoindreClasseInput } from '@brio/api-client'
 import { inscrireEleve as apiInscrireEleve, InscrireEleveError } from '@brio/api-client'
 import type { InscriptionEleveEnAttenteInfo, InscrireEleveInput } from '@brio/api-client'
+import {
+  inscrireEnseignant as apiInscrireEnseignant,
+  InscrireEnseignantError,
+} from '@brio/api-client'
+import type { CompteInfo, InscrireEnseignantInput } from '@brio/api-client'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 /** Chemin A — join a class with an invitation code. */
@@ -14,7 +19,14 @@ export function inscrireEleve(input: InscrireEleveInput): Promise<InscriptionEle
   return apiInscrireEleve(apiBaseUrl(), input)
 }
 
+/** Teacher signup; the account is active at once and logs in with its e-mail. */
+export function inscrireEnseignant(input: InscrireEnseignantInput): Promise<CompteInfo> {
+  return apiInscrireEnseignant(apiBaseUrl(), input)
+}
+
 export { RejoindreError }
 export type { EleveInscritInfo, RejoindreClasseInput }
 export { InscrireEleveError }
 export type { InscriptionEleveEnAttenteInfo, InscrireEleveInput }
+export { InscrireEnseignantError }
+export type { InscrireEnseignantInput }

@@ -109,4 +109,56 @@ describe('enrollment client', () => {
       inscrireEleve({ niveauDeclare: '4e', motDePasse: 'court', emailParent: 'x@y.fr' })
     ).rejects.toBeInstanceOf(InscrireEleveError)
   })
+
+  // ── Enseignant ────────────────────────────────────────────────────────────
+
+  const COMPTE = {
+    id: 'uuid-prof',
+    role: 'enseignant',
+    statut: 'actif',
+    nom: 'Mme Durand',
+    email: 'durand@exemple.fr',
+  }
+
+  it('POSTs JSON to /api/comptes without an identifiant and returns the compte', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify(COMPTE), {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' },
+        })
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { inscrireEnseignant } = await import('@/lib/enrollment')
+    const compte = await inscrireEnseignant({
+      nom: 'Mme Durand',
+      email: 'durand@exemple.fr',
+      motDePasse: 'motdepasse1',
+    })
+
+    expect(compte).toEqual(COMPTE)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toMatch(/\/api\/comptes$/)
+    expect(init?.method).toBe('POST')
+    expect(JSON.parse(init?.body as string)).toEqual({
+      nom: 'Mme Durand',
+      email: 'durand@exemple.fr',
+      motDePasse: 'motdepasse1',
+    })
+  })
+
+  it('throws InscrireEnseignantError carrying the HTTP status on failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () => new Response(JSON.stringify({ error: 'E-mail déjà utilisé' }), { status: 409 })
+      )
+    )
+
+    const { inscrireEnseignant } = await import('@/lib/enrollment')
+    await expect(
+      inscrireEnseignant({ nom: 'X', email: 'x@y.fr', motDePasse: 'motdepasse1' })
+    ).rejects.toMatchObject({ name: 'InscrireEnseignantError', status: 409 })
+  })
 })

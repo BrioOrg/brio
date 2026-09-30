@@ -11,6 +11,8 @@ export {
   InscriptionEleveEnAttenteInfoSchema,
 } from './enrollment.js'
 export type { InscriptionEleveEnAttenteInfo, InscrireEleveInput } from './enrollment.js'
+export { inscrireEnseignant, InscrireEnseignantError } from './enrollment.js'
+export type { InscrireEnseignantInput } from './enrollment.js'
 export {
   getProgression,
   ProgressionInfoSchema,

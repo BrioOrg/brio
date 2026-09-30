@@ -1,12 +1,15 @@
 import { z } from 'zod'
+import { CompteInfoSchema } from './session.js'
+import type { CompteInfo } from './session.js'
 
 /**
  * Enrollment client.
  *
  * Chemin A — POST /api/classes/rejoindre (ClasseController).
  * Chemin B — POST /api/comptes/eleve   (InscriptionController).
+ * Enseignant — POST /api/comptes       (InscriptionController).
  *
- * Both endpoints are public and CSRF-exempt (account creation, no prior session).
+ * All three endpoints are public and CSRF-exempt (account creation, no prior session).
  */
 
 /**
@@ -94,4 +97,36 @@ export async function inscrireEleve(
   })
   if (!res.ok) throw new InscrireEleveError(res.status)
   return InscriptionEleveEnAttenteInfoSchema.parse(await res.json())
+}
+
+// ── Enseignant — active at once, logs in with the e-mail ────────────────────
+
+export type InscrireEnseignantInput = {
+  nom: string
+  email: string
+  motDePasse: string
+}
+
+export class InscrireEnseignantError extends Error {
+  constructor(
+    readonly status: number,
+    message = 'La demande a échoué.'
+  ) {
+    super(message)
+    this.name = 'InscrireEnseignantError'
+  }
+}
+
+/** There is no identifiant to disclose: the teacher logs in with their e-mail. */
+export async function inscrireEnseignant(
+  baseUrl: string,
+  input: InscrireEnseignantInput
+): Promise<CompteInfo> {
+  const res = await fetch(`${baseUrl}/api/comptes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) throw new InscrireEnseignantError(res.status)
+  return CompteInfoSchema.parse(await res.json())
 }

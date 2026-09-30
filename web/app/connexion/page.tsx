@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LoginForm } from '@/components/login-form'
+import { Icon } from '@/components/ui/icon'
 
 export const metadata: Metadata = {
   title: 'Connexion — brio',
@@ -9,9 +10,9 @@ export const metadata: Metadata = {
 export default async function ConnexionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string }>
+  searchParams: Promise<{ from?: string; inscrit?: string }>
 }) {
-  const { from } = await searchParams
+  const { from, inscrit } = await searchParams
   // Guard against open-redirect: only allow relative paths on this origin.
   const redirectTo = from && from.startsWith('/') && !from.startsWith('//') ? from : '/'
 
@@ -31,6 +32,17 @@ export default async function ConnexionPage({
           <p className="mt-2 mb-6 font-prose text-sm text-ink-muted">
             Connecte-toi : on retrouve ta classe et ta progression.
           </p>
+
+          {/* Set by the teacher signup form, which redirects here instead of logging in. */}
+          {inscrit === '1' && (
+            <p
+              role="status"
+              className="mb-4 flex items-start gap-2 rounded-md border-2 border-accent bg-surface-raised px-3 py-2.5 font-prose text-sm text-accent-ink"
+            >
+              <Icon name="check" weight="bold" size={18} className="mt-0.5 shrink-0" />
+              <span>Votre compte est créé. Connectez-vous avec votre e-mail.</span>
+            </p>
+          )}
 
           <LoginForm redirectTo={redirectTo} />
         </div>
