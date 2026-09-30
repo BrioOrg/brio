@@ -64,8 +64,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
           />
         </span>
       )}
-      {/* Keep label in DOM for screen readers even while loading */}
-      <span className={loading ? 'invisible' : undefined}>{children}</span>
+      {/* Keep label in DOM for screen readers even while loading. The wrapper lays out
+          label and icon itself: the button's own gap does not reach its children. */}
+      <span
+        className={['inline-flex items-center justify-center gap-2', loading ? 'invisible' : '']
+          .join(' ')
+          .trim()}
+      >
+        {children}
+      </span>
     </button>
   )
 })
