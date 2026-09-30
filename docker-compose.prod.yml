@@ -57,6 +57,9 @@ services:
       BRIO_FRONTEND_BASE_URL: https://${BRIO_DOMAIN:?}
       # Same origin behind Caddy, so CORS is unused; pinned to the domain regardless.
       APP_CORS_ALLOWED_ORIGINS: https://${BRIO_DOMAIN:?}
+      # Fictional établissement teachers pick at signup (ADR 0029 §5); empty creates none.
+      BRIO_ETABLISSEMENT_PILOTE_NOM: ${BRIO_ETABLISSEMENT_PILOTE_NOM:-}
+      BRIO_ETABLISSEMENT_PILOTE_TYPE: ${BRIO_ETABLISSEMENT_PILOTE_TYPE:-college}
     depends_on:
       postgres:
         condition: service_healthy
