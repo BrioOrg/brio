@@ -62,7 +62,9 @@ export default function CommencerPage() {
                   <span className="block font-display text-lg font-extrabold leading-tight text-ink">
                     {title}
                   </span>
-                  <span className="mt-1 block font-prose text-sm text-ink-muted">{description}</span>
+                  <span className="mt-1 block font-prose text-sm text-ink-muted">
+                    {description}
+                  </span>
                 </span>
                 <Icon
                   name="arrow-right"
@@ -82,6 +84,16 @@ export default function CommencerPage() {
             className="rounded-sm font-extrabold text-accent-ink hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             Se connecter
+          </Link>
+        </p>
+
+        <p className="mt-2 text-center font-prose text-sm text-ink-muted">
+          Vous êtes enseignant&nbsp;?{' '}
+          <Link
+            href="/inscription/enseignant"
+            className="rounded-sm font-extrabold text-accent-ink hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            Créer un compte enseignant
           </Link>
         </p>
       </div>

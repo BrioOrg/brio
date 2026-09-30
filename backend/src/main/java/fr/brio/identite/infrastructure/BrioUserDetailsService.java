@@ -24,7 +24,9 @@ class BrioUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String identifiantConnexion) {
+        // Adults may type their e-mail instead of their identifiant; élèves have no e-mail.
         Compte compte = comptes.findByIdentifiantConnexion(identifiantConnexion)
+                .or(() -> comptes.findByEmailIgnoreCase(identifiantConnexion.trim()))
                 .orElseThrow(() -> new UsernameNotFoundException("Compte introuvable"));
 
         return User.builder()

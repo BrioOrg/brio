@@ -64,7 +64,7 @@ class CoursParcoursEleveIntegrationTest {
 
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         UUID teacherId = compteService.creerEnseignant(
-                "prof-" + suffix, "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
+                "motdepasse123", "Prof " + suffix, "prof-" + suffix + "@example.fr").id();
         classeService.assignerEnseignantPrincipal(classe.id(), teacherId);
         teacher = user(teacherId.toString()).roles("ENSEIGNANT");
 

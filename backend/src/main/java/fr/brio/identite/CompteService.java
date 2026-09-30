@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,18 +45,21 @@ public class CompteService {
 
     /**
      * Creates an enseignant account. Adults are active immediately — no parental
-     * consent needed (ADR 0016 §5).
+     * consent needed (ADR 0016 §5). The normalised e-mail doubles as the
+     * identifiant_connexion: a teacher signs up and logs in with their e-mail.
      *
-     * @throws ResponseStatusException 409 if identifiantConnexion is already taken
+     * @throws ResponseStatusException 409 if an account already uses this e-mail
      */
     @Transactional
-    public CompteInfo creerEnseignant(String identifiantConnexion, String motDePasse,
-                                      String nom, String email) {
-        if (comptes.findByIdentifiantConnexion(identifiantConnexion).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Identifiant déjà utilisé");
+    public CompteInfo creerEnseignant(String motDePasse, String nom, String email) {
+        String emailNormalise = email.trim().toLowerCase(Locale.ROOT);
+        if (comptes.existsByEmailIgnoreCase(emailNormalise)
+                || comptes.findByIdentifiantConnexion(emailNormalise).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail déjà utilisé");
         }
         String hash = passwordEncoder.encode(motDePasse);
-        Compte compte = comptes.save(Compte.creerEnseignant(identifiantConnexion, hash, nom, email));
+        Compte compte = comptes.save(
+                Compte.creerEnseignant(emailNormalise, hash, nom.trim(), emailNormalise));
         return toInfo(compte);
     }
 

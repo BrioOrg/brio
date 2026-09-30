@@ -20,4 +20,12 @@ describe('CommencerPage', () => {
       '/connexion'
     )
   })
+
+  it('oriente les enseignants vers leur propre inscription', () => {
+    render(<CommencerPage />)
+    expect(screen.getByRole('link', { name: /créer un compte enseignant/i })).toHaveAttribute(
+      'href',
+      '/inscription/enseignant'
+    )
+  })
 })
