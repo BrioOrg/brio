@@ -193,6 +193,9 @@ Fill in every value (the comments in the file explain each one):
   tied to a name: `CADDY_HASH_1` goes with `CADDY_USER_1`, and so on. A hash cannot
   be reversed, so Gabrielle can send hers over any channel. Keep each hash in single
   quotes.
+- `BRIO_GATE_TOKEN`: `openssl rand -hex 32`. It is the value of the cookie Caddy
+  gives a browser after a correct password, so the password is asked only once
+  (ADR 0024 §3). Treat it like a password.
 - `POSTGRES_PASSWORD`: `openssl rand -base64 32`.
 - `BRIO_IA_API_KEY`: the key from step 7.
 - Leave the SMTP values (Mailpit) and `BRIO_RESET_ALLOWED=true` as they are.
@@ -276,6 +279,14 @@ docker compose -f docker-compose.prod.yml --env-file deploy/.env exec postgres \
 UPDATE identite.comptes SET role = 'admin_brio' WHERE email = '<address>';
 ```
 
+## Revoking access
+
+Replace the person's `CADDY_HASH_n` in `deploy/.env` **and** `BRIO_GATE_TOKEN`
+(`openssl rand -hex 32`): their browser still holds the cookie the old token
+earned. Then `scripts/env/deploy.sh`, or just
+`docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d caddy`.
+Everyone types their password once more.
+
 ## Troubleshooting
 
 - **Certificate warning / Caddy logs "challenge failed".** DNS does not point at
@@ -295,5 +306,5 @@ UPDATE identite.comptes SET role = 'admin_brio' WHERE email = '<address>';
 ## At publication (F1b)
 
 Not now — for the record (ADR 0024 §9): remove `BRIO_RESET_ALLOWED` from
-`deploy/.env`, remove `basic_auth` from the Caddyfile, point the SMTP variables at
-an EU provider.
+`deploy/.env`, remove `basic_auth` and the gate cookie from the Caddyfile, point
+the SMTP variables at an EU provider.

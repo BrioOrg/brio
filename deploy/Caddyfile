@@ -10,23 +10,36 @@
 	# Private environment: every path, /api and /mailpit included, is behind an
 	# HTTP password — one account per person, so either can be revoked alone.
 	# Removed at publication (ADR 0024 §9).
-	basic_auth {
-		{$CADDY_USER_1} {$CADDY_HASH_1}
-		{$CADDY_USER_2} {$CADDY_HASH_2}
-	}
+	#
+	# The password is asked once: a correct one earns a cookie, and a request
+	# carrying that cookie skips basic_auth. Without it, the API's own 401s (a
+	# visitor with no Brio session) make the browser drop the password it had
+	# remembered and ask for it again on the next click.
+	@no_gate_cookie not header_regexp Cookie "(^|;\s*)brio_gate={$BRIO_GATE_TOKEN}(;|$)"
 
-	# The password is an edge credential, not an application one: never forward it.
-	request_header -Authorization
+	# route runs everything in written order (on its own, Caddy would run the
+	# handle blocks first): nothing is proxied, and the cookie is never set, before
+	# basic_auth has let the request through.
+	route {
+		basic_auth @no_gate_cookie {
+			{$CADDY_USER_1} {$CADDY_HASH_1} 
+			{$CADDY_USER_2} {$CADDY_HASH_2}
+		}
+		header @no_gate_cookie +Set-Cookie "brio_gate={$BRIO_GATE_TOKEN}; Path=/; Max-Age=2592000; Secure; HttpOnly; SameSite=Lax"
 
-	handle /api/* {
-		reverse_proxy backend:8080
-	}
+		# The password is an edge credential, not an application one: never forward it.
+		request_header -Authorization
 
-	handle /mailpit* {
-		reverse_proxy mailpit:8025
-	}
+		handle /api/* {
+			reverse_proxy backend:8080
+		}
 
-	handle {
-		reverse_proxy web:3000
+		handle /mailpit* {
+			reverse_proxy mailpit:8025
+		}
+
+		handle {
+			reverse_proxy web:3000
+		}
 	}
 }
