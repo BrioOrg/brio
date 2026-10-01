@@ -11,7 +11,7 @@ import {
   type Competence,
 } from '@brio/api-client'
 
-import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
+import { ChapterView } from '@/components/chapter-view'
 import { Icon } from '@/components/ui/icon'
 import { BlocEditeur } from '@/components/prof/bloc-editeur'
 import { PublierCours } from '@/components/prof/publier-cours'
@@ -19,6 +19,7 @@ import {
   BLOCS,
   SECTION_KIND_LABELS,
   brouillonDepuisContenu,
+  brouillonVersApercu,
   contenuDepuisBrouillon,
   deplacer,
   ecrireTampon,
@@ -171,10 +172,7 @@ export function EditeurCours({ coursId }: { coursId: string }) {
     if (brouillon) await enregistrer(brouillon)
   }, [brouillon, enregistrer])
 
-  const apercu = useMemo(
-    () => (brouillon ? (brouillon as unknown as ChapitreResponse) : null),
-    [brouillon]
-  )
+  const apercu = useMemo(() => (brouillon ? brouillonVersApercu(brouillon) : null), [brouillon])
 
   if (!charge) {
     return (
@@ -368,7 +366,6 @@ export function EditeurCours({ coursId }: { coursId: string }) {
             Publier
           </button>
         </header>
-
       </div>
 
       {/* -------- Corps : plan + page -------- */}
@@ -419,7 +416,16 @@ export function EditeurCours({ coursId }: { coursId: string }) {
                   Ton cours est encore vide. Reviens sur « Écrire » pour commencer.
                 </p>
               ) : (
-                <ChapterView chapitre={apercu} />
+                <>
+                  {apercu.exercicesMasques > 0 && (
+                    <p className="mb-4 font-prose text-sm text-ink-muted">
+                      {apercu.exercicesMasques === 1
+                        ? '1 exercice incomplet n’est pas affiché dans l’aperçu.'
+                        : `${apercu.exercicesMasques} exercices incomplets ne sont pas affichés dans l’aperçu.`}
+                    </p>
+                  )}
+                  <ChapterView chapitre={apercu.chapitre} apercu />
+                </>
               )}
             </div>
           ) : (
