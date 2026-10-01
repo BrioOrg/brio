@@ -18,11 +18,21 @@ vi.mock('@/lib/session', async () => {
   }
 })
 
-async function setup() {
+async function setup(redirectTo?: string) {
   const { login } = await import('@/lib/session')
   const { LoginForm } = await import('../login-form')
-  render(<LoginForm />)
+  render(<LoginForm redirectTo={redirectTo} />)
   return { login: vi.mocked(login) }
+}
+
+const ELEVE = { id: '1', role: 'eleve', statut: 'actif', nom: null, email: null }
+const ENSEIGNANT = { id: '2', role: 'enseignant', statut: 'actif', nom: 'P', email: 'p@t.fr' }
+
+async function submit() {
+  const user = userEvent.setup()
+  await user.type(screen.getByLabelText(/identifiant ou e-mail/i), 'lea.martin')
+  await user.type(screen.getByLabelText(/mot de passe/i), 'motdepasse')
+  await user.click(screen.getByRole('button', { name: 'Se connecter', exact: true }))
 }
 
 describe('LoginForm', () => {
@@ -62,6 +72,42 @@ describe('LoginForm', () => {
 
     await waitFor(() => expect(login).toHaveBeenCalledWith('lea.martin', 'motdepasse'))
     expect(push).toHaveBeenCalledWith('/')
+  })
+
+  it('envoie un élève vers le chemin de retour demandé', async () => {
+    const { login } = await setup('/devoirs')
+    login.mockResolvedValue(ELEVE)
+
+    await submit()
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/devoirs'))
+  })
+
+  it('envoie un enseignant vers son espace', async () => {
+    const { login } = await setup()
+    login.mockResolvedValue(ENSEIGNANT)
+
+    await submit()
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/prof'))
+  })
+
+  it('envoie un enseignant vers son espace quand le retour demandé est l’accueil', async () => {
+    const { login } = await setup('/')
+    login.mockResolvedValue(ENSEIGNANT)
+
+    await submit()
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/prof'))
+  })
+
+  it('envoie un enseignant vers le chemin de retour demandé', async () => {
+    const { login } = await setup('/prof/classes')
+    login.mockResolvedValue(ENSEIGNANT)
+
+    await submit()
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/prof/classes'))
   })
 
   it('affiche un message d’erreur quand les identifiants sont invalides', async () => {

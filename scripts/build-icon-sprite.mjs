@@ -19,6 +19,7 @@ const ICONS = [
   'barbell',
   'book-open',
   'caret-right',
+  'chalkboard',
   'chat-circle',
   'check',
   'circle-notch',
