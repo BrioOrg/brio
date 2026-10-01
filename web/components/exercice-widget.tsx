@@ -13,7 +13,6 @@ type Choice = { id: string; text: string }
 
 type ExerciceWidgetProps = {
   id?: string
-  exerciceId: string
   exerciseType: string
   prompt: string
   choices?: Choice[]
@@ -25,7 +24,14 @@ type ExerciceWidgetProps = {
   template?: string
   /** fill-blank: the pool of tiles the student picks from. */
   bank?: string[]
-}
+} & (
+  | { exerciceId: string; apercu?: false }
+  /**
+   * Teacher's preview of an unpublished draft: the exercise has no `exerciceId` yet (assigned at
+   * publication, ADR 0019 §4), so it renders as the student sees it but cannot be checked.
+   */
+  | { exerciceId?: undefined; apercu: true }
+)
 
 const BLANK_MARKER = '{}'
 
@@ -94,10 +100,7 @@ export function PaperExercise({ id, prompt, statement, solution }: PaperExercise
               </div>
             </div>
           ) : (
-            <div
-              className="mt-4 rounded-lg border border-line bg-surface-panel p-4"
-              role="status"
-            >
+            <div className="mt-4 rounded-lg border border-line bg-surface-panel p-4" role="status">
               <p className="font-prose text-sm leading-relaxed text-ink">
                 {selfResult === 'ok'
                   ? 'Bravo — la rédaction sur feuille, c’est le vrai entraînement. Continue comme ça.'
@@ -130,6 +133,7 @@ export function ExerciceWidget({
   placeholder,
   template,
   bank,
+  apercu,
 }: ExerciceWidgetProps) {
   const { setActiveExerciceId } = useChapterInteraction()
   const { refresh: refreshProgression } = useProgression()
@@ -151,7 +155,7 @@ export function ExerciceWidget({
   )
 
   function markActive() {
-    setActiveExerciceId(exerciceId)
+    if (exerciceId) setActiveExerciceId(exerciceId)
   }
 
   function placeTile(tileIndex: number) {
@@ -227,6 +231,8 @@ export function ExerciceWidget({
             ? { blanks: filledBlanks.map((b) => (b !== null && bank ? bank[b] : '')) }
             : { value: Number(numericValue) }
 
+    if (!exerciceId) return // preview: nothing to grade against
+
     setLoading(true)
     try {
       const res = await soumettre(exerciceId, answer)
@@ -270,7 +276,7 @@ export function ExerciceWidget({
   }
 
   const submitDisabled =
-    loading || (exerciseType === 'short-answer' && shortAnswerText.trim() === '')
+    apercu || loading || (exerciseType === 'short-answer' && shortAnswerText.trim() === '')
 
   return (
     <div id={id} className="rounded-lg border border-line bg-surface-panel p-5">
@@ -410,6 +416,11 @@ export function ExerciceWidget({
           >
             Vérifier
           </Button>
+        )}
+        {apercu && (
+          <p className="mt-2 font-prose text-sm text-ink-muted">
+            La correction sera active une fois le cours publié.
+          </p>
         )}
       </form>
 

@@ -47,7 +47,17 @@ type Block = {
   [key: string]: unknown
 }
 
-export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
+/**
+ * `apercu`: the teacher's preview of an unpublished draft. Exercises have no `exerciceId` yet, so
+ * they render as the student will see them, without grading.
+ */
+export function ChapterView({
+  chapitre,
+  apercu = false,
+}: {
+  chapitre: ChapitreResponse
+  apercu?: boolean
+}) {
   return (
     <article className="font-prose text-ink">
       <header className="mb-8">
@@ -74,7 +84,7 @@ export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
             </h2>
             <div className="flex flex-col gap-5">
               {section.blocks.map((block, i) => (
-                <BlockRenderer key={block.id ?? i} block={block} />
+                <BlockRenderer key={block.id ?? i} block={block} apercu={apercu} />
               ))}
             </div>
           </section>
@@ -84,7 +94,7 @@ export function ChapterView({ chapitre }: { chapitre: ChapitreResponse }) {
   )
 }
 
-function BlockRenderer({ block }: { block: Block }) {
+function BlockRenderer({ block, apercu }: { block: Block; apercu: boolean }) {
   switch (block.type) {
     case 'prose':
       return (
@@ -157,7 +167,7 @@ function BlockRenderer({ block }: { block: Block }) {
       )
 
     case 'exercise':
-      return <ExerciseBlock id={block.id} block={block} />
+      return <ExerciseBlock id={block.id} block={block} apercu={apercu} />
 
     case 'steps':
       return <StepsBlock id={block.id} block={block} />
@@ -345,7 +355,7 @@ function StepFormula({ latex }: { latex: string }) {
   )
 }
 
-function ExerciseBlock({ id, block }: { id: string; block: Block }) {
+function ExerciseBlock({ id, block, apercu }: { id: string; block: Block; apercu: boolean }) {
   const {
     exerciceId,
     exerciseType,
@@ -360,18 +370,17 @@ function ExerciseBlock({ id, block }: { id: string; block: Block }) {
     bank,
   } = block
 
-  if (
-    exerciceId &&
-    prompt &&
-    (exerciseType === 'multiple-choice' ||
-      exerciseType === 'numeric' ||
-      exerciseType === 'short-answer' ||
-      exerciseType === 'fill-blank')
-  ) {
+  const corrigeAutomatiquement =
+    exerciseType === 'multiple-choice' ||
+    exerciseType === 'numeric' ||
+    exerciseType === 'short-answer' ||
+    exerciseType === 'fill-blank'
+
+  if (prompt && corrigeAutomatiquement && (exerciceId || apercu)) {
     return (
       <ExerciceWidget
         id={id}
-        exerciceId={exerciceId}
+        {...(exerciceId ? { exerciceId } : { apercu: true as const })}
         exerciseType={exerciseType}
         prompt={prompt}
         choices={choices}

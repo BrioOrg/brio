@@ -5,6 +5,8 @@
 // déplacement, persistance locale) pour rester testable sans le DOM. L'écriture vers le serveur
 // (créer / enregistrer / publier un brouillon) est une étape suivante — ici on persiste en local.
 
+import type { ChapitreResponse } from '@/components/chapter-view'
+
 // Les types de blocs que l'afficheur élève sait rendre AUJOURD'HUI (chapter-view.tsx). On s'y
 // limite volontairement : inutile de laisser écrire des blocs qui n'apparaîtraient pas.
 export type BlocType =
@@ -374,6 +376,86 @@ export function tableauACelluleVide(bloc: Bloc): boolean {
   // Une ligne d'en-têtes entièrement vide est retirée à l'enregistrement : pas un problème.
   const entetesUtiles = entetes.every(vide) ? [] : entetes
   return [...entetesUtiles, ...corps].some(vide)
+}
+
+// --- Aperçu élève --------------------------------------------------------------
+// L'aperçu montre ce que verra l'élève, rien de plus. Un exercice qu'un élève ne pourrait pas
+// faire tel quel n'y figure pas ; les règles de correction (réponses attendues) ne comptent pas
+// ici : elles ne se voient pas côté élève.
+
+function texteRempli(v: unknown): boolean {
+  return typeof v === 'string' && v.trim() !== ''
+}
+
+/** Vrai si un bloc d'exercice est assez rempli pour qu'un élève puisse le faire tel quel. */
+export function exerciceComplet(bloc: Bloc): boolean {
+  if (bloc.type !== 'exercise' || !texteRempli(bloc.prompt)) return false
+  switch (bloc.exerciseType) {
+    case 'multiple-choice': {
+      const choices = Array.isArray(bloc.choices) ? (bloc.choices as { text?: unknown }[]) : []
+      return choices.length >= 2 && choices.every((c) => texteRempli(c.text))
+    }
+    case 'short-answer':
+    case 'numeric':
+      return true
+    case 'fill-blank': {
+      const bank = Array.isArray(bloc.bank) ? (bloc.bank as unknown[]) : []
+      return (
+        compterTrous(String(bloc.template ?? '')) > 0 && bank.length > 0 && bank.every(texteRempli)
+      )
+    }
+    case 'paper':
+      return texteRempli(bloc.solution)
+    default:
+      return false
+  }
+}
+
+// Champs de correction d'un exercice : saisis dans l'éditeur, jamais montrés à l'élève.
+const CHAMPS_CORRECTION = ['expected', 'acceptedAnswers', 'answer', 'tolerance', 'caseSensitive']
+
+function blocPourApercu(bloc: Bloc): Bloc {
+  if (bloc.type !== 'exercise') return bloc
+  const copie: Bloc = { ...bloc }
+  for (const champ of CHAMPS_CORRECTION) delete copie[champ]
+  if (Array.isArray(bloc.choices)) {
+    copie.choices = (bloc.choices as Choix[]).map(({ id, text }) => ({ id, text }))
+  }
+  return copie
+}
+
+/**
+ * Le brouillon tel que l'élève le verrait : exercices incomplets retirés, champs de correction
+ * effacés. Renvoie aussi le nombre d'exercices masqués, pour le signaler à l'enseignant.
+ */
+export function brouillonVersApercu(b: Brouillon): {
+  chapitre: ChapitreResponse
+  exercicesMasques: number
+} {
+  let exercicesMasques = 0
+  const sections = b.sections.map((s) => ({
+    id: s.id,
+    title: s.title,
+    kind: s.kind,
+    blocks: s.blocks
+      .filter((bloc) => {
+        if (bloc.type !== 'exercise' || exerciceComplet(bloc)) return true
+        exercicesMasques++
+        return false
+      })
+      .map(blocPourApercu),
+  }))
+  return {
+    chapitre: {
+      schemaVersion: b.schemaVersion,
+      id: b.id,
+      title: b.title,
+      subject: b.subject,
+      level: b.level,
+      sections,
+    },
+    exercicesMasques,
+  }
 }
 
 /** Une section neuve (une leçon par défaut) avec un titre vide et aucun bloc. */

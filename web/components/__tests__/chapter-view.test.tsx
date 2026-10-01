@@ -124,7 +124,10 @@ describe('ChapterView — table block', () => {
             id: 't1',
             type: 'table',
             headers: ['Grandeur', 'Symbole'],
-            rows: [['Longueur', '$L$'], ['Masse', 'm']],
+            rows: [
+              ['Longueur', '$L$'],
+              ['Masse', 'm'],
+            ],
             caption: 'Unités **usuelles**',
           },
         ])}
@@ -140,9 +143,7 @@ describe('ChapterView — table block', () => {
 
   it('renders a headerless table (no thead)', () => {
     const { container } = render(
-      <ChapterView
-        chapitre={makeChapter([{ id: 't2', type: 'table', rows: [['a', 'b']] }])}
-      />
+      <ChapterView chapitre={makeChapter([{ id: 't2', type: 'table', rows: [['a', 'b']] }])} />
     )
     expect(container.querySelector('thead')).toBeNull()
     expect(container.querySelectorAll('tbody td')).toHaveLength(2)
@@ -202,5 +203,56 @@ describe('ChapterView — reference block', () => {
     )
     expect(container.querySelector('a')).toBeNull()
     getByText('Cible à définir')
+  })
+})
+
+describe('ChapterView — aperçu enseignant', () => {
+  const qcmBrouillon = {
+    id: 'q1',
+    type: 'exercise',
+    exerciseType: 'multiple-choice',
+    prompt: 'Quel côté est l’hypoténuse ?',
+    multiple: false,
+    choices: [
+      { id: 'a', text: 'Le côté [RS]' },
+      { id: 'b', text: 'Le côté [RT]' },
+    ],
+  }
+
+  it('affiche les propositions d’un QCM sans exerciceId, « Vérifier » désactivé', () => {
+    const { getByRole, getByText } = render(
+      <ChapterView chapitre={makeChapter([qcmBrouillon])} apercu />
+    )
+    expect(getByRole('button', { name: /Le côté \[RS\]/ })).toBeInTheDocument()
+    expect(getByRole('button', { name: /Le côté \[RT\]/ })).toBeInTheDocument()
+    expect(getByRole('button', { name: 'Vérifier' })).toBeDisabled()
+    expect(getByText('La correction sera active une fois le cours publié.')).toBeInTheDocument()
+  })
+
+  it('affiche les trous et les étiquettes d’un texte à trous', () => {
+    const { getByRole, getByLabelText } = render(
+      <ChapterView
+        chapitre={makeChapter([
+          {
+            id: 't1',
+            type: 'exercise',
+            exerciseType: 'fill-blank',
+            prompt: 'Complète.',
+            template: 'Le {} dort.',
+            bank: ['chat', 'chien'],
+          },
+        ])}
+        apercu
+      />
+    )
+    expect(getByLabelText('Trou 1 à remplir')).toBeInTheDocument()
+    expect(getByRole('button', { name: 'chat' })).toBeInTheDocument()
+    expect(getByRole('button', { name: 'chien' })).toBeInTheDocument()
+  })
+
+  it('hors aperçu, un QCM sans exerciceId reste une carte sans propositions', () => {
+    const { queryByRole } = render(<ChapterView chapitre={makeChapter([qcmBrouillon])} />)
+    expect(queryByRole('button', { name: /Le côté \[RS\]/ })).not.toBeInTheDocument()
+    expect(queryByRole('button', { name: 'Vérifier' })).not.toBeInTheDocument()
   })
 })

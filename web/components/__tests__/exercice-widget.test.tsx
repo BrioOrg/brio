@@ -289,3 +289,25 @@ describe('ExerciceWidget — réponse courte', () => {
     expect(screen.getByPlaceholderText('Ex. : hypothénuse')).toBeInTheDocument()
   })
 })
+
+describe('ExerciceWidget — aperçu enseignant', () => {
+  beforeEach(() => {
+    mockSoumettre.mockReset()
+  })
+
+  it('laisse choisir une réponse mais n’envoie rien au serveur', () => {
+    render(
+      <ExerciceWidget
+        exerciseType={MC_PROPS.exerciseType}
+        prompt={MC_PROPS.prompt}
+        choices={MC_PROPS.choices}
+        apercu
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Le côté \[RT\]/ }))
+    const verifier = screen.getByRole('button', { name: 'Vérifier' })
+    expect(verifier).toBeDisabled()
+    fireEvent.submit(verifier.closest('form') as HTMLFormElement)
+    expect(mockSoumettre).not.toHaveBeenCalled()
+  })
+})
