@@ -13,8 +13,10 @@ const PHOSPHOR = join(ROOT, 'node_modules/@phosphor-icons/core/assets')
 const OUT = join(ROOT, 'web/public/icons/sprite.svg')
 
 const ICONS = [
+  'arrow-down',
   'arrow-left',
   'arrow-right',
+  'arrow-up',
   'arrow-up-right',
   'barbell',
   'book-open',
@@ -24,6 +26,7 @@ const ICONS = [
   'check',
   'circle-notch',
   'compass',
+  'copy',
   'eye',
   'eye-slash',
   'flame',
@@ -34,6 +37,7 @@ const ICONS = [
   'smiley',
   'sparkle',
   'star',
+  'trash',
   'trophy',
   'user',
   'warning-circle',

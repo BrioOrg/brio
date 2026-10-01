@@ -13,6 +13,7 @@ import {
 
 import { ChapterView } from '@/components/chapter-view'
 import { Icon } from '@/components/ui/icon'
+import { Infobulle, InfobulleProvider } from '@/components/ui/infobulle'
 import { BlocEditeur } from '@/components/prof/bloc-editeur'
 import { PublierCours } from '@/components/prof/publier-cours'
 import {
@@ -50,7 +51,17 @@ type EtatEnregistrement = 'repos' | 'enregistrement' | 'enregistre' | 'echec'
 // l'API, on écrit chaque frappe dans un tampon local (résilience) et on enregistre côté serveur
 // après une courte pause. « Publier » fige une version immuable visible des classes portées.
 
+// Les infobulles des poignées partagent un fournisseur : passer d'un bouton à son voisin
+// l'affiche sans attendre de nouveau le délai.
 export function EditeurCours({ coursId }: { coursId: string }) {
+  return (
+    <InfobulleProvider>
+      <EditeurCoursContenu coursId={coursId} />
+    </InfobulleProvider>
+  )
+}
+
+function EditeurCoursContenu({ coursId }: { coursId: string }) {
   const [brouillon, setBrouillon] = useState<Brouillon | null>(null)
   const [charge, setCharge] = useState(false)
   const [erreurChargement, setErreurChargement] = useState<string | null>(null)
@@ -692,7 +703,10 @@ function AjoutBloc({
   )
 }
 
-// Une ligne de la feuille : le bloc, avec des poignées discrètes qui apparaissent au survol.
+// Une ligne de la feuille : le bloc, avec ses poignées. La barre se pose à cheval sur le bord
+// haut du bloc (sur la ligne d'insertion au-dessus) pour ne pas masquer le début du texte ; elle
+// apparaît au survol, au focus et sur le bloc actif. Au toucher (pas de survol), elle reste
+// visible et rentre dans le flux, au-dessus du bloc.
 function BlocLigne({
   children,
   actif,
@@ -714,57 +728,54 @@ function BlocLigne({
 }) {
   return (
     <div
-      className={`group relative rounded-md border-l-2 py-2.5 pl-4 pr-2 transition-colors ${
+      className={`group relative flex flex-col rounded-md border-l-2 py-2.5 pl-4 pr-2 transition-colors ${
         actif ? 'border-accent bg-surface-page/60' : 'border-transparent hover:bg-surface-page/40'
       }`}
     >
       {children}
       <div
-        className={`absolute right-1 top-1 flex items-center gap-0.5 rounded-md border border-line bg-surface-panel p-0.5 opacity-0 shadow-sm transition-opacity group-focus-within:opacity-100 group-hover:opacity-100`}
+        className={`absolute -top-5 right-2 z-10 flex items-center gap-0.5 rounded-md border border-line bg-surface-panel p-0.5 transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:static pointer-coarse:order-first pointer-coarse:mb-2 pointer-coarse:ml-auto pointer-coarse:w-fit pointer-coarse:opacity-100 ${
+          actif ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
       >
-        <Poignee label="Monter" onClick={onMonter} disabled={premier}>
-          ↑
-        </Poignee>
-        <Poignee label="Descendre" onClick={onDescendre} disabled={dernier}>
-          ↓
-        </Poignee>
-        <Poignee label="Dupliquer" onClick={onDupliquer}>
-          ⧉
-        </Poignee>
-        <Poignee label="Supprimer" onClick={onSupprimer} danger>
-          <Icon name="x" size={13} aria-hidden="true" />
-        </Poignee>
+        <Poignee label="Monter" icone="arrow-up" onClick={onMonter} disabled={premier} />
+        <Poignee label="Descendre" icone="arrow-down" onClick={onDescendre} disabled={dernier} />
+        <Poignee label="Dupliquer" icone="copy" onClick={onDupliquer} />
+        <Poignee label="Supprimer" icone="trash" onClick={onSupprimer} danger />
       </div>
     </div>
   )
 }
 
+// Bouton d'action à icône seule : l'infobulle nomme l'opération au survol et au focus clavier,
+// l'aria-label la nomme aux lecteurs d'écran. Cible de 32 px, 44 px au toucher.
 function Poignee({
-  children,
   label,
+  icone,
   onClick,
   disabled,
   danger,
 }: {
-  children: React.ReactNode
   label: string
+  icone: string
   onClick: () => void
   disabled?: boolean
   danger?: boolean
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-      className={`grid h-6 w-6 place-items-center rounded font-display text-xs font-extrabold disabled:opacity-30 ${
-        danger ? 'text-ink-muted hover:text-danger' : 'text-ink-muted hover:text-ink'
-      }`}
-    >
-      {children}
-    </button>
+    <Infobulle label={label}>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={label}
+        className={`grid h-8 w-8 place-items-center rounded-sm text-ink-muted hover:bg-surface-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30 disabled:hover:bg-transparent pointer-coarse:h-11 pointer-coarse:w-11 ${
+          danger ? 'hover:text-danger' : 'hover:text-ink'
+        }`}
+      >
+        <Icon name={icone} size={18} />
+      </button>
+    </Infobulle>
   )
 }
 
@@ -814,16 +825,20 @@ function PlanSection({
             </span>
           </span>
         </button>
-        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-          <Poignee label="Monter la partie" onClick={onMonter} disabled={premier}>
-            ↑
-          </Poignee>
-          <Poignee label="Descendre la partie" onClick={onDescendre} disabled={dernier}>
-            ↓
-          </Poignee>
-          <Poignee label="Supprimer la partie" onClick={onSupprimer} danger>
-            <Icon name="x" size={12} aria-hidden="true" />
-          </Poignee>
+        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
+          <Poignee
+            label="Monter la partie"
+            icone="arrow-up"
+            onClick={onMonter}
+            disabled={premier}
+          />
+          <Poignee
+            label="Descendre la partie"
+            icone="arrow-down"
+            onClick={onDescendre}
+            disabled={dernier}
+          />
+          <Poignee label="Supprimer la partie" icone="trash" onClick={onSupprimer} danger />
         </div>
       </div>
     </div>
