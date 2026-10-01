@@ -25,16 +25,16 @@ export function Infobulle({ label, children, side = 'top' }: InfobulleProps) {
   return (
     <Tooltip.Root>
       <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content
-          side={side}
-          sideOffset={6}
-          collisionPadding={8}
-          className="z-50 rounded-sm border border-line bg-surface-panel px-2 py-1 font-display text-xs font-extrabold text-ink"
-        >
-          {label}
-        </Tooltip.Content>
-      </Tooltip.Portal>
+      {/* No Portal: the content must inherit a locally forced data-theme (the course editor is
+          always light). Radix positions it as `fixed`, so overflow containers do not clip it. */}
+      <Tooltip.Content
+        side={side}
+        sideOffset={6}
+        collisionPadding={8}
+        className="z-50 rounded-sm border border-line bg-surface-panel px-2 py-1 font-display text-xs font-extrabold text-ink"
+      >
+        {label}
+      </Tooltip.Content>
     </Tooltip.Root>
   )
 }
