@@ -3,11 +3,13 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   apercuBloc,
   brouillonDepuisContenu,
+  brouillonVersApercu,
   chargerBrouillon,
   compterTrous,
   contenuDepuisBrouillon,
   deplacer,
   distracteursDe,
+  exerciceComplet,
   ecrireTampon,
   effacerTampon,
   enregistrerBrouillon,
@@ -413,5 +415,124 @@ describe('tampon local par cours', () => {
 
   it('renvoie null pour un cours sans tampon', () => {
     expect(lireTampon('inconnu')).toBeNull()
+  })
+})
+
+describe('aperçu élève', () => {
+  const qcm = (patch: Partial<Bloc> = {}): Bloc => ({
+    id: 'q1',
+    type: 'exercise',
+    exerciseType: 'multiple-choice',
+    prompt: 'Quel côté est l’hypoténuse ?',
+    multiple: false,
+    choices: [
+      { id: 'a', text: '[RS]', correct: false },
+      { id: 'b', text: '[RT]', correct: true },
+    ],
+    ...patch,
+  })
+
+  describe('exerciceComplet', () => {
+    it('accepte un QCM avec un intitulé et deux propositions remplies', () => {
+      expect(exerciceComplet(qcm())).toBe(true)
+    })
+
+    it('refuse un exercice sans intitulé', () => {
+      expect(exerciceComplet(qcm({ prompt: '  ' }))).toBe(false)
+    })
+
+    it('refuse un QCM dont une proposition est vide ou qui n’en a qu’une', () => {
+      expect(
+        exerciceComplet(
+          qcm({
+            choices: [
+              { id: 'a', text: '[RS]' },
+              { id: 'b', text: '' },
+            ],
+          })
+        )
+      ).toBe(false)
+      expect(exerciceComplet(qcm({ choices: [{ id: 'a', text: '[RS]' }] }))).toBe(false)
+    })
+
+    it('accepte un Vrai / Faux neuf dès qu’il a un intitulé', () => {
+      const vf = nouveauBloc('exercise', 'multiple-choice', 'true-false')
+      expect(exerciceComplet(vf)).toBe(false)
+      expect(exerciceComplet({ ...vf, prompt: 'La Terre est ronde.' })).toBe(true)
+    })
+
+    it('accepte une réponse courte ou un numérique avec le seul intitulé', () => {
+      const court = { ...nouveauBloc('exercise', 'short-answer'), prompt: 'Capitale ?' }
+      const num = { ...nouveauBloc('exercise', 'numeric'), prompt: '2 + 2 ?' }
+      expect(exerciceComplet(court)).toBe(true)
+      expect(exerciceComplet(num)).toBe(true)
+    })
+
+    it('exige au moins un trou et une banque remplie pour un texte à trous', () => {
+      const base = { ...nouveauBloc('exercise', 'fill-blank'), prompt: 'Complète.' }
+      expect(exerciceComplet({ ...base, template: 'Sans trou', bank: ['x'] })).toBe(false)
+      expect(exerciceComplet({ ...base, template: 'Un {}.', bank: [] })).toBe(false)
+      expect(exerciceComplet({ ...base, template: 'Un {}.', bank: ['chat', ''] })).toBe(false)
+      expect(exerciceComplet({ ...base, template: 'Un {}.', bank: ['chat'] })).toBe(true)
+    })
+
+    it('exige une solution pour un exercice sur feuille', () => {
+      const base = { ...nouveauBloc('exercise', 'paper'), prompt: 'Démontre.' }
+      expect(exerciceComplet(base)).toBe(false)
+      expect(exerciceComplet({ ...base, solution: 'Par Pythagore…' })).toBe(true)
+    })
+  })
+
+  describe('brouillonVersApercu', () => {
+    const brouillon = () => ({
+      ...nouveauBrouillon(),
+      title: 'Pythagore',
+      sections: [
+        {
+          id: 's1',
+          title: 'Exercices',
+          kind: 'exercises' as const,
+          blocks: [
+            { id: 'p', type: 'prose' as const, text: 'Intro' },
+            qcm(),
+            qcm({ id: 'q2', prompt: '' }),
+            {
+              id: 'n',
+              type: 'exercise' as const,
+              exerciseType: 'numeric',
+              prompt: 'BC ?',
+              answer: 10,
+              tolerance: 0,
+              unit: 'cm',
+            },
+          ],
+        },
+      ],
+    })
+
+    it('retire les exercices incomplets et les compte', () => {
+      const { chapitre, exercicesMasques } = brouillonVersApercu(brouillon())
+      expect(chapitre.sections[0].blocks.map((b) => b.id)).toEqual(['p', 'q1', 'n'])
+      expect(exercicesMasques).toBe(1)
+    })
+
+    it('efface les champs de correction', () => {
+      const { chapitre } = brouillonVersApercu(brouillon())
+      const [, mc, num] = chapitre.sections[0].blocks
+      expect(mc.choices).toEqual([
+        { id: 'a', text: '[RS]' },
+        { id: 'b', text: '[RT]' },
+      ])
+      expect(num).not.toHaveProperty('answer')
+      expect(num).not.toHaveProperty('tolerance')
+      expect(num.unit).toBe('cm')
+    })
+
+    it('ne modifie pas le brouillon', () => {
+      const b = brouillon()
+      brouillonVersApercu(b)
+      expect(b.sections[0].blocks).toHaveLength(4)
+      expect((b.sections[0].blocks[1].choices as { correct: boolean }[])[1].correct).toBe(true)
+    })
   })
 })
