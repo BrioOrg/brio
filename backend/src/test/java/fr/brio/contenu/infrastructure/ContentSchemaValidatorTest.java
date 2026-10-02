@@ -1,11 +1,14 @@
 package fr.brio.contenu.infrastructure;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.contenu.InvalidContentException;
+import fr.brio.contenu.ContentViolation;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -149,5 +152,67 @@ class ContentSchemaValidatorTest {
                 """;
         assertThatThrownBy(() -> validator.validate(chapterWith(block)))
                 .isInstanceOf(InvalidContentException.class);
+    }
+
+    // --- Located violations (#201) ----------------------------------------------------
+
+    private List<ContentViolation> violationsOf(JsonNode document) {
+        try {
+            validator.validate(document);
+        } catch (InvalidContentException e) {
+            return e.violations();
+        }
+        throw new AssertionError("expected the document to be rejected");
+    }
+
+    @Test
+    void shouldLocateAnEmptyFieldOnItsBlockOnly() {
+        // The block union is a oneOf: every other branch also complains ("not a heading"…).
+        // Only the prose branch explains what the author has to fix.
+        String block = """
+                { "id": "p1", "type": "prose", "text": "" }
+                """;
+        assertThat(violationsOf(chapterWith(block)))
+                .containsExactly(new ContentViolation(ContentViolation.EMPTY, "s1", "p1", "text"));
+    }
+
+    @Test
+    void shouldLocateAMissingExerciseFieldByItsName() {
+        String block = """
+                { "id": "ex1", "type": "exercise", "exerciseType": "numeric", "prompt": "Combien ?" }
+                """;
+        assertThat(violationsOf(chapterWith(block)))
+                .containsExactly(new ContentViolation(ContentViolation.REQUIRED, "s1", "ex1", "answer"));
+    }
+
+    @Test
+    void shouldLocateAnEmptyChoiceDownToItsIndex() {
+        String block = """
+                { "id": "qcm", "type": "exercise", "exerciseType": "multiple-choice", "prompt": "Q ?",
+                  "choices": [ { "id": "a", "text": "", "correct": true },
+                               { "id": "b", "text": "Non", "correct": false } ] }
+                """;
+        assertThat(violationsOf(chapterWith(block)))
+                .containsExactly(new ContentViolation(ContentViolation.EMPTY, "s1", "qcm", "choices[0].text"));
+    }
+
+    @Test
+    void shouldReportANonHttpsUrlAsAFormatProblem() {
+        String block = """
+                { "id": "ref", "type": "reference", "scope": "external", "title": "T", "url": "http://x.fr" }
+                """;
+        assertThat(violationsOf(chapterWith(block)))
+                .containsExactly(new ContentViolation(ContentViolation.INVALID_FORMAT, "s1", "ref", "url"));
+    }
+
+    @Test
+    void shouldLocateAnEmptySectionTitleOnTheSection() throws Exception {
+        JsonNode document = objectMapper.readTree("""
+                { "schemaVersion": 1, "id": "demo", "title": "Démo",
+                  "sections": [ { "id": "s1", "title": "", "kind": "lesson",
+                                  "blocks": [ { "id": "p1", "type": "prose", "text": "Texte" } ] } ] }
+                """);
+        assertThat(violationsOf(document))
+                .containsExactly(new ContentViolation(ContentViolation.EMPTY, "s1", null, "title"));
     }
 }

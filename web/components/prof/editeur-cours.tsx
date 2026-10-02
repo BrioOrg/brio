@@ -8,19 +8,23 @@ import {
   enregistrerCours,
   getCoursBrouillon,
   listerCompetences,
+  sectionsDuChapitrePublie,
   type Competence,
+  type ViolationContenu,
 } from '@brio/api-client'
 
 import { ChapterView } from '@/components/chapter-view'
 import { Icon } from '@/components/ui/icon'
 import { Infobulle, InfobulleProvider } from '@/components/ui/infobulle'
 import { BlocEditeur } from '@/components/prof/bloc-editeur'
+import { ProblemesDuBlocProvider, marqueChamp } from '@/components/prof/problemes-du-bloc'
 import { PublierCours } from '@/components/prof/publier-cours'
 import {
   BLOCS,
   SECTION_KIND_LABELS,
   brouillonDepuisContenu,
   brouillonVersApercu,
+  cibleAVerifier,
   contenuDepuisBrouillon,
   deplacer,
   ecrireTampon,
@@ -28,11 +32,15 @@ import {
   lireTampon,
   nouveauBloc,
   nouvelleSection,
+  problemeReference,
+  problemesBrouillon,
+  problemesDepuisViolations,
   type Bloc,
   type BlocType,
   type Brouillon,
   type ExerciceType,
   type ExercicePreset,
+  type Probleme,
   type Section,
   type SectionKind,
 } from '@/lib/cours-editeur'
@@ -43,6 +51,34 @@ import { apiBaseUrl } from '@/lib/api-base-url'
 const DELAI_ENREGISTREMENT_MS = 1500
 
 type EtatEnregistrement = 'repos' | 'enregistrement' | 'enregistre' | 'echec'
+
+/** Résultat de la vérification d'une référence interne (voir problemeReference). */
+type CibleVerifiee = string[] | null | 'erreur'
+
+function cleCible(c: { level: string; subject: string; slug: string }): string {
+  return `${c.level}/${c.subject}/${c.slug}`
+}
+
+// « Aller au problème » : l'élément à atteindre (repères data-* posés par l'éditeur et useChamp).
+// Un champ introuvable (ligne supprimée…) retombe sur son parent, puis sur le bloc.
+function elementDuProbleme(p: Probleme): HTMLElement | null {
+  if (!p.sectionId) return document.querySelector<HTMLElement>('[data-champ-cours]')
+  if (!p.blocId) {
+    return document.querySelector<HTMLElement>(`[data-champ-partie="${p.champ ?? 'title'}"]`)
+  }
+  const bloc = document.querySelector<HTMLElement>(`[data-bloc-id="${p.blocId}"]`)
+  if (!bloc) return null
+  let champ = p.champ
+  while (champ) {
+    const el = bloc.querySelector<HTMLElement>(`[data-champ="${champ}"]`)
+    if (el) return el
+    const coupe = Math.max(champ.lastIndexOf('.'), champ.lastIndexOf('['))
+    champ = coupe > 0 ? champ.slice(0, coupe) : ''
+  }
+  return bloc
+}
+
+const FOCUSABLE = 'input, textarea, select, button'
 
 // Éditeur de cours côté enseignant — piste A « la page ».
 // Thème CLAIR (data-theme="light") : on écrit sur une page blanche, comme un document. Une barre
@@ -76,6 +112,12 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
   // Niveau du cours (ex. « 6e ») : filtre le picker de compétences aux compétences de ce niveau.
   const [niveauCode, setNiveauCode] = useState<string>('')
   const [competences, setCompetences] = useState<Competence[]>([])
+  // Validation avant publication : rien n'est signalé avant le premier clic sur « Publier ».
+  const [validationDemandee, setValidationDemandee] = useState(false)
+  const [ciblesVerifiees, setCiblesVerifiees] = useState<Record<string, CibleVerifiee>>({})
+  const [verificationEnCours, setVerificationEnCours] = useState(false)
+  const [problemesServeur, setProblemesServeur] = useState<Probleme[]>([])
+  const [problemeVise, setProblemeVise] = useState<Probleme | null>(null)
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Sauter l'enregistrement déclenché par le tout premier rendu (le chargement lui-même).
@@ -185,6 +227,57 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
 
   const apercu = useMemo(() => (brouillon ? brouillonVersApercu(brouillon) : null), [brouillon])
 
+  // Un refus du serveur décrit le brouillon d'alors : toute modification le rend caduc.
+  useEffect(() => {
+    setProblemesServeur([])
+  }, [brouillon])
+
+  const problemes = useMemo(() => {
+    if (!brouillon || !validationDemandee) return []
+    const references = brouillon.sections.flatMap((s) =>
+      s.blocks.flatMap((bloc) => {
+        const cible = cibleAVerifier(bloc)
+        const resultat = cible ? ciblesVerifiees[cleCible(cible)] : undefined
+        const p = resultat === undefined ? null : problemeReference(bloc, s.id, resultat)
+        return p ? [p] : []
+      })
+    )
+    return [...problemesBrouillon(brouillon), ...references, ...problemesServeur]
+  }, [brouillon, validationDemandee, ciblesVerifiees, problemesServeur])
+
+  // Après le rendu qui affiche la bonne partie, on amène le champ fautif à l'écran.
+  useEffect(() => {
+    if (!problemeVise) return
+    const el = elementDuProbleme(problemeVise)
+    setProblemeVise(null)
+    if (!el) return
+    el.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+    const cible = el.matches(FOCUSABLE) ? el : el.querySelector<HTMLElement>(FOCUSABLE)
+    cible?.focus({ preventScroll: true })
+  }, [problemeVise])
+
+  // Les références internes se vérifient contre le catalogue à chaque ouverture de « Publier ».
+  const verifierReferences = useCallback(async (b: Brouillon) => {
+    const cibles = new Map<string, NonNullable<ReturnType<typeof cibleAVerifier>>>()
+    for (const bloc of b.sections.flatMap((s) => s.blocks)) {
+      const c = cibleAVerifier(bloc)
+      if (c) cibles.set(cleCible(c), c)
+    }
+    if (cibles.size === 0) return
+    setVerificationEnCours(true)
+    const resultats = await Promise.all(
+      [...cibles].map(async ([cle, c]): Promise<[string, CibleVerifiee]> => {
+        try {
+          return [cle, await sectionsDuChapitrePublie(apiBaseUrl(), c.level, c.subject, c.slug)]
+        } catch {
+          return [cle, 'erreur']
+        }
+      })
+    )
+    setCiblesVerifiees(Object.fromEntries(resultats))
+    setVerificationEnCours(false)
+  }, [])
+
   if (!charge) {
     return (
       <div
@@ -223,6 +316,25 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
     brouillon.sections.findIndex((s) => s.id === sectionActiveId)
   )
   const sectionActive = brouillon.sections[indexActif] ?? brouillon.sections[0]
+
+  const problemesDe = (sectionId: string, blocId?: string) =>
+    problemes.filter((p) => p.sectionId === sectionId && p.blocId === blocId)
+  const problemesPartie = problemesDe(sectionActive.id)
+  const titreCoursEnErreur = problemes.some((p) => !p.sectionId && p.champ === 'title')
+
+  function ouvrirPublication() {
+    setValidationDemandee(true)
+    setPublierOuvert(true)
+    void verifierReferences(brouillon!)
+  }
+
+  function allerAuProbleme(p: Probleme) {
+    setPublierOuvert(false)
+    setMode('edition')
+    if (p.sectionId) setSectionActiveId(p.sectionId)
+    if (p.blocId) setBlocActifId(p.blocId)
+    setProblemeVise(p)
+  }
 
   // --- mises à jour immuables (brouillon garanti non-null ici) ---
   function majSection(id: string, patch: Partial<Section>) {
@@ -323,11 +435,13 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
           </Link>
 
           <input
-            className="min-w-0 flex-1 bg-transparent font-display text-lg font-extrabold text-ink placeholder:text-ink-muted/60 focus:outline-none"
+            className={`min-w-0 flex-1 bg-transparent font-display text-lg font-extrabold text-ink placeholder:text-ink-muted/60 focus:outline-none ${marqueChamp}`}
             value={brouillon.title}
             onChange={(e) => setBrouillon({ ...brouillon, title: e.target.value })}
             placeholder="Titre du cours (ex. Le théorème de Pythagore)"
             aria-label="Titre du cours"
+            data-champ-cours="title"
+            aria-invalid={titreCoursEnErreur || undefined}
           />
 
           <EtatEnregistre etat={etat} />
@@ -371,7 +485,7 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
 
           <button
             type="button"
-            onClick={() => setPublierOuvert(true)}
+            onClick={ouvrirPublication}
             className="rounded-lg bg-accent px-4 py-2 font-display text-sm font-extrabold text-surface-panel [box-shadow:var(--shadow-arcade)] hover:-translate-y-0.5"
           >
             Publier
@@ -391,6 +505,7 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
               <li key={section.id}>
                 <PlanSection
                   section={section}
+                  problemes={problemes.filter((p) => p.sectionId === section.id)}
                   numero={i + 1}
                   actif={section.id === sectionActive.id}
                   premier={i === 0}
@@ -466,16 +581,22 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
               {/* la feuille */}
               <div className="rounded-xl border border-line bg-surface-panel px-5 py-7 shadow-sm sm:px-10">
                 <input
-                  className="w-full border-0 bg-transparent p-0 font-display text-3xl font-black tracking-tight text-ink placeholder:text-ink-muted/50 focus:outline-none"
+                  className={`w-full border-0 bg-transparent p-0 font-display text-3xl font-black tracking-tight text-ink placeholder:text-ink-muted/50 focus:outline-none ${marqueChamp}`}
                   value={sectionActive.title}
                   onChange={(e) => majSection(sectionActive.id, { title: e.target.value })}
                   placeholder="Titre de la partie"
                   aria-label="Titre de la partie"
+                  data-champ-partie="title"
+                  aria-invalid={problemesPartie.some((p) => p.champ === 'title') || undefined}
+                  aria-describedby={
+                    problemesPartie.length > 0 ? `problemes-${sectionActive.id}` : undefined
+                  }
                 />
                 <div className="mt-1 h-px bg-line" />
+                <ListeProblemes id={`problemes-${sectionActive.id}`} problemes={problemesPartie} />
 
                 {sectionActive.blocks.length === 0 ? (
-                  <div className="mt-6">
+                  <div className="mt-6" data-champ-partie="blocks">
                     <p className="mb-3 font-prose text-ink-muted">
                       Cette partie est encore vide. Ajoute ton premier bloc :
                     </p>
@@ -487,6 +608,8 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
                     {sectionActive.blocks.map((bloc, i) => (
                       <Fragment key={bloc.id}>
                         <BlocLigne
+                          blocId={bloc.id}
+                          problemes={problemesDe(sectionActive.id, bloc.id)}
                           actif={bloc.id === blocActifId}
                           premier={i === 0}
                           dernier={i === sectionActive.blocks.length - 1}
@@ -531,8 +654,14 @@ function EditeurCoursContenu({ coursId }: { coursId: string }) {
         <PublierCours
           coursId={coursId}
           brouillon={brouillon}
+          problemes={problemes}
+          verificationEnCours={verificationEnCours}
           classeIdsInitiales={classeIds}
           onAvantPublicationAction={enregistrerMaintenant}
+          onAllerAuProblemeAction={allerAuProbleme}
+          onRefusServeurAction={(violations: ViolationContenu[]) =>
+            setProblemesServeur(problemesDepuisViolations(violations))
+          }
           onPublieAction={(version) => {
             setStatut('publie')
             setVersionPubliee(version)
@@ -709,6 +838,8 @@ function AjoutBloc({
 // visible et rentre dans le flux, au-dessus du bloc.
 function BlocLigne({
   children,
+  blocId,
+  problemes,
   actif,
   premier,
   dernier,
@@ -718,6 +849,8 @@ function BlocLigne({
   onSupprimer,
 }: {
   children: React.ReactNode
+  blocId: string
+  problemes: Probleme[]
   actif: boolean
   premier: boolean
   dernier: boolean
@@ -726,13 +859,18 @@ function BlocLigne({
   onDupliquer: () => void
   onSupprimer: () => void
 }) {
+  const descriptionId = `problemes-${blocId}`
+  const bloquant = problemes.some((p) => p.gravite === 'bloquant')
+  const contexte = useMemo(() => ({ problemes, descriptionId }), [problemes, descriptionId])
   return (
     <div
+      data-bloc-id={blocId}
       className={`group relative flex flex-col rounded-md border-l-2 py-2.5 pl-4 pr-2 transition-colors ${
-        actif ? 'border-accent bg-surface-page/60' : 'border-transparent hover:bg-surface-page/40'
-      }`}
+        bloquant ? 'border-danger' : actif ? 'border-accent' : 'border-transparent'
+      } ${actif ? 'bg-surface-page/60' : 'hover:bg-surface-page/40'}`}
     >
-      {children}
+      <ProblemesDuBlocProvider value={contexte}>{children}</ProblemesDuBlocProvider>
+      <ListeProblemes id={descriptionId} problemes={problemes} />
       <div
         className={`absolute -top-5 right-2 z-10 flex items-center gap-0.5 rounded-md border border-line bg-surface-panel p-0.5 transition-opacity group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:static pointer-coarse:order-first pointer-coarse:mb-2 pointer-coarse:ml-auto pointer-coarse:w-fit pointer-coarse:opacity-100 ${
           actif ? 'opacity-100' : 'pointer-events-none opacity-0'
@@ -744,6 +882,40 @@ function BlocLigne({
         <Poignee label="Supprimer" icone="trash" onClick={onSupprimer} danger />
       </div>
     </div>
+  )
+}
+
+// Les problèmes de publication d'un bloc ou d'une partie, sous ce qu'ils concernent. Un même
+// libellé n'apparaît qu'une fois (trois cases vides d'un tableau → « Remplis chaque case »).
+function ListeProblemes({ id, problemes }: { id: string; problemes: Probleme[] }) {
+  if (problemes.length === 0) return null
+  const uniques = problemes.filter(
+    (p, i) => problemes.findIndex((q) => q.message === p.message) === i
+  )
+  return (
+    <ul id={id} aria-label="À corriger avant de publier" className="mt-2 flex flex-col gap-1">
+      {uniques.map((p) => (
+        <li
+          key={p.message}
+          className={`flex items-start gap-1.5 font-prose text-sm ${
+            p.gravite === 'bloquant' ? 'text-danger' : 'text-ink'
+          }`}
+        >
+          <span
+            aria-hidden="true"
+            className={p.gravite === 'bloquant' ? 'text-danger' : 'text-warning'}
+          >
+            ⚠
+          </span>
+          <span>
+            <span className="sr-only">
+              {p.gravite === 'bloquant' ? 'À corriger : ' : 'À vérifier : '}
+            </span>
+            {p.message}
+          </span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -781,6 +953,7 @@ function Poignee({
 
 function PlanSection({
   section,
+  problemes,
   numero,
   actif,
   premier,
@@ -791,6 +964,7 @@ function PlanSection({
   onSupprimer,
 }: {
   section: Section
+  problemes: Probleme[]
   numero: number
   actif: boolean
   premier: boolean
@@ -823,6 +997,7 @@ function PlanSection({
               {SECTION_KIND_LABELS[section.kind]} · {section.blocks.length} bloc
               {section.blocks.length > 1 ? 's' : ''}
             </span>
+            <CompteProblemes problemes={problemes} />
           </span>
         </button>
         <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100">
@@ -842,6 +1017,25 @@ function PlanSection({
         </div>
       </div>
     </div>
+  )
+}
+
+// Dans le plan : combien de points restent à corriger (ou à vérifier) dans la partie.
+function CompteProblemes({ problemes }: { problemes: Probleme[] }) {
+  if (problemes.length === 0) return null
+  const bloquants = problemes.filter((p) => p.gravite === 'bloquant').length
+  const texte = bloquants > 0 ? `${bloquants} à corriger` : `${problemes.length} à vérifier`
+  return (
+    <span
+      className={`mt-0.5 flex items-center gap-1 whitespace-nowrap font-display text-[11px] font-extrabold ${
+        bloquants > 0 ? 'text-danger' : 'text-ink-muted'
+      }`}
+    >
+      <span aria-hidden="true" className={bloquants > 0 ? 'text-danger' : 'text-warning'}>
+        ⚠
+      </span>
+      {texte}
+    </span>
   )
 }
 

@@ -2,6 +2,7 @@ package fr.brio.contenu.infrastructure;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.brio.contenu.ContentViolation;
 import fr.brio.contenu.InvalidContentException;
 import fr.brio.contenu.domain.Chapitre;
 import java.util.HashMap;
@@ -40,15 +41,16 @@ public class PublicationValidator {
         schemaValidator.validate(content);
         referentialValidator.assertCompetenciesExist(content);
         for (JsonNode section : content.path("sections")) {
+            String sectionId = section.path("id").asText();
             for (JsonNode block : section.path("blocks")) {
                 String type = block.path("type").asText();
                 if ("reference".equals(type) && "internal".equals(block.path("scope").asText())) {
-                    assertInternalReferenceResolves(block);
+                    assertInternalReferenceResolves(sectionId, block);
                 } else if ("image".equals(type) || "figure".equals(type)) {
-                    assertAltPresent(block);
+                    assertAltPresent(sectionId, block);
                 } else if ("exercise".equals(type)
                         && "fill-blank".equals(block.path("exerciseType").asText())) {
-                    assertFillBlankConsistent(block);
+                    assertFillBlankConsistent(sectionId, block);
                 }
             }
         }
@@ -60,7 +62,7 @@ public class PublicationValidator {
      * expressible (the target schema has no course field) and would break immutability, so
      * only the catalogue is resolved here.
      */
-    private void assertInternalReferenceResolves(JsonNode block) {
+    private void assertInternalReferenceResolves(String sectionId, JsonNode block) {
         JsonNode target = block.path("target");
         String level = target.path("level").asText();
         String subject = target.path("subject").asText();
@@ -71,22 +73,25 @@ public class PublicationValidator {
         if (chapitre.isEmpty()) {
             throw new InvalidContentException(
                     "Broken internal reference '" + block.path("id").asText()
-                    + "': no published chapter " + level + "/" + subject + "/" + slug);
+                    + "': no published chapter " + level + "/" + subject + "/" + slug,
+                    violation(ContentViolation.REFERENCE_CHAPTER_NOT_FOUND, sectionId, block, "target"));
         }
 
         String anchor = target.path("anchor").asText(null);
         if (anchor != null && !sectionIds(chapitre.get()).contains(anchor)) {
             throw new InvalidContentException(
                     "Broken internal reference '" + block.path("id").asText()
-                    + "': anchor '" + anchor + "' is not a section of " + level + "/" + subject + "/" + slug);
+                    + "': anchor '" + anchor + "' is not a section of " + level + "/" + subject + "/" + slug,
+                    violation(ContentViolation.REFERENCE_ANCHOR_NOT_FOUND, sectionId, block, "target.anchor"));
         }
     }
 
-    private void assertAltPresent(JsonNode block) {
+    private void assertAltPresent(String sectionId, JsonNode block) {
         if (block.path("alt").asText("").isBlank()) {
             throw new InvalidContentException(
                     "Missing alt text on " + block.path("type").asText()
-                    + " block '" + block.path("id").asText() + "'");
+                    + " block '" + block.path("id").asText() + "'",
+                    violation(ContentViolation.MISSING_ALT, sectionId, block, "alt"));
         }
     }
 
@@ -96,7 +101,7 @@ public class PublicationValidator {
      * places each bank tile at most once — so an exercise that fails either check can never be
      * answered correctly. Compared exactly: the student can only submit tiles as written.
      */
-    private void assertFillBlankConsistent(JsonNode block) {
+    private void assertFillBlankConsistent(String sectionId, JsonNode block) {
         String id = block.path("id").asText();
         String template = block.path("template").asText("");
         int blanks = template.split("\\{}", -1).length - 1;
@@ -104,7 +109,8 @@ public class PublicationValidator {
         if (expected.size() != blanks) {
             throw new InvalidContentException(
                     "Fill-blank exercise '" + id + "' has " + blanks + " blank(s) but "
-                    + expected.size() + " expected answer(s)");
+                    + expected.size() + " expected answer(s)",
+                    violation(ContentViolation.BLANK_COUNT_MISMATCH, sectionId, block, "expected"));
         }
 
         Map<String, Integer> tiles = new HashMap<>();
@@ -116,9 +122,14 @@ public class PublicationValidator {
             if (tiles.merge(value, -1, Integer::sum) < 0) {
                 throw new InvalidContentException(
                         "Fill-blank exercise '" + id + "': expected answer '" + value
-                        + "' is not available in the bank");
+                        + "' is not available in the bank",
+                        violation(ContentViolation.ANSWER_NOT_IN_BANK, sectionId, block, "bank"));
             }
         }
+    }
+
+    private static ContentViolation violation(String code, String sectionId, JsonNode block, String field) {
+        return new ContentViolation(code, sectionId, block.path("id").asText(), field);
     }
 
     private Set<String> sectionIds(Chapitre chapitre) {

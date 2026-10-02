@@ -6,6 +6,7 @@ import {
   getCoursBrouillon,
   listerMesCours,
   publierCours,
+  sectionsDuChapitrePublie,
 } from '@brio/api-client'
 
 // The authoring wrappers go through openapi-fetch, which calls the global fetch. We stub it with
@@ -62,7 +63,32 @@ describe('cours-edition client', () => {
     })
   })
 
-  it('surfaces the server reason on a 422 publish failure', async () => {
+  it('carries located violations, not the server text, on a structured 422', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse(
+          {
+            title: 'Contenu non publiable',
+            detail: "Fill-blank exercise 'ex1': expected answer 'x' is not available in the bank",
+            violations: [
+              { code: 'ANSWER_NOT_IN_BANK', sectionId: 's1', blockId: 'ex1', field: 'bank' },
+            ],
+          },
+          422
+        )
+      )
+    )
+
+    const err = await publierCours(BASE, 'c1').catch((e) => e)
+    expect(err).toBeInstanceOf(CoursApiError)
+    expect(err.message).not.toContain('Fill-blank')
+    expect(err.violations).toEqual([
+      { code: 'ANSWER_NOT_IN_BANK', sectionId: 's1', blockId: 'ex1', field: 'bank' },
+    ])
+  })
+
+  it('surfaces the server reason on an unstructured 422', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(jsonResponse({ error: 'Référence interne cassée' }, 422))
@@ -96,5 +122,33 @@ describe('cours-edition client', () => {
     expect(method).toBe('POST')
     expect(url).toContain('/api/prof/cours')
     expect(headers.get('X-XSRF-TOKEN')).toBe('tok123')
+  })
+})
+
+describe('sectionsDuChapitrePublie', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('returns the section ids of a published chapter', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ id: 'pythagore', sections: [{ id: 'a' }, { id: 'b' }] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      sectionsDuChapitrePublie(BASE, '3e', 'mathematiques', 'pythagore')
+    ).resolves.toEqual(['a', 'b'])
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/api/chapitres/3e/mathematiques/pythagore`)
+  })
+
+  it('returns null when no such chapter is published', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 404 })))
+    await expect(sectionsDuChapitrePublie(BASE, '3e', 'mathematiques', 'x')).resolves.toBeNull()
+  })
+
+  it('throws when the check itself fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })))
+    await expect(sectionsDuChapitrePublie(BASE, '3e', 'mathematiques', 'x')).rejects.toBeInstanceOf(
+      CoursApiError
+    )
   })
 })

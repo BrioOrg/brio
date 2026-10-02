@@ -368,47 +368,456 @@ function blocServi(bloc: Bloc): Bloc {
   }
 }
 
-/** Vrai si un tableau a une cellule vide (en-têtes conservés ou corps) : non représentable. */
-export function tableauACelluleVide(bloc: Bloc): boolean {
-  if (bloc.type !== 'table') return false
-  const entetes = Array.isArray(bloc.headers) ? (bloc.headers as unknown[]) : []
-  const corps = Array.isArray(bloc.rows) ? (bloc.rows as unknown[][]).flat() : []
-  // Une ligne d'en-têtes entièrement vide est retirée à l'enregistrement : pas un problème.
-  const entetesUtiles = entetes.every(vide) ? [] : entetes
-  return [...entetesUtiles, ...corps].some(vide)
+// --- Validation avant publication ------------------------------------------------
+// Les règles que le serveur applique à la publication (schéma de contenu, PublicationValidator,
+// ADR 0019 §4), rejouées ici sur le document tel qu'il serait envoyé (blocServi) pour prévenir
+// l'enseignant sur le bloc concerné. Le serveur reste l'autorité : un problème qu'il trouverait
+// encore revient sous la même forme (problemesDepuisViolations) et le même libellé.
+//
+// Les codes sont ceux de ContentViolation côté serveur, plus quelques règles que le serveur ne
+// vérifie pas (QCM sans bonne réponse…). Un problème « bloquant » empêche l'envoi ; un
+// « avertissement » est signalé sans bloquer, pour un contenu accepté mais sans doute fautif.
+
+export type Gravite = 'bloquant' | 'avertissement'
+
+export type Probleme = {
+  code: string
+  gravite: Gravite
+  /** La partie concernée (absente pour un problème du cours entier). */
+  sectionId?: string
+  /** Le bloc concerné (absent pour un problème de partie ou de cours). */
+  blocId?: string
+  /** Le champ à corriger, relatif au bloc (ou à la partie, ou au cours) : `prompt`, `choices[1].text`… */
+  champ?: string
+  /** Libellé en français, prêt à afficher. */
+  message: string
+}
+
+// Codes propres au web : règles que le serveur n'impose pas (encore).
+const AUCUNE_BONNE_REPONSE = 'NO_CORRECT_CHOICE'
+const TROP_DE_BONNES_REPONSES = 'TOO_MANY_CORRECT_CHOICES'
+const OBJECTIFS_VIDES = 'EMPTY_OBJECTIVES'
+const REPONSES_EN_DOUBLE = 'DUPLICATE_ANSWERS'
+const REFERENCE_NON_VERIFIEE = 'REFERENCE_UNVERIFIED'
+
+const LIBELLES_CHAMPS: Record<string, string> = {
+  title: 'le titre',
+  text: 'le texte',
+  latex: 'la formule',
+  prompt: 'l’énoncé',
+  choices: 'les propositions',
+  acceptedAnswers: 'les réponses acceptées',
+  answer: 'la réponse attendue',
+  template: 'la phrase à trous',
+  expected: 'les réponses des trous',
+  bank: 'les étiquettes',
+  solution: 'la solution',
+  url: 'l’adresse',
+  target: 'la cible',
+  alt: 'le texte alternatif',
+  rows: 'les cases du tableau',
+  headers: 'les en-têtes du tableau',
+  steps: 'les étapes',
+  items: 'les objectifs',
+  competencies: 'les compétences',
+}
+
+/** Le premier segment d'un chemin de champ : `choices[1].text` → `choices`. */
+function teteDeChamp(champ: string): string {
+  return champ.split(/[.[]/)[0]
+}
+
+/** Le rang (à partir de 1) du premier index d'un chemin : `choices[1].text` → 2. */
+function rangDansChamp(champ: string): number | null {
+  const m = /\[(\d+)]/.exec(champ)
+  return m ? Number(m[1]) + 1 : null
+}
+
+/**
+ * Le libellé français d'un problème, à partir de son code et de son champ — le même pour une
+ * règle vérifiée ici et pour une violation renvoyée par le serveur.
+ */
+export function libelleProbleme(code: string, champ?: string, niveau?: 'cours' | 'partie'): string {
+  const tete = champ ? teteDeChamp(champ) : ''
+  const rang = champ ? rangDansChamp(champ) : null
+  switch (code) {
+    case 'REQUIRED':
+    case 'EMPTY':
+      if (niveau === 'cours')
+        return tete === 'sections' ? 'Ajoute au moins une partie.' : 'Donne un titre au cours.'
+      if (niveau === 'partie') {
+        return tete === 'blocks'
+          ? 'Ajoute au moins un bloc à cette partie.'
+          : 'Donne un titre à cette partie.'
+      }
+      if (tete === 'choices') {
+        return rang ? `Remplis la proposition ${rang}.` : 'Ajoute au moins deux propositions.'
+      }
+      if (tete === 'steps') return rang ? `Remplis l’étape ${rang}.` : 'Ajoute au moins une étape.'
+      if (tete === 'rows' || tete === 'headers') return 'Remplis chaque case du tableau.'
+      if (tete === 'acceptedAnswers') {
+        return rang
+          ? `Remplis la réponse acceptée ${rang}.`
+          : 'Donne au moins une réponse acceptée.'
+      }
+      if (tete === 'expected') {
+        return rang
+          ? `Donne la réponse du trou ${rang}.`
+          : 'Ajoute au moins un trou {} dans la phrase.'
+      }
+      if (tete === 'template') return 'Ajoute au moins un trou {} dans la phrase.'
+      if (tete === 'bank') return 'Il faut au moins deux étiquettes : ajoute un distracteur.'
+      if (tete === 'answer') return 'Donne la réponse attendue.'
+      if (tete === 'target') return 'Précise le niveau, la matière et le chapitre cités.'
+      if (tete === 'alt') return 'Décris la figure dans le texte alternatif.'
+      return `Remplis ${LIBELLES_CHAMPS[tete] ?? 'ce champ'}.`
+    case 'INVALID_FORMAT':
+      if (tete === 'url') return 'L’adresse doit commencer par https://.'
+      if (tete === 'target') {
+        return 'Le chapitre et la partie cités s’écrivent en minuscules, chiffres et tirets.'
+      }
+      return `${capitaliser(LIBELLES_CHAMPS[tete] ?? 'ce champ')} n’est pas valide.`
+    case 'MISSING_ALT':
+      return 'Décris la figure dans le texte alternatif.'
+    case 'BLANK_COUNT_MISMATCH':
+      return 'Donne une réponse pour chaque trou.'
+    case 'ANSWER_NOT_IN_BANK':
+      return 'Chaque réponse attendue doit figurer parmi les étiquettes.'
+    case 'REFERENCE_CHAPTER_NOT_FOUND':
+      return 'Aucun chapitre publié ne correspond à cette référence.'
+    case 'REFERENCE_ANCHOR_NOT_FOUND':
+      return 'Cette partie n’existe pas dans le chapitre cité.'
+    case REFERENCE_NON_VERIFIEE:
+      return 'Impossible de vérifier cette référence pour l’instant.'
+    case 'UNKNOWN_COMPETENCY':
+    case 'DEPRECATED_COMPETENCY':
+      return 'Une compétence citée n’existe pas ou plus dans le référentiel : retire-la.'
+    case 'EMPTY_COURSE':
+      return 'Le cours est vide : ajoute au moins un bloc.'
+    case AUCUNE_BONNE_REPONSE:
+      return 'Coche au moins une bonne réponse.'
+    case TROP_DE_BONNES_REPONSES:
+      return 'Plusieurs propositions sont cochées : autorise plusieurs réponses ou n’en garde qu’une.'
+    case OBJECTIFS_VIDES:
+      return 'Ce bloc est vide : ajoute un objectif ou une compétence.'
+    case REPONSES_EN_DOUBLE:
+      return 'Deux réponses acceptées sont identiques (aux accents et majuscules près).'
+    default:
+      return 'Ce point empêche la publication.'
+  }
+}
+
+function capitaliser(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+// Identifiant lisible du schéma (`$defs/nodeId`) : chapitre et partie cités par une référence.
+const NODE_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/**
+ * Normalisation d'une réponse courte, celle du correcteur (ADR 0012) : espaces de bord retirés,
+ * accents retirés, minuscules sauf `caseSensitive`, ponctuation finale ignorée.
+ */
+function normaliserReponse(reponse: string, sensibleCasse: boolean): string {
+  const sansAccents = reponse.trim().normalize('NFD').replace(/\p{M}/gu, '')
+  return (sensibleCasse ? sansAccents : sansAccents.toLowerCase()).replace(/[\s.!?;]+$/, '')
+}
+
+type ProblemeBrut = { code: string; champ?: string; gravite?: Gravite }
+
+/** Les problèmes d'un bloc tel qu'il serait servi (après blocServi). */
+function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
+  const p: ProblemeBrut[] = []
+  const exiger = (champ: string, v: unknown) => {
+    if (!texteRempli(v)) p.push({ code: 'EMPTY', champ })
+  }
+  switch (b.type) {
+    case 'heading':
+    case 'prose':
+    case 'callout':
+      exiger('text', b.text)
+      break
+    case 'formula':
+      exiger('latex', b.latex)
+      break
+    case 'steps': {
+      const etapes = Array.isArray(b.steps) ? (b.steps as Etape[]) : []
+      if (etapes.length === 0) p.push({ code: 'EMPTY', champ: 'steps' })
+      etapes.forEach((e, i) => exiger(`steps[${i}].text`, e?.text))
+      break
+    }
+    case 'table': {
+      const lignes = Array.isArray(b.rows) ? (b.rows as unknown[][]) : []
+      if (lignes.length === 0) p.push({ code: 'EMPTY', champ: 'rows' })
+      if (Array.isArray(b.headers)) {
+        ;(b.headers as unknown[]).forEach((c, j) => exiger(`headers[${j}]`, c))
+      }
+      lignes.forEach((ligne, i) => {
+        if (!Array.isArray(ligne) || ligne.length === 0)
+          p.push({ code: 'EMPTY', champ: `rows[${i}]` })
+        else ligne.forEach((c, j) => exiger(`rows[${i}][${j}]`, c))
+      })
+      break
+    }
+    case 'reference':
+      exiger('title', b.title)
+      if (b.scope === 'internal') {
+        const cible = (b.target ?? {}) as Record<string, unknown>
+        for (const k of ['level', 'subject', 'slug']) exiger(`target.${k}`, cible[k])
+        if (texteRempli(cible.slug) && !NODE_ID.test(String(cible.slug))) {
+          p.push({ code: 'INVALID_FORMAT', champ: 'target.slug' })
+        }
+        if (cible.anchor !== undefined && !NODE_ID.test(String(cible.anchor))) {
+          p.push({ code: 'INVALID_FORMAT', champ: 'target.anchor' })
+        }
+      } else if (!texteRempli(b.url)) {
+        p.push({ code: 'EMPTY', champ: 'url' })
+      } else if (!String(b.url).startsWith('https://')) {
+        p.push({ code: 'INVALID_FORMAT', champ: 'url' })
+      }
+      break
+    case 'figure':
+      if (!texteRempli(b.alt)) p.push({ code: 'MISSING_ALT', champ: 'alt' })
+      break
+    case 'objectives': {
+      const items = chaines(b.items)
+      const competences = chaines(b.competencies)
+      if (items.length === 0 && competences.length === 0) {
+        p.push({ code: OBJECTIFS_VIDES, gravite: 'avertissement' })
+      }
+      break
+    }
+    case 'exercise':
+      exiger('prompt', b.prompt)
+      p.push(...problemesExercice(b))
+      break
+  }
+  return p
+}
+
+function problemesExercice(b: Bloc): ProblemeBrut[] {
+  const p: ProblemeBrut[] = []
+  switch (b.exerciseType) {
+    case 'multiple-choice': {
+      const choix = Array.isArray(b.choices) ? (b.choices as Partial<Choix>[]) : []
+      if (choix.length < 2) p.push({ code: 'EMPTY', champ: 'choices' })
+      choix.forEach((c, i) => {
+        if (!texteRempli(c.text)) p.push({ code: 'EMPTY', champ: `choices[${i}].text` })
+      })
+      const bonnes = choix.filter((c) => c.correct === true).length
+      if (bonnes === 0) p.push({ code: AUCUNE_BONNE_REPONSE, champ: 'choices' })
+      else if (bonnes > 1 && b.multiple !== true) {
+        p.push({ code: TROP_DE_BONNES_REPONSES, champ: 'choices' })
+      }
+      break
+    }
+    case 'short-answer': {
+      const reponses = Array.isArray(b.acceptedAnswers) ? (b.acceptedAnswers as unknown[]) : []
+      if (reponses.length === 0) p.push({ code: 'EMPTY', champ: 'acceptedAnswers' })
+      reponses.forEach((r, i) => {
+        if (!texteRempli(r)) p.push({ code: 'EMPTY', champ: `acceptedAnswers[${i}]` })
+      })
+      const remplies = reponses.filter(texteRempli) as string[]
+      // Le schéma refuse deux réponses identiques ; le correcteur confond aussi celles qui ne
+      // diffèrent que par les accents ou la casse : inutile, mais pas faux.
+      if (new Set(remplies).size < remplies.length) {
+        p.push({ code: REPONSES_EN_DOUBLE, champ: 'acceptedAnswers' })
+      } else {
+        const normalisees = remplies.map((r) => normaliserReponse(r, b.caseSensitive === true))
+        if (new Set(normalisees).size < normalisees.length) {
+          p.push({ code: REPONSES_EN_DOUBLE, champ: 'acceptedAnswers', gravite: 'avertissement' })
+        }
+      }
+      break
+    }
+    case 'numeric':
+      if (typeof b.answer !== 'number' || !Number.isFinite(b.answer)) {
+        p.push({ code: 'REQUIRED', champ: 'answer' })
+      }
+      break
+    case 'fill-blank': {
+      const template = typeof b.template === 'string' ? b.template : ''
+      const trous = compterTrous(template)
+      const attendues = Array.isArray(b.expected) ? (b.expected as unknown[]) : []
+      const banque = chaines(b.bank)
+      if (trous === 0) p.push({ code: 'EMPTY', champ: 'template' })
+      attendues.forEach((e, i) => {
+        if (!texteRempli(e)) p.push({ code: 'EMPTY', champ: `expected[${i}]` })
+      })
+      if (trous > 0 && attendues.length !== trous) {
+        p.push({ code: 'BLANK_COUNT_MISMATCH', champ: 'expected' })
+      }
+      // Le schéma veut deux étiquettes. Tant qu'une réponse manque, c'est elle qu'on signale :
+      // « ajoute un distracteur » serait un mauvais conseil.
+      if (banque.length < 2 && trous > 0 && attendues.every(texteRempli)) {
+        p.push({ code: 'EMPTY', champ: 'bank' })
+      }
+      // Chaque étiquette ne se place qu'une fois : deux trous attendant « 2 » en veulent deux.
+      if (sansOccurrences(chaines(attendues).filter(texteRempli), banque).length > 0) {
+        p.push({ code: 'ANSWER_NOT_IN_BANK', champ: 'bank' })
+      }
+      break
+    }
+    case 'paper':
+      if (!texteRempli(b.solution)) p.push({ code: 'EMPTY', champ: 'solution' })
+      break
+  }
+  return p
+}
+
+function probleme(
+  brut: ProblemeBrut,
+  lieu: { sectionId?: string; blocId?: string },
+  niveau?: 'cours' | 'partie'
+): Probleme {
+  return {
+    code: brut.code,
+    gravite: brut.gravite ?? 'bloquant',
+    ...lieu,
+    ...(brut.champ ? { champ: brut.champ } : {}),
+    message: libelleProbleme(brut.code, brut.champ, niveau),
+  }
+}
+
+/** Les problèmes d'un bloc, rattachés à sa partie. Le bloc est d'abord mis dans sa forme servie. */
+export function problemesBloc(bloc: Bloc, sectionId: string): Probleme[] {
+  return problemesDuBlocServi(blocServi(bloc)).map((b) =>
+    probleme(b, { sectionId, blocId: bloc.id })
+  )
+}
+
+/**
+ * Tous les problèmes connus sans appel réseau : cours, parties, puis blocs dans l'ordre du plan.
+ * Les références internes, qui demandent le catalogue, s'ajoutent via problemeReference.
+ */
+export function problemesBrouillon(b: Brouillon): Probleme[] {
+  const p: Probleme[] = []
+  if (!texteRempli(b.title)) p.push(probleme({ code: 'EMPTY', champ: 'title' }, {}, 'cours'))
+  if (b.sections.length === 0) p.push(probleme({ code: 'EMPTY', champ: 'sections' }, {}, 'cours'))
+  for (const s of b.sections) {
+    if (!texteRempli(s.title)) {
+      p.push(probleme({ code: 'EMPTY', champ: 'title' }, { sectionId: s.id }, 'partie'))
+    }
+    if (s.blocks.length === 0) {
+      p.push(probleme({ code: 'EMPTY', champ: 'blocks' }, { sectionId: s.id }, 'partie'))
+    }
+    for (const bloc of s.blocks) p.push(...problemesBloc(bloc, s.id))
+  }
+  return p
+}
+
+/** Vrai si au moins un problème empêche l'envoi au serveur. */
+export function aDesProblemesBloquants(problemes: Probleme[]): boolean {
+  return problemes.some((p) => p.gravite === 'bloquant')
+}
+
+/** Une référence interne complète, à vérifier contre le catalogue (null sinon). */
+export function cibleAVerifier(
+  bloc: Bloc
+): { level: string; subject: string; slug: string; anchor?: string } | null {
+  if (bloc.type !== 'reference' || bloc.scope !== 'internal') return null
+  const c = (bloc.target ?? {}) as Record<string, unknown>
+  if (![c.level, c.subject, c.slug].every(texteRempli) || !NODE_ID.test(String(c.slug))) return null
+  return {
+    level: String(c.level),
+    subject: String(c.subject),
+    slug: String(c.slug),
+    ...(texteRempli(c.anchor) ? { anchor: String(c.anchor) } : {}),
+  }
+}
+
+/**
+ * Le problème d'une référence interne une fois le catalogue consulté : `sections` = les parties
+ * du chapitre publié, `null` s'il n'est pas publié, `'erreur'` si la vérification a échoué (le
+ * serveur tranchera : simple avertissement).
+ */
+export function problemeReference(
+  bloc: Bloc,
+  sectionId: string,
+  sections: string[] | null | 'erreur'
+): Probleme | null {
+  const cible = cibleAVerifier(bloc)
+  if (!cible) return null
+  const lieu = { sectionId, blocId: bloc.id }
+  if (sections === 'erreur') {
+    return probleme(
+      { code: REFERENCE_NON_VERIFIEE, champ: 'target', gravite: 'avertissement' },
+      lieu
+    )
+  }
+  if (sections === null)
+    return probleme({ code: 'REFERENCE_CHAPTER_NOT_FOUND', champ: 'target' }, lieu)
+  if (cible.anchor && !sections.includes(cible.anchor)) {
+    return probleme({ code: 'REFERENCE_ANCHOR_NOT_FOUND', champ: 'target.anchor' }, lieu)
+  }
+  return null
+}
+
+/**
+ * Les violations d'un 422 serveur, sous la même forme que les problèmes vérifiés ici. Un champ
+ * sans partie concerne le cours ; un champ de partie sans bloc concerne la partie.
+ */
+export function problemesDepuisViolations(
+  violations: {
+    code: string
+    sectionId?: string | null
+    blockId?: string | null
+    field?: string | null
+  }[]
+): Probleme[] {
+  return violations.map((v) => {
+    const champ = v.field ?? undefined
+    const niveau = v.blockId ? undefined : v.sectionId ? 'partie' : champ ? 'cours' : undefined
+    return probleme(
+      { code: v.code, champ },
+      {
+        ...(v.sectionId ? { sectionId: v.sectionId } : {}),
+        ...(v.blockId ? { blocId: v.blockId } : {}),
+      },
+      niveau
+    )
+  })
+}
+
+/**
+ * Vrai si un problème porte sur `champ` ou sur l'un de ses sous-champs : `choices` est en erreur
+ * si `choices[1].text` l'est, mais `choices[0].text` ne l'est pas pour autant.
+ */
+export function champEnErreur(problemes: Probleme[], champ: string): boolean {
+  return problemes.some(
+    (p) =>
+      p.champ !== undefined &&
+      (p.champ === champ || p.champ.startsWith(champ + '.') || p.champ.startsWith(champ + '['))
+  )
 }
 
 // --- Aperçu élève --------------------------------------------------------------
 // L'aperçu montre ce que verra l'élève, rien de plus. Un exercice qu'un élève ne pourrait pas
-// faire tel quel n'y figure pas ; les règles de correction (réponses attendues) ne comptent pas
-// ici : elles ne se voient pas côté élève.
+// faire tel quel n'y figure pas. Il dérive des règles de publication, sauf celles qui portent
+// sur la correction (réponses attendues) : elles ne se voient pas côté élève.
 
 function texteRempli(v: unknown): boolean {
   return typeof v === 'string' && v.trim() !== ''
 }
 
+// Problèmes de correction : invisibles côté élève, ils ne retirent pas un exercice de l'aperçu.
+const CODES_CORRECTION = new Set([
+  AUCUNE_BONNE_REPONSE,
+  TROP_DE_BONNES_REPONSES,
+  REPONSES_EN_DOUBLE,
+  'BLANK_COUNT_MISMATCH',
+  'ANSWER_NOT_IN_BANK',
+])
+
 /** Vrai si un bloc d'exercice est assez rempli pour qu'un élève puisse le faire tel quel. */
 export function exerciceComplet(bloc: Bloc): boolean {
-  if (bloc.type !== 'exercise' || !texteRempli(bloc.prompt)) return false
-  switch (bloc.exerciseType) {
-    case 'multiple-choice': {
-      const choices = Array.isArray(bloc.choices) ? (bloc.choices as { text?: unknown }[]) : []
-      return choices.length >= 2 && choices.every((c) => texteRempli(c.text))
-    }
-    case 'short-answer':
-    case 'numeric':
-      return true
-    case 'fill-blank': {
-      const bank = Array.isArray(bloc.bank) ? (bloc.bank as unknown[]) : []
-      return (
-        compterTrous(String(bloc.template ?? '')) > 0 && bank.length > 0 && bank.every(texteRempli)
-      )
-    }
-    case 'paper':
-      return texteRempli(bloc.solution)
-    default:
-      return false
-  }
+  if (bloc.type !== 'exercise') return false
+  return !problemesDuBlocServi(blocServi(bloc)).some(
+    (p) =>
+      (p.gravite ?? 'bloquant') === 'bloquant' &&
+      !CODES_CORRECTION.has(p.code) &&
+      !(p.champ && CHAMPS_CORRECTION.includes(teteDeChamp(p.champ)))
+  )
 }
 
 // Champs de correction d'un exercice : saisis dans l'éditeur, jamais montrés à l'élève.

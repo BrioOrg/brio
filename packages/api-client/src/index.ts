@@ -35,7 +35,9 @@ export {
   enregistrerCours,
   definirPortees,
   publierCours,
+  sectionsDuChapitrePublie,
   CoursApiError,
+  ViolationContenuSchema,
 } from './cours-edition.js'
 export type {
   CoursResume,
@@ -43,6 +45,7 @@ export type {
   PublicationResult,
   CreerCoursInput,
   EnregistrerCoursInput,
+  ViolationContenu,
 } from './cours-edition.js'
 export {
   listerMesClasses,

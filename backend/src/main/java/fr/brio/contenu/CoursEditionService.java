@@ -101,7 +101,9 @@ public class CoursEditionService {
 
         String brouillon = cours.getBrouillonContent();
         if (brouillon == null || brouillon.isBlank()) {
-            throw new InvalidContentException("Cannot publish a course with no draft content: " + coursId);
+            throw new InvalidContentException(
+                    "Cannot publish a course with no draft content: " + coursId,
+                    new ContentViolation(ContentViolation.EMPTY_COURSE, null, null, null));
         }
         JsonNode content = parse(brouillon, coursId);
 

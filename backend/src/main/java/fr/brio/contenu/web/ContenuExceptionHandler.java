@@ -3,8 +3,8 @@ package fr.brio.contenu.web;
 import fr.brio.contenu.CoursAccesRefuseException;
 import fr.brio.contenu.CoursIntrouvableException;
 import fr.brio.contenu.InvalidContentException;
-import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,10 +12,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice(basePackages = "fr.brio.contenu.web")
 class ContenuExceptionHandler {
 
+    /**
+     * A structured problem: {@code detail} keeps the technical message for logs, and
+     * {@code violations} locates each failure (code, section, block, field) so the editor can
+     * translate it and lead the teacher to the block — never shown raw to the user.
+     */
     @ExceptionHandler(InvalidContentException.class)
-    ResponseEntity<Map<String, String>> handleInvalidContent(InvalidContentException ex) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(Map.of("error", ex.getMessage()));
+    ProblemDetail handleInvalidContent(InvalidContentException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+        problem.setTitle("Contenu non publiable");
+        problem.setProperty("violations", ex.violations());
+        return problem;
     }
 
     @ExceptionHandler(CoursIntrouvableException.class)

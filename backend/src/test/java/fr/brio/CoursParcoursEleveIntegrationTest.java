@@ -106,7 +106,10 @@ class CoursParcoursEleveIntegrationTest {
         definirPortees(coursId);
 
         mockMvc.perform(post("/api/prof/cours/{id}/publier", coursId).with(teacher).with(csrf()))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.violations[0].code").value("ANSWER_NOT_IN_BANK"))
+                .andExpect(jsonPath("$.violations[0].field").value("bank"))
+                .andExpect(jsonPath("$.violations[0].blockId").isNotEmpty());
     }
 
     // --- HTTP steps --------------------------------------------------------------
