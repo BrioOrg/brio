@@ -1,0 +1,484 @@
+{
+  "schemaVersion": 1,
+  "id": "mediatrice",
+  "title": "La médiatrice",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 50,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "definition-mediatrice",
+      "title": "La médiatrice d'un segment",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "définir la médiatrice d'un segment ;",
+            "utiliser sa propriété : ses points sont à égale distance des extrémités du segment ;",
+            "construire la médiatrice au compas et s'en servir pour résoudre des problèmes."
+          ]
+        },
+        {
+          "id": "def-mediatrice",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Médiatrice",
+          "text": "La **médiatrice** du segment [AB] est la droite **perpendiculaire** à [AB] qui passe par son **milieu**."
+        },
+        {
+          "id": "fig-mediatrice",
+          "type": "figure",
+          "alt": "Segment [AB] de milieu I. Une droite verticale passe par I, perpendiculaire à [AB] : c'est la médiatrice. Le point M est sur cette droite, et les segments [MA] et [MB] portent le même codage.",
+          "caption": "La médiatrice de [AB], et un point M sur elle : MA = MB.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": -3,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 3,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "I",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "M",
+                "x": 0,
+                "y": 4,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "P",
+                "x": 0,
+                "y": 5,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "Q",
+                "x": 0,
+                "y": -2,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "I"
+              },
+              {
+                "from": "I",
+                "to": "B"
+              },
+              {
+                "from": "P",
+                "to": "Q"
+              },
+              {
+                "from": "M",
+                "to": "A"
+              },
+              {
+                "from": "M",
+                "to": "B"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "I",
+                "from": "B",
+                "to": "P",
+                "right": true
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "AI",
+                "ticks": 1
+              },
+              {
+                "segment": "IB",
+                "ticks": 1
+              },
+              {
+                "segment": "MA",
+                "ticks": 2
+              },
+              {
+                "segment": "MB",
+                "ticks": 2
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-definition",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle phrase définit la médiatrice du segment [AB] ?",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-perp-milieu",
+              "text": "La droite perpendiculaire à [AB] qui passe par son milieu.",
+              "correct": true
+            },
+            {
+              "id": "choix-milieu",
+              "text": "Une droite qui passe par le milieu de [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-perp",
+              "text": "Une droite perpendiculaire à [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-segment",
+              "text": "Le segment qui joint A et B.",
+              "correct": false
+            }
+          ],
+          "explanation": "Il faut les deux conditions à la fois : perpendiculaire à [AB] et passant par son milieu. Une droite qui passe seulement par le milieu peut être penchée ; une droite seulement perpendiculaire peut couper [AB] ailleurs qu'au milieu. Le segment qui joint A et B, c'est [AB] lui-même."
+        },
+        {
+          "id": "def-propriete",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Propriété caractéristique",
+          "text": "Si un point est sur la médiatrice de [AB], alors il est **à égale distance** de A et de B. Et réciproquement : si un point est à égale distance de A et de B, alors il est sur la médiatrice de [AB]. La médiatrice est **l'ensemble** des points équidistants de A et de B."
+        },
+        {
+          "id": "ex-ma-mb",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le point M est sur la médiatrice du segment [AB], et MA = 5,3 cm. Combien mesure MB ?",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 5.3,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Tout point de la médiatrice de [AB] est à égale distance de A et de B : MB = MA = 5,3 cm."
+        },
+        {
+          "id": "ex-pas-sur-mediatrice",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le point N vérifie NA = 4 cm et NB = 4,5 cm. Que peut-on dire ?",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "N n'est pas sur la médiatrice de [AB].",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "N est sur la médiatrice de [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-milieu",
+              "text": "N est le milieu de [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut pas savoir.",
+              "correct": false
+            }
+          ],
+          "explanation": "Les points de la médiatrice sont exactement ceux qui sont à égale distance de A et de B. Ici NA ≠ NB, donc N n'est pas sur la médiatrice. On peut le savoir sans figure grâce à la propriété. Ce n'est pas non plus le milieu, qui est lui-même à égale distance de A et B."
+        },
+        {
+          "id": "ex-completer-propriete",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète la propriété.",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "Si un point est à égale {} de A et de B, alors il est sur la {} du segment [AB].",
+          "bank": [
+            "distance",
+            "longueur totale",
+            "médiatrice",
+            "diagonale",
+            "droite (AB)"
+          ],
+          "expected": [
+            "distance",
+            "médiatrice"
+          ],
+          "explanation": "C'est la propriété caractéristique : être à égale distance de A et de B, c'est être sur la médiatrice de [AB]."
+        }
+      ]
+    },
+    {
+      "id": "construire-mediatrice",
+      "title": "Construire et utiliser la médiatrice",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "methode-compas",
+          "type": "steps",
+          "title": "Construire la médiatrice de [AB] au compas",
+          "steps": [
+            {
+              "text": "On ouvre le compas d'un écartement plus grand que la moitié de AB."
+            },
+            {
+              "text": "On trace un arc de centre A, de part et d'autre du segment."
+            },
+            {
+              "text": "Sans changer l'écartement, on trace un arc de centre B qui coupe les premiers arcs en deux points."
+            },
+            {
+              "text": "Ces deux points sont à égale distance de A et de B : ils sont sur la médiatrice. On trace la droite qui les relie."
+            }
+          ]
+        },
+        {
+          "id": "ex-construire-mediatrice",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, trace un segment [AB] de 8 cm et construis sa médiatrice au compas. Vérifie avec l'équerre et la règle graduée.",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 5,
+          "solution": "Avec un écartement de 5 cm par exemple (plus que 4 cm, la moitié de AB), on trace deux arcs centrés en A et deux arcs centrés en B. Leurs deux points d'intersection définissent la médiatrice. Vérification : elle coupe [AB] à 4 cm de A, et l'équerre montre un angle droit."
+        },
+        {
+          "id": "exemple-boite-lettres",
+          "type": "callout",
+          "variant": "example",
+          "title": "La boîte aux lettres",
+          "text": "Deux maisons A et B sont du même côté d'une route droite. On veut installer une boîte aux lettres au bord de la route, à la même distance des deux maisons. Les points à égale distance de A et de B sont sur la médiatrice de [AB] : la boîte se place à l'intersection de cette médiatrice et de la route."
+        },
+        {
+          "id": "ex-boite-lettres",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans l'exemple de la boîte aux lettres, pourquoi trace-t-on la médiatrice de [AB] ?",
+          "competencies": [
+            "c3.geo.mediatrice.resoudre-problemes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-equidistant",
+              "text": "Parce que ce sont exactement les points à égale distance de A et de B.",
+              "correct": true
+            },
+            {
+              "id": "choix-plus-court",
+              "text": "Parce qu'elle donne le chemin le plus court de A à B.",
+              "correct": false
+            },
+            {
+              "id": "choix-perp-route",
+              "text": "Parce qu'elle est perpendiculaire à la route.",
+              "correct": false
+            },
+            {
+              "id": "choix-milieu",
+              "text": "Parce que la boîte doit être au milieu de [AB].",
+              "correct": false
+            }
+          ],
+          "explanation": "La condition « même distance des deux maisons » est exactement la propriété de la médiatrice. Le plus court chemin de A à B est le segment [AB], pas sa médiatrice. Elle n'est pas forcément perpendiculaire à la route. Le milieu de [AB] n'est en général pas au bord de la route."
+        },
+        {
+          "id": "ex-triangle-isocele",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le point C est sur la médiatrice du segment [AB]. On sait que CA = 7 cm et AB = 5 cm. Quel est le périmètre du triangle ABC ?",
+          "competencies": [
+            "c3.geo.mediatrice.resoudre-problemes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 19,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "C est sur la médiatrice de [AB], donc CB = CA = 7 cm. Périmètre : AB + BC + CA = 5 + 7 + 7 = 19 cm."
+        }
+      ]
+    },
+    {
+      "id": "exercices-mediatrice",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-final-somme",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le point M est sur la médiatrice de [AB] et MA + MB = 13 cm. Combien mesure MA ?",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete",
+            "c3.geo.mediatrice.resoudre-problemes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 6.5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "M est sur la médiatrice, donc MA = MB. Deux longueurs égales qui font 13 cm : MA = 13 ÷ 2 = 6,5 cm."
+        },
+        {
+          "id": "ex-final-isocele",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le point C est sur la médiatrice de [AB], et n'est pas sur [AB]. Quelle est la nature du triangle ABC ?",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete",
+            "c3.geo.mediatrice.resoudre-problemes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-isocele",
+              "text": "Isocèle en C.",
+              "correct": true
+            },
+            {
+              "id": "choix-rectangle",
+              "text": "Rectangle en C.",
+              "correct": false
+            },
+            {
+              "id": "choix-equilateral",
+              "text": "Toujours équilatéral.",
+              "correct": false
+            },
+            {
+              "id": "choix-quelconque",
+              "text": "On ne peut rien dire.",
+              "correct": false
+            }
+          ],
+          "explanation": "C est sur la médiatrice de [AB], donc CA = CB : le triangle a deux côtés égaux, il est isocèle en C. Il n'est équilatéral que si en plus AB = CA, ce qui n'est pas toujours vrai. Rien n'indique un angle droit en C."
+        },
+        {
+          "id": "ex-final-equidistants",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On cherche tous les points situés à égale distance de deux points E et F. Que forment-ils ?",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-mediatrice",
+              "text": "La médiatrice du segment [EF].",
+              "correct": true
+            },
+            {
+              "id": "choix-milieu",
+              "text": "Le seul milieu du segment [EF].",
+              "correct": false
+            },
+            {
+              "id": "choix-cercle",
+              "text": "Le cercle de diamètre [EF].",
+              "correct": false
+            },
+            {
+              "id": "choix-droite-ef",
+              "text": "La droite (EF).",
+              "correct": false
+            }
+          ],
+          "explanation": "La médiatrice de [EF] est l'ensemble de tous les points équidistants de E et de F. Le milieu en fait partie, mais il n'est pas le seul : il y en a une infinité. Le cercle de diamètre [EF] et la droite (EF) contiennent des points plus proches de E que de F."
+        },
+        {
+          "id": "ex-final-perimetre-losange",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Les points C et D sont tous les deux sur la médiatrice de [AB], de part et d'autre de (AB). On sait que CA = 4 cm et DA = 6 cm. Quel est le périmètre du quadrilatère ACBD ?",
+          "competencies": [
+            "c3.geo.mediatrice.resoudre-problemes"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 4,
+          "answer": 20,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "C est sur la médiatrice, donc CB = CA = 4 cm. D aussi, donc DB = DA = 6 cm. Périmètre de ACBD : AC + CB + BD + DA = 4 + 4 + 6 + 6 = 20 cm."
+        },
+        {
+          "id": "ex-final-nom",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Comment s'appelle la droite perpendiculaire à un segment en son milieu ?",
+          "competencies": [
+            "c3.geo.mediatrice.connaitre-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": [
+            "mediatrice",
+            "la mediatrice",
+            "mediatrice du segment",
+            "la mediatrice du segment"
+          ],
+          "caseSensitive": false,
+          "explanation": "C'est la médiatrice du segment."
+        }
+      ]
+    }
+  ]
+}
