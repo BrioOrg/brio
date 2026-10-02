@@ -2,11 +2,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@/lib/progression', () => ({ getProgression: vi.fn() }))
+vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
 
 import { getProgression } from '@/lib/progression'
+import { getMoi } from '@/lib/session'
 import { ProgressionProvider, useProgression } from '../progression-context'
 
 const mock = vi.mocked(getProgression)
+const moi = vi.mocked(getMoi)
+
+const compte = (role: string) => ({ id: '1', role, statut: 'actif', nom: null, email: null })
 
 // Small harness exposing the context so tests drive refresh() and read state.
 function Harness() {
@@ -39,9 +44,32 @@ function renderProvider() {
 
 beforeEach(() => {
   mock.mockReset()
+  moi.mockReset()
+  moi.mockResolvedValue(compte('eleve'))
 })
 
 describe('ProgressionProvider', () => {
+  it.each(['enseignant', 'admin_brio'])('never reads XP for a %s account', async (role) => {
+    moi.mockResolvedValue(compte(role))
+    mock.mockResolvedValue({ xpTotal: 320, niveau: 1 })
+    renderProvider()
+    await waitFor(() => expect(moi).toHaveBeenCalled())
+
+    fireEvent.click(screen.getByText('refresh'))
+    await waitFor(() => expect(screen.getByTestId('delta').textContent).toBe('0'))
+    expect(mock).not.toHaveBeenCalled()
+    expect(screen.getByTestId('xp').textContent).toBe('none')
+    expect(screen.getByTestId('gain').textContent).toBe('none')
+  })
+
+  it('never reads XP for a logged-out visitor', async () => {
+    moi.mockResolvedValue(null)
+    renderProvider()
+    await waitFor(() => expect(moi).toHaveBeenCalled())
+    expect(mock).not.toHaveBeenCalled()
+    expect(screen.getByTestId('xp').textContent).toBe('none')
+  })
+
   it('loads the real XP + level on mount', async () => {
     mock.mockResolvedValue({ xpTotal: 320, niveau: 1 })
     renderProvider()

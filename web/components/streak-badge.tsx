@@ -1,31 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Icon } from '@/components/ui/icon'
-import { getSerie, type SerieInfo } from '@/lib/progression'
+import { useProgression } from '@/components/progression-context'
 
 /**
  * Day-streak flame in the top bar (issue #81, mockup 1-connexion-matiere-parcours).
- * Reads the real streak from the progression module. The flame is hidden when the
- * student isn't logged in (null) OR the streak is 0 — we never show "0 jour"
- * (backlog design rule): a flame only appears once there is a streak to celebrate.
+ * Reads the real streak from the progression module, via ProgressionProvider. The
+ * flame is hidden when there is no student session (null — logged out, or a teacher
+ * or admin account) OR the streak is 0 — we never show "0 jour" (backlog design
+ * rule): a flame only appears once there is a streak to celebrate.
  */
 export function StreakBadge() {
-  const [serie, setSerie] = useState<SerieInfo | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    getSerie()
-      .then((s) => {
-        if (alive) setSerie(s)
-      })
-      .catch(() => {
-        // Leave hidden rather than showing a fabricated streak.
-      })
-    return () => {
-      alive = false
-    }
-  }, [])
+  const { serie } = useProgression()
 
   if (!serie || serie.joursConsecutifs <= 0) return null
 
