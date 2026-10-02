@@ -1,8 +1,10 @@
 package fr.brio.contenu.infrastructure;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.brio.contenu.ContentViolation;
 import fr.brio.contenu.InvalidContentException;
 import fr.brio.contenu.domain.Competence;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +41,8 @@ class ContentReferentialValidator {
         unknown.removeAll(foundCodes);
         if (!unknown.isEmpty()) {
             throw new InvalidContentException(
-                    "Unknown competency code(s), absent from the referential: " + String.join(", ", unknown));
+                    "Unknown competency code(s), absent from the referential: " + String.join(", ", unknown),
+                    locate(document, unknown, ContentViolation.UNKNOWN_COMPETENCY));
         }
 
         Set<String> deprecated = found.stream()
@@ -49,7 +52,33 @@ class ContentReferentialValidator {
         if (!deprecated.isEmpty()) {
             throw new InvalidContentException(
                     "Deprecated competency code(s) — content must reference only active codes: "
-                    + String.join(", ", deprecated));
+                    + String.join(", ", deprecated),
+                    locate(document, deprecated, ContentViolation.DEPRECATED_COMPETENCY));
         }
+    }
+
+    /**
+     * One violation per block citing one of {@code codes}, so the editor can lead to it. A code
+     * cited outside any block (chapter-level metadata in catalogue files) gets an unlocated one.
+     */
+    private static List<ContentViolation> locate(JsonNode document, Set<String> codes, String violationCode) {
+        List<ContentViolation> violations = new ArrayList<>();
+        Set<String> located = new HashSet<>();
+        for (JsonNode section : document.path("sections")) {
+            for (JsonNode block : section.path("blocks")) {
+                for (JsonNode code : block.path("competencies")) {
+                    if (codes.contains(code.asText())) {
+                        located.add(code.asText());
+                        violations.add(new ContentViolation(
+                                violationCode, section.path("id").asText(), block.path("id").asText(), "competencies"));
+                        break;
+                    }
+                }
+            }
+        }
+        if (!located.containsAll(codes)) {
+            violations.add(new ContentViolation(violationCode, null, null, "competencies"));
+        }
+        return violations;
     }
 }

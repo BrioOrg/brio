@@ -2,6 +2,7 @@ package fr.brio.contenu.infrastructure;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.brio.contenu.ContentViolation;
 import fr.brio.contenu.InvalidContentException;
 import fr.brio.contenu.domain.Chapitre;
 import fr.brio.contenu.domain.Competence;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,7 +83,10 @@ class PublicationValidatorTest {
         assertThatThrownBy(() -> validator.validate(doc(INTERNAL_REFERENCE)))
                 .isInstanceOf(InvalidContentException.class)
                 .hasMessageContaining("Broken internal reference")
-                .hasMessageContaining("theoreme-de-pythagore");
+                .hasMessageContaining("theoreme-de-pythagore")
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(
+                        ContentViolation.REFERENCE_CHAPTER_NOT_FOUND, "s1", "ref1", "target")));
     }
 
     @Test
@@ -95,7 +100,10 @@ class PublicationValidatorTest {
         assertThatThrownBy(() -> validator.validate(doc(INTERNAL_REFERENCE)))
                 .isInstanceOf(InvalidContentException.class)
                 .hasMessageContaining("anchor")
-                .hasMessageContaining("enonce-du-theoreme");
+                .hasMessageContaining("enonce-du-theoreme")
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(
+                        ContentViolation.REFERENCE_ANCHOR_NOT_FOUND, "s1", "ref1", "target.anchor")));
     }
 
     @Test
@@ -121,7 +129,10 @@ class PublicationValidatorTest {
                 """;
         assertThatThrownBy(() -> validator.validate(doc(objectives)))
                 .isInstanceOf(InvalidContentException.class)
-                .hasMessageContaining("c4.geo.pythagore.inexistante");
+                .hasMessageContaining("c4.geo.pythagore.inexistante")
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(
+                        ContentViolation.UNKNOWN_COMPETENCY, "s1", "obj1", "competencies")));
     }
 
     @Test
@@ -158,7 +169,10 @@ class PublicationValidatorTest {
                 "[\"côté\"]");
         assertThatThrownBy(() -> validator.validate(doc(ex)))
                 .isInstanceOf(InvalidContentException.class)
-                .hasMessageContaining("2 blank(s) but 1 expected");
+                .hasMessageContaining("2 blank(s) but 1 expected")
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(
+                        ContentViolation.BLANK_COUNT_MISMATCH, "s1", "ex1", "expected")));
     }
 
     @Test
@@ -166,7 +180,10 @@ class PublicationValidatorTest {
         String ex = fillBlank("Le {} est long.", "[\"côté\", \"angle\"]", "[\"hypoténuse\"]");
         assertThatThrownBy(() -> validator.validate(doc(ex)))
                 .isInstanceOf(InvalidContentException.class)
-                .hasMessageContaining("'hypoténuse' is not available in the bank");
+                .hasMessageContaining("'hypoténuse' is not available in the bank")
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(
+                        ContentViolation.ANSWER_NOT_IN_BANK, "s1", "ex1", "bank")));
     }
 
     @Test
@@ -176,5 +193,16 @@ class PublicationValidatorTest {
         assertThatThrownBy(() -> validator.validate(doc(ex)))
                 .isInstanceOf(InvalidContentException.class)
                 .hasMessageContaining("'2' is not available in the bank");
+    }
+
+    @Test
+    void shouldLocateAMissingAltTextOnTheFigure() throws Exception {
+        String figure = """
+                { "id": "fig1", "type": "figure", "alt": "", "spec": { "points": [] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(doc(figure)))
+                .isInstanceOf(InvalidContentException.class)
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(ContentViolation.EMPTY, "s1", "fig1", "alt")));
     }
 }
