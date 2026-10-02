@@ -1,0 +1,399 @@
+{
+  "schemaVersion": 1,
+  "id": "aires",
+  "title": "Aires et conversions",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "aire-rectangle",
+      "title": "L'aire d'un carré et d'un rectangle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "calculer l'aire d'un carré et d'un rectangle ;",
+            "ne pas confondre aire et périmètre ;",
+            "convertir des aires entre mm², cm², dm², m² et km²."
+          ]
+        },
+        {
+          "id": "def-aire",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Aire",
+          "text": "L'**aire** d'une figure mesure la place qu'occupe sa surface. Le **centimètre carré** (cm²) est l'aire d'un carré de 1 cm de côté. De même, 1 m² est l'aire d'un carré de 1 m de côté."
+        },
+        {
+          "id": "fig-rectangle",
+          "type": "figure",
+          "alt": "Rectangle ABCD de longueur 6 cm et de largeur 4 cm, avec un angle droit marqué en A.",
+          "caption": "Un rectangle de 6 cm sur 4 cm : on peut y ranger 4 rangées de 6 carrés de 1 cm².",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 6,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "C",
+                "x": 6,
+                "y": 4,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "D",
+                "x": 0,
+                "y": 4,
+                "label": {
+                  "placement": "above-left"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C",
+                  "D"
+                ]
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "A",
+                "from": "B",
+                "to": "D",
+                "right": true
+              }
+            ],
+            "labels": [
+              {
+                "text": "6 cm",
+                "x": 3,
+                "y": -0.6
+              },
+              {
+                "text": "4 cm",
+                "x": 6.9,
+                "y": 2
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-formules",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Formules",
+          "text": "Aire d'un rectangle de longueur L et de largeur ℓ : A = L × ℓ. Aire d'un carré de côté c : A = c × c. Les deux longueurs doivent être dans la même unité ; l'aire s'exprime alors dans l'unité « au carré »."
+        },
+        {
+          "id": "ex-rectangle-sept-quatre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule l'aire d'un rectangle de 7 cm sur 4 cm.",
+          "competencies": [
+            "c3.gm.aires.calculer-carre-rectangle"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 28,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "A = L × ℓ = 7 × 4 = 28 cm²."
+        },
+        {
+          "id": "ex-carre-six",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule l'aire d'un carré de 6 cm de côté.",
+          "competencies": [
+            "c3.gm.aires.calculer-carre-rectangle"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 36,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "A = c × c = 6 × 6 = 36 cm². Attention : 6 × 4 = 24 cm serait son périmètre."
+        },
+        {
+          "id": "piege-aire-perimetre",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Aire ou périmètre ?",
+          "text": "Le périmètre mesure le **contour** (une longueur, en cm). L'aire mesure la **surface** (en cm²). Deux figures de même périmètre peuvent avoir des aires différentes."
+        },
+        {
+          "id": "ex-aire-ou-perimetre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle est l'aire d'un rectangle de 5 cm sur 3 cm ?",
+          "competencies": [
+            "c3.gm.aires.calculer-carre-rectangle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-15-cm2",
+              "text": "15 cm²",
+              "correct": true
+            },
+            {
+              "id": "choix-16-cm",
+              "text": "16 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-8-cm2",
+              "text": "8 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-15-cm",
+              "text": "15 cm",
+              "correct": false
+            }
+          ],
+          "explanation": "A = 5 × 3 = 15 cm². 16 cm est le périmètre : 2 × (5 + 3). 8 cm², c'est additionner 5 et 3. 15 cm a la bonne valeur mais pas la bonne unité : une aire s'exprime en cm², pas en cm."
+        }
+      ]
+    },
+    {
+      "id": "convertir-aires",
+      "title": "Convertir des aires",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "intro-conversion",
+          "type": "prose",
+          "text": "Un carré de 1 dm de côté mesure 10 cm de côté : on peut y ranger 10 rangées de 10 carrés de 1 cm². Donc 1 dm² = 100 cm². Pour les aires, on passe d'une unité à la suivante en multipliant **par 100**, et non par 10."
+        },
+        {
+          "id": "table-unites-aire",
+          "type": "table",
+          "headers": [
+            "Égalité",
+            "Pour passer à l'unité plus petite"
+          ],
+          "rows": [
+            [
+              "1 km² = 1 000 000 m²",
+              "× 1 000 000"
+            ],
+            [
+              "1 m² = 100 dm²",
+              "× 100"
+            ],
+            [
+              "1 dm² = 100 cm²",
+              "× 100"
+            ],
+            [
+              "1 cm² = 100 mm²",
+              "× 100"
+            ]
+          ],
+          "caption": "Entre deux unités voisines parmi m², dm², cm² et mm², le rapport est 100."
+        },
+        {
+          "id": "tip-deux-chiffres",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Le tableau de conversion",
+          "text": "Dans un tableau de conversion des aires, chaque unité occupe **deux colonnes**. Pour convertir 3 m² en dm² : 3 m² = 300 dm², on décale de deux rangs."
+        },
+        {
+          "id": "ex-m2-dm2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 3 m² en dm².",
+          "competencies": [
+            "c3.gm.aires.convertir"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 300,
+          "tolerance": 0,
+          "unit": "dm²",
+          "explanation": "1 m² = 100 dm², donc 3 m² = 3 × 100 = 300 dm²."
+        },
+        {
+          "id": "ex-m2-cm2",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "À combien de cm² est égal 1 m² ?",
+          "competencies": [
+            "c3.gm.aires.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-10000",
+              "text": "10 000 cm²",
+              "correct": true
+            },
+            {
+              "id": "choix-100",
+              "text": "100 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-1000",
+              "text": "1 000 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-10",
+              "text": "10 cm²",
+              "correct": false
+            }
+          ],
+          "explanation": "1 m² = 100 dm² et 1 dm² = 100 cm², donc 1 m² = 100 × 100 = 10 000 cm². Répondre 100 cm², c'est faire une seule étape. Répondre 1 000 ou 10, c'est raisonner comme pour les longueurs (rapport 10 par unité)."
+        },
+        {
+          "id": "ex-cm2-dm2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 450 cm² en dm².",
+          "competencies": [
+            "c3.gm.aires.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.5,
+          "tolerance": 0,
+          "unit": "dm²",
+          "explanation": "1 dm² = 100 cm², donc 450 cm² = 450 ÷ 100 = 4,5 dm²."
+        }
+      ]
+    },
+    {
+      "id": "exercices-aires",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-final-dm2-cm2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 0,8 dm² en cm².",
+          "competencies": [
+            "c3.gm.aires.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 80,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "0,8 × 100 = 80 cm²."
+        },
+        {
+          "id": "ex-final-mm2-cm2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 250 mm² en cm².",
+          "competencies": [
+            "c3.gm.aires.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2.5,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "1 cm² = 100 mm², donc 250 mm² = 250 ÷ 100 = 2,5 cm²."
+        },
+        {
+          "id": "ex-final-km2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une forêt a une aire de 2,5 km². Convertis cette aire en m².",
+          "competencies": [
+            "c3.gm.aires.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2500000,
+          "tolerance": 0,
+          "unit": "m²",
+          "explanation": "1 km² = 1 000 000 m², donc 2,5 km² = 2,5 × 1 000 000 = 2 500 000 m²."
+        },
+        {
+          "id": "ex-final-chambre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une chambre rectangulaire mesure 4 m sur 3,5 m. Quelle est son aire ?",
+          "competencies": [
+            "c3.gm.aires.calculer-carre-rectangle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 14,
+          "tolerance": 0,
+          "unit": "m²",
+          "explanation": "A = 4 × 3,5 = 14 m²."
+        },
+        {
+          "id": "ex-final-forme-l",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une pièce en forme de L est faite d'un rectangle de 5 m sur 3 m et d'un carré de 2 m de côté, collés sans se chevaucher. Quelle est son aire ?",
+          "competencies": [
+            "c3.gm.aires.calculer-carre-rectangle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 19,
+          "tolerance": 0,
+          "unit": "m²",
+          "explanation": "On découpe la figure en morceaux simples : 5 × 3 = 15 m² et 2 × 2 = 4 m². Aire totale : 15 + 4 = 19 m²."
+        },
+        {
+          "id": "ex-final-unites-differentes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un panneau rectangulaire mesure 1,2 m sur 50 cm. Quelle est son aire en cm² ?",
+          "competencies": [
+            "c3.gm.aires.calculer-carre-rectangle",
+            "c3.gm.aires.convertir"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 6000,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "On met d'abord les longueurs dans la même unité : 1,2 m = 120 cm. A = 120 × 50 = 6 000 cm². (Multiplier 1,2 par 50 donnerait 60, un nombre sans unité cohérente.)"
+        }
+      ]
+    }
+  ]
+}
