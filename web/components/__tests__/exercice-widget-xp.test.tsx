@@ -41,7 +41,7 @@ beforeEach(() => {
 describe('ExerciceWidget — XP reward wiring (#80)', () => {
   it('shows the real "+N XP" gain after a correct answer', async () => {
     const refresh = vi.fn().mockResolvedValue(10)
-    mockUseProgression.mockReturnValue({ info: null, gain: null, refresh })
+    mockUseProgression.mockReturnValue({ info: null, serie: null, gain: null, refresh })
     mockSoumettre.mockResolvedValue(SUCCESS)
 
     render(<ExerciceWidget {...MC_PROPS} />)
@@ -56,7 +56,7 @@ describe('ExerciceWidget — XP reward wiring (#80)', () => {
 
   it('does not re-read progression or show a gain on a wrong answer', async () => {
     const refresh = vi.fn().mockResolvedValue(0)
-    mockUseProgression.mockReturnValue({ info: null, gain: null, refresh })
+    mockUseProgression.mockReturnValue({ info: null, serie: null, gain: null, refresh })
     mockSoumettre.mockResolvedValue(WRONG)
 
     render(<ExerciceWidget {...MC_PROPS} />)
@@ -70,7 +70,7 @@ describe('ExerciceWidget — XP reward wiring (#80)', () => {
 
   it('shows no gain pill when the answer was correct but nothing was awarded', async () => {
     const refresh = vi.fn().mockResolvedValue(0) // cap reached / already earned
-    mockUseProgression.mockReturnValue({ info: null, gain: null, refresh })
+    mockUseProgression.mockReturnValue({ info: null, serie: null, gain: null, refresh })
     mockSoumettre.mockResolvedValue(SUCCESS)
 
     render(<ExerciceWidget {...MC_PROPS} />)
