@@ -105,7 +105,7 @@ describe('PublierCours', () => {
     })
 
     await user.click(await screen.findByRole('checkbox', { name: /3e A/ }))
-    expect(screen.getByText(/une réponse pour chaque trou/)).toBeInTheDocument()
+    expect(screen.getByText('Donne la réponse du trou 2.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Publier' })).toBeDisabled()
   })
 
@@ -126,7 +126,7 @@ describe('PublierCours', () => {
     })
 
     await user.click(await screen.findByRole('checkbox', { name: /3e A/ }))
-    expect(screen.getByText(/Chaque case d’un tableau doit être remplie/)).toBeInTheDocument()
+    expect(screen.getByText('Remplis chaque case du tableau.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Publier' })).toBeDisabled()
   })
 

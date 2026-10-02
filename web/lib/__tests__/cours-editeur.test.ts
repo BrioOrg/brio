@@ -9,7 +9,14 @@ import {
   contenuDepuisBrouillon,
   deplacer,
   distracteursDe,
+  champEnErreur,
   exerciceComplet,
+  libelleProbleme,
+  problemeReference,
+  problemesBloc,
+  problemesBrouillon,
+  problemesDepuisViolations,
+  aDesProblemesBloquants,
   ecrireTampon,
   effacerTampon,
   enregistrerBrouillon,
@@ -20,9 +27,10 @@ import {
   nouvelleSection,
   supprimerBrouillon,
   synchroniserTrous,
-  tableauACelluleVide,
   type Bloc,
   type BlocType,
+  type Brouillon,
+  type Choix,
 } from '@/lib/cours-editeur'
 
 describe('nouveauBrouillon', () => {
@@ -350,11 +358,12 @@ describe('champs facultatifs vides (#158)', () => {
   })
 
   it('signale une cellule vide, mais pas une ligne d’en-têtes entièrement vide', () => {
-    expect(tableauACelluleVide({ ...nouveauBloc('table'), rows: [['a', 'b']] })).toBe(false)
-    expect(tableauACelluleVide({ ...nouveauBloc('table'), rows: [['a', '']] })).toBe(true)
-    expect(
-      tableauACelluleVide({ ...nouveauBloc('table'), headers: ['x', ''], rows: [['a', 'b']] })
-    ).toBe(true)
+    const champs = (bloc: Bloc) => problemesBloc(bloc, 's1').map((p) => p.champ)
+    expect(champs({ ...nouveauBloc('table'), rows: [['a', 'b']] })).toEqual([])
+    expect(champs({ ...nouveauBloc('table'), rows: [['a', '']] })).toEqual(['rows[0][1]'])
+    expect(champs({ ...nouveauBloc('table'), headers: ['x', ''], rows: [['a', 'b']] })).toEqual([
+      'headers[1]',
+    ])
   })
 })
 
@@ -473,7 +482,9 @@ describe('aperçu élève', () => {
       expect(exerciceComplet({ ...base, template: 'Sans trou', bank: ['x'] })).toBe(false)
       expect(exerciceComplet({ ...base, template: 'Un {}.', bank: [] })).toBe(false)
       expect(exerciceComplet({ ...base, template: 'Un {}.', bank: ['chat', ''] })).toBe(false)
-      expect(exerciceComplet({ ...base, template: 'Un {}.', bank: ['chat'] })).toBe(true)
+      // Le schéma exige deux étiquettes : une seule ne serait jamais publiée.
+      expect(exerciceComplet({ ...base, template: 'Un {}.', bank: ['chat'] })).toBe(false)
+      expect(exerciceComplet({ ...base, template: 'Un {}.', bank: ['chat', 'chien'] })).toBe(true)
     })
 
     it('exige une solution pour un exercice sur feuille', () => {
@@ -534,5 +545,256 @@ describe('aperçu élève', () => {
       expect(b.sections[0].blocks).toHaveLength(4)
       expect((b.sections[0].blocks[1].choices as { correct: boolean }[])[1].correct).toBe(true)
     })
+  })
+})
+
+describe('validation avant publication', () => {
+  const lieu = (bloc: Bloc) => problemesBloc(bloc, 's1')
+  const codes = (bloc: Bloc) => lieu(bloc).map((p) => `${p.code}:${p.champ ?? ''}`)
+
+  const brouillonValide = (): Brouillon => ({
+    ...nouveauBrouillon(),
+    title: 'Pythagore',
+    sections: [
+      {
+        id: 's1',
+        title: 'Le théorème',
+        kind: 'lesson',
+        blocks: [{ id: 'p1', type: 'prose', text: 'Dans un triangle rectangle…' }],
+      },
+    ],
+  })
+
+  it('ne trouve rien dans un cours complet', () => {
+    expect(problemesBrouillon(brouillonValide())).toEqual([])
+  })
+
+  it('signale le titre du cours, le titre d’une partie et une partie vide', () => {
+    const b = brouillonValide()
+    b.title = ' '
+    b.sections.push({ id: 's2', title: '', kind: 'lesson', blocks: [] })
+    expect(problemesBrouillon(b)).toEqual([
+      expect.objectContaining({
+        code: 'EMPTY',
+        champ: 'title',
+        message: 'Donne un titre au cours.',
+      }),
+      expect.objectContaining({
+        sectionId: 's2',
+        champ: 'title',
+        message: 'Donne un titre à cette partie.',
+      }),
+      expect.objectContaining({
+        sectionId: 's2',
+        champ: 'blocks',
+        message: 'Ajoute au moins un bloc à cette partie.',
+      }),
+    ])
+  })
+
+  it('rattache chaque problème de bloc à son bloc et à sa partie', () => {
+    const b = brouillonValide()
+    b.sections[0].blocks.push({ id: 'f1', type: 'formula', latex: '' })
+    expect(problemesBrouillon(b)).toEqual([
+      expect.objectContaining({
+        sectionId: 's1',
+        blocId: 'f1',
+        champ: 'latex',
+        gravite: 'bloquant',
+      }),
+    ])
+  })
+
+  it('vérifie les champs requis de chaque bloc neuf', () => {
+    expect(codes(nouveauBloc('heading'))).toEqual(['EMPTY:text'])
+    expect(codes(nouveauBloc('prose'))).toEqual(['EMPTY:text'])
+    expect(codes(nouveauBloc('formula'))).toEqual(['EMPTY:latex'])
+    expect(codes(nouveauBloc('callout'))).toEqual(['EMPTY:text'])
+    expect(codes(nouveauBloc('steps'))).toEqual(['EMPTY:steps[0].text'])
+    expect(codes(nouveauBloc('figure'))).toEqual(['MISSING_ALT:alt'])
+    expect(codes(nouveauBloc('exercise', 'paper'))).toEqual(['EMPTY:prompt', 'EMPTY:solution'])
+    expect(codes(nouveauBloc('exercise', 'numeric'))).toEqual(['EMPTY:prompt', 'REQUIRED:answer'])
+  })
+
+  it('ne compte pas un champ facultatif laissé vide (il est retiré à l’envoi)', () => {
+    expect(codes({ ...nouveauBloc('callout'), text: 'Définition', title: '' })).toEqual([])
+  })
+
+  describe('QCM', () => {
+    const qcm = (choices: Partial<Choix>[], multiple = false): Bloc => ({
+      id: 'q1',
+      type: 'exercise',
+      exerciseType: 'multiple-choice',
+      prompt: 'Lequel ?',
+      multiple,
+      choices,
+    })
+
+    it('exige deux propositions remplies', () => {
+      expect(codes(qcm([{ id: 'a', text: 'Oui', correct: true }]))).toEqual(['EMPTY:choices'])
+      expect(
+        codes(
+          qcm([
+            { id: 'a', text: 'Oui', correct: true },
+            { id: 'b', text: ' ', correct: false },
+          ])
+        )
+      ).toEqual(['EMPTY:choices[1].text'])
+    })
+
+    it('bloque un QCM sans bonne réponse (le serveur l’accepterait, l’élève ne pourrait pas réussir)', () => {
+      const [p] = lieu(
+        qcm([
+          { id: 'a', text: 'Oui', correct: false },
+          { id: 'b', text: 'Non', correct: false },
+        ])
+      )
+      expect(p).toMatchObject({ code: 'NO_CORRECT_CHOICE', gravite: 'bloquant', champ: 'choices' })
+    })
+
+    it('bloque plusieurs bonnes réponses sur un QCM à réponse unique', () => {
+      const choix = [
+        { id: 'a', text: 'Oui', correct: true },
+        { id: 'b', text: 'Non', correct: true },
+      ]
+      expect(codes(qcm(choix))).toEqual(['TOO_MANY_CORRECT_CHOICES:choices'])
+      expect(codes(qcm(choix, true))).toEqual([])
+    })
+  })
+
+  describe('réponse courte', () => {
+    const court = (acceptedAnswers: string[], caseSensitive = false): Bloc => ({
+      ...nouveauBloc('exercise', 'short-answer'),
+      prompt: 'Capitale ?',
+      acceptedAnswers,
+      caseSensitive,
+    })
+
+    it('exige au moins une réponse, et chaque réponse remplie', () => {
+      expect(codes(court([]))).toEqual(['EMPTY:acceptedAnswers'])
+      expect(codes(court(['Paris', '']))).toEqual(['EMPTY:acceptedAnswers[1]'])
+    })
+
+    it('bloque deux réponses identiques, avertit pour deux réponses égales après normalisation', () => {
+      expect(lieu(court(['Paris', 'Paris']))[0]).toMatchObject({ gravite: 'bloquant' })
+      expect(lieu(court(['Évry', 'evry.']))[0]).toMatchObject({
+        code: 'DUPLICATE_ANSWERS',
+        gravite: 'avertissement',
+      })
+      // Sensible à la casse : « M » et « m » sont deux réponses distinctes.
+      expect(codes(court(['M', 'm'], true))).toEqual([])
+    })
+  })
+
+  describe('texte à trous', () => {
+    const trous = (template: string, expected: string[], distracteurs: string[] = []): Bloc => {
+      const bloc = { ...nouveauBloc('exercise', 'fill-blank'), prompt: 'Complète.' }
+      return { ...bloc, ...synchroniserTrous(bloc, { template, expected, distracteurs }) }
+    }
+
+    it('accepte une phrase cohérente', () => {
+      expect(codes(trous('Le {} est opposé à l’angle {}.', ['côté', 'droit']))).toEqual([])
+    })
+
+    it('exige un trou, puis une réponse par trou', () => {
+      expect(codes(trous('Sans trou', []))).toEqual(['EMPTY:template'])
+      expect(codes(trous('Le {} et le {}.', ['côté', '']))).toEqual(['EMPTY:expected[1]'])
+    })
+
+    it('demande un distracteur quand la banque n’a qu’une étiquette', () => {
+      expect(codes(trous('Un {}.', ['chat']))).toEqual(['EMPTY:bank'])
+      expect(codes(trous('Un {}.', ['chat'], ['chien']))).toEqual([])
+    })
+
+    it('rejoue les contrôles du serveur sur un bloc incohérent', () => {
+      const bloc: Bloc = {
+        id: 't1',
+        type: 'exercise',
+        exerciseType: 'fill-blank',
+        prompt: 'Complète.',
+        template: '{} + {} = 4',
+        bank: ['2', '3'],
+        expected: ['2', '2'],
+      }
+      expect(codes(bloc)).toEqual(['ANSWER_NOT_IN_BANK:bank'])
+      expect(codes({ ...bloc, expected: ['2'] })).toEqual(['BLANK_COUNT_MISMATCH:expected'])
+    })
+  })
+
+  describe('référence', () => {
+    const externe = (url: string): Bloc => ({ ...nouveauBloc('reference'), title: 'Éduscol', url })
+    const interne = (target: Record<string, string>): Bloc => ({
+      id: 'r1',
+      type: 'reference',
+      scope: 'internal',
+      title: 'Voir Pythagore',
+      target,
+    })
+    const cible = { level: '3e', subject: 'mathematiques', slug: 'theoreme-de-pythagore' }
+
+    it('exige une adresse https', () => {
+      expect(codes(externe(''))).toEqual(['EMPTY:url'])
+      expect(lieu(externe('http://eduscol.fr'))[0]).toMatchObject({
+        code: 'INVALID_FORMAT',
+        message: 'L’adresse doit commencer par https://.',
+      })
+      expect(codes(externe('https://eduscol.fr'))).toEqual([])
+    })
+
+    it('exige une cible interne complète et bien formée', () => {
+      expect(codes(interne({ level: '3e' }))).toEqual(['EMPTY:target.subject', 'EMPTY:target.slug'])
+      expect(codes(interne({ ...cible, slug: 'Théorème' }))).toEqual(['INVALID_FORMAT:target.slug'])
+      expect(codes(interne(cible))).toEqual([])
+    })
+
+    it('qualifie la cible une fois le catalogue consulté', () => {
+      const ref = interne({ ...cible, anchor: 'enonce' })
+      expect(problemeReference(ref, 's1', ['enonce'])).toBeNull()
+      expect(problemeReference(ref, 's1', null)).toMatchObject({
+        code: 'REFERENCE_CHAPTER_NOT_FOUND',
+        blocId: 'r1',
+        gravite: 'bloquant',
+      })
+      expect(problemeReference(ref, 's1', ['autre'])).toMatchObject({
+        code: 'REFERENCE_ANCHOR_NOT_FOUND',
+        champ: 'target.anchor',
+      })
+      expect(problemeReference(ref, 's1', 'erreur')).toMatchObject({ gravite: 'avertissement' })
+      expect(problemeReference(externe('https://x.fr'), 's1', null)).toBeNull()
+    })
+  })
+
+  it('avertit sans bloquer pour un bloc Objectifs vide', () => {
+    const p = lieu(nouveauBloc('objectives'))
+    expect(p).toEqual([
+      expect.objectContaining({ code: 'EMPTY_OBJECTIVES', gravite: 'avertissement' }),
+    ])
+    expect(aDesProblemesBloquants(p)).toBe(false)
+  })
+
+  it('traduit les violations du serveur avec les mêmes libellés, sans identifiant interne', () => {
+    const [bloc, partie, cours] = problemesDepuisViolations([
+      { code: 'ANSWER_NOT_IN_BANK', sectionId: 's1', blockId: 'ex1', field: 'bank' },
+      { code: 'EMPTY', sectionId: 's1', blockId: null, field: 'title' },
+      { code: 'EMPTY', sectionId: null, blockId: null, field: 'title' },
+    ])
+    expect(bloc).toMatchObject({ blocId: 'ex1', message: libelleProbleme('ANSWER_NOT_IN_BANK') })
+    expect(partie.message).toBe('Donne un titre à cette partie.')
+    expect(cours.message).toBe('Donne un titre au cours.')
+    expect(bloc.message).not.toContain('ex1')
+  })
+
+  it('donne un libellé générique à un code inconnu', () => {
+    expect(problemesDepuisViolations([{ code: 'NOUVEAU' }])[0].message).toBe(
+      'Ce point empêche la publication.'
+    )
+  })
+
+  it('met en erreur un champ et ses sous-champs, pas ses voisins', () => {
+    const p = problemesDepuisViolations([{ code: 'EMPTY', blockId: 'q', field: 'choices[1].text' }])
+    expect(champEnErreur(p, 'choices')).toBe(true)
+    expect(champEnErreur(p, 'choices[1].text')).toBe(true)
+    expect(champEnErreur(p, 'choices[0].text')).toBe(false)
+    expect(champEnErreur(p, 'choicesX')).toBe(false)
   })
 })

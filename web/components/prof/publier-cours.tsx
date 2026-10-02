@@ -12,7 +12,7 @@ import {
 } from '@brio/api-client'
 
 import { Icon } from '@/components/ui/icon'
-import { tableauACelluleVide, type Brouillon } from '@/lib/cours-editeur'
+import { aDesProblemesBloquants, problemesBrouillon, type Brouillon } from '@/lib/cours-editeur'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Écran « Publier » (CDC §8.4) : une relecture avant de figer. Trois choses, dans l'ordre où on
@@ -59,36 +59,11 @@ export function PublierCours({
     }
   }, [])
 
-  // Garde-fous côté client (le serveur reste l'autorité).
-  const problemes = useMemo(() => {
-    const p: string[] = []
-    if (!brouillon.title.trim()) p.push('Donne un titre au cours.')
-    const blocs = brouillon.sections.reduce((n, s) => n + s.blocks.length, 0)
-    if (blocs === 0) p.push('Ajoute au moins un bloc de contenu.')
-    const imagesSansAlt = brouillon.sections
-      .flatMap((s) => s.blocks)
-      .filter((b) => {
-        const type = b.type as string
-        return (type === 'image' || type === 'figure') && !String(b.alt ?? '').trim()
-      })
-    if (imagesSansAlt.length > 0) p.push('Chaque image doit avoir un texte alternatif.')
-    const trousIncomplets = brouillon.sections
-      .flatMap((s) => s.blocks)
-      .some((b) => {
-        if (b.type !== 'exercise' || b.exerciseType !== 'fill-blank') return false
-        const expected = Array.isArray(b.expected) ? (b.expected as unknown[]) : []
-        return expected.length === 0 || expected.some((e) => String(e ?? '').trim() === '')
-      })
-    if (brouillon.sections.flatMap((s) => s.blocks).some(tableauACelluleVide)) {
-      p.push('Chaque case d’un tableau doit être remplie.')
-    }
-    if (trousIncomplets) {
-      p.push('Chaque texte à trous doit avoir au moins un trou, et une réponse pour chaque trou.')
-    }
-    return p
-  }, [brouillon])
+  // Garde-fous côté client (le serveur reste l'autorité) : les règles de cours-editeur.
+  const tousProblemes = useMemo(() => problemesBrouillon(brouillon), [brouillon])
+  const problemes = [...new Set(tousProblemes.map((p) => p.message))]
 
-  const pretAPublier = problemes.length === 0 && selection.size > 0 && !enCours
+  const pretAPublier = !aDesProblemesBloquants(tousProblemes) && selection.size > 0 && !enCours
 
   function basculerClasse(id: string) {
     setSelection((prev) => {
