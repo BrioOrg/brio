@@ -1,0 +1,526 @@
+{
+  "schemaVersion": 1,
+  "id": "donnees-tableaux",
+  "title": "Recueillir et organiser des données",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "mener-enquete",
+      "title": "Mener une enquête",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "préparer une enquête et recueillir des données ;",
+            "présenter des données dans un tableau ;",
+            "utiliser un tableau pour faire un choix selon un critère."
+          ]
+        },
+        {
+          "id": "intro-enquete",
+          "type": "prose",
+          "text": "La classe veut savoir quel sport proposer à l'association sportive. Avant de demander, il faut **préparer l'enquête** : quelle question poser, à qui, et comment noter les réponses."
+        },
+        {
+          "id": "methode-enquete",
+          "type": "steps",
+          "title": "Préparer une enquête",
+          "steps": [
+            {
+              "text": "Choisir une question claire, qui n'oriente pas la réponse."
+            },
+            {
+              "text": "Choisir qui interroger : ici, tous les élèves de la classe."
+            },
+            {
+              "text": "Prévoir une feuille pour noter chaque réponse, une par une."
+            },
+            {
+              "text": "Compter les réponses et les ranger dans un tableau."
+            }
+          ]
+        },
+        {
+          "id": "ex-bonne-question",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle question permet le mieux de savoir quel sport préfèrent les élèves ?",
+          "competencies": [
+            "c3.ogd.donnees.planifier-recueillir"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-prefere",
+              "text": "« Parmi foot, danse, natation et judo, quel sport préfères-tu ? »",
+              "correct": true
+            },
+            {
+              "id": "choix-aimes",
+              "text": "« Aimes-tu le sport ? »",
+              "correct": false
+            },
+            {
+              "id": "choix-meilleur",
+              "text": "« Le foot, c'est le meilleur sport, non ? »",
+              "correct": false
+            },
+            {
+              "id": "choix-combien",
+              "text": "« Combien de sports existe-t-il ? »",
+              "correct": false
+            }
+          ],
+          "explanation": "La bonne question demande directement la préférence, avec une liste de réponses possibles. « Aimes-tu le sport ? » ne dit pas lequel. « Le foot, c'est le meilleur, non ? » pousse vers une réponse : l'enquête serait faussée. « Combien de sports existe-t-il ? » ne parle pas des élèves."
+        },
+        {
+          "id": "ex-qui-interroger",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour connaître le sport préféré des élèves de la classe, qui faut-il interroger ?",
+          "competencies": [
+            "c3.ogd.donnees.planifier-recueillir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-tous",
+              "text": "Tous les élèves de la classe.",
+              "correct": true
+            },
+            {
+              "id": "choix-amis",
+              "text": "Seulement ses amis.",
+              "correct": false
+            },
+            {
+              "id": "choix-foot",
+              "text": "Seulement les élèves qui font du foot.",
+              "correct": false
+            },
+            {
+              "id": "choix-prof",
+              "text": "Le professeur d'EPS, qui connaît les élèves.",
+              "correct": false
+            }
+          ],
+          "explanation": "On veut l'avis de toute la classe : il faut interroger tous ses élèves. Ses amis ont souvent les mêmes goûts que soi ; les élèves du club de foot répondront surtout « foot ». Le professeur donnerait son avis, pas celui des élèves."
+        },
+        {
+          "id": "intro-recueil",
+          "type": "prose",
+          "text": "Voici les 20 réponses notées dans l'ordre où elles ont été données : foot, danse, foot, natation, judo, foot, danse, natation, foot, danse, judo, foot, natation, danse, foot, danse, foot, natation, danse, foot."
+        },
+        {
+          "id": "ex-compter-foot",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans la liste des 20 réponses ci-dessus, combien d'élèves ont répondu « foot » ?",
+          "competencies": [
+            "c3.ogd.donnees.planifier-recueillir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "On compte les « foot » un par un, en les barrant pour ne pas en oublier : il y en a 8."
+        }
+      ]
+    },
+    {
+      "id": "construire-tableau",
+      "title": "Construire un tableau",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-effectif",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Effectif",
+          "text": "L'**effectif** d'une réponse est le nombre de fois où elle apparaît. La somme de tous les effectifs est égale au nombre de personnes interrogées."
+        },
+        {
+          "id": "tip-verifier",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Vérifier son tableau",
+          "text": "Après avoir rempli le tableau, on additionne les effectifs : on doit retrouver le nombre total de réponses. Sinon, on en a oublié ou compté deux fois."
+        },
+        {
+          "id": "ex-remplir-tableau",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète le tableau des réponses de l'enquête (sport : effectif).",
+          "competencies": [
+            "c3.ogd.donnees.construire-tableau"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "foot : 8 ; danse : {} ; natation : {} ; judo : {}",
+          "bank": [
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "8"
+          ],
+          "expected": [
+            "6",
+            "4",
+            "2"
+          ],
+          "explanation": "En comptant dans la liste : danse 6, natation 4, judo 2. Vérification : 8 + 6 + 4 + 2 = 20."
+        },
+        {
+          "id": "table-effectifs-incomplet",
+          "type": "table",
+          "headers": [
+            "Moyen de transport",
+            "à pied",
+            "vélo",
+            "bus",
+            "voiture",
+            "Total"
+          ],
+          "rows": [
+            [
+              "Effectif",
+              "9",
+              "4",
+              "?",
+              "6",
+              "28"
+            ]
+          ],
+          "caption": "Comment les élèves d'une classe viennent au collège."
+        },
+        {
+          "id": "ex-effectif-manquant",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le tableau ci-dessus, combien d'élèves viennent en bus ?",
+          "competencies": [
+            "c3.ogd.donnees.construire-tableau"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "explanation": "La somme des effectifs fait 28. On a déjà 9 + 4 + 6 = 19 élèves, donc 28 − 19 = 9 élèves viennent en bus."
+        },
+        {
+          "id": "ex-ligne-total",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "À quoi sert la colonne « Total » dans un tableau d'effectifs ?",
+          "competencies": [
+            "c3.ogd.donnees.construire-tableau"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-controle",
+              "text": "À indiquer le nombre de personnes interrogées et à vérifier les comptages.",
+              "correct": true
+            },
+            {
+              "id": "choix-max",
+              "text": "À indiquer la réponse la plus fréquente.",
+              "correct": false
+            },
+            {
+              "id": "choix-moyenne",
+              "text": "À donner l'effectif moyen.",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "À rien, elle est décorative.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le total est la somme des effectifs : il doit être égal au nombre de personnes interrogées. Il permet de contrôler qu'on n'a oublié personne. La réponse la plus fréquente se lit en cherchant le plus grand effectif, pas dans le total."
+        }
+      ]
+    },
+    {
+      "id": "filtrer",
+      "title": "Choisir à l'aide d'un tableau",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-filtrer",
+          "type": "prose",
+          "text": "Un tableau permet de **filtrer** : on ne garde que les lignes qui respectent un critère. Pour deux critères, on applique le premier, puis le second sur les lignes qui restent."
+        },
+        {
+          "id": "table-sorties",
+          "type": "table",
+          "headers": [
+            "Sortie",
+            "Durée",
+            "Prix par élève",
+            "Distance à pied"
+          ],
+          "rows": [
+            [
+              "Musée",
+              "3 h",
+              "8 €",
+              "1 km"
+            ],
+            [
+              "Forêt",
+              "5 h",
+              "0 €",
+              "9 km"
+            ],
+            [
+              "Zoo",
+              "6 h",
+              "15 €",
+              "3 km"
+            ],
+            [
+              "Planétarium",
+              "2 h",
+              "12 €",
+              "0,5 km"
+            ],
+            [
+              "Ferme",
+              "4 h",
+              "6 €",
+              "4 km"
+            ]
+          ],
+          "caption": "Sorties proposées à la classe."
+        },
+        {
+          "id": "ex-moins-de-10",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le tableau des sorties, combien coûtent moins de 10 € par élève ?",
+          "competencies": [
+            "c3.ogd.donnees.filtrer-critere"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "explanation": "On garde les prix inférieurs à 10 € : musée (8 €), forêt (0 €), ferme (6 €). Il y en a 3. Le zoo (15 €) et le planétarium (12 €) sont exclus."
+        },
+        {
+          "id": "ex-deux-criteres",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "La classe veut une sortie de 4 h ou moins, à moins de 10 € par élève. Quelles sorties conviennent ?",
+          "competencies": [
+            "c3.ogd.donnees.filtrer-critere"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-musee-ferme",
+              "text": "Le musée et la ferme.",
+              "correct": true
+            },
+            {
+              "id": "choix-planetarium",
+              "text": "Le planétarium.",
+              "correct": false
+            },
+            {
+              "id": "choix-foret",
+              "text": "La forêt.",
+              "correct": false
+            },
+            {
+              "id": "choix-musee",
+              "text": "Seulement le musée.",
+              "correct": false
+            }
+          ],
+          "explanation": "Premier critère, 4 h ou moins : musée (3 h), planétarium (2 h), ferme (4 h). Second critère parmi eux, moins de 10 € : musée (8 €) et ferme (6 €). Le planétarium coûte 12 €. La forêt est gratuite mais dure 5 h. Oublier la ferme, c'est lire « moins de 4 h » au lieu de « 4 h ou moins »."
+        }
+      ]
+    },
+    {
+      "id": "exercices-donnees",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "table-temperatures",
+          "type": "table",
+          "headers": [
+            "Mois",
+            "janv.",
+            "févr.",
+            "mars",
+            "avril",
+            "mai",
+            "juin",
+            "juil.",
+            "août",
+            "sept.",
+            "oct.",
+            "nov.",
+            "déc."
+          ],
+          "rows": [
+            [
+              "Température moyenne (°C)",
+              "6",
+              "7",
+              "10",
+              "13",
+              "17",
+              "21",
+              "24",
+              "23",
+              "19",
+              "15",
+              "10",
+              "7"
+            ]
+          ],
+          "caption": "Températures moyennes mensuelles relevées dans une ville du sud de la France."
+        },
+        {
+          "id": "ex-final-chauds",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le tableau des températures, combien de mois ont une température moyenne strictement supérieure à 20 °C ?",
+          "competencies": [
+            "c3.ogd.donnees.filtrer-critere"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "explanation": "On garde les valeurs supérieures à 20 : juin (21), juillet (24) et août (23). Septembre (19) ne compte pas. Il y a 3 mois."
+        },
+        {
+          "id": "ex-final-froids",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de mois ont une température moyenne de 10 °C ou moins ?",
+          "competencies": [
+            "c3.ogd.donnees.filtrer-critere"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "Janvier (6), février (7), mars (10), novembre (10) et décembre (7) : 5 mois. Les mois à exactement 10 °C comptent, car le critère est « 10 °C ou moins »."
+        },
+        {
+          "id": "ex-final-total",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans une enquête, les effectifs sont : chat 7, chien 9, poisson 3, aucun animal 6. Combien de personnes ont été interrogées ?",
+          "competencies": [
+            "c3.ogd.donnees.construire-tableau",
+            "c3.ogd.donnees.planifier-recueillir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 25,
+          "tolerance": 0,
+          "explanation": "Le nombre de personnes interrogées est la somme des effectifs : 7 + 9 + 3 + 6 = 25."
+        },
+        {
+          "id": "ex-final-releve",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour savoir combien de temps les élèves passent devant un écran le soir, quelle méthode de recueil est la plus fiable ?",
+          "competencies": [
+            "c3.ogd.donnees.planifier-recueillir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-noter",
+              "text": "Chaque élève note sa durée chaque soir pendant une semaine.",
+              "correct": true
+            },
+            {
+              "id": "choix-deviner",
+              "text": "Le professeur estime la durée pour chaque élève.",
+              "correct": false
+            },
+            {
+              "id": "choix-un-soir",
+              "text": "On demande à un seul élève et on généralise.",
+              "correct": false
+            },
+            {
+              "id": "choix-souvenir",
+              "text": "On demande en fin d'année « combien de temps passes-tu en moyenne ? ».",
+              "correct": false
+            }
+          ],
+          "explanation": "Noter la mesure au moment où elle se produit, plusieurs fois, donne des données fiables. Une estimation par quelqu'un d'autre, un seul élève ou un souvenir lointain donnent des données peu sûres."
+        },
+        {
+          "id": "ex-final-tableau-adapte",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On a relevé, pour 30 élèves, leur classe (6e A ou 6e B) et s'ils déjeunent à la cantine (oui ou non). Quel tableau permet de présenter ces données ?",
+          "competencies": [
+            "c3.ogd.donnees.construire-tableau"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-double",
+              "text": "Un tableau avec les classes en lignes et « oui » / « non » en colonnes.",
+              "correct": true
+            },
+            {
+              "id": "choix-une-ligne",
+              "text": "Un tableau d'une seule ligne avec les 30 prénoms.",
+              "correct": false
+            },
+            {
+              "id": "choix-classes",
+              "text": "Un tableau avec seulement les effectifs de chaque classe.",
+              "correct": false
+            },
+            {
+              "id": "choix-cantine",
+              "text": "Un tableau avec seulement les effectifs « oui » et « non ».",
+              "correct": false
+            }
+          ],
+          "explanation": "Il y a deux informations par élève : sa classe et sa réponse. Un tableau à double entrée (classes en lignes, réponses en colonnes) les montre ensemble. Un tableau qui n'en garde qu'une perd l'autre information ; une liste de prénoms ne range rien."
+        }
+      ]
+    }
+  ]
+}
