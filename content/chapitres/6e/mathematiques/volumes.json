@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "id": "volumes",
+  "title": "Volumes : le centimètre cube",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 45,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "centimetre-cube",
+      "title": "Le centimètre cube",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "connaître l'unité centimètre cube ;",
+            "déterminer le volume d'un assemblage de cubes d'arête 1 cm ;",
+            "comparer les volumes de deux assemblages."
+          ]
+        },
+        {
+          "id": "def-volume",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Volume",
+          "text": "Le **volume** d'un objet mesure la place qu'il occupe dans l'espace."
+        },
+        {
+          "id": "def-cm3",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Le centimètre cube",
+          "text": "Le **centimètre cube** (cm³) est le volume d'un **cube d'arête 1 cm**. Un assemblage de 7 cubes d'arête 1 cm a un volume de 7 cm³."
+        },
+        {
+          "id": "piege-unites",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Trois unités différentes",
+          "text": "Le cm mesure une longueur, le cm² une aire (un carré de 1 cm de côté), le cm³ un volume (un cube de 1 cm d'arête)."
+        },
+        {
+          "id": "ex-definition-cm3",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Qu'est-ce qu'un centimètre cube ?",
+          "competencies": [
+            "c3.gm.volumes.connaitre-cm3"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-cube",
+              "text": "Le volume d'un cube d'arête 1 cm.",
+              "correct": true
+            },
+            {
+              "id": "choix-carre",
+              "text": "L'aire d'un carré de 1 cm de côté.",
+              "correct": false
+            },
+            {
+              "id": "choix-longueur",
+              "text": "Une longueur de 1 cm.",
+              "correct": false
+            },
+            {
+              "id": "choix-trois",
+              "text": "Une longueur de 3 cm.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le cm³ est une unité de volume : celui d'un cube dont chaque arête mesure 1 cm. L'aire d'un carré de 1 cm de côté, c'est 1 cm². Le « 3 » de cm³ ne veut pas dire 3 cm : il rappelle les trois dimensions du cube."
+        },
+        {
+          "id": "ex-unite-adaptee",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle unité convient pour exprimer le volume d'une boîte d'allumettes ?",
+          "competencies": [
+            "c3.gm.volumes.connaitre-cm3"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-cm3",
+              "text": "cm³",
+              "correct": true
+            },
+            {
+              "id": "choix-cm2",
+              "text": "cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-cm",
+              "text": "cm",
+              "correct": false
+            },
+            {
+              "id": "choix-kg",
+              "text": "kg",
+              "correct": false
+            }
+          ],
+          "explanation": "Un volume s'exprime dans une unité de volume, comme le cm³. Le cm² mesure une aire, le cm une longueur, le kg une masse."
+        },
+        {
+          "id": "ex-sept-cubes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un assemblage est formé de 7 cubes d'arête 1 cm, collés sans se chevaucher. Quel est son volume ?",
+          "competencies": [
+            "c3.gm.volumes.connaitre-cm3"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 7,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "Chaque cube a un volume de 1 cm³ : 7 cubes font 7 cm³."
+        }
+      ]
+    },
+    {
+      "id": "assemblages",
+      "title": "Volume d'un assemblage de cubes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "intro-couches",
+          "type": "prose",
+          "text": "Pour un grand assemblage, compter les cubes un par un est long, et certains sont cachés. On compte plutôt **par couches** : combien de cubes dans une couche, puis combien de couches."
+        },
+        {
+          "id": "exemple-pave",
+          "type": "callout",
+          "variant": "example",
+          "title": "Un pavé de 4 sur 3 sur 2",
+          "text": "Un pavé est formé de cubes d'arête 1 cm : 4 cubes en longueur, 3 en largeur, 2 couches. Une couche : 4 × 3 = 12 cubes. Deux couches : 12 × 2 = 24 cubes. Le volume est 24 cm³."
+        },
+        {
+          "id": "piege-caches",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Les cubes cachés",
+          "text": "Sur un dessin, on ne voit que les cubes de devant, du dessus et d'un côté. Les cubes à l'intérieur et à l'arrière comptent aussi dans le volume."
+        },
+        {
+          "id": "ex-pave-quatre-trois-deux",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un pavé est construit avec des cubes d'arête 1 cm : 5 cubes en longueur, 2 en largeur et 3 couches. Quel est son volume ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 30,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "Une couche : 5 × 2 = 10 cubes. Trois couches : 10 × 3 = 30 cubes, soit 30 cm³."
+        },
+        {
+          "id": "ex-cube-trois",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un gros cube est formé de 3 cubes d'arête 1 cm en longueur, 3 en largeur et 3 en hauteur. Sur un dessin, on n'en voit que 19. Quel est son volume ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-27",
+              "text": "27 cm³",
+              "correct": true
+            },
+            {
+              "id": "choix-19",
+              "text": "19 cm³",
+              "correct": false
+            },
+            {
+              "id": "choix-9",
+              "text": "9 cm³",
+              "correct": false
+            },
+            {
+              "id": "choix-26",
+              "text": "26 cm³",
+              "correct": false
+            }
+          ],
+          "explanation": "Chaque couche compte 3 × 3 = 9 cubes, et il y a 3 couches : 9 × 3 = 27 cm³. 19 cm³, c'est ne compter que les cubes visibles. 9 cm³, c'est une seule couche. 26 cm³, c'est oublier le cube caché au centre."
+        },
+        {
+          "id": "table-plan-cote",
+          "type": "table",
+          "headers": [
+            "Rangée",
+            "gauche",
+            "milieu",
+            "droite"
+          ],
+          "rows": [
+            [
+              "fond",
+              "2",
+              "2",
+              "1"
+            ],
+            [
+              "devant",
+              "1",
+              "0",
+              "3"
+            ]
+          ],
+          "caption": "Plan coté d'un assemblage de cubes d'arête 1 cm : chaque case indique le nombre de cubes empilés."
+        },
+        {
+          "id": "ex-plan-cote",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quel est le volume de l'assemblage décrit par le plan coté ci-dessus ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "2 + 2 + 1 + 1 + 0 + 3 = 9 cubes d'arête 1 cm, donc 9 cm³."
+        }
+      ]
+    },
+    {
+      "id": "exercices-volumes",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "ex-final-comparer",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "L'assemblage A est une tour de 8 cubes empilés. L'assemblage B est une plaque de 3 cubes sur 3, sur une seule couche. Tous les cubes ont une arête de 1 cm. Lequel a le plus grand volume ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-b",
+              "text": "B, avec 9 cm³ contre 8 cm³.",
+              "correct": true
+            },
+            {
+              "id": "choix-a",
+              "text": "A, car il est plus haut.",
+              "correct": false
+            },
+            {
+              "id": "choix-egal",
+              "text": "Ils ont le même volume.",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut pas comparer des formes différentes.",
+              "correct": false
+            }
+          ],
+          "explanation": "A : 8 cubes, donc 8 cm³. B : 3 × 3 = 9 cubes, donc 9 cm³. B a le plus grand volume, même s'il est moins haut : le volume ne dépend que du nombre de cubes, pas de la forme. On peut toujours comparer en comptant les cm³."
+        },
+        {
+          "id": "ex-final-boite",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de cubes d'arête 1 cm faut-il pour remplir complètement une boîte de 5 cm de long, 4 cm de large et 3 cm de haut ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 60,
+          "tolerance": 0,
+          "explanation": "Une couche au fond : 5 × 4 = 20 cubes. 3 couches : 20 × 3 = 60 cubes. La boîte a un volume de 60 cm³."
+        },
+        {
+          "id": "ex-final-difference",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un pavé A mesure 2 cubes sur 3 cubes sur 4 couches. Une plaque B mesure 5 cubes sur 5 cubes, sur une couche. Tous les cubes ont une arête de 1 cm. De combien de cm³ le volume de B dépasse-t-il celui de A ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 1,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "A : 2 × 3 × 4 = 24 cm³. B : 5 × 5 = 25 cm³. Différence : 25 − 24 = 1 cm³."
+        },
+        {
+          "id": "ex-final-modifier",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un assemblage a un volume de 10 cm³. On enlève 3 cubes d'arête 1 cm, puis on en ajoute 5. Quel est le nouveau volume ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner",
+            "c3.gm.volumes.connaitre-cm3"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "10 − 3 + 5 = 12 cubes, soit 12 cm³."
+        },
+        {
+          "id": "ex-final-couches-inconnues",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un pavé a un volume de 36 cm³. Il est formé de couches de 4 cubes sur 3 cubes d'arête 1 cm. Combien a-t-il de couches ?",
+          "competencies": [
+            "c3.gm.volumes.comparer-determiner"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 3,
+          "tolerance": 0,
+          "explanation": "Une couche : 4 × 3 = 12 cubes, soit 12 cm³. Nombre de couches : 36 ÷ 12 = 3."
+        }
+      ]
+    }
+  ]
+}
