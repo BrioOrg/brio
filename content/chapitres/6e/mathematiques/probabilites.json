@@ -1,0 +1,507 @@
+{
+  "schemaVersion": 1,
+  "id": "probabilites",
+  "title": "Introduction aux probabilités",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "echelle-probabilites",
+      "title": "De impossible à certain",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "savoir qu'une probabilité est un nombre entre 0 et 1 ;",
+            "calculer une probabilité quand toutes les issues ont la même chance ;",
+            "comparer les résultats d'une expérience répétée à une probabilité calculée."
+          ]
+        },
+        {
+          "id": "intro-hasard",
+          "type": "prose",
+          "text": "Quand on lance un dé, on ne peut pas prévoir le résultat : c'est une expérience **aléatoire**. Mais on peut dire si un résultat a beaucoup ou peu de chances de se produire. La **probabilité** mesure ces chances par un nombre."
+        },
+        {
+          "id": "def-echelle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Une probabilité est un nombre entre 0 et 1",
+          "text": "Un évènement **impossible** a une probabilité de **0**. Un évènement **certain** a une probabilité de **1**. Tous les autres ont une probabilité comprise entre 0 et 1 : plus elle est proche de 1, plus l'évènement a de chances de se produire."
+        },
+        {
+          "id": "ex-impossible",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On lance un dé ordinaire à six faces, numérotées de 1 à 6. Quelle est la probabilité d'obtenir 7 ?",
+          "competencies": [
+            "c3.ogd.probabilites.comprendre-echelle"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-0",
+              "text": "0",
+              "correct": true
+            },
+            {
+              "id": "choix-1",
+              "text": "1",
+              "correct": false
+            },
+            {
+              "id": "choix-1s7",
+              "text": "$\\frac{1}{7}$",
+              "correct": false
+            },
+            {
+              "id": "choix-1s6",
+              "text": "$\\frac{1}{6}$",
+              "correct": false
+            }
+          ],
+          "explanation": "Aucune face ne porte le 7 : l'évènement est impossible, sa probabilité est 0. 1 serait la probabilité d'un évènement certain. 1/7 et 1/6 supposent qu'une face porte le 7."
+        },
+        {
+          "id": "ex-valeur-impossible",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Lequel de ces nombres ne peut pas être une probabilité ?",
+          "competencies": [
+            "c3.ogd.probabilites.comprendre-echelle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1-2",
+              "text": "1,2",
+              "correct": true
+            },
+            {
+              "id": "choix-0",
+              "text": "0",
+              "correct": false
+            },
+            {
+              "id": "choix-0-75",
+              "text": "0,75",
+              "correct": false
+            },
+            {
+              "id": "choix-1",
+              "text": "1",
+              "correct": false
+            }
+          ],
+          "explanation": "Une probabilité est toujours comprise entre 0 et 1. 1,2 est plus grand que 1 : ce n'est pas une probabilité. 0 (impossible), 1 (certain) et 0,75 sont possibles."
+        },
+        {
+          "id": "ex-certain",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On lance un dé à six faces. Quel évènement est certain ?",
+          "competencies": [
+            "c3.ogd.probabilites.comprendre-echelle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-entre-1-6",
+              "text": "« Obtenir un nombre entre 1 et 6. »",
+              "correct": true
+            },
+            {
+              "id": "choix-six",
+              "text": "« Obtenir 6. »",
+              "correct": false
+            },
+            {
+              "id": "choix-pair",
+              "text": "« Obtenir un nombre pair. »",
+              "correct": false
+            },
+            {
+              "id": "choix-plus-6",
+              "text": "« Obtenir un nombre plus grand que 6. »",
+              "correct": false
+            }
+          ],
+          "explanation": "Toutes les faces portent un nombre entre 1 et 6 : cet évènement se produit à coup sûr, sa probabilité est 1. Obtenir 6 ou un nombre pair est possible mais pas certain. Plus grand que 6 est impossible."
+        }
+      ]
+    },
+    {
+      "id": "equiprobabilite",
+      "title": "Calculer une probabilité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "intro-equiprobable",
+          "type": "prose",
+          "text": "Avec un dé bien équilibré, chacune des 6 faces a **la même chance** de sortir : on parle d'**équiprobabilité**."
+        },
+        {
+          "id": "def-calcul",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Calcul dans une situation d'équiprobabilité",
+          "text": "Quand toutes les issues ont la même chance, la probabilité d'un évènement est le quotient : **nombre d'issues favorables ÷ nombre total d'issues**."
+        },
+        {
+          "id": "exemple-pair",
+          "type": "callout",
+          "variant": "example",
+          "title": "Obtenir un nombre pair",
+          "text": "Les issues favorables sont 2, 4 et 6 : il y en a 3 sur 6. La probabilité est $\\frac{3}{6} = \\frac{1}{2} = 0,5$, soit 50 %."
+        },
+        {
+          "id": "ex-un-six",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On lance un dé équilibré à six faces. Quelle est la probabilité d'obtenir 6 ?",
+          "competencies": [
+            "c3.ogd.probabilites.calculer-equiprobabilite"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1s6",
+              "text": "$\\frac{1}{6}$",
+              "correct": true
+            },
+            {
+              "id": "choix-6s1",
+              "text": "$\\frac{6}{1}$",
+              "correct": false
+            },
+            {
+              "id": "choix-1s2",
+              "text": "$\\frac{1}{2}$",
+              "correct": false
+            },
+            {
+              "id": "choix-6",
+              "text": "6",
+              "correct": false
+            }
+          ],
+          "explanation": "Une seule face favorable sur 6 : 1/6. 6/1 = 6 est plus grand que 1, ce ne peut pas être une probabilité. 1/2 confond « obtenir 6 » et « obtenir 6 ou pas » : ces deux issues n'ont pas la même chance."
+        },
+        {
+          "id": "table-urne",
+          "type": "table",
+          "headers": [
+            "Couleur",
+            "rouge",
+            "bleue",
+            "verte",
+            "Total"
+          ],
+          "rows": [
+            [
+              "Nombre de boules",
+              "3",
+              "5",
+              "2",
+              "10"
+            ]
+          ],
+          "caption": "Une urne contient 10 boules indiscernables au toucher."
+        },
+        {
+          "id": "ex-urne-rouge",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "On tire une boule au hasard dans l'urne. Complète la probabilité de tirer une boule rouge.",
+          "competencies": [
+            "c3.ogd.probabilites.calculer-equiprobabilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "P(rouge) = {}/{}",
+          "bank": [
+            "2",
+            "3",
+            "5",
+            "7",
+            "10"
+          ],
+          "expected": [
+            "3",
+            "10"
+          ],
+          "explanation": "3 boules rouges sur 10 boules en tout : 3/10."
+        },
+        {
+          "id": "ex-urne-bleue",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est la probabilité de tirer une boule bleue ? Donne-la sous forme décimale.",
+          "competencies": [
+            "c3.ogd.probabilites.calculer-equiprobabilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.5,
+          "tolerance": 0,
+          "explanation": "5 boules bleues sur 10 : 5/10 = 0,5."
+        },
+        {
+          "id": "ex-urne-verte",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est la probabilité de tirer une boule verte ? Donne-la sous forme décimale.",
+          "competencies": [
+            "c3.ogd.probabilites.calculer-equiprobabilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.2,
+          "tolerance": 0,
+          "explanation": "2 boules vertes sur 10 : 2/10 = 0,2."
+        }
+      ]
+    },
+    {
+      "id": "experience-repetee",
+      "title": "Probabilité et expérience",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "intro-frequence",
+          "type": "prose",
+          "text": "On lance une pièce 30 fois et on obtient « pile » 12 fois. La **fréquence** de « pile » est 12 ÷ 30 = 0,4. La probabilité d'obtenir pile est 0,5. Pourquoi ne trouve-t-on pas la même chose ?"
+        },
+        {
+          "id": "def-frequence",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Fréquence et probabilité",
+          "text": "La **fréquence** d'un résultat est le nombre de fois où il est sorti ÷ le nombre de lancers. Sur peu de lancers, elle peut être loin de la probabilité. Quand on répète l'expérience un **très grand nombre de fois**, la fréquence se rapproche de la probabilité."
+        },
+        {
+          "id": "ex-frequence-pile",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On lance une pièce 50 fois et on obtient « face » 28 fois. Quelle est la fréquence de « face » ? Donne-la sous forme décimale.",
+          "competencies": [
+            "c3.ogd.probabilites.comparer-experience"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.56,
+          "tolerance": 0,
+          "explanation": "28 ÷ 50 = 0,56. Elle est proche de la probabilité 0,5, sans lui être égale : c'est normal sur 50 lancers."
+        },
+        {
+          "id": "ex-dix-lancers",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur 10 lancers d'une pièce équilibrée, Emma obtient 7 fois « pile ». Que peut-on en dire ?",
+          "competencies": [
+            "c3.ogd.probabilites.comparer-experience"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-normal",
+              "text": "C'est possible : sur 10 lancers, la fréquence peut s'éloigner de 0,5.",
+              "correct": true
+            },
+            {
+              "id": "choix-truquee",
+              "text": "La pièce est forcément truquée.",
+              "correct": false
+            },
+            {
+              "id": "choix-proba",
+              "text": "La probabilité d'obtenir pile est 0,7.",
+              "correct": false
+            },
+            {
+              "id": "choix-face",
+              "text": "Au prochain lancer, elle aura plus de chances d'obtenir face.",
+              "correct": false
+            }
+          ],
+          "explanation": "Sur peu de lancers, les écarts sont fréquents : 7 sur 10 n'est pas surprenant. On ne peut pas conclure que la pièce est truquée, ni que la probabilité est 0,7. La pièce n'a pas de mémoire : au lancer suivant, pile et face ont toujours la même chance."
+        },
+        {
+          "id": "ex-attendu-six",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On lance un dé équilibré 600 fois. Environ combien de fois s'attend-on à obtenir 6 ?",
+          "competencies": [
+            "c3.ogd.probabilites.comparer-experience"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 100,
+          "tolerance": 0,
+          "explanation": "La probabilité d'obtenir 6 est 1/6. Sur 600 lancers, on s'attend à environ 600 ÷ 6 = 100 fois 6. Le résultat réel sera proche de 100, mais pas forcément égal."
+        }
+      ]
+    },
+    {
+      "id": "exercices-probabilites",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "ex-final-plus-probable",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On lance un dé équilibré. Quel évènement est le plus probable ?",
+          "competencies": [
+            "c3.ogd.probabilites.calculer-equiprobabilite",
+            "c3.ogd.probabilites.comprendre-echelle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-plus-2",
+              "text": "« Obtenir un nombre plus grand que 2. »",
+              "correct": true
+            },
+            {
+              "id": "choix-pair",
+              "text": "« Obtenir un nombre pair. »",
+              "correct": false
+            },
+            {
+              "id": "choix-six",
+              "text": "« Obtenir 6. »",
+              "correct": false
+            },
+            {
+              "id": "choix-un-deux",
+              "text": "« Obtenir 1 ou 2. »",
+              "correct": false
+            }
+          ],
+          "explanation": "Plus grand que 2 : 3, 4, 5, 6, soit 4 issues sur 6. Pair : 3 issues sur 6. Obtenir 6 : 1 sur 6. Obtenir 1 ou 2 : 2 sur 6. Le plus probable est celui qui a le plus d'issues favorables."
+        },
+        {
+          "id": "ex-final-sac",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un sac contient 4 jetons gagnants et 16 jetons perdants. On tire un jeton au hasard. Quelle est la probabilité de gagner ? Donne-la sous forme décimale.",
+          "competencies": [
+            "c3.ogd.probabilites.calculer-equiprobabilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.2,
+          "tolerance": 0,
+          "explanation": "Il y a 4 + 16 = 20 jetons, dont 4 gagnants : 4/20 = 0,2. Attention à ne pas calculer 4/16 : on divise par le nombre total de jetons."
+        },
+        {
+          "id": "ex-final-roue",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une roue est partagée en 8 secteurs égaux numérotés de 1 à 8. Quelle est la probabilité que la flèche s'arrête sur un multiple de 4 ? Donne-la sous forme décimale.",
+          "competencies": [
+            "c3.ogd.probabilites.calculer-equiprobabilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.25,
+          "tolerance": 0,
+          "explanation": "Les multiples de 4 entre 1 et 8 sont 4 et 8 : 2 issues sur 8. 2/8 = 1/4 = 0,25."
+        },
+        {
+          "id": "ex-final-frequence-grand",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un dé est lancé 6 000 fois. Le 3 sort 1 512 fois, alors qu'on attendait environ 1 000 fois. Que peut-on penser ?",
+          "competencies": [
+            "c3.ogd.probabilites.comparer-experience"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-douteux",
+              "text": "Le dé est probablement mal équilibré : sur autant de lancers, l'écart est trop grand.",
+              "correct": true
+            },
+            {
+              "id": "choix-normal",
+              "text": "C'est normal, le hasard produit toujours des écarts.",
+              "correct": false
+            },
+            {
+              "id": "choix-trop-peu",
+              "text": "On n'a pas fait assez de lancers pour dire quoi que ce soit.",
+              "correct": false
+            },
+            {
+              "id": "choix-proba-change",
+              "text": "La probabilité d'obtenir 3 change au fil des lancers.",
+              "correct": false
+            }
+          ],
+          "explanation": "Sur 6 000 lancers, la fréquence devrait être proche de 1/6 ≈ 0,17. Ici 1 512 ÷ 6 000 ≈ 0,25 : l'écart est grand sur un très grand nombre de lancers, ce qui fait douter de l'équilibre du dé. Sur 10 lancers, un tel écart n'aurait rien d'étonnant. La probabilité, elle, ne change pas d'un lancer à l'autre."
+        },
+        {
+          "id": "ex-final-certain-urne",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une urne ne contient que des boules rouges. Quelle est la probabilité de tirer une boule rouge ?",
+          "competencies": [
+            "c3.ogd.probabilites.comprendre-echelle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1",
+              "text": "1",
+              "correct": true
+            },
+            {
+              "id": "choix-0",
+              "text": "0",
+              "correct": false
+            },
+            {
+              "id": "choix-0-5",
+              "text": "0,5",
+              "correct": false
+            },
+            {
+              "id": "choix-100",
+              "text": "100",
+              "correct": false
+            }
+          ],
+          "explanation": "Toutes les boules sont rouges : l'évènement est certain, sa probabilité est 1. On peut aussi l'écrire 100 %, mais pas 100 : une probabilité ne dépasse jamais 1."
+        }
+      ]
+    }
+  ]
+}
