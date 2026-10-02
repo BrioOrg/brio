@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 1,
+  "id": "espace-solides",
+  "title": "Visualiser l'espace : assemblages de cubes",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 45,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "plan-cote",
+      "title": "Décrire un assemblage de cubes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "lire la description d'un assemblage de cubes vu de dessus ;",
+            "compter les cubes d'un assemblage ;",
+            "trouver la vue de dessus, de face et de côté d'un assemblage."
+          ]
+        },
+        {
+          "id": "intro-plan-cote",
+          "type": "prose",
+          "text": "Des cubes identiques sont posés sur une table et empilés en colonnes. Pour décrire l'assemblage sur une feuille, on le regarde **de dessus** et on écrit, dans chaque case, **combien de cubes sont empilés** à cet endroit. Ce tableau s'appelle un **plan coté**."
+        },
+        {
+          "id": "table-plan-cote-exemple",
+          "type": "table",
+          "headers": [
+            "Rangée",
+            "gauche",
+            "milieu",
+            "droite"
+          ],
+          "rows": [
+            [
+              "fond",
+              "2",
+              "1",
+              "0"
+            ],
+            [
+              "devant",
+              "3",
+              "1",
+              "1"
+            ]
+          ],
+          "caption": "Plan coté de l'assemblage A : on le regarde de dessus, la rangée « devant » est du côté de l'observateur."
+        },
+        {
+          "id": "exemple-lecture",
+          "type": "callout",
+          "variant": "example",
+          "title": "Lire le plan coté",
+          "text": "Devant à gauche, il y a une colonne de 3 cubes. Au fond à droite, il n'y a aucun cube. Pour compter les cubes, on additionne toutes les cases : 2 + 1 + 0 + 3 + 1 + 1 = 8 cubes."
+        },
+        {
+          "id": "ex-compter-a",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de cubes compte l'assemblage A ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "On additionne les nombres de toutes les cases : 2 + 1 + 0 + 3 + 1 + 1 = 8 cubes."
+        },
+        {
+          "id": "ex-hauteur-a",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de cubes la plus haute colonne de l'assemblage A compte-t-elle ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "explanation": "Le plus grand nombre du plan coté est 3 (devant à gauche) : la plus haute colonne a 3 cubes."
+        }
+      ]
+    },
+    {
+      "id": "vues",
+      "title": "Les vues de dessus, de face et de côté",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "def-vues",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Les trois vues",
+          "text": "La **vue de dessus** montre les cases occupées, sans les hauteurs. La **vue de face** montre l'assemblage vu depuis l'avant : pour chaque colonne de gauche à droite, on voit la **plus haute** pile de cette colonne. La **vue de côté** fait de même depuis le côté."
+        },
+        {
+          "id": "tip-maximum",
+          "type": "callout",
+          "variant": "tip",
+          "title": "On voit le plus haut, pas la somme",
+          "text": "De face, une pile cachée derrière une pile plus haute ne se voit pas. Pour chaque colonne gauche, milieu, droite, on prend le **maximum** entre la case du fond et la case de devant."
+        },
+        {
+          "id": "exemple-vue-face",
+          "type": "callout",
+          "variant": "example",
+          "title": "Vue de face de l'assemblage A",
+          "text": "Colonne de gauche : le maximum entre 2 et 3 est 3. Milieu : entre 1 et 1, c'est 1. Droite : entre 0 et 1, c'est 1. De face, on voit trois colonnes de hauteurs 3, 1 et 1."
+        },
+        {
+          "id": "ex-vue-face-a",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le plan coté d'un assemblage B est : fond 1, 2, 2 et devant 1, 0, 3 (de gauche à droite). Que voit-on de face ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1-2-3",
+              "text": "Trois colonnes de hauteurs 1, 2 et 3.",
+              "correct": true
+            },
+            {
+              "id": "choix-2-2-5",
+              "text": "Trois colonnes de hauteurs 2, 2 et 5.",
+              "correct": false
+            },
+            {
+              "id": "choix-1-0-3",
+              "text": "Trois colonnes de hauteurs 1, 0 et 3.",
+              "correct": false
+            },
+            {
+              "id": "choix-1-2-2",
+              "text": "Trois colonnes de hauteurs 1, 2 et 2.",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour chaque colonne on garde la plus haute pile : gauche max(1, 1) = 1, milieu max(2, 0) = 2, droite max(2, 3) = 3. Répondre 2, 2, 5, c'est additionner les piles au lieu de prendre la plus haute. Répondre 1, 0, 3, c'est ne regarder que la rangée de devant ; 1, 2, 2, que la rangée du fond."
+        },
+        {
+          "id": "ex-vue-dessus-cases",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de cases sont occupées dans la vue de dessus de l'assemblage A ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "Une case est occupée dès qu'il y a au moins un cube. Dans A, seule la case « fond droite » vaut 0 : 6 − 1 = 5 cases occupées. On ne compte pas les cubes empilés : de dessus, une pile de 3 cubes occupe une seule case."
+        },
+        {
+          "id": "ex-vue-cote-a",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On regarde l'assemblage A depuis sa droite. Que voit-on ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-2",
+              "text": "Deux colonnes, de hauteurs 3 (rangée de devant) et 2 (rangée du fond).",
+              "correct": true
+            },
+            {
+              "id": "choix-3-1-1",
+              "text": "Trois colonnes de hauteurs 3, 1 et 1.",
+              "correct": false
+            },
+            {
+              "id": "choix-5-3",
+              "text": "Deux colonnes de hauteurs 5 et 3.",
+              "correct": false
+            },
+            {
+              "id": "choix-1-0",
+              "text": "Deux colonnes de hauteurs 1 et 0.",
+              "correct": false
+            }
+          ],
+          "explanation": "De côté, on voit les deux rangées, devant et fond. Pour chacune, on garde la pile la plus haute : devant max(3, 1, 1) = 3, fond max(2, 1, 0) = 2. Trois colonnes 3, 1, 1, c'est la vue de face. 5 et 3 sont des sommes. 1 et 0, ce sont seulement les cases de droite."
+        },
+        {
+          "id": "ex-dessiner-vues",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur du papier quadrillé, dessine la vue de dessus et la vue de face de l'assemblage A.",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 4,
+          "solution": "Vue de dessus : un rectangle de 2 rangées sur 3 colonnes où toutes les cases sont coloriées sauf celle du fond à droite (5 carreaux). Vue de face : trois colonnes de carreaux côte à côte, de hauteurs 3, 1 et 1."
+        }
+      ]
+    },
+    {
+      "id": "exercices-espace",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "table-plan-cote-c",
+          "type": "table",
+          "headers": [
+            "Rangée",
+            "gauche",
+            "milieu",
+            "droite"
+          ],
+          "rows": [
+            [
+              "fond",
+              "3",
+              "3",
+              "2"
+            ],
+            [
+              "devant",
+              "1",
+              "2",
+              "0"
+            ]
+          ],
+          "caption": "Plan coté de l'assemblage C."
+        },
+        {
+          "id": "ex-final-compter-c",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de cubes compte l'assemblage C ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 11,
+          "tolerance": 0,
+          "explanation": "3 + 3 + 2 + 1 + 2 + 0 = 11 cubes."
+        },
+        {
+          "id": "ex-final-face-c",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Que voit-on quand on regarde l'assemblage C de face ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-3-2",
+              "text": "Trois colonnes de hauteurs 3, 3 et 2.",
+              "correct": true
+            },
+            {
+              "id": "choix-1-2-0",
+              "text": "Trois colonnes de hauteurs 1, 2 et 0.",
+              "correct": false
+            },
+            {
+              "id": "choix-4-5-2",
+              "text": "Trois colonnes de hauteurs 4, 5 et 2.",
+              "correct": false
+            },
+            {
+              "id": "choix-3-2",
+              "text": "Deux colonnes de hauteurs 3 et 2.",
+              "correct": false
+            }
+          ],
+          "explanation": "Les piles du fond sont plus hautes et dépassent derrière celles de devant : gauche max(3, 1) = 3, milieu max(3, 2) = 3, droite max(2, 0) = 2. 1, 2, 0 ne regarde que devant. 4, 5, 2 additionne. Deux colonnes, c'est ce qu'on verrait de côté."
+        },
+        {
+          "id": "ex-final-completer-pave",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On veut compléter l'assemblage A (8 cubes) pour obtenir un pavé plein de 2 rangées, 3 colonnes et 3 cubes de haut. Combien de cubes faut-il ajouter ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 4,
+          "answer": 10,
+          "tolerance": 0,
+          "explanation": "Le pavé plein compte 2 × 3 × 3 = 18 cubes. Il y en a déjà 8 : il faut en ajouter 18 − 8 = 10."
+        },
+        {
+          "id": "ex-final-vues-cubes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un assemblage a une vue de dessus de 4 cases, et toutes ses colonnes ont exactement 2 cubes. Combien a-t-il de cubes ?",
+          "competencies": [
+            "c3.geo.espace.visualiser-assemblages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "4 colonnes de 2 cubes : 4 × 2 = 8 cubes."
+        }
+      ]
+    }
+  ]
+}
