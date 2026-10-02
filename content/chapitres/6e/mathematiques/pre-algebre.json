@@ -1,0 +1,478 @@
+{
+  "schemaVersion": 1,
+  "id": "pre-algebre",
+  "title": "Introduction à l'algèbre : modèles et régularités",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "schemas-en-barres",
+      "title": "Le schéma en barres",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "représenter un problème avec un schéma en barres ;",
+            "trouver un nombre inconnu à l'aide d'une balance ;",
+            "repérer la régularité d'un motif qui évolue et prévoir une étape lointaine."
+          ]
+        },
+        {
+          "id": "intro-barres",
+          "type": "prose",
+          "text": "Dans certains problèmes, on cherche un nombre qu'on ne connaît pas encore. Un **schéma en barres** représente chaque quantité par une barre : les barres de même longueur représentent des quantités égales."
+        },
+        {
+          "id": "exemple-billes",
+          "type": "callout",
+          "variant": "example",
+          "title": "Les billes de Marc et Julie",
+          "text": "Marc et Julie ont 46 billes à eux deux. Julie en a 8 de plus que Marc. On dessine une barre pour Marc, et pour Julie une barre de même longueur suivie d'un morceau « 8 ». Le tout fait 46."
+        },
+        {
+          "id": "table-barres-billes",
+          "type": "table",
+          "headers": [
+            "Personne",
+            "Barre"
+          ],
+          "rows": [
+            [
+              "Marc",
+              "[ ? ]"
+            ],
+            [
+              "Julie",
+              "[ ? ] [ 8 ]"
+            ],
+            [
+              "Total",
+              "46"
+            ]
+          ],
+          "caption": "Le schéma en barres du problème, écrit en ligne."
+        },
+        {
+          "id": "methode-barres",
+          "type": "steps",
+          "title": "Lire le schéma",
+          "steps": [
+            {
+              "text": "On retire le morceau qui dépasse : 46 − 8 = 38. Il reste deux barres égales."
+            },
+            {
+              "text": "On partage : 38 ÷ 2 = 19. Marc a 19 billes."
+            },
+            {
+              "text": "On ajoute le morceau : 19 + 8 = 27. Julie a 27 billes. Vérification : 19 + 27 = 46."
+            }
+          ]
+        },
+        {
+          "id": "ex-cahiers-stylo",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Trois cahiers identiques et un stylo à 2 € coûtent 11 € en tout. Quel est le prix d'un cahier ?",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "Schéma : [cahier][cahier][cahier][2 €] = 11 €. On retire le stylo : 11 − 2 = 9 €. On partage entre les trois cahiers : 9 ÷ 3 = 3 €."
+        },
+        {
+          "id": "ex-calcul-cahier",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quatre places de cinéma identiques et un paquet de pop-corn à 5 € coûtent 37 €. Quel calcul donne le prix d'une place ?",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-soustraire-diviser",
+              "text": "(37 − 5) ÷ 4",
+              "correct": true
+            },
+            {
+              "id": "choix-diviser-soustraire",
+              "text": "37 ÷ 4 − 5",
+              "correct": false
+            },
+            {
+              "id": "choix-ajouter-diviser",
+              "text": "(37 + 5) ÷ 4",
+              "correct": false
+            },
+            {
+              "id": "choix-diviser-seul",
+              "text": "37 ÷ 4",
+              "correct": false
+            }
+          ],
+          "explanation": "On retire d'abord le pop-corn du total : 37 − 5 = 32 €, puis on partage entre les 4 places : 32 ÷ 4 = 8 €. Calculer 37 ÷ 4 − 5, c'est partager le pop-corn entre les places avant de le retirer. Ajouter 5 n'a pas de sens : le pop-corn est déjà dans les 37 €. Et 37 ÷ 4 oublie le pop-corn."
+        },
+        {
+          "id": "ex-double",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Deux nombres ont pour somme 36. Le second est le double du premier. Quel est le premier nombre ?",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "explanation": "Le premier est une barre, le second deux barres : trois barres égales font 36. Une barre : 36 ÷ 3 = 12. Le second vaut 24, et 12 + 24 = 36."
+        }
+      ]
+    },
+    {
+      "id": "balance",
+      "title": "La balance",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "intro-balance",
+          "type": "prose",
+          "text": "Une balance en équilibre porte la même masse sur ses deux plateaux. Si l'on retire la même chose des deux côtés, elle reste en équilibre. C'est une manière de trouver une masse inconnue."
+        },
+        {
+          "id": "exemple-balance",
+          "type": "callout",
+          "variant": "example",
+          "title": "Trois boîtes et des billes",
+          "text": "Sur le plateau de gauche : 3 boîtes identiques et 4 billes. Sur le plateau de droite : 19 billes. On retire 4 billes de chaque côté : 3 boîtes pèsent autant que 15 billes. Une boîte pèse donc autant que 15 ÷ 3 = 5 billes."
+        },
+        {
+          "id": "tip-meme-chose",
+          "type": "callout",
+          "variant": "tip",
+          "title": "La règle de la balance",
+          "text": "Ce que tu fais sur un plateau, fais-le sur l'autre : retirer 4 des deux côtés, partager les deux côtés en 3. L'équilibre est conservé."
+        },
+        {
+          "id": "ex-balance-deux-boites",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur une balance en équilibre, il y a d'un côté 2 boîtes identiques et 6 billes, de l'autre 20 billes. Combien de billes pèse une boîte ?",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "On retire 6 billes de chaque côté : 2 boîtes = 14 billes. Une boîte = 14 ÷ 2 = 7 billes."
+        },
+        {
+          "id": "ex-nombre-cache",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Un nombre caché « ? » vérifie : 5 × ? + 3 = 38. Complète le raisonnement.",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "5 × ? = 38 − 3 = {}, donc ? = {}",
+          "bank": [
+            "35",
+            "41",
+            "7",
+            "8",
+            "33"
+          ],
+          "expected": [
+            "35",
+            "7"
+          ],
+          "explanation": "Comme sur une balance, on retire 3 des deux côtés : 5 × ? = 35. Puis on partage en 5 : ? = 35 ÷ 5 = 7. Vérification : 5 × 7 + 3 = 38."
+        },
+        {
+          "id": "ex-balance-quatre-boites",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "4 boîtes identiques et 10 billes pèsent autant que 2 boîtes et 24 billes. Combien de billes pèse une boîte ?",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 4,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "On retire 2 boîtes de chaque côté : 2 boîtes et 10 billes = 24 billes. On retire 10 billes : 2 boîtes = 14 billes. Une boîte = 7 billes. Vérification : 4 × 7 + 10 = 38 et 2 × 7 + 24 = 38."
+        }
+      ]
+    },
+    {
+      "id": "motifs-evolutifs",
+      "title": "Les motifs qui évoluent",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-motifs",
+          "type": "prose",
+          "text": "On construit une rangée de carrés avec des allumettes. Pour 1 carré il faut 4 allumettes. Pour 2 carrés côte à côte, 7 allumettes : le côté du milieu est partagé. Pour 3 carrés, 10 allumettes."
+        },
+        {
+          "id": "table-allumettes",
+          "type": "table",
+          "headers": [
+            "Étape (nombre de carrés)",
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "rows": [
+            [
+              "Nombre d'allumettes",
+              "4",
+              "7",
+              "10",
+              "?"
+            ]
+          ]
+        },
+        {
+          "id": "def-regularite",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Repérer la structure",
+          "text": "À chaque étape, on ajoute un carré qui demande **3** allumettes nouvelles : le côté de gauche est déjà là. On peut décrire chaque étape ainsi : **1 allumette de départ + 3 allumettes par carré**."
+        },
+        {
+          "id": "exemple-etape-dix",
+          "type": "callout",
+          "variant": "example",
+          "title": "L'étape 10 sans tout dessiner",
+          "text": "À l'étape 10 : 1 + 3 × 10 = 31 allumettes. Vérifions à l'étape 3 : 1 + 3 × 3 = 10. ✔"
+        },
+        {
+          "id": "ex-etape-quatre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le motif d'allumettes ci-dessus, combien faut-il d'allumettes à l'étape 4 ?",
+          "competencies": [
+            "c3.num.algebre.identifier-regularite"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 13,
+          "tolerance": 0,
+          "explanation": "On ajoute 3 allumettes à chaque étape : 10 + 3 = 13. Avec la structure : 1 + 3 × 4 = 13."
+        },
+        {
+          "id": "ex-regle-allumettes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle phrase décrit le motif d'allumettes ?",
+          "competencies": [
+            "c3.num.algebre.identifier-regularite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-plus-trois",
+              "text": "On ajoute 3 allumettes à chaque étape.",
+              "correct": true
+            },
+            {
+              "id": "choix-plus-quatre",
+              "text": "On ajoute 4 allumettes à chaque étape.",
+              "correct": false
+            },
+            {
+              "id": "choix-double",
+              "text": "Le nombre d'allumettes double à chaque étape.",
+              "correct": false
+            },
+            {
+              "id": "choix-fois-quatre",
+              "text": "Il faut 4 allumettes par carré, donc 4 fois le numéro de l'étape.",
+              "correct": false
+            }
+          ],
+          "explanation": "De 4 à 7 puis de 7 à 10, on ajoute 3 à chaque fois : le côté de gauche d'un nouveau carré est déjà posé. Ajouter 4 ou compter 4 par carré, c'est oublier ce côté partagé (on aurait 8 à l'étape 2, pas 7). Doubler donnerait 4, 8, 16 : ce n'est pas ce qu'on observe."
+        },
+        {
+          "id": "ex-etape-vingt",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien faut-il d'allumettes à l'étape 20 ?",
+          "competencies": [
+            "c3.num.algebre.identifier-regularite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 61,
+          "tolerance": 0,
+          "explanation": "1 allumette de départ + 3 allumettes par carré : 1 + 3 × 20 = 61."
+        }
+      ]
+    },
+    {
+      "id": "exercices-pre-algebre",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "ex-final-age",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Léo a 5 ans de plus que sa sœur. À eux deux, ils ont 25 ans. Quel âge a la sœur de Léo ?",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 10,
+          "tolerance": 0,
+          "unit": "ans",
+          "explanation": "Schéma : [sœur] et [sœur][5]. On retire 5 : 25 − 5 = 20 = deux barres. Une barre : 20 ÷ 2 = 10 ans. Léo a 15 ans."
+        },
+        {
+          "id": "ex-final-trois-fois",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une veste coûte trois fois plus cher qu'un tee-shirt. Les deux ensemble coûtent 48 €. Combien coûte le tee-shirt ?",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "Le tee-shirt est une barre, la veste trois barres : 4 barres égales font 48 €. Une barre : 48 ÷ 4 = 12 €. La veste coûte 36 €."
+        },
+        {
+          "id": "ex-final-nombre-cache",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète : on cherche « ? » tel que 4 × ? − 6 = 18.",
+          "competencies": [
+            "c3.num.algebre.utiliser-modeles-prealgebriques"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "4 × ? = 18 + 6 = {}, donc ? = {}",
+          "bank": [
+            "24",
+            "12",
+            "6",
+            "3",
+            "28"
+          ],
+          "expected": [
+            "24",
+            "6"
+          ],
+          "explanation": "On ajoute 6 des deux côtés pour annuler le « − 6 » : 4 × ? = 24. Puis ? = 24 ÷ 4 = 6. Vérification : 4 × 6 − 6 = 18."
+        },
+        {
+          "id": "table-suite-carreaux",
+          "type": "table",
+          "headers": [
+            "Étape",
+            "1",
+            "2",
+            "3"
+          ],
+          "rows": [
+            [
+              "Nombre de carreaux",
+              "3",
+              "5",
+              "7"
+            ]
+          ],
+          "caption": "Un motif de carreaux : un carreau central et un bras de chaque côté qui s'allonge."
+        },
+        {
+          "id": "ex-final-carreaux-cinq",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le motif de carreaux ci-dessus, combien y a-t-il de carreaux à l'étape 5 ?",
+          "competencies": [
+            "c3.num.algebre.identifier-regularite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 11,
+          "tolerance": 0,
+          "explanation": "On ajoute 2 carreaux par étape (un à chaque bras) : 7 + 2 = 9 à l'étape 4, 9 + 2 = 11 à l'étape 5. Structure : 1 + 2 × 5 = 11."
+        },
+        {
+          "id": "ex-final-carreaux-structure",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel calcul donne le nombre de carreaux à l'étape 50 ?",
+          "competencies": [
+            "c3.num.algebre.identifier-regularite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-plus-deux-fois",
+              "text": "1 + 2 × 50",
+              "correct": true
+            },
+            {
+              "id": "choix-deux-fois",
+              "text": "2 × 50",
+              "correct": false
+            },
+            {
+              "id": "choix-trois-fois",
+              "text": "3 × 50",
+              "correct": false
+            },
+            {
+              "id": "choix-sept-plus",
+              "text": "7 + 50",
+              "correct": false
+            }
+          ],
+          "explanation": "Chaque étape a 1 carreau central et 2 carreaux de plus par étape : 1 + 2 × 50 = 101. 2 × 50 oublie le carreau central. 3 × 50 prolonge le « 3 » de l'étape 1 comme si on ajoutait 3 à chaque fois. 7 + 50 ajoute 1 par étape au lieu de 2."
+        },
+        {
+          "id": "ex-final-suite",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Voici une suite de nombres qui suit une règle : 5 ; 9 ; 13 ; 17 ; … Quel est le nombre suivant ?",
+          "competencies": [
+            "c3.num.algebre.identifier-regularite"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 21,
+          "tolerance": 0,
+          "explanation": "On ajoute 4 à chaque fois : 17 + 4 = 21."
+        }
+      ]
+    }
+  ]
+}
