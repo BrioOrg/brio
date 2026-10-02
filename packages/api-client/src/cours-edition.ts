@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { createApiClient } from './client.js'
 import { ensureCsrfToken, csrfHeaders } from './csrf.js'
 import type { components } from './generated/schema.js'
@@ -8,8 +10,9 @@ import type { components } from './generated/schema.js'
  * Mutations prime and echo the CSRF token, exactly like login/enrollment.
  *
  * Every failure surfaces as a {@link CoursApiError} carrying the HTTP status and a French
- * message — 401/403/404 have fixed copy; 422 shows the server's own reason (the
- * `PublicationValidator` message, or "aucune classe" when a teacher has none).
+ * message — 401/403/404 have fixed copy. A 422 on publish carries structured `violations`
+ * (code, section, block, field) that the editor translates and locates; never the server's
+ * own English text. Other 422s (e.g. "précisez l'établissement") are already French.
  */
 
 export type CoursResume = components['schemas']['CoursResumeResponse']
@@ -29,19 +32,44 @@ export type CreerCoursInput = EnregistrerCoursInput & {
   etablissementId?: string
 }
 
+/**
+ * One reason the server refused to publish (`ContentViolation` on the backend). `code` is stable
+ * and translated by the editor; the locators are null when the failure has no block.
+ */
+export const ViolationContenuSchema = z.object({
+  code: z.string(),
+  sectionId: z.string().nullable().optional(),
+  blockId: z.string().nullable().optional(),
+  field: z.string().nullable().optional(),
+})
+export type ViolationContenu = z.infer<typeof ViolationContenuSchema>
+
+const ProblemeContenuSchema = z.object({ violations: z.array(ViolationContenuSchema) })
+
 /** A failed authoring call. `status` lets a caller branch; `message` is ready-to-show French copy. */
 export class CoursApiError extends Error {
   constructor(
     readonly status: number,
-    message: string
+    message: string,
+    /** Located publication failures, when the server sent them (422 on publish). */
+    readonly violations: ViolationContenu[] = []
   ) {
     super(message)
     this.name = 'CoursApiError'
   }
 }
 
-/** Map an HTTP status (and any `{ error }` body) to a French message. */
+/** Map an HTTP status (and any `{ error }` or `{ violations }` body) to a French message. */
 function coursError(status: number, body: unknown, fallback: string): CoursApiError {
+  const probleme = status === 422 ? ProblemeContenuSchema.safeParse(body) : null
+  if (probleme?.success) {
+    // The editor lists each violation on its block; this message only heads the list.
+    return new CoursApiError(
+      status,
+      'Le serveur a refusé la publication. Corrige les points signalés puis réessaie.',
+      probleme.data.violations
+    )
+  }
   const serverMessage =
     body && typeof body === 'object' && 'error' in body
       ? String((body as { error: unknown }).error)
@@ -143,4 +171,25 @@ export async function publierCours(baseUrl: string, coursId: string): Promise<Pu
     throw coursError(response.status, error, 'La publication a échoué.')
   }
   return data
+}
+
+const ChapitrePublieSchema = z.object({ sections: z.array(z.object({ id: z.string() })) })
+
+/**
+ * The section ids of a published catalogue chapter, or `null` if no such chapter is published —
+ * what an internal reference must resolve to before a course can be published. Any other
+ * failure throws, so the caller can tell "absent" from "could not check".
+ */
+export async function sectionsDuChapitrePublie(
+  baseUrl: string,
+  niveau: string,
+  matiere: string,
+  slug: string
+): Promise<string[] | null> {
+  const response = await fetch(
+    `${baseUrl}/api/chapitres/${encodeURIComponent(niveau)}/${encodeURIComponent(matiere)}/${encodeURIComponent(slug)}`
+  )
+  if (response.status === 404) return null
+  if (!response.ok) throw new CoursApiError(response.status, 'Impossible de vérifier la référence.')
+  return ChapitrePublieSchema.parse(await response.json()).sections.map((s) => s.id)
 }
