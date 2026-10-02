@@ -8,6 +8,12 @@ import { ChampFormule } from '@/components/maths/champ-formule'
 import { CompetencesPicker } from '@/components/prof/competences-picker'
 import { FigureEditeur } from '@/components/prof/figure-editeur'
 import {
+  marqueChamp,
+  marqueGroupe,
+  useChamp,
+  type ChampProps,
+} from '@/components/prof/problemes-du-bloc'
+import {
   CALLOUT_VARIANTES,
   distracteursDe,
   genId,
@@ -38,6 +44,7 @@ function ZoneAuto({
   className,
   ariaLabel,
   champRef,
+  champ,
 }: {
   value: string
   onChange: (v: string) => void
@@ -47,6 +54,8 @@ function ZoneAuto({
   ariaLabel?: string
   /** Accès au <textarea> pour un appelant qui insère au curseur (« ＋ trou »). */
   champRef?: MutableRefObject<HTMLTextAreaElement | null>
+  /** Repère et état d'erreur du champ (useChamp). */
+  champ?: ChampProps
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
@@ -64,19 +73,20 @@ function ZoneAuto({
       }}
       rows={1}
       aria-label={ariaLabel}
+      {...champ}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onFocus={onFocus}
       placeholder={placeholder}
-      className={`w-full resize-none overflow-hidden border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 ${className ?? ''}`}
+      className={`w-full resize-none overflow-hidden border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 ${marqueChamp} ${className ?? ''}`}
     />
   )
 }
 
-const inline =
-  'w-full border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60'
+const inline = `w-full border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 ${marqueChamp}`
 
 export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Props) {
+  const { champ } = useChamp()
   switch (bloc.type) {
     case 'heading': {
       const level = (bloc.level as number) ?? 1
@@ -89,6 +99,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
             onChange={(e) => onModifier({ text: e.target.value })}
             onFocus={onFocusBloc}
             placeholder="Titre de section"
+            {...champ('text')}
           />
           <select
             aria-label="Niveau de titre"
@@ -110,6 +121,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
           value={(bloc.text as string) ?? ''}
           onChange={(v) => onModifier({ text: v })}
           onFocus={onFocusBloc}
+          champ={champ('text')}
           placeholder="Écris ton paragraphe… (**gras**, *italique*, $formule$)"
           className="font-prose text-lg leading-relaxed text-ink"
         />
@@ -122,6 +134,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
             value={(bloc.latex as string) ?? ''}
             onChange={(v) => onModifier({ latex: v })}
             onFocus={onFocusBloc}
+            champ={champ('latex')}
             placeholder="a^2 + b^2 = c^2"
             inputClassName={`${inline} text-center font-mono text-xl text-ink`}
             ariaLabel="Formule du bloc"
@@ -158,6 +171,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
             value={(bloc.text as string) ?? ''}
             onChange={(v) => onModifier({ text: v })}
             onFocus={onFocusBloc}
+            champ={champ('text')}
             placeholder="Le texte de l’encadré…"
             className="font-prose text-base leading-relaxed text-ink"
           />
@@ -248,6 +262,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
                     value={etape.text}
                     onChange={(v) => majE(i, { text: v })}
                     onFocus={onFocusBloc}
+                    champ={champ(`steps[${i}].text`)}
                     placeholder="Ce qu’on fait à cette étape…"
                     className="font-prose text-base leading-relaxed text-ink"
                   />
@@ -305,6 +320,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
 // rendu à l'aperçu élève par le même parseur que la prose.
 
 function TableEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ } = useChamp()
   const headers = Array.isArray(bloc.headers) ? (bloc.headers as string[]) : null
   const rows = (Array.isArray(bloc.rows) ? bloc.rows : [['']]) as string[][]
   const avecEntetes = headers !== null
@@ -369,6 +385,7 @@ function TableEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       onFocus={onFocusBloc}
                       placeholder={`Colonne ${c + 1}`}
                       aria-label={`En-tête colonne ${c + 1}`}
+                      {...champ(`headers[${c}]`)}
                     />
                   </th>
                 ))}
@@ -388,6 +405,7 @@ function TableEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       onFocus={onFocusBloc}
                       placeholder="…"
                       aria-label={`Ligne ${r + 1}, colonne ${c + 1}`}
+                      {...champ(`rows[${r}][${c}]`)}
                     />
                   </td>
                 ))}
@@ -454,10 +472,10 @@ function TableEditeur({ bloc, onModifier, onFocusBloc }: Props) {
 
 type Cible = { level?: string; subject?: string; slug?: string; anchor?: string }
 
-const champRef =
-  'w-full rounded-md border border-line bg-surface-page px-2 py-1 font-prose text-sm text-ink focus:border-accent focus:outline-none'
+const champRef = `w-full rounded-md border border-line bg-surface-page px-2 py-1 font-prose text-sm text-ink focus:border-accent focus:outline-none ${marqueChamp}`
 
 function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ } = useChamp()
   const scope = (bloc.scope as string) === 'internal' ? 'internal' : 'external'
   const target = (bloc.target ?? {}) as Cible
 
@@ -512,6 +530,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
             onChange={(e) => onModifier({ title: e.target.value })}
             onFocus={onFocusBloc}
             placeholder="Ex. Manuel Sésamath — Théorème de Pythagore"
+            {...champ('title')}
           />
         </label>
 
@@ -529,6 +548,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                 onChange={(e) => onModifier({ url: e.target.value })}
                 onFocus={onFocusBloc}
                 placeholder="https://…"
+                {...champ('url')}
               />
             </label>
             <div className="flex flex-wrap gap-2">
@@ -575,6 +595,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   onChange={(e) => majCible({ level: e.target.value })}
                   onFocus={onFocusBloc}
                   placeholder="Ex. 6e"
+                  {...champ('target.level')}
                 />
               </label>
               <label className="flex min-w-28 flex-1 flex-col gap-1">
@@ -587,6 +608,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   onChange={(e) => majCible({ subject: e.target.value })}
                   onFocus={onFocusBloc}
                   placeholder="Ex. mathematiques"
+                  {...champ('target.subject')}
                 />
               </label>
             </div>
@@ -601,6 +623,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   onChange={(e) => majCible({ slug: e.target.value })}
                   onFocus={onFocusBloc}
                   placeholder="Ex. theoreme-de-pythagore"
+                  {...champ('target.slug')}
                 />
               </label>
               <label className="flex min-w-28 flex-1 flex-col gap-1">
@@ -613,6 +636,7 @@ function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   onChange={(e) => majCible({ anchor: e.target.value })}
                   onFocus={onFocusBloc}
                   placeholder="Ex. enonce"
+                  {...champ('target.anchor')}
                 />
               </label>
             </div>
@@ -648,10 +672,10 @@ function LabelCorrection({ children }: { children: ReactNode }) {
   )
 }
 
-const champCorrection =
-  'rounded-md border border-line bg-surface-page px-2 py-1 font-prose text-sm text-ink focus:border-accent focus:outline-none'
+const champCorrection = `rounded-md border border-line bg-surface-page px-2 py-1 font-prose text-sm text-ink focus:border-accent focus:outline-none ${marqueChamp}`
 
 function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ } = useChamp()
   const exerciseType = (bloc.exerciseType as string) ?? 'paper'
 
   // « Sur feuille » : auto-évalué côté élève ; le corrigé lui est montré (`$defs/paperFields`).
@@ -665,6 +689,7 @@ function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           value={(bloc.prompt as string) ?? ''}
           onChange={(v) => onModifier({ prompt: v })}
           onFocus={onFocusBloc}
+          champ={champ('prompt')}
           placeholder="L’énoncé de l’exercice…"
           className="font-prose text-base leading-relaxed text-ink"
         />
@@ -683,6 +708,7 @@ function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
             value={(bloc.solution as string) ?? ''}
             onChange={(v) => onModifier({ solution: v })}
             onFocus={onFocusBloc}
+            champ={champ('solution')}
             placeholder="La solution rédigée…"
             className="font-prose text-base leading-relaxed text-ink"
           />
@@ -701,6 +727,7 @@ function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
         value={(bloc.prompt as string) ?? ''}
         onChange={(v) => onModifier({ prompt: v })}
         onFocus={onFocusBloc}
+        champ={champ('prompt')}
         placeholder="La question posée à l’élève…"
         className="font-prose text-base leading-relaxed text-ink"
       />
@@ -734,6 +761,7 @@ function ExerciceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
 }
 
 function ChoixEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ, groupe } = useChamp()
   const choix = (Array.isArray(bloc.choices) ? bloc.choices : []) as Choix[]
   const multiple = bloc.multiple === true
   const maj = (next: Choix[]) => onModifier({ choices: next })
@@ -751,7 +779,7 @@ function ChoixEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           Plusieurs bonnes réponses
         </label>
       </div>
-      <ul className="flex flex-col gap-1.5">
+      <ul className={`flex flex-col gap-1.5 ${marqueGroupe}`} {...groupe('choices')}>
         {choix.map((c, i) => (
           <li key={c.id} className="flex items-center gap-2">
             <input
@@ -771,6 +799,7 @@ function ChoixEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               }
               onFocus={onFocusBloc}
               placeholder={`Réponse ${i + 1}`}
+              {...champ(`choices[${i}].text`)}
             />
             <button
               type="button"
@@ -796,6 +825,7 @@ function ChoixEditeur({ bloc, onModifier, onFocusBloc }: Props) {
 }
 
 function ReponseCourteEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ, groupe } = useChamp()
   const reponses = (Array.isArray(bloc.acceptedAnswers) ? bloc.acceptedAnswers : []) as string[]
   const maj = (next: string[]) => onModifier({ acceptedAnswers: next })
   return (
@@ -812,7 +842,7 @@ function ReponseCourteEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           Sensible à la casse
         </label>
       </div>
-      <ul className="flex flex-col gap-1.5">
+      <ul className={`flex flex-col gap-1.5 ${marqueGroupe}`} {...groupe('acceptedAnswers')}>
         {reponses.map((r, i) => (
           <li key={i} className="flex items-center gap-2">
             <input
@@ -821,6 +851,7 @@ function ReponseCourteEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               onChange={(e) => maj(reponses.map((x, j) => (j === i ? e.target.value : x)))}
               onFocus={onFocusBloc}
               placeholder="Ex. hypoténuse"
+              {...champ(`acceptedAnswers[${i}]`)}
             />
             <button
               type="button"
@@ -846,6 +877,7 @@ function ReponseCourteEditeur({ bloc, onModifier, onFocusBloc }: Props) {
 }
 
 function NumeriqueEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ } = useChamp()
   const answer = typeof bloc.answer === 'number' ? String(bloc.answer) : ''
   const tolerance = typeof bloc.tolerance === 'number' ? String(bloc.tolerance) : ''
   return (
@@ -864,6 +896,7 @@ function NumeriqueEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           }
           onFocus={onFocusBloc}
           placeholder="Ex. 5"
+          {...champ('answer')}
         />
       </label>
       <label className="flex flex-col gap-1">
@@ -907,6 +940,7 @@ function NumeriqueEditeur({ bloc, onModifier, onFocusBloc }: Props) {
 // attendue par trou apparaît d'elle-même, et la banque d'étiquettes est recomposée à chaque
 // frappe (réponses + distracteurs) par synchroniserTrous : il n'y a rien à tenir cohérent à la main.
 function TexteATrousEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ, groupe } = useChamp()
   const phraseRef = useRef<HTMLTextAreaElement | null>(null)
   // Position du curseur à rétablir une fois la phrase re-rendue après « ＋ trou ».
   const curseurEnAttente = useRef<number | null>(null)
@@ -954,12 +988,13 @@ function TexteATrousEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           value={template}
           onChange={(v) => maj({ template: v })}
           onFocus={onFocusBloc}
+          champ={champ('template')}
           placeholder="Ex. Le côté opposé à l’angle droit s’appelle l’{}."
           className="font-prose text-base leading-relaxed text-ink"
         />
       </div>
 
-      <div>
+      <div className={marqueGroupe} {...groupe('expected')}>
         <LabelCorrection>Réponse attendue pour chaque trou</LabelCorrection>
         {expected.length === 0 ? (
           <p className="mt-1 font-prose text-sm text-ink-muted">
@@ -981,6 +1016,7 @@ function TexteATrousEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   }
                   onFocus={onFocusBloc}
                   placeholder="L’étiquette à placer ici"
+                  {...champ(`expected[${i}]`)}
                 />
               </li>
             ))}
@@ -988,7 +1024,7 @@ function TexteATrousEditeur({ bloc, onModifier, onFocusBloc }: Props) {
         )}
       </div>
 
-      <div>
+      <div className={marqueGroupe} {...groupe('bank')}>
         <div className="mb-1.5 flex items-center justify-between gap-2">
           <span className="font-display text-xs font-bold uppercase tracking-wide text-ink-muted">
             Étiquettes pièges (facultatif)

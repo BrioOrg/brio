@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import {
   CoursApiError,
@@ -9,30 +9,59 @@ import {
   listerMesClasses,
   publierCours,
   type ClasseInfo,
+  type ViolationContenu,
 } from '@brio/api-client'
 
 import { Icon } from '@/components/ui/icon'
-import { aDesProblemesBloquants, problemesBrouillon, type Brouillon } from '@/lib/cours-editeur'
+import {
+  aDesProblemesBloquants,
+  apercuBloc,
+  type Brouillon,
+  type Probleme,
+} from '@/lib/cours-editeur'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Écran « Publier » (CDC §8.4) : une relecture avant de figer. Trois choses, dans l'ordre où on
 // les décide : ce qui doit être en règle (checklist), le rappel que la version est figée, et le
-// choix des classes qui verront le cours. La validation faisant foi est celle du serveur : la
-// checklist n'est qu'un garde-fou ; un 422 renvoie le message précis du PublicationValidator.
+// choix des classes qui verront le cours. Les problèmes viennent des règles de cours-editeur
+// (calculées par l'éditeur, qui les affiche aussi sur chaque bloc) : tant qu'un problème bloquant
+// reste, rien n'est envoyé. Le serveur reste l'autorité : un 422 revient en violations localisées,
+// remontées à l'éditeur pour être affichées de la même façon.
+
+/** Où se trouve un problème, en termes d'enseignant : « Partie 2 · Quel côté… ». */
+function lieuDuProbleme(p: Probleme, brouillon: Brouillon): string {
+  const i = brouillon.sections.findIndex((s) => s.id === p.sectionId)
+  if (i < 0) return 'Cours'
+  const partie = `Partie ${i + 1}`
+  const bloc = p.blocId ? brouillon.sections[i].blocks.find((b) => b.id === p.blocId) : undefined
+  return bloc ? `${partie} · ${apercuBloc(bloc)}` : partie
+}
 
 export function PublierCours({
   coursId,
   brouillon,
+  problemes,
+  verificationEnCours,
   classeIdsInitiales,
   onAvantPublicationAction,
+  onAllerAuProblemeAction,
+  onRefusServeurAction,
   onPublieAction,
   onFermerAction,
 }: {
   coursId: string
   brouillon: Brouillon
+  /** Tous les problèmes connus (règles web, références vérifiées, refus du serveur). */
+  problemes: Probleme[]
+  /** Vrai tant que les références internes sont en cours de vérification. */
+  verificationEnCours: boolean
   classeIdsInitiales: string[]
   /** Force un enregistrement du brouillon en cours avant de figer (le débounce peut être en attente). */
   onAvantPublicationAction: () => Promise<void>
+  /** Ferme la fenêtre et amène l'enseignant au champ à corriger. */
+  onAllerAuProblemeAction: (probleme: Probleme) => void
+  /** Le serveur a refusé : ses violations localisées, à afficher comme les autres problèmes. */
+  onRefusServeurAction: (violations: ViolationContenu[]) => void
   onPublieAction: (version: number) => void
   onFermerAction: () => void
 }) {
@@ -59,11 +88,16 @@ export function PublierCours({
     }
   }, [])
 
-  // Garde-fous côté client (le serveur reste l'autorité) : les règles de cours-editeur.
-  const tousProblemes = useMemo(() => problemesBrouillon(brouillon), [brouillon])
-  const problemes = [...new Set(tousProblemes.map((p) => p.message))]
+  // Un même libellé sur un même bloc n'est listé qu'une fois (plusieurs cases vides d'un tableau).
+  const lignes = problemes.filter(
+    (p, i) =>
+      problemes.findIndex(
+        (q) => q.sectionId === p.sectionId && q.blocId === p.blocId && q.message === p.message
+      ) === i
+  )
 
-  const pretAPublier = !aDesProblemesBloquants(tousProblemes) && selection.size > 0 && !enCours
+  const pretAPublier =
+    !aDesProblemesBloquants(problemes) && !verificationEnCours && selection.size > 0 && !enCours
 
   function basculerClasse(id: string) {
     setSelection((prev) => {
@@ -85,6 +119,9 @@ export function PublierCours({
       setSucces(version ?? 1)
       onPublieAction(version ?? 1)
     } catch (e) {
+      if (e instanceof CoursApiError && e.violations.length > 0) {
+        onRefusServeurAction(e.violations)
+      }
       setErreur(e instanceof CoursApiError ? e.message : 'La publication a échoué. Réessayez.')
       setEnCours(false)
     }
@@ -141,8 +178,13 @@ export function PublierCours({
               <h3 className="font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
                 Avant de figer
               </h3>
-              <ul className="mt-2 flex flex-col gap-1.5">
-                {problemes.length === 0 ? (
+              <ul className="mt-2 flex max-h-64 flex-col gap-1 overflow-y-auto">
+                {verificationEnCours && (
+                  <li className="font-prose text-sm text-ink-muted">
+                    Vérification des références vers d’autres chapitres…
+                  </li>
+                )}
+                {lignes.length === 0 && !verificationEnCours ? (
                   <li className="flex items-center gap-2 font-prose text-sm text-ink">
                     <span className="text-success">
                       <Icon name="check" size={16} aria-hidden="true" />
@@ -150,12 +192,33 @@ export function PublierCours({
                     Le cours est prêt à être relu par le serveur.
                   </li>
                 ) : (
-                  problemes.map((p) => (
-                    <li key={p} className="flex items-center gap-2 font-prose text-sm text-ink">
-                      <span className="text-warning" aria-hidden="true">
-                        ⚠
-                      </span>
-                      {p}
+                  lignes.map((p) => (
+                    <li key={`${p.sectionId}|${p.blocId}|${p.message}`}>
+                      <button
+                        type="button"
+                        onClick={() => onAllerAuProblemeAction(p)}
+                        className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left hover:bg-surface-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={p.gravite === 'bloquant' ? 'text-danger' : 'text-warning'}
+                        >
+                          ⚠
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-display text-[11px] font-extrabold uppercase tracking-wide text-ink-muted">
+                            {lieuDuProbleme(p, brouillon)}
+                            {p.gravite === 'avertissement' && ' · à vérifier'}
+                          </span>
+                          <span className="block font-prose text-sm text-ink">{p.message}</span>
+                        </span>
+                        <Icon
+                          name="arrow-right"
+                          size={14}
+                          className="mt-1 shrink-0 text-ink-muted"
+                          aria-hidden="true"
+                        />
+                      </button>
                     </li>
                   ))
                 )}

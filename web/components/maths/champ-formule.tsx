@@ -21,6 +21,8 @@ type Props = {
   inputClassName?: string
   /** Libellé accessible de l'input. */
   ariaLabel?: string
+  /** Attributs de validation posés sur l'input (repère de champ, état d'erreur). */
+  champ?: { 'data-champ'?: string; 'aria-invalid'?: true; 'aria-describedby'?: string }
 }
 
 export function ChampFormule({
@@ -31,6 +33,7 @@ export function ChampFormule({
   displayMode = true,
   inputClassName = '',
   ariaLabel = 'Formule LaTeX',
+  champ,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [actif, setActif] = useState(false)
@@ -77,6 +80,7 @@ export function ChampFormule({
       <input
         ref={inputRef}
         aria-label={ariaLabel}
+        {...champ}
         className={inputClassName}
         value={value}
         onChange={(e) => onChange(e.target.value)}

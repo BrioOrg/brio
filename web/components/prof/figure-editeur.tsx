@@ -3,6 +3,7 @@
 import { buildDrawingModel, type FigureSpec, type LabelPlacement } from '@brio/content'
 
 import { FigureRenderer } from '@/components/figure-renderer'
+import { marqueChamp, useChamp } from '@/components/prof/problemes-du-bloc'
 import type { Bloc } from '@/lib/cours-editeur'
 
 // Constructeur de `spec` d'une figure déclarative (ADR 0013). On saisit des points nommés avec
@@ -124,6 +125,7 @@ function ChoixPoint({
 }
 
 export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ: champAlt } = useChamp()
   const spec = (bloc.spec ?? {}) as FigureSpec
   const points = (spec.points ?? []) as Point[]
   const segments = (spec.segments ?? []) as Segment[]
@@ -157,12 +159,13 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
           Texte alternatif <span className="text-danger">*</span>
         </span>
         <input
-          className={champ}
+          className={`${champ} ${marqueChamp}`}
           value={(bloc.alt as string) ?? ''}
           onChange={(e) => onModifier({ alt: e.target.value })}
           onFocus={onFocusBloc}
           placeholder="Décris la figure pour un élève qui ne la voit pas (ex. Triangle rectangle en A)"
           aria-label="Texte alternatif de la figure"
+          {...champAlt('alt')}
         />
       </label>
       <label className="mt-2 flex flex-col gap-1">
