@@ -51,6 +51,9 @@ export function useChamp(): {
 export const marqueChamp =
   'aria-[invalid=true]:rounded-sm aria-[invalid=true]:bg-danger/10 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger'
 
-/** Marque visuelle d'un groupe en erreur. */
+/**
+ * Marque visuelle d'un groupe en erreur : un contour décalé, pour qu'il ne colle pas au contenu
+ * et ne se confonde pas avec la marque d'un champ du groupe.
+ */
 export const marqueGroupe =
-  'data-[invalide=true]:rounded-md data-[invalide=true]:ring-2 data-[invalide=true]:ring-danger'
+  'data-[invalide=true]:rounded-md data-[invalide=true]:outline-2 data-[invalide=true]:outline-offset-4 data-[invalide=true]:outline-danger'

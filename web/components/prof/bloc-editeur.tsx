@@ -78,12 +78,13 @@ function ZoneAuto({
       onChange={(e) => onChange(e.target.value)}
       onFocus={onFocus}
       placeholder={placeholder}
-      className={`w-full resize-none overflow-hidden border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 ${marqueChamp} ${className ?? ''}`}
+      className={`w-full resize-none overflow-hidden border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 aria-[invalid=true]:px-1 ${marqueChamp} ${className ?? ''}`}
     />
   )
 }
 
-const inline = `w-full border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 ${marqueChamp}`
+// Un champ sans bordure ni marge : en erreur, un peu d'air pour que le texte ne touche pas la marque.
+const inline = `w-full border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 aria-[invalid=true]:px-1 ${marqueChamp}`
 
 export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Props) {
   const { champ } = useChamp()

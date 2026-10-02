@@ -1027,7 +1027,7 @@ function CompteProblemes({ problemes }: { problemes: Probleme[] }) {
   const texte = bloquants > 0 ? `${bloquants} à corriger` : `${problemes.length} à vérifier`
   return (
     <span
-      className={`mt-0.5 inline-flex items-center gap-1 font-display text-[11px] font-extrabold ${
+      className={`mt-0.5 flex items-center gap-1 whitespace-nowrap font-display text-[11px] font-extrabold ${
         bloquants > 0 ? 'text-danger' : 'text-ink-muted'
       }`}
     >
