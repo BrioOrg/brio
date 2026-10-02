@@ -1,0 +1,573 @@
+{
+  "schemaVersion": 1,
+  "id": "cercles-disques",
+  "title": "Cercles et disques",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 50,
+  "status": "published",
+  "sections": [
+    {
+      "id": "cercle-definitions",
+      "title": "Le cercle et son vocabulaire",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "définir un cercle et un disque à l'aide des distances ;",
+            "reconnaître un rayon, un diamètre et une corde ;",
+            "résoudre des problèmes de distance à un point avec le compas."
+          ]
+        },
+        {
+          "id": "def-cercle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Cercle",
+          "text": "Le **cercle de centre O et de rayon 5 cm** est formé de **tous** les points situés à 5 cm du point O. Un point M est sur ce cercle si et seulement si OM = 5 cm."
+        },
+        {
+          "id": "def-disque",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Disque",
+          "text": "Le **disque** de centre O et de rayon 5 cm est formé de tous les points situés à **5 cm ou moins** de O : le cercle et tout son intérieur."
+        },
+        {
+          "id": "fig-cercle-vocabulaire",
+          "type": "figure",
+          "alt": "Cercle de centre O. Le segment [OA] joint le centre à un point du cercle. Le segment [BC] passe par le centre et joint deux points du cercle. Le segment [DE] joint deux points du cercle sans passer par le centre.",
+          "caption": "Un cercle de centre O, avec trois segments.",
+          "spec": {
+            "points": [
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "A",
+                "x": 3,
+                "y": 4,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "B",
+                "x": -5,
+                "y": 0,
+                "label": {
+                  "placement": "left"
+                }
+              },
+              {
+                "name": "C",
+                "x": 5,
+                "y": 0,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "D",
+                "x": -3,
+                "y": -4,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "E",
+                "x": 4,
+                "y": -3,
+                "label": {
+                  "placement": "below-right"
+                }
+              }
+            ],
+            "circles": [
+              {
+                "center": "O",
+                "through": "C"
+              }
+            ],
+            "segments": [
+              {
+                "from": "O",
+                "to": "A"
+              },
+              {
+                "from": "B",
+                "to": "C"
+              },
+              {
+                "from": "D",
+                "to": "E"
+              }
+            ]
+          }
+        },
+        {
+          "id": "table-vocabulaire",
+          "type": "table",
+          "headers": [
+            "Mot",
+            "Définition",
+            "Sur la figure"
+          ],
+          "rows": [
+            [
+              "Rayon",
+              "segment qui joint le centre à un point du cercle ; aussi sa longueur",
+              "[OA]"
+            ],
+            [
+              "Corde",
+              "segment qui joint deux points du cercle",
+              "[DE]"
+            ],
+            [
+              "Diamètre",
+              "corde qui passe par le centre ; aussi sa longueur, égale à 2 fois le rayon",
+              "[BC]"
+            ]
+          ]
+        },
+        {
+          "id": "ex-reconnaitre-diametre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la figure ci-dessus, quel segment est un diamètre du cercle ?",
+          "competencies": [
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-bc",
+              "text": "[BC]",
+              "correct": true
+            },
+            {
+              "id": "choix-oa",
+              "text": "[OA]",
+              "correct": false
+            },
+            {
+              "id": "choix-de",
+              "text": "[DE]",
+              "correct": false
+            },
+            {
+              "id": "choix-ob",
+              "text": "[OB]",
+              "correct": false
+            }
+          ],
+          "explanation": "[BC] joint deux points du cercle en passant par le centre O : c'est un diamètre. [OA] et [OB] partent du centre : ce sont des rayons. [DE] joint deux points du cercle sans passer par O : c'est une corde, mais pas un diamètre."
+        },
+        {
+          "id": "ex-mot-corde",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Comment s'appelle un segment qui joint deux points d'un cercle ?",
+          "competencies": [
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": [
+            "corde",
+            "une corde"
+          ],
+          "caseSensitive": false,
+          "explanation": "C'est une corde. Quand une corde passe par le centre, c'est un diamètre."
+        },
+        {
+          "id": "ex-diametre-depuis-rayon",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un cercle a un rayon de 3,5 cm. Quelle est la longueur de son diamètre ?",
+          "competencies": [
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 7,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le diamètre vaut deux rayons : 2 × 3,5 = 7 cm."
+        },
+        {
+          "id": "ex-interieur-exterieur",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On considère le cercle de centre O et de rayon 4 cm. Le point M est tel que OM = 6 cm. Où est le point M ?",
+          "competencies": [
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-exterieur",
+              "text": "À l'extérieur du disque.",
+              "correct": true
+            },
+            {
+              "id": "choix-sur",
+              "text": "Sur le cercle.",
+              "correct": false
+            },
+            {
+              "id": "choix-interieur",
+              "text": "À l'intérieur du disque.",
+              "correct": false
+            },
+            {
+              "id": "choix-centre",
+              "text": "Au centre.",
+              "correct": false
+            }
+          ],
+          "explanation": "Les points du cercle sont exactement à 4 cm de O ; ceux du disque à 4 cm ou moins. Comme 6 cm est plus que 4 cm, M est à l'extérieur. Il serait sur le cercle si OM valait 4 cm."
+        }
+      ]
+    },
+    {
+      "id": "problemes-distances",
+      "title": "Résoudre des problèmes avec le compas",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-compas",
+          "type": "prose",
+          "text": "Le compas trace tous les points situés à une même distance de sa pointe. Pour trouver un point qui est à une distance donnée d'un autre point, on pense donc au **cercle**."
+        },
+        {
+          "id": "exemple-deux-conditions",
+          "type": "callout",
+          "variant": "example",
+          "title": "À 3 cm de A et à 4 cm de B",
+          "text": "On place A et B avec AB = 5 cm. Les points à 3 cm de A sont sur le cercle de centre A de rayon 3 cm. Les points à 4 cm de B sont sur le cercle de centre B de rayon 4 cm. Les points qui vérifient les deux conditions sont les **points d'intersection** des deux cercles : ici il y en a deux, un de chaque côté de (AB)."
+        },
+        {
+          "id": "fig-deux-cercles",
+          "type": "figure",
+          "alt": "Deux cercles, de centres A et B, qui se coupent en deux points M et N situés de part et d'autre du segment [AB].",
+          "caption": "M et N sont à 3 cm de A et à 4 cm de B.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 5,
+                "y": 0,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "M",
+                "x": 1.8,
+                "y": 2.4,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "N",
+                "x": 1.8,
+                "y": -2.4,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "B"
+              }
+            ],
+            "circles": [
+              {
+                "center": "A",
+                "through": "M"
+              },
+              {
+                "center": "B",
+                "through": "M"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-nombre-points",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "A et B sont à 5 cm l'un de l'autre. Combien existe-t-il de points situés à la fois à 3 cm de A et à 4 cm de B ?",
+          "competencies": [
+            "c3.geo.cercles.resoudre-distances"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-deux",
+              "text": "2",
+              "correct": true
+            },
+            {
+              "id": "choix-un",
+              "text": "1",
+              "correct": false
+            },
+            {
+              "id": "choix-zero",
+              "text": "0",
+              "correct": false
+            },
+            {
+              "id": "choix-infini",
+              "text": "Une infinité",
+              "correct": false
+            }
+          ],
+          "explanation": "Ces points sont à l'intersection du cercle de centre A de rayon 3 cm et du cercle de centre B de rayon 4 cm. Ces deux cercles se coupent en deux points, de part et d'autre de (AB). On pense souvent à un seul point en ne dessinant que d'un côté. Il y aurait une infinité de points avec une seule condition (tout un cercle)."
+        },
+        {
+          "id": "ex-chevre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une chèvre est attachée à un piquet par une corde de 5 m. Quelle forme a la zone où elle peut brouter ?",
+          "competencies": [
+            "c3.geo.cercles.resoudre-distances",
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-disque-5",
+              "text": "Un disque de rayon 5 m centré sur le piquet.",
+              "correct": true
+            },
+            {
+              "id": "choix-cercle-5",
+              "text": "Un cercle de rayon 5 m.",
+              "correct": false
+            },
+            {
+              "id": "choix-disque-10",
+              "text": "Un disque de rayon 10 m.",
+              "correct": false
+            },
+            {
+              "id": "choix-carre",
+              "text": "Un carré de côté 5 m.",
+              "correct": false
+            }
+          ],
+          "explanation": "La chèvre peut atteindre tous les points à 5 m ou moins du piquet : c'est le disque de centre le piquet et de rayon 5 m. Le cercle seul ne contient que les points à exactement 5 m (le bord). 10 m serait le diamètre, pas le rayon. Un carré n'a pas tous ses points à la même distance du centre."
+        },
+        {
+          "id": "ex-rayon-passant",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le point P est à 4,2 cm du point O. Quel rayon doit avoir un cercle de centre O pour passer par P ?",
+          "competencies": [
+            "c3.geo.cercles.resoudre-distances",
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.2,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le cercle de centre O passe par P exactement quand son rayon est égal à OP = 4,2 cm."
+        },
+        {
+          "id": "ex-construire-points",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, place deux points A et B tels que AB = 6 cm. Construis tous les points situés à 4 cm de A et à 5 cm de B.",
+          "competencies": [
+            "c3.geo.cercles.resoudre-distances"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 5,
+          "solution": "On trace au compas le cercle de centre A de rayon 4 cm et le cercle de centre B de rayon 5 cm. Ils se coupent en deux points, un de chaque côté de la droite (AB) : ce sont les deux points cherchés. Vérifie à la règle : chacun est à 4 cm de A et à 5 cm de B."
+        }
+      ]
+    },
+    {
+      "id": "exercices-cercles",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-final-rayon",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un cercle a un diamètre de 9 cm. Quel est son rayon ?",
+          "competencies": [
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le rayon est la moitié du diamètre : 9 ÷ 2 = 4,5 cm."
+        },
+        {
+          "id": "ex-final-sur-cercle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le point R est sur le cercle de centre O et de rayon 6 cm. Que peut-on affirmer ?",
+          "competencies": [
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-or-6",
+              "text": "OR = 6 cm",
+              "correct": true
+            },
+            {
+              "id": "choix-or-12",
+              "text": "OR = 12 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-or-3",
+              "text": "OR = 3 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-or-moins",
+              "text": "OR est plus petit que 6 cm.",
+              "correct": false
+            }
+          ],
+          "explanation": "Tous les points du cercle sont à 6 cm du centre, par définition : OR = 6 cm. 12 cm serait la longueur d'un diamètre, 3 cm la moitié du rayon. « Plus petit que 6 cm » décrit les points à l'intérieur du disque, pas sur le cercle."
+        },
+        {
+          "id": "ex-final-arrosage",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un arroseur tourne autour de lui et arrose jusqu'à 6 m. Un rosier est à 4,5 m de l'arroseur, un pommier à 6,5 m et un lilas à 6 m. Quelles plantes sont arrosées ?",
+          "competencies": [
+            "c3.geo.cercles.resoudre-distances"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-rosier-lilas",
+              "text": "Le rosier et le lilas.",
+              "correct": true
+            },
+            {
+              "id": "choix-rosier",
+              "text": "Le rosier seulement.",
+              "correct": false
+            },
+            {
+              "id": "choix-toutes",
+              "text": "Les trois plantes.",
+              "correct": false
+            },
+            {
+              "id": "choix-pommier",
+              "text": "Le pommier seulement.",
+              "correct": false
+            }
+          ],
+          "explanation": "La zone arrosée est le disque de rayon 6 m : les points à 6 m ou moins. Le rosier (4,5 m) est dedans ; le lilas (6 m) est sur le bord, donc arrosé. Le pommier (6,5 m) est trop loin. Oublier le lilas, c'est oublier que le cercle fait partie du disque."
+        },
+        {
+          "id": "ex-final-cercles-loin",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "A et B sont à 10 cm l'un de l'autre. Combien de points sont à 3 cm de A et à 4 cm de B ?",
+          "competencies": [
+            "c3.geo.cercles.resoudre-distances"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-zero",
+              "text": "0",
+              "correct": true
+            },
+            {
+              "id": "choix-un",
+              "text": "1",
+              "correct": false
+            },
+            {
+              "id": "choix-deux",
+              "text": "2",
+              "correct": false
+            },
+            {
+              "id": "choix-infini",
+              "text": "Une infinité",
+              "correct": false
+            }
+          ],
+          "explanation": "Un tel point serait sur le chemin de A à B avec au plus 3 + 4 = 7 cm de trajet. Or le plus court chemin de A à B mesure 10 cm. Les deux cercles ne se coupent pas : il n'existe aucun point de ce type."
+        },
+        {
+          "id": "ex-final-diametre-mot",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Comment s'appelle une corde qui passe par le centre du cercle ?",
+          "competencies": [
+            "c3.geo.cercles.connaitre-definitions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": [
+            "diametre",
+            "un diametre",
+            "le diametre"
+          ],
+          "caseSensitive": false,
+          "explanation": "C'est un diamètre. Sa longueur vaut le double du rayon."
+        }
+      ]
+    }
+  ]
+}

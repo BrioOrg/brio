@@ -1,0 +1,761 @@
+{
+  "schemaVersion": 1,
+  "id": "angles-bissectrice",
+  "title": "Les angles et la bissectrice",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 65,
+  "status": "published",
+  "sections": [
+    {
+      "id": "vocabulaire-angles",
+      "title": "Nommer et classer les angles",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "nommer un angle et le classer (nul, aigu, droit, obtus, plat, plein) ;",
+            "mesurer et construire un angle avec le rapporteur ;",
+            "reconnaître des angles adjacents, opposés par le sommet, supplémentaires ;",
+            "définir et construire la bissectrice d'un angle."
+          ]
+        },
+        {
+          "id": "def-angle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Angle",
+          "text": "Deux demi-droites de même origine O forment un **angle**. O est le **sommet**, les demi-droites sont les **côtés**. L'angle formé par [OA) et [OB) se note $\\widehat{AOB}$ : la lettre du sommet est toujours au milieu."
+        },
+        {
+          "id": "fig-angle-aob",
+          "type": "figure",
+          "alt": "Angle de sommet O formé par les demi-droites [OA) et [OB), marqué d'un arc ; il mesure 60°.",
+          "caption": "L'angle $\\widehat{AOB}$ mesure 60°.",
+          "spec": {
+            "points": [
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "A",
+                "x": 4,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "B",
+                "x": 2,
+                "y": 3.4641,
+                "label": {
+                  "placement": "above"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "O",
+                "to": "A"
+              },
+              {
+                "from": "O",
+                "to": "B"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "O",
+                "from": "A",
+                "to": "B"
+              }
+            ]
+          }
+        },
+        {
+          "id": "table-types-angles",
+          "type": "table",
+          "headers": [
+            "Angle",
+            "Mesure"
+          ],
+          "rows": [
+            [
+              "nul",
+              "0°"
+            ],
+            [
+              "aigu",
+              "entre 0° et 90°"
+            ],
+            [
+              "droit",
+              "90°"
+            ],
+            [
+              "obtus",
+              "entre 90° et 180°"
+            ],
+            [
+              "plat",
+              "180° (les côtés forment une droite)"
+            ],
+            [
+              "plein",
+              "360° (un tour complet)"
+            ]
+          ]
+        },
+        {
+          "id": "ex-classer-130",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un angle mesure 130°. Comment s'appelle-t-il ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-obtus",
+              "text": "Un angle obtus.",
+              "correct": true
+            },
+            {
+              "id": "choix-aigu",
+              "text": "Un angle aigu.",
+              "correct": false
+            },
+            {
+              "id": "choix-plat",
+              "text": "Un angle plat.",
+              "correct": false
+            },
+            {
+              "id": "choix-droit",
+              "text": "Un angle droit.",
+              "correct": false
+            }
+          ],
+          "explanation": "130° est entre 90° et 180° : l'angle est obtus. Un angle aigu mesure moins de 90°, un angle droit exactement 90°, un angle plat exactement 180°."
+        },
+        {
+          "id": "ex-nom-90",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Comment appelle-t-on un angle qui mesure exactement 90° ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": [
+            "droit",
+            "angle droit",
+            "un angle droit"
+          ],
+          "caseSensitive": false,
+          "explanation": "Un angle de 90° est un angle droit. On le code par un petit carré."
+        },
+        {
+          "id": "ex-sommet",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans l'angle $\\widehat{RST}$, quel point est le sommet ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-s",
+              "text": "S",
+              "correct": true
+            },
+            {
+              "id": "choix-r",
+              "text": "R",
+              "correct": false
+            },
+            {
+              "id": "choix-t",
+              "text": "T",
+              "correct": false
+            },
+            {
+              "id": "choix-aucun",
+              "text": "On ne peut pas savoir.",
+              "correct": false
+            }
+          ],
+          "explanation": "Dans la notation d'un angle, la lettre du milieu, sous le chapeau, est toujours le sommet : ici S. R et T sont des points sur les côtés."
+        }
+      ]
+    },
+    {
+      "id": "mesurer-construire",
+      "title": "Mesurer et construire un angle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "methode-mesurer",
+          "type": "steps",
+          "title": "Mesurer un angle avec le rapporteur",
+          "steps": [
+            {
+              "text": "On place le centre du rapporteur sur le sommet de l'angle."
+            },
+            {
+              "text": "On aligne la graduation 0 avec un des côtés."
+            },
+            {
+              "text": "On lit la mesure sur l'autre côté, en suivant **la graduation qui part de 0** sur le premier côté."
+            }
+          ]
+        },
+        {
+          "id": "piege-graduations",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Deux graduations",
+          "text": "Le rapporteur porte deux échelles, de 0 à 180 dans les deux sens. Avant de lire, demande-toi si l'angle est aigu ou obtus : un angle obtus ne peut pas mesurer 50°."
+        },
+        {
+          "id": "ex-erreur-rapporteur",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Yanis mesure un angle qui est visiblement obtus et lit 50°. Quelle est probablement la vraie mesure ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-130",
+              "text": "130°",
+              "correct": true
+            },
+            {
+              "id": "choix-50",
+              "text": "50°, sa lecture est juste.",
+              "correct": false
+            },
+            {
+              "id": "choix-230",
+              "text": "230°",
+              "correct": false
+            },
+            {
+              "id": "choix-90",
+              "text": "90°",
+              "correct": false
+            }
+          ],
+          "explanation": "Yanis a lu sur la mauvaise échelle. Les deux échelles donnent des mesures qui font 180° à elles deux : 180 − 50 = 130°. 130° est bien obtus. 50° serait aigu, 230° dépasse l'angle plat, et 90° est un angle droit."
+        },
+        {
+          "id": "methode-construire",
+          "type": "steps",
+          "title": "Construire un angle xOy de 70°",
+          "steps": [
+            {
+              "text": "On trace une demi-droite [Ox)."
+            },
+            {
+              "text": "On place le centre du rapporteur sur O et le 0 sur [Ox)."
+            },
+            {
+              "text": "On fait une marque en face de 70°, sur la graduation qui part de [Ox)."
+            },
+            {
+              "text": "On trace la demi-droite [Oy) qui passe par cette marque."
+            }
+          ]
+        },
+        {
+          "id": "ex-construire-angle",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, construis un angle $\\widehat{xOy}$ de 125°.",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "solution": "Trace [Ox), place le centre du rapporteur en O et le 0 sur [Ox), marque 125° sur la graduation qui part de [Ox), puis trace [Oy). Contrôle : l'angle obtenu doit être obtus, plus ouvert qu'un angle droit."
+        }
+      ]
+    },
+    {
+      "id": "paires-angles",
+      "title": "Angles adjacents, opposés, supplémentaires",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-adjacents",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Angles adjacents",
+          "text": "Deux angles sont **adjacents** s'ils ont le même sommet, un côté commun, et s'ils sont situés de part et d'autre de ce côté commun."
+        },
+        {
+          "id": "fig-adjacents",
+          "type": "figure",
+          "alt": "Trois demi-droites [OA), [OB) et [OC) de même origine O. Les angles AOB et BOC ont le côté [OB) en commun.",
+          "caption": "Les angles $\\widehat{AOB}$ et $\\widehat{BOC}$ sont adjacents.",
+          "spec": {
+            "points": [
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "A",
+                "x": 5,
+                "y": 0,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "B",
+                "x": 3,
+                "y": 4,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "C",
+                "x": -3,
+                "y": 4,
+                "label": {
+                  "placement": "above-left"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "O",
+                "to": "A"
+              },
+              {
+                "from": "O",
+                "to": "B"
+              },
+              {
+                "from": "O",
+                "to": "C"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "O",
+                "from": "A",
+                "to": "B"
+              },
+              {
+                "vertex": "O",
+                "from": "B",
+                "to": "C"
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-opposes",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Angles opposés par le sommet",
+          "text": "Deux droites qui se coupent en O forment deux paires d'angles **opposés par le sommet**. Deux angles opposés par le sommet ont la **même mesure**."
+        },
+        {
+          "id": "fig-opposes",
+          "type": "figure",
+          "alt": "Deux droites (AB) et (CD) qui se coupent en O. Les angles AOC et BOD sont marqués : ils sont opposés par le sommet.",
+          "caption": "Les angles $\\widehat{AOC}$ et $\\widehat{BOD}$ sont opposés par le sommet.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": -4,
+                "y": -2,
+                "label": {
+                  "placement": "left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 4,
+                "y": 2,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "C",
+                "x": -2,
+                "y": 3,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "D",
+                "x": 2,
+                "y": -3,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "B"
+              },
+              {
+                "from": "C",
+                "to": "D"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "O",
+                "from": "A",
+                "to": "C"
+              },
+              {
+                "vertex": "O",
+                "from": "B",
+                "to": "D"
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-supplementaires",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Angles supplémentaires",
+          "text": "Deux angles sont **supplémentaires** si la somme de leurs mesures fait 180°. Deux angles adjacents dont les côtés extérieurs forment une droite sont supplémentaires."
+        },
+        {
+          "id": "ex-opposes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Deux droites se coupent en O. L'un des angles formés mesure 48°. Combien mesure l'angle qui lui est opposé par le sommet ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 48,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Deux angles opposés par le sommet ont la même mesure : 48°."
+        },
+        {
+          "id": "ex-supplementaire",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Deux angles sont supplémentaires. L'un mesure 65°. Combien mesure l'autre ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 115,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Leur somme fait 180° : 180 − 65 = 115°."
+        },
+        {
+          "id": "ex-adjacents",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la figure des angles adjacents, quel angle est adjacent à $\\widehat{AOB}$ ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-boc",
+              "text": "$\\widehat{BOC}$",
+              "correct": true
+            },
+            {
+              "id": "choix-aoc",
+              "text": "$\\widehat{AOC}$",
+              "correct": false
+            },
+            {
+              "id": "choix-oab",
+              "text": "$\\widehat{OAB}$",
+              "correct": false
+            },
+            {
+              "id": "choix-aob",
+              "text": "$\\widehat{AOB}$ lui-même",
+              "correct": false
+            }
+          ],
+          "explanation": "$\\widehat{BOC}$ a le même sommet O, le côté [OB) en commun, et il est de l'autre côté de [OB) : il est adjacent à $\\widehat{AOB}$. $\\widehat{AOC}$ contient $\\widehat{AOB}$ : les deux angles se chevauchent. $\\widehat{OAB}$ n'a pas le même sommet (A)."
+        }
+      ]
+    },
+    {
+      "id": "bissectrice",
+      "title": "La bissectrice d'un angle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-bissectrice",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Bissectrice",
+          "text": "La **bissectrice** d'un angle est la droite qui partage cet angle en **deux angles adjacents de même mesure**."
+        },
+        {
+          "id": "exemple-bissectrice",
+          "type": "callout",
+          "variant": "example",
+          "title": "Un angle de 70°",
+          "text": "La bissectrice d'un angle de 70° le partage en deux angles de 70 ÷ 2 = 35°."
+        },
+        {
+          "id": "ex-moitie-angle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un angle $\\widehat{xOy}$ mesure 84°. Sa bissectrice le partage en deux angles. Combien mesure chacun d'eux ?",
+          "competencies": [
+            "c3.geo.bissectrice.connaitre-definition"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 42,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "La bissectrice partage l'angle en deux angles égaux : 84 ÷ 2 = 42°."
+        },
+        {
+          "id": "ex-def-bissectrice",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle phrase définit la bissectrice d'un angle ?",
+          "competencies": [
+            "c3.geo.bissectrice.connaitre-definition"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-deux-egaux",
+              "text": "La droite qui partage l'angle en deux angles adjacents de même mesure.",
+              "correct": true
+            },
+            {
+              "id": "choix-perp",
+              "text": "La droite perpendiculaire à un côté de l'angle.",
+              "correct": false
+            },
+            {
+              "id": "choix-milieu",
+              "text": "La droite qui passe par le milieu d'un côté.",
+              "correct": false
+            },
+            {
+              "id": "choix-deux-angles",
+              "text": "Une droite qui coupe l'angle en deux angles quelconques.",
+              "correct": false
+            }
+          ],
+          "explanation": "La bissectrice coupe l'angle en deux angles égaux. Une droite qui coupe l'angle en deux angles différents n'est pas la bissectrice. Être perpendiculaire à un côté ou passer par le milieu d'un côté ne caractérise pas la bissectrice (et un côté d'angle, une demi-droite, n'a pas de milieu)."
+        },
+        {
+          "id": "methode-bissectrice",
+          "type": "steps",
+          "title": "Construire la bissectrice au compas",
+          "steps": [
+            {
+              "text": "Avec la pointe du compas sur le sommet O, on trace un arc qui coupe les deux côtés en deux points M et N."
+            },
+            {
+              "text": "Avec le même écartement, on trace un arc de centre M et un arc de centre N, qui se coupent en un point P."
+            },
+            {
+              "text": "La droite (OP) est la bissectrice de l'angle."
+            }
+          ]
+        },
+        {
+          "id": "ex-construire-bissectrice",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, construis un angle de 110° puis sa bissectrice au compas. Vérifie au rapporteur.",
+          "competencies": [
+            "c3.geo.bissectrice.utiliser-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 5,
+          "solution": "Après la construction au compas, chaque moitié doit mesurer 110 ÷ 2 = 55° au rapporteur."
+        }
+      ]
+    },
+    {
+      "id": "exercices-angles",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-final-trois-adjacents",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Trois angles adjacents, placés côte à côte, forment ensemble un angle plat. Deux d'entre eux mesurent 40° et 75°. Combien mesure le troisième ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 65,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Un angle plat mesure 180°. 40 + 75 = 115, donc le troisième mesure 180 − 115 = 65°."
+        },
+        {
+          "id": "ex-final-angle-plein",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Combien mesure un angle plein ?",
+          "competencies": [
+            "c3.geo.angles.connaitre-mesurer-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-360",
+              "text": "360°",
+              "correct": true
+            },
+            {
+              "id": "choix-180",
+              "text": "180°",
+              "correct": false
+            },
+            {
+              "id": "choix-90",
+              "text": "90°",
+              "correct": false
+            },
+            {
+              "id": "choix-100",
+              "text": "100°",
+              "correct": false
+            }
+          ],
+          "explanation": "Un angle plein correspond à un tour complet : 360°. 180° est l'angle plat (un demi-tour), 90° l'angle droit (un quart de tour)."
+        },
+        {
+          "id": "ex-final-entier-depuis-moitie",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "La bissectrice d'un angle forme avec un de ses côtés un angle de 28°. Combien mesure l'angle entier ?",
+          "competencies": [
+            "c3.geo.bissectrice.connaitre-definition",
+            "c3.geo.bissectrice.utiliser-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 56,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "La bissectrice partage l'angle en deux moitiés égales de 28° : l'angle entier mesure 2 × 28 = 56°."
+        },
+        {
+          "id": "ex-final-droit",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On trace la bissectrice d'un angle droit. Quelle est la mesure de chacun des deux angles obtenus ?",
+          "competencies": [
+            "c3.geo.bissectrice.utiliser-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 45,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Un angle droit mesure 90°. Sa bissectrice le partage en deux angles de 90 ÷ 2 = 45°."
+        },
+        {
+          "id": "ex-final-bissectrice-double",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "L'angle $\\widehat{xOy}$ mesure 100°. [Oz) est sur sa bissectrice. Puis [Ot) est sur la bissectrice de $\\widehat{xOz}$. Combien mesure $\\widehat{xOt}$ ?",
+          "competencies": [
+            "c3.geo.bissectrice.utiliser-construire"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 4,
+          "answer": 25,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "$\\widehat{xOz}$ = 100 ÷ 2 = 50°. Puis $\\widehat{xOt}$ = 50 ÷ 2 = 25°."
+        },
+        {
+          "id": "ex-final-autre-moitie",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "[Oz) est sur la bissectrice de l'angle $\\widehat{xOy}$, et $\\widehat{xOz}$ mesure 37°. Combien mesure $\\widehat{zOy}$ ?",
+          "competencies": [
+            "c3.geo.bissectrice.connaitre-definition"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 37,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "La bissectrice partage l'angle en deux angles adjacents de même mesure : $\\widehat{zOy}$ = $\\widehat{xOz}$ = 37°. L'angle $\\widehat{xOy}$ entier mesure 74°."
+        }
+      ]
+    }
+  ]
+}

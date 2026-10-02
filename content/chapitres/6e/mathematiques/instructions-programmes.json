@@ -1,0 +1,469 @@
+{
+  "schemaVersion": 1,
+  "id": "instructions-programmes",
+  "title": "Instructions et programmes",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "published",
+  "sections": [
+    {
+      "id": "instructions-sequences",
+      "title": "Instructions et séquences",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "reconnaître une instruction et une séquence d'instructions ;",
+            "exécuter un programme à la main, avec une entrée et une sortie ;",
+            "utiliser une boucle « répéter » ;",
+            "programmer le déplacement d'un robot sur un quadrillage."
+          ]
+        },
+        {
+          "id": "def-instruction",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Instruction et séquence",
+          "text": "Une **instruction** est un ordre simple qu'une machine (ou une personne) sait exécuter : « avancer d'une case », « ajouter 4 ». Une **séquence** est une suite d'instructions exécutées **dans l'ordre**, l'une après l'autre. Un **programme** est une séquence d'instructions écrite pour accomplir une tâche."
+        },
+        {
+          "id": "def-entree-sortie",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Entrée et sortie",
+          "text": "Le nombre que l'on donne au programme au départ est l'**entrée**. Le résultat qu'il affiche à la fin est la **sortie**."
+        },
+        {
+          "id": "code-programme-calcul",
+          "type": "code",
+          "language": "text",
+          "code": "choisir un nombre\nmultiplier ce nombre par 3\najouter 4 au résultat\nafficher le résultat"
+        },
+        {
+          "id": "ex-executer-cinq",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On exécute le programme de calcul ci-dessus avec le nombre 5 en entrée. Quelle est la sortie ?",
+          "competencies": [
+            "c3.algo.instructions.identifier-produire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 19,
+          "tolerance": 0,
+          "explanation": "5 × 3 = 15, puis 15 + 4 = 19. Les instructions s'exécutent dans l'ordre : multiplier d'abord, ajouter ensuite."
+        },
+        {
+          "id": "ex-ordre-compte",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un élève exécute le même programme avec l'entrée 5, mais il ajoute 4 avant de multiplier par 3. Quelle sortie obtient-il ?",
+          "competencies": [
+            "c3.algo.instructions.identifier-produire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-27",
+              "text": "27",
+              "correct": true
+            },
+            {
+              "id": "choix-19",
+              "text": "19",
+              "correct": false
+            },
+            {
+              "id": "choix-12",
+              "text": "12",
+              "correct": false
+            },
+            {
+              "id": "choix-60",
+              "text": "60",
+              "correct": false
+            }
+          ],
+          "explanation": "(5 + 4) × 3 = 27, alors que le programme donne 19. Dans une séquence, l'ordre des instructions compte : les échanger change le résultat."
+        },
+        {
+          "id": "ex-entree-inconnue",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Avec le même programme, on obtient 25 en sortie. Quel nombre a-t-on choisi en entrée ?",
+          "competencies": [
+            "c3.algo.instructions.identifier-produire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "On remonte le programme en faisant les opérations inverses : 25 − 4 = 21, puis 21 ÷ 3 = 7. Vérification : 7 × 3 + 4 = 25."
+        }
+      ]
+    },
+    {
+      "id": "repeter",
+      "title": "Répéter des instructions",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-lutin",
+          "type": "prose",
+          "text": "Un lutin se déplace sur l'écran et trace un trait derrière lui. Il comprend les instructions « avancer de … pas » et « tourner à droite de …° »."
+        },
+        {
+          "id": "code-carre-long",
+          "type": "code",
+          "language": "text",
+          "code": "avancer de 100 pas\ntourner à droite de 90°\navancer de 100 pas\ntourner à droite de 90°\navancer de 100 pas\ntourner à droite de 90°\navancer de 100 pas\ntourner à droite de 90°"
+        },
+        {
+          "id": "def-boucle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "La boucle « répéter »",
+          "text": "Quand la même séquence revient plusieurs fois, on l'écrit une seule fois dans une **boucle** « répéter … fois ». Le programme est plus court et plus facile à lire."
+        },
+        {
+          "id": "code-carre-boucle",
+          "type": "code",
+          "language": "text",
+          "code": "répéter 4 fois :\n    avancer de 100 pas\n    tourner à droite de 90°"
+        },
+        {
+          "id": "ex-figure-carre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle figure le programme avec la boucle « répéter 4 fois » trace-t-il ?",
+          "competencies": [
+            "c3.algo.instructions.repeter"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-carre",
+              "text": "Un carré de 100 pas de côté.",
+              "correct": true
+            },
+            {
+              "id": "choix-rectangle",
+              "text": "Un rectangle de 100 pas sur 400 pas.",
+              "correct": false
+            },
+            {
+              "id": "choix-ligne",
+              "text": "Une ligne droite de 400 pas.",
+              "correct": false
+            },
+            {
+              "id": "choix-triangle",
+              "text": "Un triangle.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le lutin trace 4 côtés de 100 pas, en tournant d'un angle droit après chacun : c'est un carré. Il n'y aurait une ligne droite que s'il ne tournait pas. Un triangle n'a que 3 côtés."
+        },
+        {
+          "id": "ex-repeter-cases",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un robot exécute : « répéter 3 fois : avancer de 2 cases ». De combien de cases a-t-il avancé en tout ?",
+          "competencies": [
+            "c3.algo.instructions.repeter"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 6,
+          "tolerance": 0,
+          "unit": "cases",
+          "explanation": "La séquence « avancer de 2 cases » est exécutée 3 fois : 3 × 2 = 6 cases."
+        },
+        {
+          "id": "ex-completer-carre",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète le programme pour que le lutin trace un carré.",
+          "competencies": [
+            "c3.algo.instructions.repeter"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "répéter {} fois : avancer de 50 pas, tourner à droite de {}°",
+          "bank": [
+            "3",
+            "4",
+            "6",
+            "60",
+            "90",
+            "120"
+          ],
+          "expected": [
+            "4",
+            "90"
+          ],
+          "explanation": "Un carré a 4 côtés égaux et 4 angles droits : on répète 4 fois, et le lutin tourne de 90° après chaque côté."
+        },
+        {
+          "id": "tip-triangle",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Pour un triangle équilatéral",
+          "text": "Pour tracer un triangle équilatéral, le lutin répète 3 fois « avancer, tourner ». Il doit tourner de **120°**, et non de 60° : il tourne de l'angle qui prolonge le côté, soit 180° − 60° = 120°."
+        },
+        {
+          "id": "ex-angle-triangle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel programme trace un triangle équilatéral ?",
+          "competencies": [
+            "c3.algo.instructions.repeter"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-120",
+              "text": "répéter 3 fois : avancer de 80 pas, tourner à droite de 120°",
+              "correct": true
+            },
+            {
+              "id": "choix-60",
+              "text": "répéter 3 fois : avancer de 80 pas, tourner à droite de 60°",
+              "correct": false
+            },
+            {
+              "id": "choix-90",
+              "text": "répéter 3 fois : avancer de 80 pas, tourner à droite de 90°",
+              "correct": false
+            },
+            {
+              "id": "choix-4-fois",
+              "text": "répéter 4 fois : avancer de 80 pas, tourner à droite de 120°",
+              "correct": false
+            }
+          ],
+          "explanation": "Les angles du triangle mesurent 60°, mais le lutin tourne de l'angle qui prolonge son trajet : 180 − 60 = 120°. En tournant de 60°, il dessinerait un début d'hexagone. Avec 90°, il ne revient pas à son point de départ. Répéter 4 fois avec 120° repasse sur le premier côté."
+        }
+      ]
+    },
+    {
+      "id": "programmer-chemin",
+      "title": "Programmer un chemin",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-robot",
+          "type": "prose",
+          "text": "Un robot est sur un quadrillage. Il comprend trois instructions : « avancer d'une case » (dans la direction où il regarde), « tourner à gauche » et « tourner à droite » (d'un quart de tour, sur place)."
+        },
+        {
+          "id": "exemple-chemin",
+          "type": "callout",
+          "variant": "example",
+          "title": "Un chemin en L",
+          "text": "Le robot regarde vers la droite. Pour aller 3 cases à droite puis 2 cases vers le haut : répéter 3 fois « avancer d'une case », puis « tourner à gauche », puis répéter 2 fois « avancer d'une case »."
+        },
+        {
+          "id": "ex-programme-chemin",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le robot regarde vers le haut. Il doit aller 2 cases vers le haut, puis 4 cases vers la droite. Quel programme convient ?",
+          "competencies": [
+            "c3.algo.instructions.programmer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-droite",
+              "text": "répéter 2 fois avancer ; tourner à droite ; répéter 4 fois avancer",
+              "correct": true
+            },
+            {
+              "id": "choix-gauche",
+              "text": "répéter 2 fois avancer ; tourner à gauche ; répéter 4 fois avancer",
+              "correct": false
+            },
+            {
+              "id": "choix-inverse",
+              "text": "répéter 4 fois avancer ; tourner à droite ; répéter 2 fois avancer",
+              "correct": false
+            },
+            {
+              "id": "choix-sans-tourner",
+              "text": "répéter 6 fois avancer",
+              "correct": false
+            }
+          ],
+          "explanation": "Il monte de 2 cases, puis, en regardant vers le haut, il doit tourner à droite pour regarder vers la droite, et avancer de 4 cases. Tourner à gauche l'enverrait vers la gauche. Inverser les nombres le fait monter de 4 cases. Sans tourner, il monte de 6 cases."
+        },
+        {
+          "id": "ex-nombre-instructions",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le robot exécute : « avancer, avancer, tourner à droite, avancer, avancer, avancer ». Combien de cases a-t-il parcourues ?",
+          "competencies": [
+            "c3.algo.instructions.programmer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "unit": "cases",
+          "explanation": "Seules les instructions « avancer » font changer de case : 2 + 3 = 5 cases. Tourner se fait sur place."
+        },
+        {
+          "id": "ex-ecrire-programme",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, écris un programme pour que le lutin trace un rectangle de 100 pas sur 50 pas, en utilisant une boucle.",
+          "competencies": [
+            "c3.algo.instructions.programmer",
+            "c3.algo.instructions.repeter"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 5,
+          "solution": "Par exemple : répéter 2 fois : avancer de 100 pas, tourner à droite de 90°, avancer de 50 pas, tourner à droite de 90°. On répète 2 fois la séquence « grand côté, petit côté »."
+        }
+      ]
+    },
+    {
+      "id": "exercices-programmes",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "ex-final-programme-calcul",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Programme : « choisir un nombre ; lui soustraire 2 ; multiplier le résultat par 5 ; afficher ». Quelle est la sortie pour l'entrée 6 ?",
+          "competencies": [
+            "c3.algo.instructions.identifier-produire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 20,
+          "tolerance": 0,
+          "explanation": "6 − 2 = 4, puis 4 × 5 = 20."
+        },
+        {
+          "id": "ex-final-hexagone",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle figure trace le programme « répéter 6 fois : avancer de 40 pas, tourner à droite de 60° » ?",
+          "competencies": [
+            "c3.algo.instructions.repeter"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-hexagone",
+              "text": "Un hexagone (6 côtés égaux).",
+              "correct": true
+            },
+            {
+              "id": "choix-triangle",
+              "text": "Un triangle équilatéral.",
+              "correct": false
+            },
+            {
+              "id": "choix-carre",
+              "text": "Un carré.",
+              "correct": false
+            },
+            {
+              "id": "choix-ligne",
+              "text": "Une ligne brisée qui ne se referme pas.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le lutin trace 6 côtés de 40 pas et tourne de 60° à chaque fois : 6 × 60 = 360°, il fait un tour complet et revient au départ. C'est un hexagone régulier. Un triangle n'a que 3 côtés ; il faudrait tourner de 120°."
+        },
+        {
+          "id": "ex-final-repeter-imbrique",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un robot exécute : « répéter 4 fois : avancer de 3 cases, puis reculer d'une case ». À combien de cases de son point de départ se trouve-t-il à la fin ?",
+          "competencies": [
+            "c3.algo.instructions.repeter",
+            "c3.algo.instructions.programmer"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 8,
+          "tolerance": 0,
+          "unit": "cases",
+          "explanation": "À chaque passage dans la boucle, il gagne 3 − 1 = 2 cases. 4 passages : 4 × 2 = 8 cases."
+        },
+        {
+          "id": "ex-final-instruction",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Parmi ces phrases, laquelle est une instruction qu'un robot peut exécuter ?",
+          "competencies": [
+            "c3.algo.instructions.identifier-produire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-avancer",
+              "text": "« Avancer de 2 cases. »",
+              "correct": true
+            },
+            {
+              "id": "choix-joli",
+              "text": "« Fais un joli dessin. »",
+              "correct": false
+            },
+            {
+              "id": "choix-trouve",
+              "text": "« Trouve le meilleur chemin. »",
+              "correct": false
+            },
+            {
+              "id": "choix-peut-etre",
+              "text": "« Avance si tu veux. »",
+              "correct": false
+            }
+          ],
+          "explanation": "Une instruction est un ordre précis, qui ne laisse pas de choix : « avancer de 2 cases ». « Joli », « meilleur » ou « si tu veux » ne disent pas exactement quoi faire : une machine ne peut pas les exécuter."
+        },
+        {
+          "id": "ex-final-retour-depart",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le robot regarde vers la droite. Il exécute « répéter 4 fois : avancer de 2 cases, tourner à gauche ». À combien de cases de son point de départ est-il à la fin ?",
+          "competencies": [
+            "c3.algo.instructions.programmer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0,
+          "tolerance": 0,
+          "unit": "cases",
+          "explanation": "Il parcourt les 4 côtés d'un carré de 2 cases et revient exactement à son point de départ : il est à 0 case de celui-ci."
+        }
+      ]
+    }
+  ]
+}

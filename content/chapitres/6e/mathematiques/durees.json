@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "id": "durees",
+  "title": "Durées et horaires",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "published",
+  "sections": [
+    {
+      "id": "convertir-durees",
+      "title": "Convertir des durées",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 18,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "convertir des durées entre jours, heures, minutes et secondes ;",
+            "passer de l'écriture « 1 h 30 min » à l'écriture décimale « 1,5 h », et inversement ;",
+            "calculer une durée entre deux horaires, ou un horaire à partir d'une durée."
+          ]
+        },
+        {
+          "id": "table-unites-durees",
+          "type": "table",
+          "headers": [
+            "Unité",
+            "Égalité"
+          ],
+          "rows": [
+            [
+              "jour",
+              "1 j = 24 h"
+            ],
+            [
+              "heure",
+              "1 h = 60 min"
+            ],
+            [
+              "minute",
+              "1 min = 60 s"
+            ],
+            [
+              "quart d'heure",
+              "15 min"
+            ],
+            [
+              "demi-heure",
+              "30 min"
+            ],
+            [
+              "trois quarts d'heure",
+              "45 min"
+            ]
+          ]
+        },
+        {
+          "id": "piege-base-60",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Pas de 100 ici",
+          "text": "Une heure compte 60 minutes, pas 100. Les durées ne se comptent pas comme les nombres décimaux : on dit que leur écriture « h min s » est **sexagésimale** (en base 60)."
+        },
+        {
+          "id": "ex-heures-minutes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de minutes y a-t-il dans 3 h ?",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 180,
+          "tolerance": 0,
+          "unit": "min",
+          "explanation": "1 h = 60 min, donc 3 h = 3 × 60 = 180 min."
+        },
+        {
+          "id": "ex-secondes",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète la conversion.",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "150 s = {} min {} s",
+          "bank": [
+            "1",
+            "2",
+            "30",
+            "50",
+            "15"
+          ],
+          "expected": [
+            "2",
+            "30"
+          ],
+          "explanation": "2 min = 120 s, et 150 − 120 = 30 s. Donc 150 s = 2 min 30 s. Attention : ce n'est pas 1 min 50 s, car une minute compte 60 secondes et non 100."
+        },
+        {
+          "id": "def-decimal",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Écriture décimale d'une durée",
+          "text": "Une durée peut aussi s'écrire avec une virgule, en heures : **1,5 h** veut dire une heure et demie, soit **1 h 30 min**. Pour convertir la partie décimale en minutes, on la multiplie par 60 : 0,5 h = 0,5 × 60 min = 30 min."
+        },
+        {
+          "id": "ex-un-virgule-cinq",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "À quelle durée correspond 1,5 h ?",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1h30",
+              "text": "1 h 30 min",
+              "correct": true
+            },
+            {
+              "id": "choix-1h50",
+              "text": "1 h 50 min",
+              "correct": false
+            },
+            {
+              "id": "choix-1h05",
+              "text": "1 h 5 min",
+              "correct": false
+            },
+            {
+              "id": "choix-15min",
+              "text": "15 min",
+              "correct": false
+            }
+          ],
+          "explanation": "0,5 h, c'est une demi-heure : 0,5 × 60 = 30 min. Donc 1,5 h = 1 h 30 min. Répondre 1 h 50 min, c'est lire les chiffres après la virgule comme des minutes. 1 h 5 min, de même avec 0,5 lu comme 5 min."
+        },
+        {
+          "id": "ex-zero-virgule-deux",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de minutes y a-t-il dans 0,2 h ?",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "unit": "min",
+          "explanation": "0,2 × 60 = 12 min. (Et pas 20 min : 20 min, c'est un tiers d'heure, soit environ 0,33 h.)"
+        },
+        {
+          "id": "ex-deux-h-quarante-cinq",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Écris 2 h 45 min en heures, sous forme décimale.",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2.75,
+          "tolerance": 0,
+          "unit": "h",
+          "explanation": "45 min = trois quarts d'heure = 0,75 h. Donc 2 h 45 min = 2,75 h. Écrire 2,45 h serait faux : 0,45 h = 27 min."
+        }
+      ]
+    },
+    {
+      "id": "calculer-horaires",
+      "title": "Calculer avec des horaires",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "def-horaire-duree",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Horaire ou durée ?",
+          "text": "Un **horaire** indique un moment (le cours commence à 8 h 45). Une **durée** mesure le temps écoulé entre deux moments (le cours dure 55 min)."
+        },
+        {
+          "id": "methode-duree",
+          "type": "steps",
+          "title": "Calculer la durée de 8 h 45 à 10 h 20",
+          "steps": [
+            {
+              "text": "On avance jusqu'à l'heure ronde suivante : de 8 h 45 à 9 h, il y a 15 min."
+            },
+            {
+              "text": "On avance d'heure en heure : de 9 h à 10 h, il y a 1 h."
+            },
+            {
+              "text": "On termine : de 10 h à 10 h 20, il y a 20 min."
+            },
+            {
+              "text": "On additionne : 15 min + 1 h + 20 min = 1 h 35 min."
+            }
+          ]
+        },
+        {
+          "id": "ex-duree-cours",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un cours commence à 8 h 45 et finit à 10 h 20. Combien de minutes dure-t-il ?",
+          "competencies": [
+            "c3.gm.durees.calculer-horaires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 95,
+          "tolerance": 0,
+          "unit": "min",
+          "explanation": "De 8 h 45 à 9 h : 15 min. De 9 h à 10 h : 60 min. De 10 h à 10 h 20 : 20 min. Total : 15 + 60 + 20 = 95 min, soit 1 h 35 min."
+        },
+        {
+          "id": "tip-retenue",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Quand les minutes dépassent 60",
+          "text": "Pour 14 h 50 min + 1 h 25 min, on additionne les heures et les minutes : 15 h 75 min. Comme 75 min = 1 h 15 min, on obtient 16 h 15 min."
+        },
+        {
+          "id": "ex-addition-horaire",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Un train part à 14 h 50 et roule pendant 1 h 25 min. Complète son heure d'arrivée.",
+          "competencies": [
+            "c3.gm.durees.calculer-horaires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "Le train arrive à {} h {} min.",
+          "bank": [
+            "15",
+            "16",
+            "75",
+            "25",
+            "35"
+          ],
+          "expected": [
+            "16",
+            "15"
+          ],
+          "explanation": "14 h 50 + 1 h 25 = 15 h 75 min. Or 75 min = 1 h 15 min, donc le train arrive à 16 h 15. Écrire 15 h 75 n'a pas de sens : une heure ne compte que 60 minutes."
+        },
+        {
+          "id": "ex-film",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un film commence à 20 h 35 et dure 1 h 50 min. À quelle heure se termine-t-il ?",
+          "competencies": [
+            "c3.gm.durees.calculer-horaires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-22h25",
+              "text": "22 h 25",
+              "correct": true
+            },
+            {
+              "id": "choix-21h85",
+              "text": "21 h 85",
+              "correct": false
+            },
+            {
+              "id": "choix-22h85",
+              "text": "22 h 85",
+              "correct": false
+            },
+            {
+              "id": "choix-21h25",
+              "text": "21 h 25",
+              "correct": false
+            }
+          ],
+          "explanation": "20 h 35 + 1 h 50 = 21 h 85 min, et 85 min = 1 h 25 min : le film se termine à 22 h 25. 21 h 85 n'est pas un horaire valide (il faut convertir les minutes). 21 h 25, c'est oublier la retenue de 1 h."
+        }
+      ]
+    },
+    {
+      "id": "exercices-durees",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-final-jours",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien d'heures y a-t-il dans 3 jours ?",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 72,
+          "tolerance": 0,
+          "unit": "h",
+          "explanation": "1 j = 24 h, donc 3 j = 3 × 24 = 72 h."
+        },
+        {
+          "id": "ex-final-minutes-heures",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Écris 90 min en heures, sous forme décimale.",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 1.5,
+          "tolerance": 0,
+          "unit": "h",
+          "explanation": "90 min = 60 min + 30 min = 1 h + une demi-heure = 1,5 h."
+        },
+        {
+          "id": "ex-final-entrainement",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un entraînement commence à 17 h 40 et se termine à 19 h 05. Combien de minutes dure-t-il ?",
+          "competencies": [
+            "c3.gm.durees.calculer-horaires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 85,
+          "tolerance": 0,
+          "unit": "min",
+          "explanation": "De 17 h 40 à 18 h : 20 min. De 18 h à 19 h : 60 min. De 19 h à 19 h 05 : 5 min. Total : 85 min, soit 1 h 25 min."
+        },
+        {
+          "id": "ex-final-depart",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Un bus arrive à 11 h 10 après un trajet de 45 min. Complète son heure de départ.",
+          "competencies": [
+            "c3.gm.durees.calculer-horaires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "Le bus est parti à {} h {} min.",
+          "bank": [
+            "10",
+            "11",
+            "25",
+            "35",
+            "65"
+          ],
+          "expected": [
+            "10",
+            "25"
+          ],
+          "explanation": "On remonte le temps : 11 h 10 − 10 min = 11 h, puis 11 h − 35 min = 10 h 25. Le bus est parti à 10 h 25."
+        },
+        {
+          "id": "ex-final-nuit",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un train de nuit part à 22 h 40 et arrive le lendemain à 6 h 15. Combien de minutes dure le trajet ?",
+          "competencies": [
+            "c3.gm.durees.calculer-horaires"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 4,
+          "answer": 455,
+          "tolerance": 0,
+          "unit": "min",
+          "explanation": "De 22 h 40 à minuit : 1 h 20 min = 80 min. De minuit à 6 h 15 : 6 h 15 min = 375 min. Total : 80 + 375 = 455 min, soit 7 h 35 min."
+        },
+        {
+          "id": "ex-final-quart-secondes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de secondes y a-t-il dans un quart d'heure ?",
+          "competencies": [
+            "c3.gm.durees.convertir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 900,
+          "tolerance": 0,
+          "unit": "s",
+          "explanation": "Un quart d'heure = 15 min, et 1 min = 60 s : 15 × 60 = 900 s."
+        }
+      ]
+    }
+  ]
+}

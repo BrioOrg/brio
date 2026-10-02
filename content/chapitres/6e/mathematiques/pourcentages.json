@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 1,
+  "id": "pourcentages",
+  "title": "Les pourcentages",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "published",
+  "sections": [
+    {
+      "id": "sens-pourcentage",
+      "title": "Ce qu'est un pourcentage",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "lire un pourcentage et l'écrire sous forme de fraction ou de nombre décimal ;",
+            "exprimer une proportion sous forme de pourcentage dans des cas simples ;",
+            "appliquer un pourcentage à une quantité."
+          ]
+        },
+        {
+          "id": "intro-pourcentage",
+          "type": "prose",
+          "text": "On lit « 35 % » : « trente-cinq pour cent ». Cela veut dire **35 sur 100** : 35 parts quand le tout est partagé en 100 parts égales."
+        },
+        {
+          "id": "def-pourcentage",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Pourcentage",
+          "text": "Un pourcentage est une fraction de dénominateur 100. $35\\,\\% = \\frac{35}{100} = 0,35$."
+        },
+        {
+          "id": "table-ecritures",
+          "type": "table",
+          "headers": [
+            "Pourcentage",
+            "Fraction",
+            "Décimal"
+          ],
+          "rows": [
+            [
+              "50 %",
+              "$\\frac{50}{100} = \\frac{1}{2}$",
+              "0,5"
+            ],
+            [
+              "25 %",
+              "$\\frac{25}{100} = \\frac{1}{4}$",
+              "0,25"
+            ],
+            [
+              "75 %",
+              "$\\frac{75}{100} = \\frac{3}{4}$",
+              "0,75"
+            ],
+            [
+              "10 %",
+              "$\\frac{10}{100} = \\frac{1}{10}$",
+              "0,1"
+            ],
+            [
+              "100 %",
+              "$\\frac{100}{100} = 1$",
+              "1"
+            ]
+          ],
+          "caption": "Les pourcentages à connaître par cœur."
+        },
+        {
+          "id": "ex-quarante-pourcent",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel nombre décimal est égal à 40 % ?",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens",
+            "c3.num.decimaux.connaitre-ecritures"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-0-4",
+              "text": "0,4",
+              "correct": true
+            },
+            {
+              "id": "choix-40",
+              "text": "40",
+              "correct": false
+            },
+            {
+              "id": "choix-0-04",
+              "text": "0,04",
+              "correct": false
+            },
+            {
+              "id": "choix-4",
+              "text": "4",
+              "correct": false
+            }
+          ],
+          "explanation": "40 % = 40/100 = 0,4. Répondre 40, c'est oublier le « sur 100 ». Répondre 0,04, c'est diviser par 1 000 au lieu de 100 : 0,04 = 4 %. Répondre 4, c'est diviser par 10 seulement."
+        },
+        {
+          "id": "ex-vingt-cinq-pourcent",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète les égalités.",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens",
+            "c3.num.decimaux.connaitre-ecritures"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "25 % = {}/100 = {}",
+          "bank": [
+            "25",
+            "4",
+            "0,25",
+            "2,5",
+            "0,025"
+          ],
+          "expected": [
+            "25",
+            "0,25"
+          ],
+          "explanation": "25 % se lit « 25 sur 100 » : 25/100. Et 25 ÷ 100 = 0,25."
+        },
+        {
+          "id": "ex-sept-pourcent",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Écris 7 % sous forme d'un nombre décimal.",
+          "competencies": [
+            "c3.num.decimaux.connaitre-ecritures"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.07,
+          "tolerance": 0,
+          "explanation": "7 % = 7/100 = 0,07 : le 7 est au rang des centièmes. Attention à ne pas écrire 0,7, qui vaut 70 %."
+        }
+      ]
+    },
+    {
+      "id": "proportion-en-pourcentage",
+      "title": "Exprimer une proportion en pourcentage",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-proportion",
+          "type": "prose",
+          "text": "12 élèves sur 50 font du judo. Pour comparer facilement, on se demande : combien cela ferait-il **sur 100** ?"
+        },
+        {
+          "id": "methode-proportion",
+          "type": "steps",
+          "title": "Exprimer une proportion en pourcentage",
+          "steps": [
+            {
+              "text": "On écrit la proportion sous forme de fraction.",
+              "formula": "\\frac{12}{50}"
+            },
+            {
+              "text": "On cherche une fraction égale de dénominateur 100 (ici on multiplie par 2 en haut et en bas).",
+              "formula": "\\frac{12}{50} = \\frac{24}{100}"
+            },
+            {
+              "text": "On lit le pourcentage.",
+              "formula": "\\frac{24}{100} = 24\\,\\%"
+            }
+          ]
+        },
+        {
+          "id": "tip-reperes",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Des repères",
+          "text": "La moitié, c'est 50 %. Le quart, c'est 25 %. Les trois quarts, c'est 75 %. Le dixième, c'est 10 %. Le tout, c'est 100 %."
+        },
+        {
+          "id": "ex-neuf-sur-vingt",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans une classe, 9 élèves sur 20 portent des lunettes. Quel pourcentage des élèves cela représente-t-il ?",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 45,
+          "tolerance": 0,
+          "unit": "%",
+          "explanation": "9/20 : on multiplie par 5 en haut et en bas pour avoir 100 au dénominateur. 9/20 = 45/100 = 45 %."
+        },
+        {
+          "id": "ex-trois-sur-quatre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un club compte 3 filles sur 4 membres. Quel est le pourcentage de filles ?",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-75",
+              "text": "75 %",
+              "correct": true
+            },
+            {
+              "id": "choix-34",
+              "text": "34 %",
+              "correct": false
+            },
+            {
+              "id": "choix-3",
+              "text": "3 %",
+              "correct": false
+            },
+            {
+              "id": "choix-43",
+              "text": "43 %",
+              "correct": false
+            }
+          ],
+          "explanation": "3/4 = 75/100 = 75 % : trois quarts, c'est 75 %. Répondre 34 %, c'est coller les deux nombres 3 et 4. Répondre 3 %, c'est oublier que le tout vaut 4 et non 100. Répondre 43 %, c'est inverser et coller les nombres."
+        },
+        {
+          "id": "ex-dix-huit-sur-vingt-cinq",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une équipe a gagné 18 matchs sur 25. Quel pourcentage de matchs a-t-elle gagnés ?",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 72,
+          "tolerance": 0,
+          "unit": "%",
+          "explanation": "25 × 4 = 100, donc on multiplie aussi 18 par 4 : 18/25 = 72/100 = 72 %."
+        }
+      ]
+    },
+    {
+      "id": "appliquer-pourcentage",
+      "title": "Appliquer un pourcentage",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-appliquer",
+          "type": "prose",
+          "text": "Calculer 20 % de 45 €, c'est calculer les $\\frac{20}{100}$ de 45 € : comme pour une fraction d'une quantité."
+        },
+        {
+          "id": "formule-appliquer",
+          "type": "formula",
+          "latex": "20\\,\\% \\text{ de } 45 = \\frac{20}{100} \\times 45 = 0,2 \\times 45 = 9"
+        },
+        {
+          "id": "tip-dix-pourcent",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Passer par 10 %",
+          "text": "10 % d'un nombre, c'est ce nombre divisé par 10. Pour 30 %, on calcule 10 % puis on multiplie par 3. Exemple : 10 % de 150 = 15, donc 30 % de 150 = 45."
+        },
+        {
+          "id": "ex-dix-pourcent-quatre-vingts",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 10 % de 80.",
+          "competencies": [
+            "c3.num.pourcentages.appliquer"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "10 % = 1/10 : 80 ÷ 10 = 8."
+        },
+        {
+          "id": "ex-vingt-cinq-pourcent-trente-six",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 25 % de 36.",
+          "competencies": [
+            "c3.num.pourcentages.appliquer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "explanation": "25 %, c'est un quart : 36 ÷ 4 = 9."
+        },
+        {
+          "id": "piege-pourcentage-prix",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Réduction ou nouveau prix ?",
+          "text": "Une réduction de 20 % sur 40 € ne donne pas 20 €. On calcule d'abord la réduction (20 % de 40 € = 8 €), puis on la retire : 40 − 8 = 32 €."
+        },
+        {
+          "id": "ex-soldes-pull",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un pull coûte 40 €. Pendant les soldes, son prix baisse de 20 %. Quel est son nouveau prix ?",
+          "competencies": [
+            "c3.num.pourcentages.appliquer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-32",
+              "text": "32 €",
+              "correct": true
+            },
+            {
+              "id": "choix-20",
+              "text": "20 €",
+              "correct": false
+            },
+            {
+              "id": "choix-8",
+              "text": "8 €",
+              "correct": false
+            },
+            {
+              "id": "choix-48",
+              "text": "48 €",
+              "correct": false
+            }
+          ],
+          "explanation": "Réduction : 20 % de 40 € = 0,2 × 40 = 8 €. Nouveau prix : 40 − 8 = 32 €. Répondre 20 €, c'est retirer 20 € au lieu de 20 %. Répondre 8 €, c'est donner la réduction et non le prix. Répondre 48 €, c'est ajouter la réduction au lieu de la retirer."
+        }
+      ]
+    },
+    {
+      "id": "exercices-pourcentages",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "ex-final-moitie",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Lequel de ces pourcentages représente la moitié d'une quantité ?",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-50",
+              "text": "50 %",
+              "correct": true
+            },
+            {
+              "id": "choix-2",
+              "text": "2 %",
+              "correct": false
+            },
+            {
+              "id": "choix-12",
+              "text": "12 %",
+              "correct": false
+            },
+            {
+              "id": "choix-20",
+              "text": "20 %",
+              "correct": false
+            }
+          ],
+          "explanation": "La moitié = 1/2 = 50/100 = 50 %. Répondre 2 % ou 20 %, c'est confondre « diviser par 2 » avec le nombre 2. Répondre 12 %, c'est lire « 1 sur 2 » comme 12."
+        },
+        {
+          "id": "ex-final-huit-sur-dix",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Lina a réussi 8 exercices sur 10. Quel pourcentage d'exercices a-t-elle réussis ?",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 80,
+          "tolerance": 0,
+          "unit": "%",
+          "explanation": "8/10 = 80/100 = 80 %."
+        },
+        {
+          "id": "ex-final-ecritures",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète : un pourcentage, une fraction et un nombre décimal égaux.",
+          "competencies": [
+            "c3.num.pourcentages.comprendre-sens",
+            "c3.num.decimaux.connaitre-ecritures"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "{} = 3/4 = {}",
+          "bank": [
+            "75 %",
+            "34 %",
+            "0,75",
+            "0,34",
+            "3,4"
+          ],
+          "expected": [
+            "75 %",
+            "0,75"
+          ],
+          "explanation": "3/4 = 75/100 = 75 %, et 75/100 = 0,75. Les écritures 34 %, 0,34 et 3,4 collent les chiffres 3 et 4 sans faire la division."
+        },
+        {
+          "id": "ex-final-trente-pourcent",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 30 % de 150.",
+          "competencies": [
+            "c3.num.pourcentages.appliquer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 45,
+          "tolerance": 0,
+          "explanation": "10 % de 150 = 15, donc 30 % de 150 = 15 × 3 = 45."
+        },
+        {
+          "id": "ex-final-college",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un collège compte 600 élèves. 15 % viennent à vélo. Combien d'élèves viennent à vélo ?",
+          "competencies": [
+            "c3.num.pourcentages.appliquer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 90,
+          "tolerance": 0,
+          "explanation": "10 % de 600 = 60. 5 % = la moitié de 10 % = 30. 15 % = 60 + 30 = 90 élèves."
+        },
+        {
+          "id": "ex-final-reduction-velo",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un vélo coûte 250 €. Le magasin accorde une réduction de 10 %. Combien paie-t-on ce vélo ?",
+          "competencies": [
+            "c3.num.pourcentages.appliquer"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 225,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "Réduction : 10 % de 250 € = 25 €. Prix payé : 250 − 25 = 225 €."
+        }
+      ]
+    }
+  ]
+}

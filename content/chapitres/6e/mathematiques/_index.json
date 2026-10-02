@@ -1,1 +1,24 @@
-["nombres-decimaux-notation", "nombres-decimaux-comparer-ranger", "nombres-decimaux-operations", "fractions"]
+[
+  "nombres-decimaux-notation",
+  "nombres-decimaux-comparer-ranger",
+  "nombres-decimaux-operations",
+  "fractions",
+  "fractions-operations",
+  "pourcentages",
+  "pre-algebre",
+  "distances-milieu",
+  "cercles-disques",
+  "mediatrice",
+  "angles-bissectrice",
+  "triangles",
+  "symetrie-axiale",
+  "espace-solides",
+  "perimetres",
+  "aires",
+  "volumes",
+  "durees",
+  "donnees-tableaux",
+  "probabilites",
+  "proportionnalite",
+  "instructions-programmes"
+]

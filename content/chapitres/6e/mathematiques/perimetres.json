@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "id": "perimetres",
+  "title": "Périmètres : cercle et figures composées",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "published",
+  "sections": [
+    {
+      "id": "perimetre-rappels",
+      "title": "Le périmètre, rappels",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 8,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "savoir que le périmètre d'un cercle est proportionnel à son diamètre ;",
+            "calculer le périmètre d'un cercle avec la formule ;",
+            "calculer le périmètre d'une figure dont le contour contient des arcs de cercle."
+          ]
+        },
+        {
+          "id": "def-perimetre",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Périmètre",
+          "text": "Le **périmètre** d'une figure est la longueur de son contour. Pour un rectangle de longueur L et de largeur ℓ : P = 2 × (L + ℓ). Pour un carré de côté c : P = 4 × c."
+        },
+        {
+          "id": "note-unites",
+          "type": "callout",
+          "variant": "note",
+          "title": "Unités",
+          "text": "Un périmètre est une longueur : il s'exprime en mm, cm, m, km… Toutes les longueurs d'un calcul doivent être dans la même unité."
+        }
+      ]
+    },
+    {
+      "id": "perimetre-cercle",
+      "title": "Le périmètre d'un cercle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "intro-cercle",
+          "type": "prose",
+          "text": "On enroule une ficelle autour de plusieurs objets ronds et on la mesure. Quel que soit l'objet, le périmètre vaut **un peu plus de 3 fois** le diamètre. Ce nombre est toujours le même : on l'appelle **π** (« pi »), et π ≈ 3,14."
+        },
+        {
+          "id": "table-proportionnalite",
+          "type": "table",
+          "headers": [
+            "Diamètre (cm)",
+            "1",
+            "2",
+            "5",
+            "10"
+          ],
+          "rows": [
+            [
+              "Périmètre (cm, environ)",
+              "3,14",
+              "6,28",
+              "15,7",
+              "31,4"
+            ]
+          ],
+          "caption": "Le périmètre du cercle est proportionnel à son diamètre."
+        },
+        {
+          "id": "def-formule",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Formule",
+          "text": "Le périmètre d'un cercle de diamètre D (ou de rayon r) est"
+        },
+        {
+          "id": "formule-perimetre",
+          "type": "formula",
+          "latex": "P = \\pi \\times D = 2 \\times \\pi \\times r"
+        },
+        {
+          "id": "tip-valeur-pi",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Une valeur approchée",
+          "text": "π n'est pas un nombre décimal : on utilise une valeur approchée, 3,14, et le résultat est une **valeur approchée** du périmètre. Dans ce chapitre, prends π ≈ 3,14."
+        },
+        {
+          "id": "ex-diametre-dix",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule le périmètre d'un cercle de diamètre 10 cm. Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-disque"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 31.4,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "P = π × D ≈ 3,14 × 10 = 31,4 cm."
+        },
+        {
+          "id": "ex-rayon-cinq",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule le périmètre d'un cercle de rayon 6 cm. Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-disque"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 37.68,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "P = 2 × π × r ≈ 2 × 3,14 × 6 = 37,68 cm. Attention : avec le rayon, on n'oublie pas le facteur 2 (le diamètre vaut 12 cm)."
+        },
+        {
+          "id": "ex-double-diametre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Si l'on double le diamètre d'un cercle, que devient son périmètre ?",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-disque"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-double",
+              "text": "Il double.",
+              "correct": true
+            },
+            {
+              "id": "choix-meme",
+              "text": "Il ne change pas.",
+              "correct": false
+            },
+            {
+              "id": "choix-plus-deux",
+              "text": "Il augmente de 2.",
+              "correct": false
+            },
+            {
+              "id": "choix-quadruple",
+              "text": "Il est multiplié par 4.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le périmètre est proportionnel au diamètre : P = π × D. Si D est multiplié par 2, P aussi. Il augmenterait de 2 seulement si on additionnait. Multiplier par 4, ce sera le cas de l'aire du disque, que tu étudieras plus tard."
+        }
+      ]
+    },
+    {
+      "id": "figures-composees",
+      "title": "Figures composées",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "intro-composees",
+          "type": "prose",
+          "text": "Le contour d'une figure peut mêler des segments et des **arcs de cercle**. On calcule chaque morceau du contour séparément, puis on additionne. Un demi-cercle a pour longueur la moitié du périmètre du cercle entier."
+        },
+        {
+          "id": "methode-demi-disque",
+          "type": "steps",
+          "title": "Périmètre d'un demi-disque de diamètre 8 cm",
+          "steps": [
+            {
+              "text": "Longueur de l'arc : la moitié du périmètre du cercle.",
+              "formula": "\\frac{3,14 \\times 8}{2} = 12,56 \\text{ cm}"
+            },
+            {
+              "text": "On ajoute le diamètre, qui ferme le contour.",
+              "formula": "12,56 + 8 = 20,56 \\text{ cm}"
+            }
+          ]
+        },
+        {
+          "id": "piege-diametre",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Ne pas oublier les segments",
+          "text": "Le contour d'un demi-disque est fait de l'arc **et** du diamètre. Oublier le diamètre est l'erreur la plus fréquente."
+        },
+        {
+          "id": "ex-demi-disque",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel est le périmètre d'un demi-disque de diamètre 10 cm ? Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-compose"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-25-7",
+              "text": "25,7 cm",
+              "correct": true
+            },
+            {
+              "id": "choix-15-7",
+              "text": "15,7 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-31-4",
+              "text": "31,4 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-41-4",
+              "text": "41,4 cm",
+              "correct": false
+            }
+          ],
+          "explanation": "Arc : 3,14 × 10 ÷ 2 = 15,7 cm. On ajoute le diamètre : 15,7 + 10 = 25,7 cm. Répondre 15,7 cm, c'est oublier le diamètre. 31,4 cm est le périmètre du cercle entier. 41,4 cm, c'est le cercle entier plus le diamètre."
+        },
+        {
+          "id": "exemple-piste",
+          "type": "callout",
+          "variant": "example",
+          "title": "Une piste d'athlétisme",
+          "text": "Une piste est formée de deux lignes droites de 100 m et de deux demi-cercles de diamètre 60 m. Les deux demi-cercles forment un cercle entier : 3,14 × 60 = 188,4 m. Périmètre : 100 + 100 + 188,4 = 388,4 m."
+        },
+        {
+          "id": "ex-piste",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un terrain est formé d'un rectangle de 50 m sur 20 m, avec un demi-disque collé sur chacune des deux largeurs de 20 m. Quelle est la longueur de son contour ? Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-compose"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 162.8,
+          "tolerance": 0.01,
+          "unit": "m",
+          "explanation": "Le contour comprend les deux longueurs de 50 m (les largeurs sont à l'intérieur, remplacées par les arcs). Les deux demi-cercles de diamètre 20 m forment un cercle entier : 3,14 × 20 = 62,8 m. Total : 50 + 50 + 62,8 = 162,8 m."
+        }
+      ]
+    },
+    {
+      "id": "exercices-perimetres",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-final-roue",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "La roue d'un vélo a un diamètre de 0,7 m. Quelle distance parcourt le vélo quand la roue fait un tour complet ? Prends 3,14 pour π et arrondis au centième.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-disque"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2.2,
+          "tolerance": 0.005,
+          "unit": "m",
+          "explanation": "Un tour de roue = le périmètre de la roue : 3,14 × 0,7 = 2,198 m, soit environ 2,20 m."
+        },
+        {
+          "id": "ex-final-rayon",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule le périmètre d'un cercle de rayon 2,5 cm. Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-disque"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 15.7,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "P = 2 × 3,14 × 2,5 = 15,7 cm."
+        },
+        {
+          "id": "ex-final-diametre-inverse",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un cercle a un périmètre de 47,1 cm. Quel est son diamètre ? Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-disque"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 15,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "P = 3,14 × D, donc D = 47,1 ÷ 3,14 = 15 cm. Vérification : 3,14 × 15 = 47,1."
+        },
+        {
+          "id": "ex-final-quart",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une figure est formée d'un quart de disque de rayon 4 cm. Calcule son périmètre (l'arc et les deux rayons). Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-compose"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 14.28,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "Arc : le quart du cercle, 2 × 3,14 × 4 ÷ 4 = 6,28 cm. On ajoute les deux rayons : 6,28 + 4 + 4 = 14,28 cm."
+        },
+        {
+          "id": "ex-final-fenetre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une fenêtre a la forme d'un carré de 80 cm de côté surmonté d'un demi-disque de diamètre 80 cm. Quelle est la longueur de son contour ? Prends 3,14 pour π.",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-compose"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 365.6,
+          "tolerance": 0.01,
+          "unit": "cm",
+          "explanation": "Le contour comprend trois côtés du carré (le quatrième est caché sous le demi-disque) : 3 × 80 = 240 cm. L'arc : 3,14 × 80 ÷ 2 = 125,6 cm. Total : 240 + 125,6 = 365,6 cm."
+        },
+        {
+          "id": "ex-final-proportionnel",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un cercle de diamètre 4 cm a un périmètre d'environ 12,56 cm. Quel est environ le périmètre d'un cercle de diamètre 12 cm ?",
+          "competencies": [
+            "c3.gm.longueurs.calculer-perimetre-disque"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-37-68",
+              "text": "37,68 cm",
+              "correct": true
+            },
+            {
+              "id": "choix-20-56",
+              "text": "20,56 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-12-56",
+              "text": "12,56 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-150-72",
+              "text": "150,72 cm",
+              "correct": false
+            }
+          ],
+          "explanation": "Le diamètre est multiplié par 3 (4 × 3 = 12), donc le périmètre aussi : 12,56 × 3 = 37,68 cm. 20,56 cm, c'est ajouter 8 au lieu de multiplier par 3. 150,72 cm, c'est multiplier par 12."
+        }
+      ]
+    }
+  ]
+}

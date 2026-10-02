@@ -1,0 +1,617 @@
+{
+  "schemaVersion": 1,
+  "id": "proportionnalite",
+  "title": "La proportionnalité",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 70,
+  "status": "published",
+  "sections": [
+    {
+      "id": "reconnaitre",
+      "title": "Reconnaître une situation de proportionnalité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "reconnaître si deux grandeurs sont proportionnelles ;",
+            "représenter une situation de proportionnalité par un tableau ;",
+            "résoudre un problème en choisissant une procédure : multiplier, additionner, passer par l'unité ;",
+            "utiliser une échelle pour trouver une longueur réelle."
+          ]
+        },
+        {
+          "id": "def-proportionnalite",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Grandeurs proportionnelles",
+          "text": "Deux grandeurs sont **proportionnelles** quand on obtient toujours les valeurs de la seconde en **multipliant** celles de la première par un **même nombre**, appelé **coefficient de proportionnalité**."
+        },
+        {
+          "id": "exemple-pommes",
+          "type": "callout",
+          "variant": "example",
+          "title": "Le prix des pommes",
+          "text": "Les pommes coûtent 2,50 € le kilogramme. Le prix est proportionnel à la masse : on multiplie toujours la masse (en kg) par 2,5. Le « prix au kilogramme » est le coefficient."
+        },
+        {
+          "id": "table-pommes",
+          "type": "table",
+          "headers": [
+            "Masse (kg)",
+            "1",
+            "2",
+            "3",
+            "5"
+          ],
+          "rows": [
+            [
+              "Prix (€)",
+              "2,50",
+              "5",
+              "7,50",
+              "12,50"
+            ]
+          ],
+          "caption": "Chaque prix s'obtient en multipliant la masse par 2,5."
+        },
+        {
+          "id": "ex-situation-proportionnelle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces situations est une situation de proportionnalité ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.identifier"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-carburant",
+              "text": "Le prix payé et le nombre de litres d'essence achetés.",
+              "correct": true
+            },
+            {
+              "id": "choix-taille",
+              "text": "La taille d'un enfant et son âge.",
+              "correct": false
+            },
+            {
+              "id": "choix-taxi",
+              "text": "Le prix d'un taxi qui fait payer 4 € de prise en charge plus 2 € par km, et la distance.",
+              "correct": false
+            },
+            {
+              "id": "choix-temperature",
+              "text": "La température et l'heure de la journée.",
+              "correct": false
+            }
+          ],
+          "explanation": "L'essence a un prix par litre : on multiplie toujours le nombre de litres par ce prix. La taille ne double pas quand l'âge double. Pour le taxi, les 4 € de départ cassent la proportionnalité : 1 km coûte 6 €, mais 2 km coûtent 8 €, pas 12 €. La température monte puis redescend dans la journée."
+        },
+        {
+          "id": "table-a-tester",
+          "type": "table",
+          "headers": [
+            "Nombre de places",
+            "2",
+            "3",
+            "5"
+          ],
+          "rows": [
+            [
+              "Prix (€)",
+              "14",
+              "21",
+              "35"
+            ]
+          ]
+        },
+        {
+          "id": "ex-tableau-proportionnel",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le tableau ci-dessus est-il un tableau de proportionnalité ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.identifier"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-oui-7",
+              "text": "Oui, on multiplie toujours par 7.",
+              "correct": true
+            },
+            {
+              "id": "choix-non",
+              "text": "Non, car les prix n'augmentent pas de 7 à chaque fois.",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-plus",
+              "text": "Oui, car les prix augmentent.",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut pas savoir sans le prix d'une place.",
+              "correct": false
+            }
+          ],
+          "explanation": "2 × 7 = 14, 3 × 7 = 21, 5 × 7 = 35 : on multiplie toujours par 7, c'est proportionnel. Que les prix augmentent ne suffit pas (la taille augmente avec l'âge sans être proportionnelle). On retrouve le prix d'une place en divisant : 14 ÷ 2 = 7 €."
+        },
+        {
+          "id": "ex-prix-au-kilo",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "3 kg de tomates coûtent 7,50 €. Le prix est proportionnel à la masse. Quel est le prix d'un kilogramme ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.identifier",
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2.5,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "On divise par 3 : 7,50 ÷ 3 = 2,50 €. C'est le prix au kilogramme, le coefficient de proportionnalité."
+        }
+      ]
+    },
+    {
+      "id": "resoudre",
+      "title": "Résoudre un problème de proportionnalité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "intro-procedures",
+          "type": "prose",
+          "text": "Pour trouver une valeur manquante, plusieurs procédures sont possibles. On choisit celle qui rend le calcul le plus simple."
+        },
+        {
+          "id": "table-procedures",
+          "type": "table",
+          "headers": [
+            "Procédure",
+            "Idée",
+            "Exemple (4 cahiers coûtent 6 €)"
+          ],
+          "rows": [
+            [
+              "Linéarité multiplicative",
+              "Si une quantité est multipliée par un nombre, l'autre aussi.",
+              "12 cahiers = 3 fois plus : 6 × 3 = 18 €."
+            ],
+            [
+              "Linéarité additive",
+              "On additionne deux situations connues.",
+              "4 cahiers (6 €) + 2 cahiers (3 €) = 6 cahiers : 9 €."
+            ],
+            [
+              "Retour à l'unité",
+              "On calcule la valeur pour 1, puis on multiplie.",
+              "1 cahier : 6 ÷ 4 = 1,50 €. 7 cahiers : 1,50 × 7 = 10,50 €."
+            ]
+          ]
+        },
+        {
+          "id": "ex-lineaire-multiplicative",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "4 cahiers coûtent 6 €. Combien coûtent 12 cahiers identiques ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 18,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "12 = 4 × 3 : on achète 3 fois plus de cahiers, on paie 3 fois plus. 6 × 3 = 18 €."
+        },
+        {
+          "id": "ex-additive",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "3 kg de pommes de terre coûtent 4,50 € et 5 kg coûtent 7,50 €. Combien coûtent 8 kg ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "8 kg = 3 kg + 5 kg, donc le prix est 4,50 + 7,50 = 12 €."
+        },
+        {
+          "id": "ex-retour-unite",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "5 stylos identiques coûtent 7 €. Combien coûtent 3 stylos ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.2,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "Retour à l'unité : 1 stylo coûte 7 ÷ 5 = 1,40 €. 3 stylos coûtent 1,40 × 3 = 4,20 €."
+        },
+        {
+          "id": "piege-additif",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Ajouter le même nombre ne marche pas",
+          "text": "Pour 4 personnes, il faut 3 œufs. Pour 6 personnes, il ne faut pas « 2 de plus », donc 5 œufs : on a 2 personnes de plus, soit la moitié de 4, il faut donc la moitié de 3 œufs en plus. 3 + 1,5 = 4,5 œufs."
+        },
+        {
+          "id": "ex-recette-farine",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une recette pour 4 personnes demande 200 g de farine. Combien de farine faut-il pour 6 personnes ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-300",
+              "text": "300 g",
+              "correct": true
+            },
+            {
+              "id": "choix-202",
+              "text": "202 g",
+              "correct": false
+            },
+            {
+              "id": "choix-1200",
+              "text": "1 200 g",
+              "correct": false
+            },
+            {
+              "id": "choix-250",
+              "text": "250 g",
+              "correct": false
+            }
+          ],
+          "explanation": "6 personnes = 4 personnes + 2 personnes. 2 personnes, c'est la moitié de 4 : 100 g. Total : 200 + 100 = 300 g. 202 g, c'est ajouter 2 grammes parce qu'il y a 2 personnes de plus. 1 200 g, c'est multiplier par 6 sans diviser par 4. 250 g ne correspond à aucun calcul de proportionnalité."
+        }
+      ]
+    },
+    {
+      "id": "representer",
+      "title": "Représenter une situation de proportionnalité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-tableau",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Tableau de proportionnalité",
+          "text": "On écrit les deux grandeurs, **avec leurs unités**, sur deux lignes. On passe de la première ligne à la seconde en multipliant toujours par le même coefficient, que l'on peut écrire à côté du tableau : « × 2,5 »."
+        },
+        {
+          "id": "note-fleche",
+          "type": "callout",
+          "variant": "note",
+          "title": "Une écriture avec des flèches",
+          "text": "On peut aussi noter « 3 kg → 7,50 € » : à 3 kg correspond un prix de 7,50 €. C'est une façon rapide de représenter une situation."
+        },
+        {
+          "id": "ex-completer-tableau",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Un cycliste roule à vitesse constante : il parcourt 15 km par heure. Complète le tableau.",
+          "competencies": [
+            "c3.ogd.proportionnalite.representer",
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "Durée (h) : 1 ; 2 ; 4. Distance (km) : 15 ; {} ; {}",
+          "bank": [
+            "17",
+            "30",
+            "45",
+            "60",
+            "19"
+          ],
+          "expected": [
+            "30",
+            "60"
+          ],
+          "explanation": "Le coefficient est 15 (km par heure) : 2 × 15 = 30 km et 4 × 15 = 60 km. 17 et 19, c'est ajouter 2 ou 4 au lieu de multiplier."
+        },
+        {
+          "id": "ex-coefficient",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans un tableau de proportionnalité, la première ligne est « 2 ; 5 ; 8 » et la seconde « 6 ; 15 ; 24 ». Quel est le coefficient ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.representer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3",
+              "text": "× 3",
+              "correct": true
+            },
+            {
+              "id": "choix-4",
+              "text": "+ 4",
+              "correct": false
+            },
+            {
+              "id": "choix-10",
+              "text": "+ 10",
+              "correct": false
+            },
+            {
+              "id": "choix-2",
+              "text": "× 2",
+              "correct": false
+            }
+          ],
+          "explanation": "2 × 3 = 6, 5 × 3 = 15, 8 × 3 = 24 : le coefficient est 3. Un coefficient de proportionnalité est toujours un multiplicateur, jamais un nombre que l'on ajoute. × 2 donnerait 4, 10 et 16."
+        },
+        {
+          "id": "ex-valeur-manquante-tableau",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un tableau de proportionnalité a pour première ligne « 4 ; 10 » et pour seconde ligne « 6 ; ? ». Quelle est la valeur manquante ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.representer",
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 15,
+          "tolerance": 0,
+          "explanation": "On passe de 4 à 6 en multipliant par 1,5 (6 ÷ 4 = 1,5). Donc ? = 10 × 1,5 = 15. Autre méthode : 10 = 4 × 2,5, donc ? = 6 × 2,5 = 15."
+        }
+      ]
+    },
+    {
+      "id": "echelles",
+      "title": "Les échelles",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-echelle",
+          "type": "prose",
+          "text": "Sur un plan ou une carte, les longueurs sont **proportionnelles** aux longueurs réelles. Une **échelle graphique** est un segment qui indique la distance réelle qu'il représente."
+        },
+        {
+          "id": "exemple-echelle",
+          "type": "callout",
+          "variant": "example",
+          "title": "Une échelle graphique",
+          "text": "Sur une carte, un segment de 2 cm représente 500 m. Une distance de 6 cm sur la carte est 3 fois plus longue que le segment : la distance réelle est 500 × 3 = 1 500 m."
+        },
+        {
+          "id": "ex-echelle-graphique",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur un plan, l'échelle graphique indique que 1 cm représente 2 km. Deux villages sont à 4,5 cm l'un de l'autre sur le plan. Quelle est la distance réelle ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.echelles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "unit": "km",
+          "explanation": "4,5 cm, c'est 4,5 fois 1 cm : 4,5 × 2 = 9 km."
+        },
+        {
+          "id": "ex-echelle-segment",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur une carte, un segment de 3 cm représente 600 m. Quelle distance réelle représente 1 cm ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.echelles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 200,
+          "tolerance": 0,
+          "unit": "m",
+          "explanation": "Retour à l'unité : 600 ÷ 3 = 200 m pour 1 cm."
+        }
+      ]
+    },
+    {
+      "id": "exercices-proportionnalite",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-final-essence",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "20 L d'essence coûtent 36 €. Combien coûtent 5 L ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "5 L = 20 L ÷ 4, donc le prix est 36 ÷ 4 = 9 €."
+        },
+        {
+          "id": "ex-final-confiture",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Pour faire de la confiture, il faut 750 g de sucre pour 1 kg de fruits. Combien de sucre faut-il pour 3,5 kg de fruits ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2625,
+          "tolerance": 0,
+          "unit": "g",
+          "explanation": "La masse de sucre est proportionnelle à la masse de fruits, coefficient 750 : 3,5 × 750 = 2 625 g."
+        },
+        {
+          "id": "ex-final-non-proportionnel",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un tableau a pour première ligne « 1 ; 2 ; 3 » et pour seconde ligne « 5 ; 10 ; 16 ». Est-ce un tableau de proportionnalité ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.identifier",
+            "c3.ogd.proportionnalite.representer"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non, car 3 × 5 = 15 et non 16.",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "Oui, car on multiplie par 5.",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-presque",
+              "text": "Oui, car les valeurs sont proches.",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut pas savoir.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le coefficient devrait être 5 (1 × 5 = 5, 2 × 5 = 10), mais 3 × 5 = 15 ≠ 16. Il suffit d'une valeur qui ne suit pas la règle pour que ce ne soit pas proportionnel, même de peu."
+        },
+        {
+          "id": "ex-final-echelle-reelle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur un plan de maison, l'échelle graphique indique que 2 cm représentent 1 m. La cuisine mesure 7 cm de long sur le plan. Quelle est sa longueur réelle ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.echelles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3.5,
+          "tolerance": 0,
+          "unit": "m",
+          "explanation": "1 cm représente 1 ÷ 2 = 0,5 m. 7 cm représentent 7 × 0,5 = 3,5 m."
+        },
+        {
+          "id": "ex-final-arrosage",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un robinet remplit un seau de 10 L en 2 minutes, à débit constant. Combien de litres remplit-il en 7 minutes ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.resoudre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 35,
+          "tolerance": 0,
+          "unit": "L",
+          "explanation": "Retour à l'unité : 10 ÷ 2 = 5 L par minute. En 7 minutes : 5 × 7 = 35 L."
+        },
+        {
+          "id": "ex-final-age-pas",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Tom mesure 1,20 m à 8 ans. Peut-on prévoir sa taille à 16 ans par proportionnalité ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.identifier"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non, la taille n'est pas proportionnelle à l'âge.",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-240",
+              "text": "Oui : 2,40 m, car l'âge double.",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-128",
+              "text": "Oui : 1,28 m, car il a 8 ans de plus.",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-160",
+              "text": "Oui : 1,60 m.",
+              "correct": false
+            }
+          ],
+          "explanation": "La croissance ralentit puis s'arrête : la taille n'est pas proportionnelle à l'âge. Personne ne mesure 2,40 m parce qu'il a doublé son âge. Ajouter 8 cm parce qu'il a 8 ans de plus n'a pas de sens non plus. Avant d'utiliser la proportionnalité, on vérifie toujours que la situation s'y prête."
+        },
+        {
+          "id": "ex-final-echelle-carte",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur une carte, l'échelle graphique indique que 1 cm représente 5 km. Deux villes sont à 3 cm l'une de l'autre sur la carte. Quelle est la distance réelle ?",
+          "competencies": [
+            "c3.ogd.proportionnalite.echelles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-15",
+              "text": "15 km",
+              "correct": true
+            },
+            {
+              "id": "choix-8",
+              "text": "8 km",
+              "correct": false
+            },
+            {
+              "id": "choix-3",
+              "text": "3 km",
+              "correct": false
+            },
+            {
+              "id": "choix-1-67",
+              "text": "environ 1,67 km",
+              "correct": false
+            }
+          ],
+          "explanation": "3 cm, c'est 3 fois 1 cm : 3 × 5 = 15 km. 8 km, c'est additionner 3 et 5. 3 km, c'est oublier l'échelle. 1,67 km, c'est diviser 5 par 3 au lieu de multiplier."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,700 @@
+{
+  "schemaVersion": 1,
+  "id": "triangles",
+  "title": "Les triangles : construction et propriétés",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 70,
+  "status": "published",
+  "sections": [
+    {
+      "id": "construire-triangle",
+      "title": "Construire un triangle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "construire un triangle à partir de longueurs et d'angles ;",
+            "utiliser les propriétés des triangles isocèles, équilatéraux et rectangles ;",
+            "utiliser la somme des angles d'un triangle ;",
+            "construire le cercle circonscrit à un triangle."
+          ]
+        },
+        {
+          "id": "methode-trois-longueurs",
+          "type": "steps",
+          "title": "Construire ABC avec AB = 6 cm, AC = 4 cm, BC = 5 cm",
+          "steps": [
+            {
+              "text": "On trace le segment [AB] de 6 cm."
+            },
+            {
+              "text": "On trace un arc de cercle de centre A et de rayon 4 cm : C est à 4 cm de A."
+            },
+            {
+              "text": "On trace un arc de cercle de centre B et de rayon 5 cm : C est à 5 cm de B."
+            },
+            {
+              "text": "Le point C est à l'intersection des deux arcs. On trace [AC] et [BC]."
+            }
+          ]
+        },
+        {
+          "id": "note-autres-donnees",
+          "type": "callout",
+          "variant": "note",
+          "title": "Avec des angles",
+          "text": "On peut aussi construire un triangle à partir de deux longueurs et de l'angle qu'elles forment, ou d'une longueur et des deux angles à ses extrémités : on utilise alors le rapporteur."
+        },
+        {
+          "id": "piege-inegalite",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Toutes les longueurs ne conviennent pas",
+          "text": "Avec 2 cm, 3 cm et 7 cm, les deux arcs ne se coupent jamais : 2 + 3 = 5 est plus petit que 7. Pour qu'un triangle existe, la plus grande longueur doit être plus petite que la somme des deux autres."
+        },
+        {
+          "id": "ex-triangle-possible",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Avec lequel de ces trois triplets de longueurs peut-on construire un triangle ?",
+          "competencies": [
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-4-5-6",
+              "text": "4 cm, 5 cm et 6 cm",
+              "correct": true
+            },
+            {
+              "id": "choix-2-3-7",
+              "text": "2 cm, 3 cm et 7 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-1-2-4",
+              "text": "1 cm, 2 cm et 4 cm",
+              "correct": false
+            },
+            {
+              "id": "choix-3-4-9",
+              "text": "3 cm, 4 cm et 9 cm",
+              "correct": false
+            }
+          ],
+          "explanation": "La plus grande longueur doit être plus petite que la somme des deux autres. 6 < 4 + 5 = 9 : le triangle existe. Pour les autres : 7 > 2 + 3, 4 > 1 + 2 et 9 > 3 + 4 : les arcs ne se coupent pas."
+        },
+        {
+          "id": "ex-construire-triangle",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, construis le triangle EFG tel que EF = 7 cm, EG = 5 cm et FG = 4 cm.",
+          "competencies": [
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 5,
+          "solution": "Trace [EF] de 7 cm, puis un arc de centre E de rayon 5 cm et un arc de centre F de rayon 4 cm. G est à leur intersection. Contrôle à la règle : EG = 5 cm et FG = 4 cm."
+        }
+      ]
+    },
+    {
+      "id": "triangles-particuliers",
+      "title": "Les triangles particuliers",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "def-isocele",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Triangle isocèle",
+          "text": "Un triangle **isocèle** a deux côtés de même longueur. Le point commun à ces deux côtés est le **sommet principal**, le troisième côté est la **base**. Ses deux **angles à la base** ont la même mesure."
+        },
+        {
+          "id": "fig-isocele",
+          "type": "figure",
+          "alt": "Triangle ABC isocèle en C : les côtés [CA] et [CB] portent le même codage.",
+          "caption": "ABC est isocèle en C.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 6,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "C",
+                "x": 3,
+                "y": 4,
+                "label": {
+                  "placement": "above"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "C",
+                "to": "A"
+              },
+              {
+                "from": "C",
+                "to": "B"
+              },
+              {
+                "from": "A",
+                "to": "B"
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "CA",
+                "ticks": 1
+              },
+              {
+                "segment": "CB",
+                "ticks": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-equilateral",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Triangle équilatéral",
+          "text": "Un triangle **équilatéral** a ses trois côtés de même longueur. Ses trois angles mesurent **60°**."
+        },
+        {
+          "id": "fig-equilateral",
+          "type": "figure",
+          "alt": "Triangle DEF dont les trois côtés portent le même codage.",
+          "caption": "DEF est équilatéral.",
+          "spec": {
+            "points": [
+              {
+                "name": "D",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "E",
+                "x": 4,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "F",
+                "x": 2,
+                "y": 3.464102,
+                "label": {
+                  "placement": "above"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "D",
+                "to": "E"
+              },
+              {
+                "from": "E",
+                "to": "F"
+              },
+              {
+                "from": "F",
+                "to": "D"
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "DE",
+                "ticks": 2
+              },
+              {
+                "segment": "EF",
+                "ticks": 2
+              },
+              {
+                "segment": "FD",
+                "ticks": 2
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-rectangle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Triangle rectangle",
+          "text": "Un triangle **rectangle** a un angle droit. Ses deux autres angles sont aigus."
+        },
+        {
+          "id": "ex-isocele-angles",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le triangle RST est isocèle en R. Quels angles sont forcément égaux ?",
+          "competencies": [
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-s-t",
+              "text": "$\\widehat{RST}$ et $\\widehat{RTS}$",
+              "correct": true
+            },
+            {
+              "id": "choix-r-s",
+              "text": "$\\widehat{SRT}$ et $\\widehat{RST}$",
+              "correct": false
+            },
+            {
+              "id": "choix-tous",
+              "text": "Les trois angles.",
+              "correct": false
+            },
+            {
+              "id": "choix-aucun",
+              "text": "Aucun.",
+              "correct": false
+            }
+          ],
+          "explanation": "Isocèle en R : RS = RT, la base est [ST]. Les angles égaux sont les angles à la base, aux sommets S et T. L'angle en R, au sommet principal, peut être différent. Les trois angles ne sont égaux que si le triangle est équilatéral."
+        },
+        {
+          "id": "ex-equilateral-angle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien mesure chaque angle d'un triangle équilatéral ?",
+          "competencies": [
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 60,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Les trois angles sont égaux et leur somme fait 180° : 180 ÷ 3 = 60°."
+        }
+      ]
+    },
+    {
+      "id": "somme-angles",
+      "title": "La somme des angles d'un triangle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-somme",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Propriété",
+          "text": "Dans tout triangle, la somme des mesures des trois angles est égale à **180°**."
+        },
+        {
+          "id": "exemple-somme",
+          "type": "callout",
+          "variant": "example",
+          "title": "Trouver le troisième angle",
+          "text": "Dans un triangle, deux angles mesurent 50° et 70°. Le troisième mesure 180 − 50 − 70 = 60°."
+        },
+        {
+          "id": "ex-troisieme-angle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le triangle ABC, $\\widehat{A}$ = 45° et $\\widehat{B}$ = 85°. Combien mesure $\\widehat{C}$ ?",
+          "competencies": [
+            "c3.geo.triangles.somme-angles"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 50,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "180 − 45 − 85 = 50°."
+        },
+        {
+          "id": "ex-rectangle-angle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle est rectangle, et l'un de ses angles aigus mesure 35°. Combien mesure l'autre angle aigu ?",
+          "competencies": [
+            "c3.geo.triangles.somme-angles",
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 55,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "L'angle droit mesure 90°. 180 − 90 − 35 = 55°. Dans un triangle rectangle, les deux angles aigus font 90° ensemble."
+        },
+        {
+          "id": "ex-isocele-base",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle est isocèle, et son angle au sommet principal mesure 40°. Combien mesure chacun des angles à la base ?",
+          "competencies": [
+            "c3.geo.triangles.somme-angles",
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 70,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Les deux angles à la base sont égaux et font ensemble 180 − 40 = 140°. Chacun mesure 140 ÷ 2 = 70°."
+        }
+      ]
+    },
+    {
+      "id": "cercle-circonscrit",
+      "title": "Le cercle circonscrit",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-concourantes",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Les trois médiatrices",
+          "text": "Les trois médiatrices des côtés d'un triangle sont **concourantes** : elles se coupent en un même point O."
+        },
+        {
+          "id": "intro-circonscrit",
+          "type": "prose",
+          "text": "O est sur la médiatrice de [AB], donc OA = OB. Il est aussi sur la médiatrice de [BC], donc OB = OC. Ainsi OA = OB = OC : le cercle de centre O qui passe par A passe aussi par B et par C."
+        },
+        {
+          "id": "def-circonscrit",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Cercle circonscrit",
+          "text": "Le cercle qui passe par les trois sommets d'un triangle est son **cercle circonscrit**. Son centre est le point de concours des médiatrices."
+        },
+        {
+          "id": "fig-circonscrit",
+          "type": "figure",
+          "alt": "Triangle ABC inscrit dans un cercle de centre O ; le cercle passe par les trois sommets.",
+          "caption": "Le cercle circonscrit au triangle ABC.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": -4,
+                "y": -3,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 4,
+                "y": -3,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "C",
+                "x": 3,
+                "y": 4,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "left"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              }
+            ],
+            "circles": [
+              {
+                "center": "O",
+                "through": "A"
+              }
+            ]
+          }
+        },
+        {
+          "id": "methode-circonscrit",
+          "type": "steps",
+          "title": "Construire le cercle circonscrit",
+          "steps": [
+            {
+              "text": "On construit au compas la médiatrice de deux côtés du triangle."
+            },
+            {
+              "text": "Elles se coupent en O (la troisième passerait aussi par O)."
+            },
+            {
+              "text": "On trace le cercle de centre O qui passe par un sommet : il passe par les trois."
+            }
+          ]
+        },
+        {
+          "id": "ex-centre-circonscrit",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Comment trouve-t-on le centre du cercle circonscrit à un triangle ?",
+          "competencies": [
+            "c3.geo.triangles.cercle-circonscrit"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-mediatrices",
+              "text": "À l'intersection des médiatrices des côtés.",
+              "correct": true
+            },
+            {
+              "id": "choix-bissectrices",
+              "text": "À l'intersection des bissectrices des angles.",
+              "correct": false
+            },
+            {
+              "id": "choix-milieu",
+              "text": "Au milieu du plus grand côté, toujours.",
+              "correct": false
+            },
+            {
+              "id": "choix-sommet",
+              "text": "Sur un des sommets.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le centre doit être à égale distance des trois sommets. Être à égale distance de A et B, c'est être sur la médiatrice de [AB] : le centre est donc à l'intersection des médiatrices. Les bissectrices donnent un autre point. Le milieu du plus grand côté ne convient que dans un triangle rectangle."
+        },
+        {
+          "id": "ex-distance-centre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "O est le centre du cercle circonscrit au triangle ABC, et OA = 3,2 cm. Combien mesure OC ?",
+          "competencies": [
+            "c3.geo.triangles.cercle-circonscrit"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3.2,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le cercle circonscrit passe par A, B et C : OA = OB = OC = 3,2 cm (c'est son rayon)."
+        },
+        {
+          "id": "ex-construire-circonscrit",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, construis un triangle quelconque, puis son cercle circonscrit.",
+          "competencies": [
+            "c3.geo.triangles.cercle-circonscrit"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 6,
+          "solution": "Construis au compas les médiatrices de deux côtés. Leur point d'intersection O est le centre. Le cercle de centre O passant par un sommet doit passer exactement par les deux autres : c'est le contrôle de ta construction."
+        }
+      ]
+    },
+    {
+      "id": "exercices-triangles",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "ex-final-somme",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans un triangle, deux angles mesurent 62° et 73°. Combien mesure le troisième ?",
+          "competencies": [
+            "c3.geo.triangles.somme-angles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 45,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "180 − 62 − 73 = 45°."
+        },
+        {
+          "id": "ex-final-impossible",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Peut-on construire un triangle dont les angles mesurent 90°, 60° et 50° ?",
+          "competencies": [
+            "c3.geo.triangles.somme-angles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non, car la somme fait 200°.",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "Oui, c'est un triangle rectangle.",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-aigu",
+              "text": "Oui, si les côtés sont assez longs.",
+              "correct": false
+            },
+            {
+              "id": "choix-non-droit",
+              "text": "Non, car un triangle ne peut pas avoir d'angle droit.",
+              "correct": false
+            }
+          ],
+          "explanation": "90 + 60 + 50 = 200°, alors que la somme des angles d'un triangle fait toujours 180°. Ce triangle n'existe pas, quelle que soit la longueur des côtés. Un triangle peut avoir un angle droit, mais alors les deux autres font 90° ensemble."
+        },
+        {
+          "id": "ex-final-isocele-sommet",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle isocèle a deux angles à la base de 52°. Combien mesure son angle au sommet principal ?",
+          "competencies": [
+            "c3.geo.triangles.somme-angles",
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 76,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "52 + 52 = 104, donc l'angle au sommet mesure 180 − 104 = 76°."
+        },
+        {
+          "id": "ex-final-cote-equilateral",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un triangle a trois angles de 60°. Que peut-on dire de ses côtés ?",
+          "competencies": [
+            "c3.geo.triangles.construire-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-egaux",
+              "text": "Ils ont tous la même longueur.",
+              "correct": true
+            },
+            {
+              "id": "choix-deux",
+              "text": "Deux seulement sont égaux.",
+              "correct": false
+            },
+            {
+              "id": "choix-differents",
+              "text": "Ils sont tous différents.",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut rien dire sur les longueurs.",
+              "correct": false
+            }
+          ],
+          "explanation": "Un triangle dont les trois angles sont égaux à 60° est équilatéral : ses trois côtés ont la même longueur. Les angles d'un triangle renseignent bien sur sa forme."
+        },
+        {
+          "id": "ex-final-circonscrit-diametre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le cercle circonscrit à un triangle a un diamètre de 9 cm. À quelle distance de chaque sommet se trouve son centre ?",
+          "competencies": [
+            "c3.geo.triangles.cercle-circonscrit"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le centre est à une distance égale au rayon de chacun des trois sommets : 9 ÷ 2 = 4,5 cm."
+        },
+        {
+          "id": "ex-final-equidistant-trois",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On cherche un point à égale distance de trois villages A, B et C (non alignés). Où se trouve-t-il ?",
+          "competencies": [
+            "c3.geo.triangles.cercle-circonscrit"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-concours",
+              "text": "Au point de concours des médiatrices du triangle ABC.",
+              "correct": true
+            },
+            {
+              "id": "choix-milieu",
+              "text": "Au milieu de [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-b",
+              "text": "Au village B, celui du milieu.",
+              "correct": false
+            },
+            {
+              "id": "choix-nimporte",
+              "text": "N'importe où sur la médiatrice de [AB].",
+              "correct": false
+            }
+          ],
+          "explanation": "Être à égale distance de A et B, c'est être sur la médiatrice de [AB] ; de B et C, sur celle de [BC]. Le point cherché est sur les deux : c'est leur point de concours, le centre du cercle circonscrit. Un point quelconque de la médiatrice de [AB] n'est pas forcément à la même distance de C."
+        }
+      ]
+    }
+  ]
+}

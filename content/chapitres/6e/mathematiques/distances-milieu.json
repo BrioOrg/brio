@@ -1,0 +1,558 @@
+{
+  "schemaVersion": 1,
+  "id": "distances-milieu",
+  "title": "Distances et milieu d'un segment",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 50,
+  "status": "published",
+  "sections": [
+    {
+      "id": "distance-deux-points",
+      "title": "La distance entre deux points",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "utiliser la notation AB pour la distance entre deux points ;",
+            "savoir quand un point appartient à un segment, à l'aide des distances ;",
+            "définir le milieu d'un segment et le construire."
+          ]
+        },
+        {
+          "id": "def-distance",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Distance entre deux points",
+          "text": "La **distance** entre les points A et B est la longueur du segment [AB]. On la note **AB** (sans crochets). C'est le plus court chemin pour aller de A à B."
+        },
+        {
+          "id": "table-notations",
+          "type": "table",
+          "headers": [
+            "Notation",
+            "Ce qu'elle désigne"
+          ],
+          "rows": [
+            [
+              "AB",
+              "la distance entre A et B : un nombre (une longueur)"
+            ],
+            [
+              "[AB]",
+              "le segment d'extrémités A et B : une figure"
+            ],
+            [
+              "(AB)",
+              "la droite qui passe par A et B"
+            ],
+            [
+              "[AB)",
+              "la demi-droite d'origine A qui passe par B"
+            ]
+          ]
+        },
+        {
+          "id": "ex-notation-distance",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle écriture désigne la distance entre les points A et B ?",
+          "competencies": [
+            "c3.geo.distances.connaitre-definition"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ab",
+              "text": "AB",
+              "correct": true
+            },
+            {
+              "id": "choix-seg",
+              "text": "[AB]",
+              "correct": false
+            },
+            {
+              "id": "choix-droite",
+              "text": "(AB)",
+              "correct": false
+            },
+            {
+              "id": "choix-demi",
+              "text": "[AB)",
+              "correct": false
+            }
+          ],
+          "explanation": "La distance est un nombre : on l'écrit AB, sans crochets ni parenthèses. [AB] est le segment (une figure, pas un nombre), (AB) la droite, [AB) la demi-droite d'origine A."
+        },
+        {
+          "id": "intro-appartenance",
+          "type": "prose",
+          "text": "Si un point M est sur le segment [AB], aller de A à B en passant par M ne rallonge pas le chemin : AM + MB = AB. Si M n'est pas sur [AB], le détour rallonge le chemin : AM + MB est plus grand que AB."
+        },
+        {
+          "id": "fig-point-sur-segment",
+          "type": "figure",
+          "alt": "Segment [AB] avec un point M placé entre A et B, sur le segment.",
+          "caption": "M est sur [AB] : AM + MB = AB.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "M",
+                "x": 3,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "B",
+                "x": 7,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "B"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-somme-distances",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le point C est sur le segment [AB]. On sait que AC = 3,5 cm et CB = 4,2 cm. Combien mesure AB ?",
+          "competencies": [
+            "c3.geo.distances.connaitre-definition"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 7.7,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "C est sur [AB], donc AB = AC + CB = 3,5 + 4,2 = 7,7 cm."
+        },
+        {
+          "id": "ex-appartient",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On mesure AM = 3 cm, MB = 4 cm et AB = 7 cm. Que peut-on en déduire ?",
+          "competencies": [
+            "c3.geo.distances.connaitre-definition"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-sur-segment",
+              "text": "Le point M est sur le segment [AB].",
+              "correct": true
+            },
+            {
+              "id": "choix-milieu",
+              "text": "M est le milieu de [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-hors",
+              "text": "M n'est pas sur le segment [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut rien dire.",
+              "correct": false
+            }
+          ],
+          "explanation": "AM + MB = 3 + 4 = 7 = AB : aucun détour, donc M est sur [AB]. Ce n'est pas le milieu, car AM ≠ MB. Si M était hors du segment, AM + MB serait plus grand que 7 cm."
+        }
+      ]
+    },
+    {
+      "id": "milieu-segment",
+      "title": "Le milieu d'un segment",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "def-milieu",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Milieu",
+          "text": "Le **milieu** du segment [AB] est le point M qui est **sur le segment [AB]** et **à égale distance** de A et de B : MA = MB. Alors MA = MB = AB ÷ 2."
+        },
+        {
+          "id": "fig-milieu",
+          "type": "figure",
+          "alt": "Segment [AB] de milieu M ; les segments [AM] et [MB] portent le même codage, un petit trait.",
+          "caption": "Le codage indique que AM = MB.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "M",
+                "x": 3,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "B",
+                "x": 6,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "M"
+              },
+              {
+                "from": "M",
+                "to": "B"
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "AM",
+                "ticks": 1
+              },
+              {
+                "segment": "MB",
+                "ticks": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "piege-milieu",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Les deux conditions comptent",
+          "text": "Un point à égale distance de A et de B n'est pas forcément le milieu : il doit aussi être **sur** le segment."
+        },
+        {
+          "id": "fig-pas-milieu",
+          "type": "figure",
+          "alt": "Triangle AMB avec MA = MB, le point M étant au-dessus du segment [AB].",
+          "caption": "MA = MB, mais M n'est pas sur [AB].",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 6,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "M",
+                "x": 3,
+                "y": 3,
+                "label": {
+                  "placement": "above"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "B"
+              },
+              {
+                "from": "M",
+                "to": "A"
+              },
+              {
+                "from": "M",
+                "to": "B"
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "MA",
+                "ticks": 1
+              },
+              {
+                "segment": "MB",
+                "ticks": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-pas-milieu",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la figure ci-dessus, M est-il le milieu du segment [AB] ?",
+          "competencies": [
+            "c3.geo.distances.construire-milieu"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non-hors",
+              "text": "Non, car M n'est pas sur le segment [AB].",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-egal",
+              "text": "Oui, car MA = MB.",
+              "correct": false
+            },
+            {
+              "id": "choix-non-inegal",
+              "text": "Non, car MA et MB ne sont pas égaux.",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-centre",
+              "text": "Oui, car M est au-dessus du centre du segment.",
+              "correct": false
+            }
+          ],
+          "explanation": "Les codages disent MA = MB, mais un milieu doit aussi être sur le segment. M est au-dessus de [AB] : ce n'est pas son milieu. « Au-dessus du centre » ne suffit pas : le milieu est sur le segment lui-même."
+        },
+        {
+          "id": "ex-moitie",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "M est le milieu du segment [AB] et AB = 9 cm. Combien mesure AM ?",
+          "competencies": [
+            "c3.geo.distances.construire-milieu"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le milieu partage le segment en deux longueurs égales : AM = 9 ÷ 2 = 4,5 cm."
+        },
+        {
+          "id": "methode-construire-milieu",
+          "type": "steps",
+          "title": "Construire le milieu de [AB] à la règle graduée",
+          "steps": [
+            {
+              "text": "On mesure AB avec la règle graduée."
+            },
+            {
+              "text": "On divise cette longueur par 2."
+            },
+            {
+              "text": "On place le point M sur [AB] à cette distance de A, puis on vérifie que MB est la même longueur."
+            }
+          ]
+        },
+        {
+          "id": "note-autres-moyens",
+          "type": "callout",
+          "variant": "note",
+          "title": "D'autres moyens",
+          "text": "On peut aussi plier la feuille pour que A vienne sur B : le pli coupe [AB] en son milieu. Au compas, on trace deux arcs de même rayon centrés en A et en B ; la droite qui passe par leurs points d'intersection coupe [AB] en son milieu (tu reverras cette construction avec la médiatrice)."
+        },
+        {
+          "id": "ex-construire-milieu",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, trace un segment [EF] de 7 cm et construis son milieu I à la règle graduée. Code la figure.",
+          "competencies": [
+            "c3.geo.distances.construire-milieu"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 4,
+          "solution": "EF = 7 cm, donc EI = 7 ÷ 2 = 3,5 cm. On place I sur [EF] à 3,5 cm de E. On vérifie que IF = 3,5 cm, puis on code [EI] et [IF] avec le même petit trait."
+        }
+      ]
+    },
+    {
+      "id": "exercices-distances-milieu",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-final-difference",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le point K est sur le segment [RS]. RS = 12 cm et RK = 7,5 cm. Combien mesure KS ?",
+          "competencies": [
+            "c3.geo.distances.connaitre-definition"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "K est sur [RS] donc RK + KS = RS, soit KS = 12 − 7,5 = 4,5 cm."
+        },
+        {
+          "id": "ex-final-detour",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On mesure AM = 5 cm, MB = 6 cm et AB = 8 cm. Le point M est-il sur le segment [AB] ?",
+          "competencies": [
+            "c3.geo.distances.connaitre-definition"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non, car AM + MB = 11 cm, plus grand que AB.",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "Oui, car AM et MB sont plus petits que AB.",
+              "correct": false
+            },
+            {
+              "id": "choix-milieu",
+              "text": "Oui, et c'est même le milieu de [AB].",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut pas savoir sans figure.",
+              "correct": false
+            }
+          ],
+          "explanation": "Si M était sur [AB], on aurait AM + MB = AB. Or 5 + 6 = 11 cm, ce qui fait plus que 8 cm : passer par M est un détour, M n'est pas sur [AB]. Que AM et MB soient chacun plus petits que AB ne suffit pas. On n'a pas besoin de figure : les distances suffisent."
+        },
+        {
+          "id": "ex-final-double",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "I est le milieu du segment [CD] et CI = 3,8 cm. Combien mesure CD ?",
+          "competencies": [
+            "c3.geo.distances.construire-milieu"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 7.6,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le milieu partage [CD] en deux moitiés égales : CD = 2 × 3,8 = 7,6 cm."
+        },
+        {
+          "id": "ex-final-mot-milieu",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Comment s'appelle le point d'un segment situé à égale distance de ses deux extrémités ?",
+          "competencies": [
+            "c3.geo.distances.construire-milieu"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "acceptedAnswers": [
+            "milieu",
+            "le milieu",
+            "milieu du segment",
+            "le milieu du segment"
+          ],
+          "caseSensitive": false,
+          "explanation": "C'est le milieu du segment : il est sur le segment et à la même distance des deux extrémités."
+        },
+        {
+          "id": "fig-droite-graduee-milieu",
+          "type": "figure",
+          "alt": "Demi-droite graduée de 0 à 10. Le point A est à la graduation 2 et le point B à la graduation 8.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 10,
+                "step": 1,
+                "labelEvery": 2,
+                "marks": [
+                  {
+                    "value": 2,
+                    "label": "A"
+                  },
+                  {
+                    "value": 8,
+                    "label": "B"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-final-milieu-graduation",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur la demi-droite graduée ci-dessus, à quelle graduation se trouve le milieu du segment [AB] ?",
+          "competencies": [
+            "c3.geo.distances.construire-milieu"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "AB = 8 − 2 = 6 graduations. La moitié : 3. Le milieu est à 2 + 3 = 5. On peut aussi calculer (2 + 8) ÷ 2 = 5."
+        },
+        {
+          "id": "ex-final-trajet",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Trois villages A, B et C sont alignés, B étant entre A et C. Il y a 4,6 km de A à B et 13 km de A à C. Quelle distance sépare B de C ?",
+          "competencies": [
+            "c3.geo.distances.connaitre-definition"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 8.4,
+          "tolerance": 0,
+          "unit": "km",
+          "explanation": "B est sur le segment [AC], donc AB + BC = AC, soit BC = 13 − 4,6 = 8,4 km."
+        }
+      ]
+    }
+  ]
+}

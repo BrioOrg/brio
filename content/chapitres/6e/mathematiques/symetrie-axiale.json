@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "id": "symetrie-axiale",
+  "title": "La symétrie axiale",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 50,
+  "status": "published",
+  "sections": [
+    {
+      "id": "symetrique-point",
+      "title": "Le symétrique d'un point",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "définir le symétrique d'un point par rapport à une droite ;",
+            "utiliser ce que la symétrie conserve : longueurs, angles, alignement, aires ;",
+            "construire le symétrique d'une figure."
+          ]
+        },
+        {
+          "id": "def-symetrique",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Symétrique d'un point",
+          "text": "Le **symétrique** du point M par rapport à la droite (d) est le point M' tel que (d) est la **médiatrice** du segment [MM']."
+        },
+        {
+          "id": "fig-symetrique-point",
+          "type": "figure",
+          "alt": "Droite verticale (d). Le point M est à gauche, le point M' à droite, à la même distance de (d). Le segment [MM'] coupe (d) en H à angle droit, et MH = HM'.",
+          "caption": "M' est le symétrique de M par rapport à (d).",
+          "spec": {
+            "points": [
+              {
+                "name": "(d)",
+                "x": 0,
+                "y": 5,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": " ",
+                "x": 0,
+                "y": -1
+              },
+              {
+                "name": "M",
+                "x": -3,
+                "y": 2,
+                "label": {
+                  "placement": "left"
+                }
+              },
+              {
+                "name": "H",
+                "x": 0,
+                "y": 2,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "M'",
+                "x": 3,
+                "y": 2,
+                "label": {
+                  "placement": "right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": " ",
+                "to": "(d)"
+              },
+              {
+                "from": "M",
+                "to": "H"
+              },
+              {
+                "from": "H",
+                "to": "M'"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "H",
+                "from": "M'",
+                "to": "(d)",
+                "right": true
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "MH",
+                "ticks": 1
+              },
+              {
+                "segment": "HM'",
+                "ticks": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "tip-deux-conditions",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Ce qu'il faut vérifier",
+          "text": "M et M' sont symétriques par rapport à (d) quand (MM') est **perpendiculaire** à (d) et que M et M' sont **à la même distance** de (d), de part et d'autre."
+        },
+        {
+          "id": "ex-definition-symetrique",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "M' est le symétrique de M par rapport à la droite (d). Que peut-on affirmer ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-mediatrice",
+              "text": "(d) est la médiatrice du segment [MM'].",
+              "correct": true
+            },
+            {
+              "id": "choix-meme-cote",
+              "text": "M et M' sont du même côté de (d).",
+              "correct": false
+            },
+            {
+              "id": "choix-sur-d",
+              "text": "M' est sur la droite (d).",
+              "correct": false
+            },
+            {
+              "id": "choix-parallele",
+              "text": "(MM') est parallèle à (d).",
+              "correct": false
+            }
+          ],
+          "explanation": "C'est la définition : (d) est perpendiculaire à [MM'] en son milieu, donc c'est sa médiatrice. M et M' sont de part et d'autre de (d), pas du même côté. M' n'est sur (d) que si M y est déjà. Et (MM') est perpendiculaire à (d), pas parallèle."
+        },
+        {
+          "id": "ex-distance-double",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le point M est à 2,5 cm de la droite (d). M' est son symétrique par rapport à (d). Combien mesure MM' ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "M' est lui aussi à 2,5 cm de (d), de l'autre côté : MM' = 2,5 + 2,5 = 5 cm."
+        },
+        {
+          "id": "ex-point-sur-axe",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le point A est sur la droite (d). Quel est son symétrique par rapport à (d) ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-lui-meme",
+              "text": "Le point A lui-même.",
+              "correct": true
+            },
+            {
+              "id": "choix-nexiste",
+              "text": "Il n'en a pas.",
+              "correct": false
+            },
+            {
+              "id": "choix-plus-loin",
+              "text": "Un point de (d) plus loin.",
+              "correct": false
+            },
+            {
+              "id": "choix-oppose",
+              "text": "Un point de l'autre côté de (d).",
+              "correct": false
+            }
+          ],
+          "explanation": "Un point de l'axe est à la distance 0 de l'axe : son symétrique est lui-même. Tout point a un symétrique, et celui-ci ne glisse pas le long de l'axe."
+        },
+        {
+          "id": "fig-droite-graduee-axe",
+          "type": "figure",
+          "alt": "Droite graduée de 0 à 10. L'axe de symétrie est perpendiculaire à cette droite à la graduation 5 ; le point M est à la graduation 2.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 10,
+                "step": 1,
+                "labelEvery": 1,
+                "marks": [
+                  {
+                    "value": 2,
+                    "label": "M"
+                  },
+                  {
+                    "value": 5,
+                    "label": "axe"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-graduation-symetrique",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur la droite graduée ci-dessus, l'axe de symétrie la coupe perpendiculairement à la graduation 5. À quelle graduation se trouve le symétrique de M ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "M est à 5 − 2 = 3 graduations de l'axe. Son symétrique est à 3 graduations de l'autre côté : 5 + 3 = 8."
+        }
+      ]
+    },
+    {
+      "id": "proprietes-conservation",
+      "title": "Ce que la symétrie conserve",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-conservation",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Propriété",
+          "text": "Le symétrique d'une figure par rapport à une droite est une figure **superposable** (par pliage le long de l'axe). La symétrie axiale **conserve** les longueurs, les mesures d'angles, l'alignement des points et les aires."
+        },
+        {
+          "id": "fig-triangle-symetrique",
+          "type": "figure",
+          "alt": "Triangle ABC à gauche d'une droite verticale (d), et son symétrique A'B'C' à droite.",
+          "caption": "A'B'C' est le symétrique de ABC par rapport à (d).",
+          "spec": {
+            "points": [
+              {
+                "name": "(d)",
+                "x": 0,
+                "y": 5,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": " ",
+                "x": 0,
+                "y": -1
+              },
+              {
+                "name": "A",
+                "x": -5,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": -2,
+                "y": 1,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "C",
+                "x": -3,
+                "y": 4,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "A'",
+                "x": 5,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "B'",
+                "x": 2,
+                "y": 1,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "C'",
+                "x": 3,
+                "y": 4,
+                "label": {
+                  "placement": "above"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": " ",
+                "to": "(d)"
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              },
+              {
+                "vertices": [
+                  "A'",
+                  "B'",
+                  "C'"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-perimetre-conserve",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le triangle ABC a un périmètre de 12 cm. Quel est le périmètre de son symétrique A'B'C' par rapport à une droite ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "La symétrie conserve les longueurs : chaque côté garde sa longueur, donc le périmètre reste 12 cm."
+        },
+        {
+          "id": "ex-angle-conserve",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le triangle ABC, $\\widehat{ABC}$ mesure 35°. Combien mesure $\\widehat{A'B'C'}$ dans son symétrique ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 35,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "La symétrie conserve les mesures d'angles : $\\widehat{A'B'C'}$ = 35°."
+        },
+        {
+          "id": "ex-conservation",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète la propriété.",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "La symétrie axiale conserve les {}, les mesures d'{} et les aires.",
+          "bank": [
+            "longueurs",
+            "positions",
+            "angles",
+            "côtés gauches",
+            "directions"
+          ],
+          "expected": [
+            "longueurs",
+            "angles"
+          ],
+          "explanation": "La symétrie conserve les longueurs, les mesures d'angles, l'alignement et les aires. Elle change en revanche la position de la figure : la figure passe de l'autre côté de l'axe."
+        },
+        {
+          "id": "methode-construire",
+          "type": "steps",
+          "title": "Construire le symétrique d'un point M à l'équerre",
+          "steps": [
+            {
+              "text": "On trace avec l'équerre la perpendiculaire à (d) passant par M ; elle coupe (d) en H."
+            },
+            {
+              "text": "On reporte au compas la longueur MH de l'autre côté de (d), sur cette perpendiculaire."
+            },
+            {
+              "text": "On obtient M'. Pour un polygone, on construit le symétrique de chaque sommet, puis on les relie."
+            }
+          ]
+        },
+        {
+          "id": "ex-construire-symetrique",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, trace une droite (d) et un triangle EFG d'un seul côté de (d). Construis son symétrique E'F'G'.",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 6,
+          "solution": "Construis le symétrique de chaque sommet (perpendiculaire à (d), puis report de la distance), puis relie E', F' et G'. Contrôle : EF = E'F', FG = F'G', EG = E'G', et le pliage le long de (d) superpose les deux triangles."
+        }
+      ]
+    },
+    {
+      "id": "exercices-symetrie",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "ex-final-segment",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le segment [AB] mesure 4 cm. Quel est son symétrique par rapport à une droite (d) ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-segment-4",
+              "text": "Un segment de 4 cm.",
+              "correct": true
+            },
+            {
+              "id": "choix-segment-8",
+              "text": "Un segment de 8 cm.",
+              "correct": false
+            },
+            {
+              "id": "choix-point",
+              "text": "Un point.",
+              "correct": false
+            },
+            {
+              "id": "choix-droite",
+              "text": "Une droite.",
+              "correct": false
+            }
+          ],
+          "explanation": "Le symétrique d'un segment est un segment, et la symétrie conserve les longueurs : il mesure 4 cm. 8 cm, c'est confondre avec la distance entre un point et son symétrique."
+        },
+        {
+          "id": "ex-final-alignes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Les points R, S et T sont alignés. Que peut-on dire de leurs symétriques R', S' et T' par rapport à une droite ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-alignes",
+              "text": "Ils sont alignés.",
+              "correct": true
+            },
+            {
+              "id": "choix-triangle",
+              "text": "Ils forment un triangle.",
+              "correct": false
+            },
+            {
+              "id": "choix-axe",
+              "text": "Ils sont sur l'axe.",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut rien dire.",
+              "correct": false
+            }
+          ],
+          "explanation": "La symétrie conserve l'alignement : R', S' et T' sont alignés. Ils ne sont sur l'axe que si R, S et T y étaient déjà."
+        },
+        {
+          "id": "ex-final-aire",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un rectangle a une aire de 18 cm². Quelle est l'aire de son symétrique par rapport à une droite ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 18,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "La symétrie conserve les aires : 18 cm²."
+        },
+        {
+          "id": "ex-final-distance-axe",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "M et M' sont symétriques par rapport à (d), et MM' = 7 cm. À quelle distance de (d) se trouve M ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3.5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "(d) est la médiatrice de [MM'] : elle passe par le milieu de [MM']. M est donc à 7 ÷ 2 = 3,5 cm de (d)."
+        },
+        {
+          "id": "ex-final-pas-symetriques",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Les points P et Q sont à 3 cm de la droite (d), de part et d'autre, mais la droite (PQ) n'est pas perpendiculaire à (d). P et Q sont-ils symétriques par rapport à (d) ?",
+          "competencies": [
+            "c3.geo.symetrie.connaitre-construire"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non, car (d) n'est pas la médiatrice de [PQ].",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "Oui, car ils sont à la même distance de (d).",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-cotes",
+              "text": "Oui, car ils sont de part et d'autre de (d).",
+              "correct": false
+            },
+            {
+              "id": "choix-rien",
+              "text": "On ne peut pas savoir.",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour être symétriques, il faut que (d) soit la médiatrice de [PQ], donc perpendiculaire à [PQ]. Ici ce n'est pas le cas : P et Q sont décalés le long de l'axe. Même distance et côtés opposés ne suffisent pas."
+        }
+      ]
+    }
+  ]
+}
