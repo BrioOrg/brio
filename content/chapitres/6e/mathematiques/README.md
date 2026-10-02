@@ -24,9 +24,9 @@ que les contraintes de rendu (éditeur, exerciseur) se précisent.
 | 2 | `nombres-decimaux-comparer-ranger` | Les nombres décimaux : comparer, ranger, encadrer | ✅ |
 | 3 | `nombres-decimaux-operations` | Les quatre opérations : entiers et décimaux | ✅ |
 | 4 | `fractions` | Les fractions : sens, écritures, comparaison | ✅ |
-| 5 | `fractions-operations` | Calculer avec les fractions | 📝 |
-| 6 | `pourcentages` | Les pourcentages | 📝 |
-| 7 | `pre-algebre` | Introduction à l'algèbre : modèles et régularités | 📝 |
+| 5 | `fractions-operations` | Calculer avec les fractions | ✅ |
+| 6 | `pourcentages` | Les pourcentages | ✅ |
+| 7 | `pre-algebre` | Introduction à l'algèbre : modèles et régularités | ✅ |
 
 **Note sur l'ordre** : le chapitre 1 (notation) a été rédigé en second, après le chapitre 2
 (comparer/ranger/encadrer), car il attendait `short-answer` (disponible depuis issue #36) et
@@ -39,13 +39,13 @@ désormais rédigés dans l'ordre pédagogique 1 → 2 → 3 → 4.
 
 | # | Slug prévu | Titre | Statut |
 |---|---|---|---|
-| 8 | `distances-milieu` | Distances et milieu d'un segment | 📝 |
-| 9 | `cercles-disques` | Cercles et disques | 📝 |
-| 10 | `mediatrice` | La médiatrice | 📝 |
-| 11 | `angles-bissectrice` | Les angles et la bissectrice | 📝 |
-| 12 | `triangles` | Les triangles : construction et propriétés | 📝 |
-| 13 | `symetrie-axiale` | La symétrie axiale | 📝 |
-| 14 | `espace-solides` | Visualiser l'espace : assemblages de cubes | 📝 |
+| 8 | `distances-milieu` | Distances et milieu d'un segment | ✅ |
+| 9 | `cercles-disques` | Cercles et disques | ✅ |
+| 10 | `mediatrice` | La médiatrice | ✅ |
+| 11 | `angles-bissectrice` | Les angles et la bissectrice | ✅ |
+| 12 | `triangles` | Les triangles : construction et propriétés | ✅ |
+| 13 | `symetrie-axiale` | La symétrie axiale | ✅ |
+| 14 | `espace-solides` | Visualiser l'espace : assemblages de cubes | ✅ |
 
 ---
 
@@ -53,10 +53,10 @@ désormais rédigés dans l'ordre pédagogique 1 → 2 → 3 → 4.
 
 | # | Slug prévu | Titre | Statut |
 |---|---|---|---|
-| 15 | `perimetres` | Périmètres : cercle et figures composées | 📝 |
-| 16 | `aires` | Aires et conversions | 📝 |
-| 17 | `volumes` | Volumes : le centimètre cube | 📝 |
-| 18 | `durees` | Durées et horaires | 📝 |
+| 15 | `perimetres` | Périmètres : cercle et figures composées | ✅ |
+| 16 | `aires` | Aires et conversions | ✅ |
+| 17 | `volumes` | Volumes : le centimètre cube | ✅ |
+| 18 | `durees` | Durées et horaires | ✅ |
 
 ---
 
@@ -64,9 +64,9 @@ désormais rédigés dans l'ordre pédagogique 1 → 2 → 3 → 4.
 
 | # | Slug prévu | Titre | Statut |
 |---|---|---|---|
-| 19 | `donnees-tableaux` | Recueillir et organiser des données | 📝 |
-| 20 | `probabilites` | Introduction aux probabilités | 📝 |
-| 21 | `proportionnalite` | La proportionnalité | 📝 |
+| 19 | `donnees-tableaux` | Recueillir et organiser des données | ✅ |
+| 20 | `probabilites` | Introduction aux probabilités | ✅ |
+| 21 | `proportionnalite` | La proportionnalité | ✅ |
 
 ---
 
@@ -74,7 +74,7 @@ désormais rédigés dans l'ordre pédagogique 1 → 2 → 3 → 4.
 
 | # | Slug prévu | Titre | Statut |
 |---|---|---|---|
-| 22 | `instructions-programmes` | Instructions et programmes | 📝 |
+| 22 | `instructions-programmes` | Instructions et programmes | ✅ |
 
 ---
 
