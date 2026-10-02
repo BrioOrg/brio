@@ -1,0 +1,635 @@
+{
+  "schemaVersion": 1,
+  "id": "fractions-operations",
+  "title": "Calculer avec les fractions",
+  "subject": "mathematiques",
+  "level": "6e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 70,
+  "status": "draft",
+  "sections": [
+    {
+      "id": "fraction-d-une-quantite",
+      "title": "Prendre une fraction d'une quantité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "calculer une fraction d'un nombre entier ou d'une quantité ;",
+            "additionner et soustraire des fractions de même dénominateur, ou quand un dénominateur est un multiple de l'autre ;",
+            "multiplier une fraction par un nombre entier ;",
+            "résoudre des problèmes avec des fractions."
+          ]
+        },
+        {
+          "id": "intro-quantite",
+          "type": "prose",
+          "text": "Prendre les $\\frac{3}{4}$ de 20 billes, c'est partager les 20 billes en 4 parts égales, puis prendre 3 de ces parts."
+        },
+        {
+          "id": "methode-fraction-quantite",
+          "type": "steps",
+          "title": "Calculer les a/b d'une quantité",
+          "steps": [
+            {
+              "text": "On divise la quantité par le dénominateur b : c'est la valeur d'une part.",
+              "formula": "20 \\div 4 = 5"
+            },
+            {
+              "text": "On multiplie le résultat par le numérateur a : on prend a parts.",
+              "formula": "5 \\times 3 = 15"
+            }
+          ]
+        },
+        {
+          "id": "def-operateur",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Fraction d'un nombre",
+          "text": "Prendre les $\\frac{a}{b}$ d'un nombre, c'est **multiplier** ce nombre par $\\frac{a}{b}$. Les $\\frac{3}{4}$ de 20 s'écrivent $\\frac{3}{4} \\times 20$, et on peut les calculer dans l'ordre qui arrange : $(20 \\div 4) \\times 3$ ou $(20 \\times 3) \\div 4$."
+        },
+        {
+          "id": "exemple-oeufs",
+          "type": "callout",
+          "variant": "example",
+          "title": "Les deux tiers de 12 œufs",
+          "text": "12 ÷ 3 = 4 œufs dans un tiers. Deux tiers : 4 × 2 = 8 œufs."
+        },
+        {
+          "id": "ex-deux-tiers-douze",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien font les $\\frac{2}{3}$ de 12 ?",
+          "competencies": [
+            "c3.num.fractions.appliquer-operateur"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "On partage 12 en 3 parts égales : 12 ÷ 3 = 4. On prend 2 parts : 4 × 2 = 8."
+        },
+        {
+          "id": "ex-trois-quarts-dix-metres",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Combien mesurent les $\\frac{3}{4}$ d'une corde de 10 m ?",
+          "competencies": [
+            "c3.num.fractions.appliquer-operateur"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-7-5",
+              "text": "7,5 m",
+              "correct": true
+            },
+            {
+              "id": "choix-2-5",
+              "text": "2,5 m",
+              "correct": false
+            },
+            {
+              "id": "choix-30",
+              "text": "30 m",
+              "correct": false
+            },
+            {
+              "id": "choix-13-3",
+              "text": "environ 13,3 m",
+              "correct": false
+            }
+          ],
+          "explanation": "Un quart de 10 m : 10 ÷ 4 = 2,5 m. Trois quarts : 2,5 × 3 = 7,5 m. Répondre 2,5 m, c'est s'arrêter à un seul quart. Répondre 30 m, c'est multiplier par 3 sans diviser par 4. Répondre 13,3 m, c'est inverser les rôles : diviser par 3 puis multiplier par 4. Les 3/4 d'une longueur sont forcément plus petits que la longueur entière."
+        },
+        {
+          "id": "ex-trois-cinquiemes-euros",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sami dépense les $\\frac{3}{5}$ de ses 25 €. Combien d'euros dépense-t-il ?",
+          "competencies": [
+            "c3.num.fractions.appliquer-operateur"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 15,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "25 ÷ 5 = 5 € pour un cinquième, donc 5 × 3 = 15 € pour trois cinquièmes."
+        }
+      ]
+    },
+    {
+      "id": "additionner-soustraire",
+      "title": "Additionner et soustraire des fractions",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 18,
+      "blocks": [
+        {
+          "id": "intro-addition",
+          "type": "prose",
+          "text": "Quand deux fractions ont le **même dénominateur**, elles comptent des parts de même taille : on additionne (ou on soustrait) les numérateurs et on **garde** le dénominateur."
+        },
+        {
+          "id": "formule-meme-denominateur",
+          "type": "formula",
+          "latex": "\\frac{2}{7} + \\frac{3}{7} = \\frac{2 + 3}{7} = \\frac{5}{7}"
+        },
+        {
+          "id": "piege-denominateurs",
+          "type": "callout",
+          "variant": "warning",
+          "title": "On n'additionne pas les dénominateurs",
+          "text": "Le dénominateur dit en combien de parts l'unité est coupée. Deux septièmes plus trois septièmes font cinq septièmes, pas cinq quatorzièmes : les parts n'ont pas changé de taille."
+        },
+        {
+          "id": "ex-addition-cinquiemes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Calcule $\\frac{2}{5} + \\frac{1}{5}$.",
+          "competencies": [
+            "c3.num.fractions.additionner-soustraire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3s5",
+              "text": "$\\frac{3}{5}$",
+              "correct": true
+            },
+            {
+              "id": "choix-3s10",
+              "text": "$\\frac{3}{10}$",
+              "correct": false
+            },
+            {
+              "id": "choix-2s25",
+              "text": "$\\frac{2}{25}$",
+              "correct": false
+            },
+            {
+              "id": "choix-3s25",
+              "text": "$\\frac{3}{25}$",
+              "correct": false
+            }
+          ],
+          "explanation": "Même dénominateur : on additionne les numérateurs, 2 + 1 = 3, et on garde 5. Résultat : 3/5. Répondre 3/10, c'est additionner aussi les dénominateurs (5 + 5). Répondre 2/25 ou 3/25, c'est multiplier les dénominateurs (5 × 5) : on ne fait pas ça pour une addition."
+        },
+        {
+          "id": "intro-multiples",
+          "type": "prose",
+          "text": "Quand un dénominateur est un **multiple** de l'autre, on commence par écrire les deux fractions avec le même dénominateur, en utilisant une égalité de fractions."
+        },
+        {
+          "id": "exemple-demi-quart",
+          "type": "callout",
+          "variant": "example",
+          "title": "Un demi plus un quart",
+          "text": "4 est un multiple de 2, et $\\frac{1}{2} = \\frac{2}{4}$. Donc $\\frac{1}{2} + \\frac{1}{4} = \\frac{2}{4} + \\frac{1}{4} = \\frac{3}{4}$."
+        },
+        {
+          "id": "ex-tiers-sixieme",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète le calcul.",
+          "competencies": [
+            "c3.num.fractions.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "1/3 + 1/6 = {}/6 + 1/6 = {}/6",
+          "bank": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "9"
+          ],
+          "expected": [
+            "2",
+            "3"
+          ],
+          "explanation": "6 est un multiple de 3 (3 × 2 = 6), donc 1/3 = 2/6. Ensuite 2/6 + 1/6 = 3/6."
+        },
+        {
+          "id": "ex-soustraction-sixiemes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Calcule $\\frac{5}{6} - \\frac{1}{3}$.",
+          "competencies": [
+            "c3.num.fractions.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3s6",
+              "text": "$\\frac{3}{6}$, c'est-à-dire $\\frac{1}{2}$",
+              "correct": true
+            },
+            {
+              "id": "choix-4s3",
+              "text": "$\\frac{4}{3}$",
+              "correct": false
+            },
+            {
+              "id": "choix-4s6",
+              "text": "$\\frac{4}{6}$",
+              "correct": false
+            },
+            {
+              "id": "choix-4s9",
+              "text": "$\\frac{4}{9}$",
+              "correct": false
+            }
+          ],
+          "explanation": "On écrit 1/3 = 2/6. Puis 5/6 − 2/6 = 3/6 = 1/2. Répondre 4/3, c'est soustraire les numérateurs et les dénominateurs (5 − 1 et 6 − 3). Répondre 4/6, c'est soustraire 1 de 5 sans avoir d'abord converti 1/3 en sixièmes. Répondre 4/9 n'a pas de sens : on a additionné les dénominateurs."
+        },
+        {
+          "id": "tip-un-entier",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Un entier en fraction",
+          "text": "Pour calculer $1 - \\frac{1}{4}$, on écrit $1 = \\frac{4}{4}$ : $\\frac{4}{4} - \\frac{1}{4} = \\frac{3}{4}$."
+        },
+        {
+          "id": "ex-un-moins-quart",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule $1 - \\frac{1}{4}$ et donne le résultat sous forme décimale.",
+          "competencies": [
+            "c3.num.fractions.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.75,
+          "tolerance": 0,
+          "explanation": "1 = 4/4, donc 1 − 1/4 = 3/4, et 3/4 = 3 ÷ 4 = 0,75."
+        }
+      ]
+    },
+    {
+      "id": "multiplier-par-entier",
+      "title": "Multiplier une fraction par un entier",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-multiplication",
+          "type": "prose",
+          "text": "Multiplier $\\frac{1}{4}$ par 3, c'est additionner trois fois $\\frac{1}{4}$ : $\\frac{1}{4} + \\frac{1}{4} + \\frac{1}{4} = \\frac{3}{4}$. Le nombre de parts est multiplié, leur taille ne change pas."
+        },
+        {
+          "id": "def-multiplier-entier",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Règle",
+          "text": "Pour multiplier une fraction par un entier, on multiplie le **numérateur** par cet entier et on garde le dénominateur."
+        },
+        {
+          "id": "formule-multiplier",
+          "type": "formula",
+          "latex": "3 \\times \\frac{2}{7} = \\frac{3 \\times 2}{7} = \\frac{6}{7}"
+        },
+        {
+          "id": "ex-quatre-fois-deux-neuviemes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Calcule $4 \\times \\frac{2}{9}$.",
+          "competencies": [
+            "c3.num.fractions.multiplier-par-entier"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-8s9",
+              "text": "$\\frac{8}{9}$",
+              "correct": true
+            },
+            {
+              "id": "choix-8s36",
+              "text": "$\\frac{8}{36}$",
+              "correct": false
+            },
+            {
+              "id": "choix-6s9",
+              "text": "$\\frac{6}{9}$",
+              "correct": false
+            },
+            {
+              "id": "choix-2s36",
+              "text": "$\\frac{2}{36}$",
+              "correct": false
+            }
+          ],
+          "explanation": "4 × 2/9 = (4 × 2)/9 = 8/9. Répondre 8/36, c'est multiplier aussi le dénominateur : on obtiendrait 2/9, la fraction de départ (8/36 = 2/9) ! Répondre 6/9, c'est additionner 4 et 2. Répondre 2/36, c'est multiplier le dénominateur seulement, ce qui rend les parts plus petites au lieu d'en prendre plus."
+        },
+        {
+          "id": "ex-cinq-fois-trois-dixiemes",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète le calcul.",
+          "competencies": [
+            "c3.num.fractions.multiplier-par-entier"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "5 × 3/10 = {}/10 = {}",
+          "bank": [
+            "15",
+            "8",
+            "50",
+            "1,5",
+            "0,15"
+          ],
+          "expected": [
+            "15",
+            "1,5"
+          ],
+          "explanation": "5 × 3 = 15, donc 5 × 3/10 = 15/10. Et 15/10 = 15 ÷ 10 = 1,5."
+        },
+        {
+          "id": "ex-six-fois-un-tiers",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule $6 \\times \\frac{1}{3}$. Le résultat est un nombre entier.",
+          "competencies": [
+            "c3.num.fractions.multiplier-par-entier"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2,
+          "tolerance": 0,
+          "explanation": "6 × 1/3 = 6/3 = 6 ÷ 3 = 2. Six tiers font deux unités entières."
+        }
+      ]
+    },
+    {
+      "id": "problemes-fractions",
+      "title": "Résoudre des problèmes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-problemes",
+          "type": "prose",
+          "text": "Dans un problème, une fraction peut décrire une **part d'une quantité** (les 3/4 des élèves) ou un **nombre** (on a bu 1/4 de litre). Un schéma en barres aide à voir ce qu'on cherche."
+        },
+        {
+          "id": "exemple-livre",
+          "type": "callout",
+          "variant": "example",
+          "title": "Le livre de Léa",
+          "text": "Un livre a 240 pages. Léa en a lu les $\\frac{2}{5}$. Une barre de 240 pages coupée en 5 parts : chaque part fait 240 ÷ 5 = 48 pages. Lu : 2 parts, soit 96 pages. Reste : 3 parts, soit 144 pages."
+        },
+        {
+          "id": "tip-ce-qui-reste",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Ce qui reste",
+          "text": "Si on a pris les $\\frac{2}{5}$, il reste $1 - \\frac{2}{5} = \\frac{3}{5}$. On peut calculer directement les 3/5 de la quantité."
+        },
+        {
+          "id": "ex-demi-pensionnaires",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une classe compte 28 élèves. Les $\\frac{3}{4}$ sont demi-pensionnaires. Combien d'élèves sont demi-pensionnaires ?",
+          "competencies": [
+            "c3.num.fractions.resoudre-problemes",
+            "c3.num.fractions.appliquer-operateur"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 21,
+          "tolerance": 0,
+          "explanation": "28 ÷ 4 = 7 élèves dans un quart. Trois quarts : 7 × 3 = 21 élèves."
+        },
+        {
+          "id": "ex-pizza",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Tom mange $\\frac{1}{4}$ d'une pizza et Inès en mange $\\frac{3}{8}$. Quelle fraction de la pizza ont-ils mangée à eux deux ?",
+          "competencies": [
+            "c3.num.fractions.resoudre-problemes",
+            "c3.num.fractions.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-5s8",
+              "text": "$\\frac{5}{8}$",
+              "correct": true
+            },
+            {
+              "id": "choix-4s12",
+              "text": "$\\frac{4}{12}$",
+              "correct": false
+            },
+            {
+              "id": "choix-4s8",
+              "text": "$\\frac{4}{8}$",
+              "correct": false
+            },
+            {
+              "id": "choix-3s32",
+              "text": "$\\frac{3}{32}$",
+              "correct": false
+            }
+          ],
+          "explanation": "1/4 = 2/8, donc 2/8 + 3/8 = 5/8. Répondre 4/12, c'est additionner numérateurs et dénominateurs. Répondre 4/8, c'est additionner 1 et 3 sans convertir 1/4 en huitièmes. Répondre 3/32, c'est multiplier les fractions : on cherche une somme."
+        }
+      ]
+    },
+    {
+      "id": "exercices-fractions-operations",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-final-cinq-sixiemes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien font les $\\frac{5}{6}$ de 42 ?",
+          "competencies": [
+            "c3.num.fractions.appliquer-operateur"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 35,
+          "tolerance": 0,
+          "explanation": "42 ÷ 6 = 7, puis 7 × 5 = 35."
+        },
+        {
+          "id": "ex-final-trois-quarts-heure",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de minutes y a-t-il dans les $\\frac{3}{4}$ d'une heure ?",
+          "competencies": [
+            "c3.num.fractions.appliquer-operateur",
+            "c3.num.fractions.resoudre-problemes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 45,
+          "tolerance": 0,
+          "unit": "min",
+          "explanation": "Une heure = 60 min. 60 ÷ 4 = 15 min dans un quart d'heure, donc 15 × 3 = 45 min."
+        },
+        {
+          "id": "ex-final-somme-dixiemes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Calcule $\\frac{7}{10} - \\frac{2}{5}$.",
+          "competencies": [
+            "c3.num.fractions.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3s10",
+              "text": "$\\frac{3}{10}$",
+              "correct": true
+            },
+            {
+              "id": "choix-5s5",
+              "text": "$\\frac{5}{5}$",
+              "correct": false
+            },
+            {
+              "id": "choix-5s10",
+              "text": "$\\frac{5}{10}$",
+              "correct": false
+            },
+            {
+              "id": "choix-9s10",
+              "text": "$\\frac{9}{10}$",
+              "correct": false
+            }
+          ],
+          "explanation": "10 est un multiple de 5 : 2/5 = 4/10. Puis 7/10 − 4/10 = 3/10. Répondre 5/5, c'est soustraire numérateurs et dénominateurs (7 − 2 et 10 − 5). Répondre 5/10, c'est soustraire 2 de 7 sans avoir converti. Répondre 9/10, c'est additionner au lieu de soustraire."
+        },
+        {
+          "id": "ex-final-somme-huitiemes",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète le calcul.",
+          "competencies": [
+            "c3.num.fractions.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "3/8 + 1/2 = 3/8 + {}/8 = {}/8",
+          "bank": [
+            "1",
+            "2",
+            "4",
+            "7",
+            "10"
+          ],
+          "expected": [
+            "4",
+            "7"
+          ],
+          "explanation": "1/2 = 4/8 (on multiplie numérateur et dénominateur par 4). Puis 3/8 + 4/8 = 7/8."
+        },
+        {
+          "id": "ex-final-sept-fois",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule $7 \\times \\frac{3}{10}$ et donne le résultat sous forme décimale.",
+          "competencies": [
+            "c3.num.fractions.multiplier-par-entier"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2.1,
+          "tolerance": 0,
+          "explanation": "7 × 3/10 = 21/10 = 2,1."
+        },
+        {
+          "id": "ex-final-trois-fois-deux-tiers",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel nombre est égal à $3 \\times \\frac{2}{3}$ ?",
+          "competencies": [
+            "c3.num.fractions.multiplier-par-entier"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-2",
+              "text": "2",
+              "correct": true
+            },
+            {
+              "id": "choix-6s9",
+              "text": "$\\frac{6}{9}$",
+              "correct": false
+            },
+            {
+              "id": "choix-5s3",
+              "text": "$\\frac{5}{3}$",
+              "correct": false
+            },
+            {
+              "id": "choix-2s9",
+              "text": "$\\frac{2}{9}$",
+              "correct": false
+            }
+          ],
+          "explanation": "3 × 2/3 = 6/3 = 2. Répondre 6/9, c'est multiplier aussi le dénominateur (6/9 = 2/3, on revient au départ). Répondre 5/3, c'est additionner 3 et 2. Répondre 2/9, c'est multiplier seulement le dénominateur."
+        },
+        {
+          "id": "ex-final-jardin",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un jardin de 60 m² est planté de tomates sur $\\frac{1}{3}$ de sa surface et de salades sur $\\frac{1}{4}$. Quelle surface, en m², reste libre ?",
+          "competencies": [
+            "c3.num.fractions.resoudre-problemes",
+            "c3.num.fractions.appliquer-operateur"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 4,
+          "answer": 25,
+          "tolerance": 0,
+          "unit": "m²",
+          "explanation": "Tomates : 60 ÷ 3 = 20 m². Salades : 60 ÷ 4 = 15 m². Plantés : 20 + 15 = 35 m². Libre : 60 − 35 = 25 m²."
+        },
+        {
+          "id": "ex-final-bouteille",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une bouteille contient 1,5 L de jus. On en verse les $\\frac{2}{3}$ dans des verres. Combien de litres reste-t-il dans la bouteille ?",
+          "competencies": [
+            "c3.num.fractions.resoudre-problemes",
+            "c3.num.fractions.appliquer-operateur"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.5,
+          "tolerance": 0,
+          "unit": "L",
+          "explanation": "Il reste 1 − 2/3 = 1/3 de la bouteille. Un tiers de 1,5 L : 1,5 ÷ 3 = 0,5 L."
+        }
+      ]
+    }
+  ]
+}
