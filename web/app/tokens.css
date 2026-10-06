@@ -19,7 +19,7 @@
    -------------------------------------------------------------------------- */
 
 /* prettier-ignore */
-@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised bg-surface-result-correct bg-surface-result-incorrect text-accent-ink text-streak text-xp text-danger text-warning text-info border-feedback-incorrect");
+@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-concept bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised bg-surface-result-correct bg-surface-result-incorrect text-accent-ink text-streak text-xp text-danger text-warning text-info text-concept border-feedback-incorrect");
 
 /* --------------------------------------------------------------------------
    Fonts — self-hosted, zero third-party requests
@@ -195,6 +195,10 @@
   --color-danger: #e86060;
   --color-warning: #f0a83a;
   --color-info: #4bb4ff;
+  /* Violet — the "example / worked" callout family (#209). Distinct from note
+     (info blue) and definition (accent green) so the five callout kinds read
+     apart at a glance. */
+  --color-concept: #b99bff;
 
   /* -- Feedback ------------------------------------------------------------ */
   /* wrong-answer state only. Not danger: a wrong answer is a normal step
@@ -262,6 +266,8 @@
      Contrast on #ffffff: ≥ 3.5 : 1. */
   --color-warning: #b87a00;
   --color-info: #1a80d4;
+  /* Violet darkened vs dark-theme (#b99bff) to clear contrast on white (#209). */
+  --color-concept: #6b40cc;
 
   --color-feedback-incorrect: #b87a00;
   --color-feedback-incorrect-edge: #7a4f00;
@@ -299,6 +305,7 @@
     --color-danger: #c93535;
     --color-warning: #b87a00;
     --color-info: #1a80d4;
+    --color-concept: #6b40cc;
 
     --color-feedback-incorrect: #b87a00;
     --color-feedback-incorrect-edge: #7a4f00;
