@@ -13,7 +13,7 @@ type Props = {
 
 function NavList({ niveau, matiere, chapters, currentSlug }: Omit<Props, 'matiereLibelle'>) {
   return (
-    <ol className="flex flex-col gap-1">
+    <ol className="flex flex-col gap-2">
       {chapters.map(({ slug, titre }, i) => {
         const current = slug === currentSlug
         return (
@@ -37,7 +37,7 @@ function NavList({ niveau, matiere, chapters, currentSlug }: Omit<Props, 'matier
               >
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <span className="min-w-0">{titre}</span>
+              <span className="min-w-0 leading-snug">{titre}</span>
             </Link>
           </li>
         )

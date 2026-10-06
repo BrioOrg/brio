@@ -470,19 +470,22 @@ function Heading({ id, level, text }: { id: string; level: number; text: string 
 }
 
 // Callout variants map to semantic token families — never raw colours.
+// Each kind owns a distinct colour so the five read apart at a glance (#209):
+// definition = accent (green), note = info (blue), example = concept (violet),
+// tip = warning (amber), warning = danger (red).
 const CALLOUT: Record<string, { icon: string; accent: string; surface: string; border: string }> = {
   note: { icon: 'info', accent: 'text-info', surface: 'bg-info/10', border: 'border-info/30' },
   tip: {
     icon: 'lightning',
-    accent: 'text-accent',
-    surface: 'bg-accent-soft',
-    border: 'border-accent/40',
-  },
-  warning: {
-    icon: 'warning-circle',
     accent: 'text-warning',
     surface: 'bg-warning/10',
     border: 'border-warning/30',
+  },
+  warning: {
+    icon: 'warning-circle',
+    accent: 'text-danger',
+    surface: 'bg-danger/10',
+    border: 'border-danger/30',
   },
   definition: {
     icon: 'book-open',
@@ -492,9 +495,9 @@ const CALLOUT: Record<string, { icon: string; accent: string; surface: string; b
   },
   example: {
     icon: 'sparkle',
-    accent: 'text-info',
-    surface: 'bg-info/10',
-    border: 'border-info/30',
+    accent: 'text-concept',
+    surface: 'bg-concept/10',
+    border: 'border-concept/40',
   },
 }
 
