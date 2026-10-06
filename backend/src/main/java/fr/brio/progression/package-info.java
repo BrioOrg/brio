@@ -2,5 +2,5 @@
 // (ADR 0022 "jamais d'appel sortant"). Declaring the allowlist keeps that explicit
 // and lets ModularityTests catch any accidental reach into internals.
 @org.springframework.modulith.ApplicationModule(
-        allowedDependencies = {"exercices :: api", "contenu :: api"})
+        allowedDependencies = {"exercices :: api", "contenu :: api", "social :: api"})
 package fr.brio.progression;

@@ -17,4 +17,11 @@ public interface EvenementXpRepository extends JpaRepository<EvenementXp, UUID> 
     @Query("select coalesce(sum(e.points), 0) from EvenementXp e "
             + "where e.eleveId = :eleveId and e.createdAt >= :depuis")
     int sommePointsDepuis(@Param("eleveId") UUID eleveId, @Param("depuis") Instant depuis);
+
+    @Query("select count(e) from EvenementXp e where e.eleveId = :eleveId "
+            + "and e.sourceType = :sourceType and e.createdAt >= :depuis")
+    long compterSourceDepuis(
+            @Param("eleveId") UUID eleveId,
+            @Param("sourceType") String sourceType,
+            @Param("depuis") Instant depuis);
 }

@@ -9,29 +9,11 @@
     "description" : "Generated server url"
   } ],
   "tags" : [ {
-    "name" : "Devoirs",
-    "description" : "Dépôt et consultation de copies (F5)"
-  }, {
-    "name" : "Devoirs",
-    "description" : "Correction des copies déposées (F5)"
-  }, {
-    "name" : "Référentiel de compétences",
-    "description" : "Lecture du référentiel pour l'édition de cours"
-  }, {
-    "name" : "Contenu",
-    "description" : "Accès aux chapitres de cours"
-  }, {
-    "name" : "Exercices",
-    "description" : "Soumission et évaluation des exercices"
+    "name" : "Entraide — modération",
+    "description" : "File de signalements et actions du prof modérateur"
   }, {
     "name" : "Édition de cours",
     "description" : "Composition et publication de cours par un enseignant"
-  }, {
-    "name" : "Classes de l'enseignant",
-    "description" : "Établissements et classes de l'enseignant connecté"
-  }, {
-    "name" : "Annales",
-    "description" : "Sujets d'examen : parcours, entraînement par compétence, mode examen (F7)"
   }, {
     "name" : "Devoirs",
     "description" : "Devoirs assignés par un enseignant à sa classe (F4)"
@@ -41,6 +23,30 @@
   }, {
     "name" : "Système",
     "description" : "Endpoints techniques exposés par le produit"
+  }, {
+    "name" : "Devoirs",
+    "description" : "Dépôt et consultation de copies (F5)"
+  }, {
+    "name" : "Devoirs",
+    "description" : "Correction des copies déposées (F5)"
+  }, {
+    "name" : "Référentiel de compétences",
+    "description" : "Lecture du référentiel pour l'édition de cours"
+  }, {
+    "name" : "Entraide",
+    "description" : "Fils de question attachés à un chapitre ou un exercice"
+  }, {
+    "name" : "Contenu",
+    "description" : "Accès aux chapitres de cours"
+  }, {
+    "name" : "Exercices",
+    "description" : "Soumission et évaluation des exercices"
+  }, {
+    "name" : "Classes de l'enseignant",
+    "description" : "Établissements et classes de l'enseignant connecté"
+  }, {
+    "name" : "Annales",
+    "description" : "Sujets d'examen : parcours, entraînement par compétence, mode examen (F7)"
   }, {
     "name" : "IA",
     "description" : "Tuteur IA par chapitre"
@@ -260,6 +266,60 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/prof/entraide/sanctions" : {
+      "post" : {
+        "tags" : [ "Entraide — modération" ],
+        "summary" : "Appliquer une sanction à un élève de la classe",
+        "operationId" : "sanctionner",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SanctionnerRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/entraide/messages/{messageId}/masquer" : {
+      "post" : {
+        "tags" : [ "Entraide — modération" ],
+        "summary" : "Masquer un message et clore ses signalements",
+        "operationId" : "masquer",
+        "parameters" : [ {
+          "name" : "messageId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
           }
         }
       }
@@ -846,6 +906,183 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/entraide" : {
+      "get" : {
+        "tags" : [ "Entraide" ],
+        "summary" : "Lister les fils d'un chapitre ou d'un exercice dans une classe",
+        "operationId" : "lister_1",
+        "parameters" : [ {
+          "name" : "portee",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "ref",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "classeId",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/FilVue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Entraide" ],
+        "summary" : "Ouvrir un fil (poser une question)",
+        "operationId" : "ouvrir",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OuvrirFilRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/entraide/{filId}/reponses" : {
+      "post" : {
+        "tags" : [ "Entraide" ],
+        "summary" : "Répondre dans un fil",
+        "operationId" : "repondre",
+        "parameters" : [ {
+          "name" : "filId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RepondreRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/entraide/{filId}/messages/{messageId}/utile" : {
+      "post" : {
+        "tags" : [ "Entraide" ],
+        "summary" : "Retenir une réponse comme utile (auteur du fil uniquement)",
+        "operationId" : "marquerUtile",
+        "parameters" : [ {
+          "name" : "filId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "messageId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/entraide/messages/{messageId}/signalement" : {
+      "post" : {
+        "tags" : [ "Entraide" ],
+        "summary" : "Signaler un message au modérateur de la classe",
+        "operationId" : "signaler",
+        "parameters" : [ {
+          "name" : "messageId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SignalerRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
           }
         }
       }
@@ -1558,6 +1795,28 @@
         }
       }
     },
+    "/api/prof/entraide/signalements" : {
+      "get" : {
+        "tags" : [ "Entraide — modération" ],
+        "summary" : "File des signalements en attente pour les classes modérées",
+        "operationId" : "signalements",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SignalementVue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/devoirs/{id}/tableau-de-bord" : {
       "get" : {
         "tags" : [ "Devoirs" ],
@@ -1698,6 +1957,34 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/CompteInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/entraide/{filId}" : {
+      "get" : {
+        "tags" : [ "Entraide" ],
+        "summary" : "Détailler un fil et ses messages (garde anti-triche appliquée)",
+        "operationId" : "consulter",
+        "parameters" : [ {
+          "name" : "filId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FilDetail"
                 }
               }
             }
@@ -2094,7 +2381,7 @@
         "tags" : [ "Annales" ],
         "summary" : "Liste les annales",
         "description" : "Sujets d'examen, du plus récent au plus ancien. Filtres optionnels niveau/matière/année. Le sujet se lit via l'endpoint chapitre par triplet.",
-        "operationId" : "lister_1",
+        "operationId" : "lister_2",
         "parameters" : [ {
           "name" : "niveau",
           "in" : "query",
@@ -2310,6 +2597,31 @@
             "type" : "string"
           }
         }
+      },
+      "SanctionnerRequest" : {
+        "type" : "object",
+        "properties" : {
+          "compteId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "type" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "motif" : {
+            "type" : "string"
+          },
+          "fin" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "classeId", "compteId", "type" ]
       },
       "CreerDevoirRequest" : {
         "type" : "object",
@@ -2568,6 +2880,50 @@
           },
           "pathAActif" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "OuvrirFilRequest" : {
+        "type" : "object",
+        "properties" : {
+          "portee" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "porteeRef" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "question" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "classeId", "portee", "porteeRef", "question", "titre" ]
+      },
+      "RepondreRequest" : {
+        "type" : "object",
+        "properties" : {
+          "corps" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "corps" ]
+      },
+      "SignalerRequest" : {
+        "type" : "object",
+        "properties" : {
+          "motif" : {
+            "type" : "string"
           }
         }
       },
@@ -2922,6 +3278,47 @@
           }
         }
       },
+      "SignalementVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "messageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "filId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "filTitre" : {
+            "type" : "string"
+          },
+          "auteurMessageId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurMessageNom" : {
+            "type" : "string"
+          },
+          "extraitMessage" : {
+            "type" : "string"
+          },
+          "signalePar" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "motif" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
       "DevoirClasseVue" : {
         "type" : "object",
         "properties" : {
@@ -3116,6 +3513,125 @@
           }
         },
         "required" : [ "status", "timestamp", "version" ]
+      },
+      "FilVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "portee" : {
+            "type" : "string"
+          },
+          "porteeRef" : {
+            "type" : "string"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "auteurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurNom" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "resolu" : {
+            "type" : "boolean"
+          },
+          "nbReponses" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "FilDetail" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "portee" : {
+            "type" : "string"
+          },
+          "porteeRef" : {
+            "type" : "string"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "auteurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurNom" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "estAuteur" : {
+            "type" : "boolean"
+          },
+          "verrouille" : {
+            "type" : "boolean"
+          },
+          "reponsesMasquees" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "messages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MessageVue"
+            }
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "MessageVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurNom" : {
+            "type" : "string"
+          },
+          "corps" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "utile" : {
+            "type" : "boolean"
+          },
+          "estMoi" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
       },
       "DevoirEleveVue" : {
         "type" : "object",
