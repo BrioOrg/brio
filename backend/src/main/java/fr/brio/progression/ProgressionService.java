@@ -9,6 +9,7 @@ import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.api.SerieInfo;
+import fr.brio.social.api.ReponseUtileValidee;
 import fr.brio.progression.domain.Chapitre;
 import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.domain.ExerciceReussi;
@@ -62,7 +63,13 @@ public class ProgressionService {
     static final short XP_APRES_ERREUR = 6;
     static final short XP_SECTION = 2;
     static final short XP_CHAPITRE = 50;
+    static final String SOURCE_ENTRAIDE = "entraide";
+    static final String MOTIF_ENTRAIDE_UTILE = "entraide_utile";
+    static final short XP_ENTRAIDE_UTILE = 15;
     static final int PLAFOND_QUOTIDIEN = 200;
+    // Helping is capped by count, not XP: at most this many useful-answer awards per day
+    // (ADR 0022 barème, ADR 0023). Independent of the global exercise cap above.
+    static final int ENTRAIDE_MAX_PAR_JOUR = 3;
     // A chapter is complete when this fraction of its exercises is solved (ADR 0022).
     static final int SEUIL_EXERCICES_PCT = 80;
     // Reference zone for the daily cap and streaks (ADR 0022 — à confirmer).
@@ -146,6 +153,27 @@ public class ProgressionService {
         attribuer(e.eleveId(), SOURCE_SECTION, e.chapitreId() + "/" + e.sectionId(),
                 MOTIF_SECTION, XP_SECTION, quand, false);
         evaluerCompletion(e.eleveId(), e.chapitreId(), quand);
+    }
+
+    /**
+     * Award XP to a student whose entraide answer was marked useful (ADR 0023): 15 XP,
+     * idempotent per answer, capped at {@link #ENTRAIDE_MAX_PAR_JOUR} awards per day.
+     * Cap-exempt from the global daily ceiling — it has its own, tighter count cap.
+     */
+    @Transactional
+    public void onReponseUtileValidee(ReponseUtileValidee e) {
+        Instant quand = e.survenuLe() != null ? e.survenuLe() : Instant.now();
+        String sourceRef = e.reponseId().toString();
+        if (evenements.existsByEleveIdAndSourceTypeAndSourceRef(e.repondeurId(), SOURCE_ENTRAIDE, sourceRef)) {
+            return; // this answer already rewarded — idempotent
+        }
+        Instant debutDuJour = quand.atZone(ZONE).toLocalDate().atStartOfDay(ZONE).toInstant();
+        if (evenements.compterSourceDepuis(e.repondeurId(), SOURCE_ENTRAIDE, debutDuJour)
+                >= ENTRAIDE_MAX_PAR_JOUR) {
+            return; // daily helping cap reached
+        }
+        attribuer(e.repondeurId(), SOURCE_ENTRAIDE, sourceRef,
+                MOTIF_ENTRAIDE_UTILE, XP_ENTRAIDE_UTILE, quand, false);
     }
 
     /** Current XP and level for a student (0/0 if none yet). */
