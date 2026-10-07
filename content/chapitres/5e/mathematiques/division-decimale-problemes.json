@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "id": "division-decimale-problemes",
+  "title": "Diviser par un décimal et résoudre des problèmes",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 55,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 5,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "diviser un nombre par un nombre décimal ;",
+            "choisir l'opération qui résout un problème ;",
+            "vérifier qu'un résultat est vraisemblable avec un ordre de grandeur."
+          ]
+        },
+        {
+          "id": "intro-automatismes",
+          "type": "prose",
+          "text": "Pour bien démarrer, deux calculs à faire de tête. Ils ne comptent pas dans ta progression : ce sont des rappels."
+        },
+        {
+          "id": "auto-produit-table",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule de tête : 0,6 × 7.",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 4.2,
+          "tolerance": 0,
+          "explanation": "6 × 7 = 42, et 0,6 est dix fois plus petit que 6, donc 0,6 × 7 = 4,2."
+        },
+        {
+          "id": "auto-reste",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans la division euclidienne de 47 par 6, quel est le reste ?",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "47 = 6 × 7 + 5, et 5 est plus petit que 6 : le quotient est 7 et le reste est 5."
+        }
+      ]
+    },
+    {
+      "id": "diviser-par-un-decimal",
+      "title": "Diviser par un nombre décimal",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-diviser",
+          "type": "prose",
+          "text": "Tu sais diviser un nombre décimal par un nombre entier. Pour diviser par un nombre décimal, on se ramène à ce cas."
+        },
+        {
+          "id": "def-quotient-inchange",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Une propriété du quotient",
+          "text": "Un quotient ne change pas quand on multiplie le dividende **et** le diviseur par un même nombre. Par exemple, 6 ÷ 2 = 60 ÷ 20 = 600 ÷ 200 = 3."
+        },
+        {
+          "id": "methode-diviser-decimal",
+          "type": "steps",
+          "title": "Calculer 7,2 ÷ 0,3",
+          "steps": [
+            {
+              "text": "Le diviseur 0,3 a un chiffre après la virgule : on multiplie le dividende et le diviseur par 10."
+            },
+            {
+              "text": "On obtient une division par un entier.",
+              "formula": "7{,}2 \\div 0{,}3 = 72 \\div 3"
+            },
+            {
+              "text": "On la calcule.",
+              "formula": "72 \\div 3 = 24"
+            }
+          ]
+        },
+        {
+          "id": "warning-les-deux",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Les deux, pas un seul",
+          "text": "Si tu multiplies seulement le diviseur par 10, tu changes le résultat. 7,2 ÷ 3 = 2,4, ce n'est pas 7,2 ÷ 0,3."
+        },
+        {
+          "id": "ex-diviser-4-8",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 4,8 ÷ 0,6.",
+          "competencies": [
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "On multiplie les deux nombres par 10 : 4,8 ÷ 0,6 = 48 ÷ 6 = 8. Vérification : 0,6 × 8 = 4,8."
+        },
+        {
+          "id": "ex-calcul-equivalent",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour calculer 15,6 ÷ 1,2, on peut calculer :",
+          "competencies": [
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-156-12",
+              "text": "156 ÷ 12",
+              "correct": true
+            },
+            {
+              "id": "choix-15-6-12",
+              "text": "15,6 ÷ 12",
+              "correct": false
+            },
+            {
+              "id": "choix-156-1-2",
+              "text": "156 ÷ 1,2",
+              "correct": false
+            },
+            {
+              "id": "choix-1-560-12",
+              "text": "1 560 ÷ 12",
+              "correct": false
+            }
+          ],
+          "explanation": "On multiplie le dividende et le diviseur par 10 : 156 ÷ 12 = 13. « 15,6 ÷ 12 » ne multiplie que le diviseur : le résultat devient dix fois plus petit. « 156 ÷ 1,2 » ne multiplie que le dividende. « 1 560 ÷ 12 » multiplie le dividende par 100 et le diviseur par 10 : ce n'est plus le même quotient."
+        },
+        {
+          "id": "ex-diviser-2-85",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 2,85 ÷ 0,15.",
+          "competencies": [
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 19,
+          "tolerance": 0,
+          "explanation": "Le diviseur a deux chiffres après la virgule : on multiplie les deux nombres par 100. 2,85 ÷ 0,15 = 285 ÷ 15 = 19. Vérification : 0,15 × 19 = 2,85."
+        }
+      ]
+    },
+    {
+      "id": "choisir-operation",
+      "title": "Choisir l'opération",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-choisir",
+          "type": "prose",
+          "text": "Avant de calculer, il faut savoir **quoi** calculer. On se demande ce que représente chaque nombre, et ce que l'on cherche."
+        },
+        {
+          "id": "table-sens-operations",
+          "type": "table",
+          "headers": [
+            "On cherche…",
+            "Opération"
+          ],
+          "rows": [
+            [
+              "un total, une quantité après un ajout",
+              "addition"
+            ],
+            [
+              "un écart, ce qui reste",
+              "soustraction"
+            ],
+            [
+              "le total de plusieurs quantités égales",
+              "multiplication"
+            ],
+            [
+              "combien de fois une quantité tient dans une autre, ou la valeur d'une part",
+              "division"
+            ]
+          ],
+          "caption": "Le sens des quatre opérations."
+        },
+        {
+          "id": "exemple-ruban",
+          "type": "callout",
+          "variant": "example",
+          "title": "Le ruban",
+          "text": "Un ruban de 7,5 m est coupé en morceaux de 0,25 m. On cherche combien de fois 0,25 m tient dans 7,5 m : c'est une division. 7,5 ÷ 0,25 = 750 ÷ 25 = 30 morceaux."
+        },
+        {
+          "id": "ex-choisir-bouteilles",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une fontaine contient 18 L d'eau. On remplit des bouteilles de 0,75 L. Quel calcul donne le nombre de bouteilles ?",
+          "competencies": [
+            "c4.num.operations.resoudre-problemes",
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-18-0-75",
+              "text": "18 ÷ 0,75",
+              "correct": true
+            },
+            {
+              "id": "choix-18-0-75-2",
+              "text": "18 × 0,75",
+              "correct": false
+            },
+            {
+              "id": "choix-0-75-18",
+              "text": "0,75 ÷ 18",
+              "correct": false
+            },
+            {
+              "id": "choix-18-0-75-3",
+              "text": "18 − 0,75",
+              "correct": false
+            }
+          ],
+          "explanation": "On cherche combien de fois 0,75 L tient dans 18 L : c'est 18 ÷ 0,75 = 1 800 ÷ 75 = 24 bouteilles. 18 × 0,75 = 13,5 serait la quantité d'eau dans 18 bouteilles. 0,75 ÷ 18 inverse les rôles. 18 − 0,75 ne remplit qu'une seule bouteille."
+        },
+        {
+          "id": "ex-essence",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un litre de carburant coûte 1,85 €. Léa paie 46,25 €. Combien de litres a-t-elle achetés ?",
+          "competencies": [
+            "c4.num.operations.resoudre-problemes",
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 25,
+          "tolerance": 0,
+          "unit": "L",
+          "explanation": "On cherche combien de fois 1,85 € tient dans 46,25 € : 46,25 ÷ 1,85 = 4 625 ÷ 185 = 25 litres. Vérification : 1,85 × 25 = 46,25."
+        },
+        {
+          "id": "tip-ordre-grandeur",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Contrôler avec un ordre de grandeur",
+          "text": "Arrondis les nombres pour obtenir un calcul facile. Si ton résultat en est très loin, une erreur s'est glissée, souvent une virgule mal placée."
+        },
+        {
+          "id": "ex-vraisemblance",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Tom calcule le prix de 4,2 kg de pommes à 2,90 € le kilo. Il trouve 121,80 €. Que penses-tu de son résultat ?",
+          "competencies": [
+            "c4.num.operations.resoudre-problemes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-il-n-est-pas-vraisemblable-4-k",
+              "text": "Il n'est pas vraisemblable : 4 kg à environ 3 € coûtent environ 12 €.",
+              "correct": true
+            },
+            {
+              "id": "choix-il-est-vraisemblable-car-4-2-2",
+              "text": "Il est vraisemblable, car 4,2 × 2,90 donne un nombre à deux décimales.",
+              "correct": false
+            },
+            {
+              "id": "choix-il-n-est-pas-vraisemblable-il",
+              "text": "Il n'est pas vraisemblable : il fallait diviser 4,2 par 2,90.",
+              "correct": false
+            }
+          ],
+          "explanation": "Ordre de grandeur : 4 × 3 = 12 €. Le bon résultat est 4,2 × 2,90 = 12,18 € ; Tom a mal placé la virgule. Le nombre de décimales ne dit pas si un résultat est vraisemblable. Et diviser n'a pas de sens ici : on cherche le prix de plusieurs kilos, c'est une multiplication."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 20,
+      "blocks": [
+        {
+          "id": "ex-diviser-9",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 9 ÷ 0,25.",
+          "competencies": [
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 36,
+          "tolerance": 0,
+          "explanation": "On multiplie les deux nombres par 100 : 9 ÷ 0,25 = 900 ÷ 25 = 36. Autre façon : dans 1 il y a 4 fois 0,25, donc dans 9 il y en a 9 × 4 = 36."
+        },
+        {
+          "id": "ex-diviser-par-0-5",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Diviser un nombre par 0,5, c'est :",
+          "competencies": [
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-le-multiplier-par-2",
+              "text": "le multiplier par 2",
+              "correct": true
+            },
+            {
+              "id": "choix-le-diviser-par-2",
+              "text": "le diviser par 2",
+              "correct": false
+            },
+            {
+              "id": "choix-le-multiplier-par-0-5",
+              "text": "le multiplier par 0,5",
+              "correct": false
+            },
+            {
+              "id": "choix-le-laisser-inchange",
+              "text": "le laisser inchangé",
+              "correct": false
+            }
+          ],
+          "explanation": "Dans 1 il y a deux fois 0,5 : 1 ÷ 0,5 = 2. Donc diviser par 0,5 revient à multiplier par 2 (par exemple 3 ÷ 0,5 = 6). Diviser par 2 ou multiplier par 0,5, c'est prendre la moitié : c'est l'inverse. Et le nombre change, car 0,5 n'est pas égal à 1."
+        },
+        {
+          "id": "ex-yaourts",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un paquet de 12 yaourts coûte 3,24 €. Quel est le prix d'un yaourt ?",
+          "competencies": [
+            "c4.num.operations.resoudre-problemes"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.27,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "On partage le prix en 12 parts égales : 3,24 ÷ 12 = 0,27 €. Vérification : 12 × 0,27 = 3,24."
+        },
+        {
+          "id": "ex-ruban-morceaux",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une couturière a 6,3 m de tissu. Elle coupe des bandes de 0,45 m. Combien de bandes obtient-elle ?",
+          "competencies": [
+            "c4.num.operations.resoudre-problemes",
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 14,
+          "tolerance": 0,
+          "explanation": "On cherche combien de fois 0,45 m tient dans 6,3 m : 6,3 ÷ 0,45 = 630 ÷ 45 = 14 bandes. Vérification : 0,45 × 14 = 6,3."
+        },
+        {
+          "id": "ex-cycliste",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un cycliste veut parcourir 200 km en quatre étapes. Les trois premières mesurent 42,5 km, 38,75 km et 51,3 km. Combien de kilomètres mesure la dernière étape ?",
+          "competencies": [
+            "c4.num.operations.resoudre-problemes"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 4,
+          "answer": 67.45,
+          "tolerance": 0,
+          "unit": "km",
+          "explanation": "On additionne d'abord les trois étapes : 42,5 + 38,75 + 51,3 = 132,55 km. On cherche ce qui reste pour atteindre 200 km : 200 − 132,55 = 67,45 km. Ordre de grandeur : 40 + 40 + 50 = 130, et 200 − 130 = 70."
+        },
+        {
+          "id": "ex-ordre-grandeur-division",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sans poser l'opération, quel est l'ordre de grandeur de 59,8 ÷ 0,52 ?",
+          "competencies": [
+            "c4.num.operations.resoudre-problemes",
+            "c4.num.operations.diviser-decimal"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-environ-120",
+              "text": "environ 120",
+              "correct": true
+            },
+            {
+              "id": "choix-environ-12",
+              "text": "environ 12",
+              "correct": false
+            },
+            {
+              "id": "choix-environ-30",
+              "text": "environ 30",
+              "correct": false
+            },
+            {
+              "id": "choix-environ-1-200",
+              "text": "environ 1 200",
+              "correct": false
+            }
+          ],
+          "explanation": "59,8 est proche de 60 et 0,52 est proche de 0,5. Or 60 ÷ 0,5 = 120 (diviser par 0,5, c'est multiplier par 2). « Environ 30 » vient de l'erreur qui divise par 2 au lieu de multiplier. « Environ 12 » et « environ 1 200 » viennent d'une virgule mal placée."
+        }
+      ]
+    }
+  ]
+}

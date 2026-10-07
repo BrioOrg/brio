@@ -1,0 +1,563 @@
+{
+  "schemaVersion": 1,
+  "id": "parallelogrammes",
+  "title": "Le parallélogramme et les parallélogrammes particuliers",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 58,
+  "status": "published",
+  "sections": [
+    {
+      "id": "definir",
+      "title": "Définir et construire",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "définir un parallélogramme et le construire ;",
+            "utiliser ses propriétés : côtés opposés, diagonales ;",
+            "reconnaitre un rectangle, un losange ou un carré à partir de ses propriétés."
+          ]
+        },
+        {
+          "id": "def-parallelogramme",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Parallélogramme",
+          "text": "Un **parallélogramme** est un quadrilatère dont les côtés opposés sont **parallèles deux à deux**. Dans le parallélogramme ABCD, (AB) est parallèle à (DC) et (AD) est parallèle à (BC)."
+        },
+        {
+          "id": "fig-parallelogramme",
+          "type": "figure",
+          "alt": "Parallélogramme ABCD avec ses diagonales [AC] et [BD], qui se coupent en O. [AO] et [OC] sont codés de même longueur, ainsi que [BO] et [OD].",
+          "caption": "Le parallélogramme ABCD et ses diagonales.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 5,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "C",
+                "x": 7,
+                "y": 3,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "D",
+                "x": 2,
+                "y": 3,
+                "label": {
+                  "placement": "above-left"
+                }
+              },
+              {
+                "name": "O",
+                "x": 3.5,
+                "y": 1.5,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C",
+                  "D"
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "O"
+              },
+              {
+                "from": "O",
+                "to": "C"
+              },
+              {
+                "from": "B",
+                "to": "O"
+              },
+              {
+                "from": "O",
+                "to": "D"
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "AO",
+                "ticks": 1
+              },
+              {
+                "segment": "OC",
+                "ticks": 1
+              },
+              {
+                "segment": "BO",
+                "ticks": 2
+              },
+              {
+                "segment": "OD",
+                "ticks": 2
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-definition",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un parallélogramme est un quadrilatère :",
+          "competencies": [
+            "c4.geo.parallelogrammes.definir-construire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-dont-les-cotes-opposes-sont-pa",
+              "text": "dont les côtés opposés sont parallèles deux à deux",
+              "correct": true
+            },
+            {
+              "id": "choix-qui-a-quatre-angles-droits",
+              "text": "qui a quatre angles droits",
+              "correct": false
+            },
+            {
+              "id": "choix-qui-a-deux-cotes-paralleles",
+              "text": "qui a deux côtés parallèles",
+              "correct": false
+            }
+          ],
+          "explanation": "Ce sont les deux paires de côtés opposés qui doivent être parallèles. Quatre angles droits, c'est un rectangle (un parallélogramme particulier). Un quadrilatère qui n'a qu'une paire de côtés parallèles est un trapèze."
+        },
+        {
+          "id": "ex-parallele-ab",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "ABCD est un parallélogramme. Quelle droite est parallèle à (AB) ?",
+          "competencies": [
+            "c4.geo.parallelogrammes.definir-construire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-dc",
+              "text": "(DC)",
+              "correct": true
+            },
+            {
+              "id": "choix-bc",
+              "text": "(BC)",
+              "correct": false
+            },
+            {
+              "id": "choix-ac",
+              "text": "(AC)",
+              "correct": false
+            }
+          ],
+          "explanation": "Dans ABCD, le côté opposé à [AB] est [DC] (on lit les sommets dans l'ordre). (BC) est un côté consécutif à [AB], et (AC) est une diagonale."
+        },
+        {
+          "id": "methode-compas",
+          "type": "steps",
+          "title": "Placer le quatrième sommet D quand on connait A, B et C",
+          "steps": [
+            {
+              "text": "On trace un arc de cercle de centre A et de rayon BC."
+            },
+            {
+              "text": "On trace un arc de cercle de centre C et de rayon AB."
+            },
+            {
+              "text": "D est le point d'intersection des deux arcs situé de l'autre côté de (AC) par rapport à B."
+            }
+          ]
+        },
+        {
+          "id": "ex-construire-d",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On connait A, B et C et l'on veut placer D pour que ABCD soit un parallélogramme. Au compas, on trace :",
+          "competencies": [
+            "c4.geo.parallelogrammes.definir-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-arc-de-centre-a-de-rayon-bc",
+              "text": "un arc de centre A de rayon BC et un arc de centre C de rayon AB",
+              "correct": true
+            },
+            {
+              "id": "choix-un-arc-de-centre-a-de-rayon-ab",
+              "text": "un arc de centre A de rayon AB et un arc de centre C de rayon BC",
+              "correct": false
+            },
+            {
+              "id": "choix-un-arc-de-centre-b-de-rayon-ac",
+              "text": "un arc de centre B de rayon AC",
+              "correct": false
+            }
+          ],
+          "explanation": "On veut AD = BC et CD = AB (côtés opposés de même longueur) : arc de centre A de rayon BC, arc de centre C de rayon AB. La deuxième réponse construit AD = AB et CD = CB, ce qui donne un cerf-volant en général."
+        }
+      ]
+    },
+    {
+      "id": "proprietes",
+      "title": "Les propriétés du parallélogramme",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "def-proprietes",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Propriétés caractéristiques",
+          "text": "Un quadrilatère (non croisé) est un parallélogramme **si et seulement si** l'une de ces propriétés est vraie : ses côtés opposés ont la même longueur deux à deux, **ou** ses diagonales se coupent en leur milieu. Le point d'intersection des diagonales est le **centre de symétrie** du parallélogramme."
+        },
+        {
+          "id": "tip-caracteristique",
+          "type": "callout",
+          "variant": "tip",
+          "title": "« Caractéristique », dans les deux sens",
+          "text": "Si ABCD est un parallélogramme, ses diagonales se coupent en leur milieu. Et réciproquement : si les diagonales d'un quadrilatère se coupent en leur milieu, c'est un parallélogramme. On peut donc s'en servir pour construire, ou pour démontrer."
+        },
+        {
+          "id": "ex-cote-oppose",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "ABCD est un parallélogramme et AB = 7 cm. Combien mesure CD ?",
+          "competencies": [
+            "c4.geo.parallelogrammes.utiliser-proprietes"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 7,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Les côtés opposés d'un parallélogramme ont la même longueur : CD = AB = 7 cm."
+        },
+        {
+          "id": "ex-demi-diagonale",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Les diagonales du parallélogramme ABCD se coupent en O, et AC = 9 cm. Combien mesure AO ?",
+          "competencies": [
+            "c4.geo.parallelogrammes.utiliser-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 4.5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Les diagonales se coupent en leur milieu : AO = AC ÷ 2 = 4,5 cm."
+        },
+        {
+          "id": "ex-diagonales-milieu",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Les diagonales d'un quadrilatère se coupent en leur milieu. Ce quadrilatère est :",
+          "competencies": [
+            "c4.geo.parallelogrammes.utiliser-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-parallelogramme",
+              "text": "un parallélogramme",
+              "correct": true
+            },
+            {
+              "id": "choix-forcement-un-rectangle",
+              "text": "forcément un rectangle",
+              "correct": false
+            },
+            {
+              "id": "choix-forcement-un-losange",
+              "text": "forcément un losange",
+              "correct": false
+            }
+          ],
+          "explanation": "C'est une propriété caractéristique : diagonales qui se coupent en leur milieu ⇔ parallélogramme. Rien n'indique qu'il soit particulier : pour un rectangle, il faudrait aussi des diagonales de même longueur ; pour un losange, des diagonales perpendiculaires."
+        }
+      ]
+    },
+    {
+      "id": "particuliers",
+      "title": "Rectangle, losange, carré",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "table-particuliers",
+          "type": "table",
+          "headers": [
+            "Parallélogramme particulier",
+            "Définition",
+            "Propriété caractéristique des diagonales"
+          ],
+          "rows": [
+            [
+              "Rectangle",
+              "parallélogramme qui a un angle droit",
+              "elles ont la même longueur"
+            ],
+            [
+              "Losange",
+              "parallélogramme qui a deux côtés consécutifs de même longueur",
+              "elles sont perpendiculaires"
+            ],
+            [
+              "Carré",
+              "à la fois rectangle et losange",
+              "même longueur et perpendiculaires"
+            ]
+          ],
+          "caption": "Les parallélogrammes particuliers."
+        },
+        {
+          "id": "note-inclusion",
+          "type": "callout",
+          "variant": "note",
+          "title": "Un carré est aussi…",
+          "text": "Un carré est un rectangle, et c'est aussi un losange. Un rectangle et un losange sont des parallélogrammes : toutes les propriétés du parallélogramme leur appartiennent."
+        },
+        {
+          "id": "ex-angle-droit",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un parallélogramme qui a un angle droit est :",
+          "competencies": [
+            "c4.geo.parallelogrammes.caracteriser-particuliers"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-rectangle",
+              "text": "un rectangle",
+              "correct": true
+            },
+            {
+              "id": "choix-un-losange",
+              "text": "un losange",
+              "correct": false
+            },
+            {
+              "id": "choix-un-carre-forcement",
+              "text": "un carré, forcément",
+              "correct": false
+            }
+          ],
+          "explanation": "C'est la définition du rectangle. Ce n'est un carré que si, en plus, deux côtés consécutifs ont la même longueur."
+        },
+        {
+          "id": "ex-diagonales-perpendiculaires",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un parallélogramme a des diagonales perpendiculaires. C'est :",
+          "competencies": [
+            "c4.geo.parallelogrammes.caracteriser-particuliers"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-losange",
+              "text": "un losange",
+              "correct": true
+            },
+            {
+              "id": "choix-un-rectangle",
+              "text": "un rectangle",
+              "correct": false
+            },
+            {
+              "id": "choix-un-trapeze",
+              "text": "un trapèze",
+              "correct": false
+            }
+          ],
+          "explanation": "Diagonales perpendiculaires : propriété caractéristique du losange. Les diagonales d'un rectangle ont la même longueur, mais ne sont pas perpendiculaires en général. Un parallélogramme n'est pas un trapèze quelconque."
+        },
+        {
+          "id": "ex-carre-losange",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un carré est-il un losange ?",
+          "competencies": [
+            "c4.geo.parallelogrammes.caracteriser-particuliers"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-oui",
+              "text": "Oui",
+              "correct": true
+            },
+            {
+              "id": "choix-non",
+              "text": "Non",
+              "correct": false
+            },
+            {
+              "id": "choix-seulement-s-il-est-petit",
+              "text": "Seulement s'il est petit",
+              "correct": false
+            }
+          ],
+          "explanation": "Un carré est un parallélogramme dont deux côtés consécutifs ont la même longueur : c'est la définition du losange. Un carré est donc un losange particulier (avec un angle droit en plus)."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-nature-cotes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le quadrilatère non croisé EFGH a ses côtés EF = GH = 5 cm et FG = HE = 3 cm. Quelle est sa nature ?",
+          "competencies": [
+            "c4.geo.parallelogrammes.utiliser-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-parallelogramme",
+              "text": "un parallélogramme",
+              "correct": true
+            },
+            {
+              "id": "choix-un-rectangle",
+              "text": "un rectangle",
+              "correct": false
+            },
+            {
+              "id": "choix-un-losange",
+              "text": "un losange",
+              "correct": false
+            }
+          ],
+          "explanation": "Ses côtés opposés ont la même longueur deux à deux : c'est un parallélogramme. On ne sait rien de ses angles, ce n'est donc pas forcément un rectangle. Deux côtés consécutifs (5 et 3 cm) sont différents : ce n'est pas un losange."
+        },
+        {
+          "id": "ex-perimetre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "ABCD est un parallélogramme avec AB = 6 cm et BC = 4 cm. Quel est son périmètre ?",
+          "competencies": [
+            "c4.geo.parallelogrammes.utiliser-proprietes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 20,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Les côtés opposés ont la même longueur : CD = 6 cm et DA = 4 cm. Périmètre : 6 + 4 + 6 + 4 = 20 cm."
+        },
+        {
+          "id": "ex-carre-diagonales",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Les diagonales d'un parallélogramme ont la même longueur et sont perpendiculaires. C'est :",
+          "competencies": [
+            "c4.geo.parallelogrammes.caracteriser-particuliers"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-carre",
+              "text": "un carré",
+              "correct": true
+            },
+            {
+              "id": "choix-un-losange-qui-n-est-pas-un-ca",
+              "text": "un losange qui n'est pas un carré",
+              "correct": false
+            },
+            {
+              "id": "choix-un-rectangle-qui-n-est-pas-un",
+              "text": "un rectangle qui n'est pas un carré",
+              "correct": false
+            }
+          ],
+          "explanation": "Même longueur : c'est un rectangle. Perpendiculaires : c'est un losange. À la fois rectangle et losange : c'est un carré."
+        },
+        {
+          "id": "ex-losange-angle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "ABCD est un losange de centre O. Combien mesure l'angle formé en O par les diagonales ?",
+          "competencies": [
+            "c4.geo.parallelogrammes.caracteriser-particuliers"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 90,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Les diagonales d'un losange sont perpendiculaires : l'angle mesure 90°."
+        },
+        {
+          "id": "ex-construire-parallelogramme",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Construis un parallélogramme ABCD tel que AB = 5 cm, BC = 3 cm et l'angle en B mesure 60°.",
+          "competencies": [
+            "c4.geo.parallelogrammes.definir-construire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 6,
+          "solution": "On trace [AB] de 5 cm. En B, au rapporteur, on trace une demi-droite qui fait 60° avec [BA] et on y place C à 3 cm de B. On place D au compas : arc de centre A et de rayon 3 cm, arc de centre C et de rayon 5 cm. On relie. Contrôle : (AB) et (DC) sont parallèles, de même que (AD) et (BC)."
+        }
+      ]
+    }
+  ]
+}

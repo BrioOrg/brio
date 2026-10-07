@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 1,
+  "id": "relatifs-addition-soustraction",
+  "title": "Additionner et soustraire des nombres relatifs",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 60,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 4,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "additionner deux nombres relatifs ;",
+            "transformer une soustraction en addition de l'opposé ;",
+            "simplifier l'écriture d'une somme de relatifs ;",
+            "enchainer des additions et des soustractions pour résoudre un problème."
+          ]
+        },
+        {
+          "id": "auto-addition-trou",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Complète : 2 + … = 7.",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 5,
+          "tolerance": 0,
+          "explanation": "Pour compléter une addition à trou, on fait une soustraction : 7 − 2 = 5."
+        },
+        {
+          "id": "auto-soustraction-decimaux",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule de tête : 3,4 − 0,8.",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 2.6,
+          "tolerance": 0,
+          "explanation": "3,4 − 0,4 = 3, puis 3 − 0,4 = 2,6."
+        }
+      ]
+    },
+    {
+      "id": "additionner",
+      "title": "Additionner deux relatifs",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-additionner",
+          "type": "prose",
+          "text": "Imagine un compteur de points : gagner 5 points, c'est +5 ; en perdre 3, c'est −3. Additionner des relatifs, c'est faire le bilan des gains et des pertes."
+        },
+        {
+          "id": "regle-addition",
+          "type": "steps",
+          "title": "Pour additionner deux nombres relatifs",
+          "steps": [
+            {
+              "text": "**S'ils ont le même signe**, on additionne leurs distances à zéro et on garde ce signe : (−5) + (−3) = −8."
+            },
+            {
+              "text": "**S'ils ont des signes contraires**, on soustrait la plus petite distance à zéro de la plus grande, et on prend le signe de celui qui a la plus grande distance à zéro : (+7) + (−10) = −3."
+            }
+          ]
+        },
+        {
+          "id": "exemple-somme-opposes",
+          "type": "callout",
+          "variant": "example",
+          "title": "Deux opposés",
+          "text": "La somme de deux nombres opposés est nulle : (−4,2) + (+4,2) = 0. On gagne autant qu'on perd."
+        },
+        {
+          "id": "ex-add-meme-signe",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule (−5) + (−3).",
+          "competencies": [
+            "c4.num.relatifs.additionner-soustraire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": -8,
+          "tolerance": 0,
+          "explanation": "Même signe : on additionne les distances à zéro, 5 + 3 = 8, et on garde le signe −. Résultat −8. Deux pertes font une perte plus grande."
+        },
+        {
+          "id": "ex-add-signes-contraires",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule (+7) + (−10).",
+          "competencies": [
+            "c4.num.relatifs.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": -3,
+          "tolerance": 0,
+          "explanation": "Signes contraires : 10 − 7 = 3. C'est −10 qui a la plus grande distance à zéro, le résultat est négatif : −3."
+        },
+        {
+          "id": "ex-add-decimaux",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule (−2,5) + (+6).",
+          "competencies": [
+            "c4.num.relatifs.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3.5,
+          "tolerance": 0,
+          "explanation": "Signes contraires : 6 − 2,5 = 3,5. C'est +6 qui a la plus grande distance à zéro : le résultat est positif, 3,5."
+        }
+      ]
+    },
+    {
+      "id": "soustraire",
+      "title": "Soustraire un relatif",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-soustraction",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Soustraire, c'est ajouter l'opposé",
+          "text": "Pour soustraire un nombre relatif, on ajoute son opposé : a − b = a + (opposé de b). Par exemple (−4) − (−6) = (−4) + (+6) = 2."
+        },
+        {
+          "id": "warning-soustraire-negatif",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Retirer une dette",
+          "text": "Soustraire un nombre négatif fait **augmenter** le résultat : retirer une dette de 6 €, c'est comme recevoir 6 €."
+        },
+        {
+          "id": "ex-sous-negatif",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Combien vaut (−4) − (−6) ?",
+          "competencies": [
+            "c4.num.relatifs.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-2",
+              "text": "2",
+              "correct": true
+            },
+            {
+              "id": "choix-10",
+              "text": "−10",
+              "correct": false
+            },
+            {
+              "id": "choix-2-2",
+              "text": "−2",
+              "correct": false
+            },
+            {
+              "id": "choix-10-2",
+              "text": "10",
+              "correct": false
+            }
+          ],
+          "explanation": "On ajoute l'opposé de −6 : (−4) + (+6) = 2. −10 vient de l'erreur qui additionne −4 et −6 sans changer de signe. −2 garde le mauvais signe. 10 additionne les distances à zéro."
+        },
+        {
+          "id": "ex-sous-decimal",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 3,5 − 8.",
+          "competencies": [
+            "c4.num.relatifs.additionner-soustraire"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": -4.5,
+          "tolerance": 0,
+          "explanation": "3,5 − 8 = 3,5 + (−8). Signes contraires : 8 − 3,5 = 4,5, et c'est −8 qui l'emporte : −4,5."
+        },
+        {
+          "id": "ex-sous-sens",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Soustraire −3, c'est :",
+          "competencies": [
+            "c4.num.relatifs.additionner-soustraire"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ajouter-3",
+              "text": "ajouter 3",
+              "correct": true
+            },
+            {
+              "id": "choix-soustraire-3",
+              "text": "soustraire 3",
+              "correct": false
+            },
+            {
+              "id": "choix-ajouter-3-2",
+              "text": "ajouter −3",
+              "correct": false
+            }
+          ],
+          "explanation": "Soustraire un nombre, c'est ajouter son opposé ; l'opposé de −3 est 3. Donc soustraire −3, c'est ajouter 3. « Ajouter −3 » revient à soustraire 3 : c'est l'inverse."
+        }
+      ]
+    },
+    {
+      "id": "simplifier",
+      "title": "Simplifier les écritures",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-simplifier",
+          "type": "prose",
+          "text": "Quand une somme ne contient que des additions, on peut supprimer les parenthèses et les signes + d'addition : chaque nombre garde son propre signe."
+        },
+        {
+          "id": "methode-simplifier",
+          "type": "steps",
+          "title": "Simplifier (+4) + (−7) − (−2)",
+          "steps": [
+            {
+              "text": "On transforme la soustraction en addition de l'opposé : (+4) + (−7) + (+2)."
+            },
+            {
+              "text": "On écrit chaque nombre avec son signe, sans parenthèses : 4 − 7 + 2."
+            },
+            {
+              "text": "On calcule de gauche à droite : 4 − 7 = −3, puis −3 + 2 = −1."
+            }
+          ]
+        },
+        {
+          "id": "warning-deux-signes",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Deux signes côte à côte",
+          "text": "On n'écrit jamais deux signes à la suite. « 5 + −3 » n'a pas de sens : il faut écrire 5 + (−3), ou plus simplement 5 − 3."
+        },
+        {
+          "id": "ex-simplifier-somme",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle écriture simplifiée correspond à (+4) + (−7) − (−2) ?",
+          "competencies": [
+            "c4.num.relatifs.simplifier-ecritures"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-4-7-2",
+              "text": "4 − 7 + 2",
+              "correct": true
+            },
+            {
+              "id": "choix-4-7-2-2",
+              "text": "4 + 7 − 2",
+              "correct": false
+            },
+            {
+              "id": "choix-4-7-2-3",
+              "text": "4 − 7 − 2",
+              "correct": false
+            }
+          ],
+          "explanation": "Soustraire −2, c'est ajouter 2 ; ajouter −7, c'est enlever 7. On obtient 4 − 7 + 2. « 4 + 7 − 2 » change le signe de −7. « 4 − 7 − 2 » oublie que soustraire −2 revient à ajouter 2."
+        },
+        {
+          "id": "ex-parentheses-indispensables",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces écritures est incorrecte ?",
+          "competencies": [
+            "c4.num.relatifs.simplifier-ecritures"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-5-3",
+              "text": "5 + −3",
+              "correct": true
+            },
+            {
+              "id": "choix-5-3-2",
+              "text": "5 + (−3)",
+              "correct": false
+            },
+            {
+              "id": "choix-5-3-3",
+              "text": "5 − 3",
+              "correct": false
+            }
+          ],
+          "explanation": "Deux signes ne se suivent jamais : « 5 + −3 » doit s'écrire 5 + (−3), avec des parenthèses, ou 5 − 3. Les deux dernières écritures sont correctes et égales à 2."
+        },
+        {
+          "id": "ex-simplifier-trois",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle écriture simplifiée correspond à (−6) − (+2) + (−1) ?",
+          "competencies": [
+            "c4.num.relatifs.simplifier-ecritures"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-6-2-1",
+              "text": "−6 − 2 − 1",
+              "correct": true
+            },
+            {
+              "id": "choix-6-2-1-2",
+              "text": "−6 + 2 − 1",
+              "correct": false
+            },
+            {
+              "id": "choix-6-2-1-3",
+              "text": "6 − 2 − 1",
+              "correct": false
+            }
+          ],
+          "explanation": "Soustraire +2, c'est enlever 2 ; ajouter −1, c'est enlever 1. On obtient −6 − 2 − 1 = −9. « −6 + 2 − 1 » change la soustraction en addition. « 6 − 2 − 1 » perd le signe du premier nombre."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 18,
+      "blocks": [
+        {
+          "id": "ex-enchainer-simple",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 12 − 15 + 4 − 9.",
+          "competencies": [
+            "c4.num.relatifs.simplifier-ecritures",
+            "c4.num.relatifs.enchainer-calculs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": -8,
+          "tolerance": 0,
+          "explanation": "De gauche à droite : 12 − 15 = −3, puis −3 + 4 = 1, puis 1 − 9 = −8."
+        },
+        {
+          "id": "ex-enchainer-decimaux",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule −2,5 + 4 − 6,5 + 1.",
+          "competencies": [
+            "c4.num.relatifs.enchainer-calculs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": -4,
+          "tolerance": 0,
+          "explanation": "On peut regrouper : les nombres positifs font 4 + 1 = 5, les négatifs font −2,5 − 6,5 = −9. Puis 5 − 9 = −4."
+        },
+        {
+          "id": "ex-regrouper",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 7 − 12 + 3 − 5 en regroupant les positifs et les négatifs.",
+          "competencies": [
+            "c4.num.relatifs.enchainer-calculs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": -7,
+          "tolerance": 0,
+          "explanation": "Positifs : 7 + 3 = 10. Négatifs : −12 − 5 = −17. Puis 10 − 17 = −7."
+        },
+        {
+          "id": "ex-sous-marin",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un sous-marin est à l'altitude −120 m. Il remonte de 45 m, puis redescend de 30 m. À quelle altitude se trouve-t-il ?",
+          "competencies": [
+            "c4.num.relatifs.enchainer-calculs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": -105,
+          "tolerance": 0,
+          "unit": "m",
+          "explanation": "Remonter fait augmenter l'altitude, descendre la fait diminuer : −120 + 45 − 30 = −75 − 30 = −105 m."
+        },
+        {
+          "id": "ex-ecart-temperature",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "La nuit, il fait −8 °C ; l'après-midi, 11 °C. Quel est l'écart entre ces deux températures ?",
+          "competencies": [
+            "c4.num.relatifs.additionner-soustraire",
+            "c4.num.relatifs.enchainer-calculs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 19,
+          "tolerance": 0,
+          "unit": "°C",
+          "explanation": "L'écart est la différence entre la plus grande et la plus petite : 11 − (−8) = 11 + 8 = 19 °C. De −8 à 0, il y a 8 degrés, puis de 0 à 11, encore 11."
+        },
+        {
+          "id": "ex-compte",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le compte de Sam affiche 35 €. Il dépense 52 €, puis reçoit 20 €. Que vaut son solde ?",
+          "competencies": [
+            "c4.num.relatifs.enchainer-calculs"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 3,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "35 − 52 = −17 : après la dépense, le compte est à découvert de 17 €. Puis −17 + 20 = 3 €."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,791 @@
+{
+  "schemaVersion": 1,
+  "id": "statistiques",
+  "title": "Statistiques : effectifs, fréquences, représentations, moyenne",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 66,
+  "status": "published",
+  "sections": [
+    {
+      "id": "organiser",
+      "title": "Recueillir et organiser des données",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "organiser des données dans un tableau d'effectifs ;",
+            "calculer des fréquences, en fraction, en décimal ou en pourcentage ;",
+            "lire un tableau ou un diagramme, et choisir la bonne représentation ;",
+            "calculer et interpréter une moyenne."
+          ]
+        },
+        {
+          "id": "intro-enquete",
+          "type": "prose",
+          "text": "On a demandé à 25 élèves de 5e leur sport préféré. Une liste de 25 réponses est difficile à lire : on les **organise** en comptant combien de fois chaque réponse apparait. Ce nombre est l'**effectif** de la réponse."
+        },
+        {
+          "id": "table-sports",
+          "type": "table",
+          "headers": [
+            "Sport",
+            "Football",
+            "Basket",
+            "Natation",
+            "Danse",
+            "Autre",
+            "Total"
+          ],
+          "rows": [
+            [
+              "Effectif",
+              "8",
+              "5",
+              "7",
+              "3",
+              "2",
+              "25"
+            ]
+          ],
+          "caption": "Le sport préféré de 25 élèves."
+        },
+        {
+          "id": "def-effectif",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Effectif",
+          "text": "L'**effectif** d'une valeur est le nombre de fois où elle apparait. L'**effectif total** est le nombre total de données : c'est la somme de tous les effectifs."
+        },
+        {
+          "id": "ex-compter",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Voici les notes d'un contrôle : 12 ; 15 ; 12 ; 9 ; 15 ; 12 ; 18 ; 9 ; 12. Quel est l'effectif de la note 12 ?",
+          "competencies": [
+            "c4.ogd.statistiques.recueillir-organiser"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 4,
+          "tolerance": 0,
+          "explanation": "On compte les 12 dans la liste : 1re, 3e, 6e et 9e valeurs. L'effectif de la note 12 est 4."
+        },
+        {
+          "id": "ex-tableau-pile-face",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "On lance une pièce six fois : pile, face, face, pile, face, face. Complète le tableau d'effectifs.",
+          "competencies": [
+            "c4.ogd.statistiques.recueillir-organiser"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "template": "Pile : {} ; Face : {}",
+          "bank": [
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "expected": [
+            "2",
+            "4"
+          ],
+          "explanation": "Pile apparait 2 fois et face 4 fois. On vérifie : 2 + 4 = 6, le nombre de lancers."
+        },
+        {
+          "id": "ex-organiser",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour organiser les réponses d'une enquête, que fait-on d'abord ?",
+          "competencies": [
+            "c4.ogd.statistiques.recueillir-organiser"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-on-regroupe-les-reponses-ident",
+              "text": "On regroupe les réponses identiques et on compte chacune",
+              "correct": true
+            },
+            {
+              "id": "choix-on-calcule-la-moyenne-des-repo",
+              "text": "On calcule la moyenne des réponses",
+              "correct": false
+            },
+            {
+              "id": "choix-on-range-les-reponses-dans-l-o",
+              "text": "On range les réponses dans l'ordre où elles sont arrivées",
+              "correct": false
+            }
+          ],
+          "explanation": "On établit un tableau d'effectifs : chaque réponse possible et le nombre de fois où elle apparait. Une moyenne n'a pas de sens pour des réponses comme « football » ou « danse ». L'ordre d'arrivée n'apporte rien."
+        }
+      ]
+    },
+    {
+      "id": "frequences",
+      "title": "Les fréquences",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "def-frequence",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Fréquence",
+          "text": "La **fréquence** d'une valeur est la part de l'effectif total qu'elle représente : fréquence = effectif de la valeur ÷ effectif total. On peut l'écrire en fraction, en nombre décimal ou en pourcentage. La somme de toutes les fréquences vaut 1, soit 100 %."
+        },
+        {
+          "id": "exemple-frequence",
+          "type": "callout",
+          "variant": "example",
+          "title": "La fréquence du football",
+          "text": "8 élèves sur 25 : $\\frac{8}{25}$ = 0,32 = 32 %."
+        },
+        {
+          "id": "ex-effectif-total",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans l'enquête sur le sport préféré, quel est l'effectif total ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-effectifs-frequences"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 25,
+          "tolerance": 0,
+          "explanation": "8 + 5 + 7 + 3 + 2 = 25 élèves."
+        },
+        {
+          "id": "ex-frequence-decimale",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est la fréquence du basket, écrite en nombre décimal ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-effectifs-frequences"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 0.2,
+          "tolerance": 0,
+          "explanation": "5 élèves sur 25 : 5 ÷ 25 = 0,2 (soit 20 %)."
+        },
+        {
+          "id": "ex-frequence-pourcent",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est la fréquence de la natation, en pourcentage ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-effectifs-frequences"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 28,
+          "tolerance": 0,
+          "unit": "%",
+          "explanation": "7 ÷ 25 = 0,28, soit 28 %. Astuce : 25 × 4 = 100, donc $\\frac{7}{25}$ = $\\frac{28}{100}$."
+        },
+        {
+          "id": "ex-somme-frequences",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Que vaut la somme des fréquences de toutes les valeurs d'une série ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-effectifs-frequences"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1-c-est-a-dire-100",
+              "text": "1, c'est-à-dire 100 %",
+              "correct": true
+            },
+            {
+              "id": "choix-l-effectif-total",
+              "text": "l'effectif total",
+              "correct": false
+            },
+            {
+              "id": "choix-cela-depend-de-la-serie",
+              "text": "cela dépend de la série",
+              "correct": false
+            }
+          ],
+          "explanation": "Chaque fréquence est une part du total : toutes les parts réunies font le tout, 1 ou 100 %. C'est la somme des effectifs qui vaut l'effectif total."
+        }
+      ]
+    },
+    {
+      "id": "representations",
+      "title": "Lire et choisir une représentation",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "fig-barres-sports",
+          "type": "figure",
+          "alt": "Diagramme en barres du sport préféré. Hauteurs des barres : Football 8, Basket 5, Natation 7, Danse 3, Autre 2. L'axe vertical est gradué de 2 en 2 jusqu'à 8.",
+          "caption": "Diagramme en barres : le sport préféré de 25 élèves.",
+          "spec": {
+            "points": [
+              {
+                "name": " ",
+                "x": 1,
+                "y": 0
+              },
+              {
+                "name": "  ",
+                "x": 2.5,
+                "y": 0
+              },
+              {
+                "name": "   ",
+                "x": 2.5,
+                "y": 8
+              },
+              {
+                "name": "    ",
+                "x": 1,
+                "y": 8
+              },
+              {
+                "name": "     ",
+                "x": 4,
+                "y": 0
+              },
+              {
+                "name": "      ",
+                "x": 5.5,
+                "y": 0
+              },
+              {
+                "name": "       ",
+                "x": 5.5,
+                "y": 5
+              },
+              {
+                "name": "        ",
+                "x": 4,
+                "y": 5
+              },
+              {
+                "name": "         ",
+                "x": 7,
+                "y": 0
+              },
+              {
+                "name": "          ",
+                "x": 8.5,
+                "y": 0
+              },
+              {
+                "name": "           ",
+                "x": 8.5,
+                "y": 7
+              },
+              {
+                "name": "            ",
+                "x": 7,
+                "y": 7
+              },
+              {
+                "name": "             ",
+                "x": 10,
+                "y": 0
+              },
+              {
+                "name": "              ",
+                "x": 11.5,
+                "y": 0
+              },
+              {
+                "name": "               ",
+                "x": 11.5,
+                "y": 3
+              },
+              {
+                "name": "                ",
+                "x": 10,
+                "y": 3
+              },
+              {
+                "name": "                 ",
+                "x": 13,
+                "y": 0
+              },
+              {
+                "name": "                  ",
+                "x": 14.5,
+                "y": 0
+              },
+              {
+                "name": "                   ",
+                "x": 14.5,
+                "y": 2
+              },
+              {
+                "name": "                    ",
+                "x": 13,
+                "y": 2
+              },
+              {
+                "name": "                     ",
+                "x": 0,
+                "y": 0
+              },
+              {
+                "name": "                      ",
+                "x": 15.5,
+                "y": 0
+              },
+              {
+                "name": "                       ",
+                "x": 0,
+                "y": 9
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  " ",
+                  "  ",
+                  "   ",
+                  "    "
+                ]
+              },
+              {
+                "vertices": [
+                  "     ",
+                  "      ",
+                  "       ",
+                  "        "
+                ]
+              },
+              {
+                "vertices": [
+                  "         ",
+                  "          ",
+                  "           ",
+                  "            "
+                ]
+              },
+              {
+                "vertices": [
+                  "             ",
+                  "              ",
+                  "               ",
+                  "                "
+                ]
+              },
+              {
+                "vertices": [
+                  "                 ",
+                  "                  ",
+                  "                   ",
+                  "                    "
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": "                     ",
+                "to": "                      "
+              },
+              {
+                "from": "                     ",
+                "to": "                       "
+              }
+            ],
+            "labels": [
+              {
+                "text": "Football",
+                "x": 1.75,
+                "y": -0.7
+              },
+              {
+                "text": "Basket",
+                "x": 4.75,
+                "y": -1.6
+              },
+              {
+                "text": "Natation",
+                "x": 7.75,
+                "y": -0.7
+              },
+              {
+                "text": "Danse",
+                "x": 10.75,
+                "y": -1.6
+              },
+              {
+                "text": "Autre",
+                "x": 13.75,
+                "y": -0.7
+              },
+              {
+                "text": "0",
+                "x": -0.8,
+                "y": 0
+              },
+              {
+                "text": "2",
+                "x": -0.8,
+                "y": 2
+              },
+              {
+                "text": "4",
+                "x": -0.8,
+                "y": 4
+              },
+              {
+                "text": "6",
+                "x": -0.8,
+                "y": 6
+              },
+              {
+                "text": "8",
+                "x": -0.8,
+                "y": 8
+              },
+              {
+                "text": "Effectif",
+                "x": 0.6,
+                "y": 9.6
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-lire-natation",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "D'après le diagramme, combien d'élèves ont choisi la natation ?",
+          "competencies": [
+            "c4.ogd.statistiques.lire-representations"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "La barre de la natation monte jusqu'à 7, entre les graduations 6 et 8."
+        },
+        {
+          "id": "ex-lire-ecart",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "D'après le diagramme, combien d'élèves de plus ont choisi le football plutôt que le basket ?",
+          "competencies": [
+            "c4.ogd.statistiques.lire-representations"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "explanation": "Football : 8 ; basket : 5. 8 − 5 = 3 élèves de plus."
+        },
+        {
+          "id": "table-choisir",
+          "type": "table",
+          "headers": [
+            "Pour montrer…",
+            "On choisit…"
+          ],
+          "rows": [
+            [
+              "des effectifs à comparer",
+              "un diagramme en barres"
+            ],
+            [
+              "la répartition d'un tout en parts",
+              "un diagramme circulaire"
+            ],
+            [
+              "une évolution (dans le temps, par exemple)",
+              "un graphique cartésien (une courbe)"
+            ]
+          ],
+          "caption": "Choisir une représentation adaptée."
+        },
+        {
+          "id": "def-circulaire",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Diagramme circulaire",
+          "text": "Dans un diagramme circulaire, l'angle de chaque secteur est proportionnel à l'effectif : angle = fréquence × 360°. Le disque entier représente l'effectif total."
+        },
+        {
+          "id": "ex-choisir-circulaire",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On veut montrer comment se répartit le budget d'une famille (logement, nourriture, loisirs…). Quelle représentation choisir ?",
+          "competencies": [
+            "c4.ogd.statistiques.representer-donnees"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-diagramme-circulaire",
+              "text": "un diagramme circulaire",
+              "correct": true
+            },
+            {
+              "id": "choix-un-graphique-cartesien",
+              "text": "un graphique cartésien",
+              "correct": false
+            },
+            {
+              "id": "choix-une-liste-des-depenses",
+              "text": "une liste des dépenses",
+              "correct": false
+            }
+          ],
+          "explanation": "On montre la répartition d'un tout en parts : le diagramme circulaire est adapté. Un graphique cartésien montre une évolution. Une liste n'est pas une représentation graphique."
+        },
+        {
+          "id": "ex-choisir-courbe",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On veut montrer l'évolution de la température heure par heure au cours d'une journée. Quelle représentation choisir ?",
+          "competencies": [
+            "c4.ogd.statistiques.representer-donnees"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-graphique-cartesien",
+              "text": "un graphique cartésien",
+              "correct": true
+            },
+            {
+              "id": "choix-un-diagramme-circulaire",
+              "text": "un diagramme circulaire",
+              "correct": false
+            },
+            {
+              "id": "choix-un-diagramme-en-barres-empilee",
+              "text": "un diagramme en barres empilées",
+              "correct": false
+            }
+          ],
+          "explanation": "Une évolution dans le temps se lit bien sur un graphique cartésien : le temps en abscisse, la température en ordonnée. Un diagramme circulaire montre des parts d'un tout, ce qui n'a pas de sens pour des températures."
+        },
+        {
+          "id": "ex-angle-secteur",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On représente l'enquête par un diagramme circulaire. Quel angle doit mesurer le secteur du football (8 élèves sur 25) ?",
+          "competencies": [
+            "c4.ogd.statistiques.representer-donnees"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 115.2,
+          "tolerance": 0.1,
+          "unit": "°",
+          "explanation": "Fréquence : 8 ÷ 25 = 0,32. Angle : 0,32 × 360 = 115,2°."
+        }
+      ]
+    },
+    {
+      "id": "moyenne",
+      "title": "La moyenne",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-moyenne",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Moyenne",
+          "text": "La **moyenne** d'une série de valeurs est la somme des valeurs divisée par le nombre de valeurs. C'est la valeur que chacun aurait si l'on répartissait le total de façon égale."
+        },
+        {
+          "id": "ex-moyenne-notes",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Lina a eu 12, 15, 9 et 14. Quelle est sa moyenne ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-moyenne"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 12.5,
+          "tolerance": 0,
+          "explanation": "Somme : 12 + 15 + 9 + 14 = 50. Nombre de notes : 4. Moyenne : 50 ÷ 4 = 12,5."
+        },
+        {
+          "id": "ex-moyenne-temperatures",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Voici les températures relevées à 8 h pendant une semaine, en °C : 3 ; 5 ; −1 ; 2 ; 6 ; 4 ; 2. Quelle est la température moyenne ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-moyenne"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "unit": "°C",
+          "explanation": "Somme : 3 + 5 − 1 + 2 + 6 + 4 + 2 = 21. Nombre de valeurs : 7. Moyenne : 21 ÷ 7 = 3 °C. Attention à la valeur négative."
+        },
+        {
+          "id": "ex-moyenne-valeur",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "La moyenne d'une série est-elle forcément l'une des valeurs de la série ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-moyenne"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "Oui",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-c-est-toujours-la-valeur-d",
+              "text": "Oui, c'est toujours la valeur du milieu",
+              "correct": false
+            }
+          ],
+          "explanation": "La moyenne de 12, 15, 9 et 14 est 12,5, qui n'est aucune des notes. La valeur du milieu d'une série rangée s'appelle la médiane (vue plus tard) : ce n'est pas la même chose."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-frequence-danse",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans l'enquête, quelle est la fréquence de la danse, en pourcentage ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-effectifs-frequences"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 12,
+          "tolerance": 0,
+          "unit": "%",
+          "explanation": "3 ÷ 25 = 0,12 = 12 %."
+        },
+        {
+          "id": "ex-plus-choisi",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "D'après le diagramme en barres, quel sport est le plus choisi ?",
+          "competencies": [
+            "c4.ogd.statistiques.lire-representations"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-le-football",
+              "text": "Le football",
+              "correct": true
+            },
+            {
+              "id": "choix-la-natation",
+              "text": "La natation",
+              "correct": false
+            },
+            {
+              "id": "choix-autre",
+              "text": "Autre",
+              "correct": false
+            }
+          ],
+          "explanation": "La barre la plus haute est celle du football (8). La natation (7) est juste derrière."
+        },
+        {
+          "id": "ex-axe-tronque",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un journal publie un diagramme en barres dont l'axe vertical commence à 40 au lieu de 0. Quel est le risque ?",
+          "competencies": [
+            "c4.ogd.statistiques.lire-representations"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-les-differences-entre-les-barr",
+              "text": "Les différences entre les barres paraissent plus grandes qu'elles ne sont",
+              "correct": true
+            },
+            {
+              "id": "choix-les-barres-paraissent-toutes-e",
+              "text": "Les barres paraissent toutes égales",
+              "correct": false
+            },
+            {
+              "id": "choix-aucun-seules-les-valeurs-compt",
+              "text": "Aucun : seules les valeurs comptent",
+              "correct": false
+            }
+          ],
+          "explanation": "En coupant le bas des barres, on supprime la partie commune : une barre de 45 parait deux fois plus haute qu'une barre de 42,5 alors que l'écart est faible. Il faut toujours lire les graduations avant de comparer."
+        },
+        {
+          "id": "ex-echelle-barres",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans un diagramme en barres, 1 cm représente 2 élèves. Quelle hauteur, en cm, doit avoir la barre du football (8 élèves) ?",
+          "competencies": [
+            "c4.ogd.statistiques.representer-donnees"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "8 ÷ 2 = 4 cm."
+        },
+        {
+          "id": "ex-moyenne-somme",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "La moyenne de trois notes de Sam est 13. Quelle est la somme de ses trois notes ?",
+          "competencies": [
+            "c4.ogd.statistiques.calculer-moyenne"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "answer": 39,
+          "tolerance": 0,
+          "explanation": "Moyenne = somme ÷ 3, donc somme = moyenne × 3 = 13 × 3 = 39."
+        }
+      ]
+    }
+  ]
+}

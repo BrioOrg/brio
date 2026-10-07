@@ -1,0 +1,760 @@
+{
+  "schemaVersion": 1,
+  "id": "triangles-droites-remarquables",
+  "title": "Triangles : médiatrices, hauteurs, médianes et aire",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 64,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 3,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "utiliser les médiatrices d'un triangle et son cercle circonscrit ;",
+            "tracer les hauteurs et les médianes d'un triangle ;",
+            "calculer l'aire d'un triangle."
+          ]
+        },
+        {
+          "id": "auto-mediatrice",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "La médiatrice d'un segment [AB] est :",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-la-droite-perpendiculaire-a-ab",
+              "text": "la droite perpendiculaire à [AB] qui passe par son milieu",
+              "correct": true
+            },
+            {
+              "id": "choix-la-droite-qui-passe-par-a-et-p",
+              "text": "la droite qui passe par A et par le milieu de [AB]",
+              "correct": false
+            },
+            {
+              "id": "choix-n-importe-quelle-droite-perpen",
+              "text": "n'importe quelle droite perpendiculaire à [AB]",
+              "correct": false
+            }
+          ],
+          "explanation": "C'est la définition vue en 6e : perpendiculaire au segment, en son milieu. Tous ses points sont à égale distance de A et de B."
+        }
+      ]
+    },
+    {
+      "id": "mediatrices",
+      "title": "Médiatrices et cercle circonscrit",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-cercle-circonscrit",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Cercle circonscrit",
+          "text": "Les trois médiatrices d'un triangle se coupent en un même point O. Ce point est à la même distance des trois sommets : c'est le centre du cercle qui passe par les trois sommets, le **cercle circonscrit** au triangle."
+        },
+        {
+          "id": "def-triangle-rectangle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Cas du triangle rectangle",
+          "text": "Si un triangle est rectangle, le centre de son cercle circonscrit est le **milieu de son hypoténuse**. Le rayon vaut la moitié de l'hypoténuse."
+        },
+        {
+          "id": "fig-cercle-rectangle",
+          "type": "figure",
+          "alt": "Triangle ABC rectangle en A, inscrit dans un cercle. Le centre O du cercle est le milieu de l'hypoténuse [BC].",
+          "caption": "Le cercle circonscrit à un triangle rectangle.",
+          "spec": {
+            "points": [
+              {
+                "name": "B",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "left"
+                }
+              },
+              {
+                "name": "C",
+                "x": 6,
+                "y": 0,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "A",
+                "x": 4.8,
+                "y": 2.4,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "O",
+                "x": 3,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": "B",
+                "to": "O"
+              },
+              {
+                "from": "O",
+                "to": "C"
+              }
+            ],
+            "circles": [
+              {
+                "center": "O",
+                "through": "B"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "A",
+                "from": "B",
+                "to": "C",
+                "right": true
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "BO",
+                "ticks": 1
+              },
+              {
+                "segment": "OC",
+                "ticks": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-centre-circonscrit",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le centre du cercle circonscrit à un triangle est le point d'intersection :",
+          "competencies": [
+            "c4.geo.triangles.utiliser-mediatrices"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-des-trois-mediatrices",
+              "text": "des trois médiatrices",
+              "correct": true
+            },
+            {
+              "id": "choix-des-trois-hauteurs",
+              "text": "des trois hauteurs",
+              "correct": false
+            },
+            {
+              "id": "choix-des-trois-medianes",
+              "text": "des trois médianes",
+              "correct": false
+            }
+          ],
+          "explanation": "Un point de la médiatrice de [AB] est à égale distance de A et de B. Le point commun aux trois médiatrices est donc à égale distance des trois sommets : c'est le centre du cercle circonscrit. Les hauteurs et les médianes se coupent en d'autres points, en général différents."
+        },
+        {
+          "id": "ex-rayon-rectangle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le triangle ABC est rectangle en A et son hypoténuse [BC] mesure 10 cm. Quel est le rayon de son cercle circonscrit ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-mediatrices"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le centre est le milieu de l'hypoténuse : le rayon est la moitié de BC, 10 ÷ 2 = 5 cm."
+        },
+        {
+          "id": "ex-distance-centre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "O est le centre du cercle circonscrit au triangle ABC et OA = 4 cm. Combien mesure OB ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-mediatrices"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 4,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "O est à la même distance des trois sommets : OB = OA = 4 cm, le rayon du cercle."
+        }
+      ]
+    },
+    {
+      "id": "hauteurs",
+      "title": "Les hauteurs",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "def-hauteur",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Hauteur",
+          "text": "La **hauteur issue de A** dans le triangle ABC est la droite qui passe par A et qui est **perpendiculaire** au côté opposé (BC). Son point d'intersection H avec (BC) est le **pied** de la hauteur. On appelle aussi « hauteur » la longueur AH. Les trois hauteurs d'un triangle se coupent en un même point : elles sont **concourantes**."
+        },
+        {
+          "id": "fig-hauteur",
+          "type": "figure",
+          "alt": "Triangle ABC, avec [BC] horizontal en bas. Le segment [AH] descend verticalement de A jusqu'au point H de [BC], avec un angle droit en H.",
+          "caption": "La hauteur issue de A et son pied H.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 1,
+                "y": 4,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "B",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "C",
+                "x": 6,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "H",
+                "x": 1,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "H"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "H",
+                "from": "C",
+                "to": "A",
+                "right": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-definition-hauteur",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "La hauteur issue de A dans le triangle ABC est :",
+          "competencies": [
+            "c4.geo.triangles.tracer-hauteurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-la-droite-qui-passe-par-a-et-q",
+              "text": "la droite qui passe par A et qui est perpendiculaire à (BC)",
+              "correct": true
+            },
+            {
+              "id": "choix-la-droite-qui-passe-par-a-et-p",
+              "text": "la droite qui passe par A et par le milieu de [BC]",
+              "correct": false
+            },
+            {
+              "id": "choix-la-droite-perpendiculaire-a-bc",
+              "text": "la droite perpendiculaire à [BC] en son milieu",
+              "correct": false
+            }
+          ],
+          "explanation": "La hauteur part du sommet A et tombe à angle droit sur le côté opposé. La droite passant par A et le milieu de [BC] est la médiane. La perpendiculaire à [BC] en son milieu est la médiatrice."
+        },
+        {
+          "id": "ex-concourantes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Que sait-on des trois hauteurs d'un triangle ?",
+          "competencies": [
+            "c4.geo.triangles.tracer-hauteurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-elles-se-coupent-en-un-meme-po",
+              "text": "Elles se coupent en un même point",
+              "correct": true
+            },
+            {
+              "id": "choix-elles-sont-paralleles",
+              "text": "Elles sont parallèles",
+              "correct": false
+            },
+            {
+              "id": "choix-elles-passent-par-les-milieux",
+              "text": "Elles passent par les milieux des côtés",
+              "correct": false
+            }
+          ],
+          "explanation": "Les trois hauteurs d'un triangle sont concourantes. Elles ne passent pas en général par les milieux des côtés : ce sont les médianes et les médiatrices qui y passent."
+        },
+        {
+          "id": "ex-hauteur-rectangle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le triangle ABC est rectangle en A. Quelle est la hauteur issue de B ?",
+          "competencies": [
+            "c4.geo.triangles.tracer-hauteurs"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-la-droite-ab",
+              "text": "la droite (AB)",
+              "correct": true
+            },
+            {
+              "id": "choix-la-droite-bc",
+              "text": "la droite (BC)",
+              "correct": false
+            },
+            {
+              "id": "choix-la-mediatrice-de-ac",
+              "text": "la médiatrice de [AC]",
+              "correct": false
+            }
+          ],
+          "explanation": "La hauteur issue de B passe par B et est perpendiculaire à (AC). Or (AB) est perpendiculaire à (AC), puisque l'angle en A est droit, et elle passe par B : c'est la hauteur. Dans un triangle rectangle, les deux côtés de l'angle droit sont des hauteurs."
+        }
+      ]
+    },
+    {
+      "id": "medianes",
+      "title": "Les médianes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-mediane",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Médiane",
+          "text": "La **médiane issue de A** dans le triangle ABC est le segment (ou la droite) qui joint A au **milieu** du côté opposé [BC]."
+        },
+        {
+          "id": "fig-mediane",
+          "type": "figure",
+          "alt": "Triangle ABC avec le segment [AI], où I est le milieu de [BC] : [BI] et [IC] sont codés de même longueur.",
+          "caption": "La médiane issue de A.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 1,
+                "y": 4,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "B",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "C",
+                "x": 6,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "I",
+                "x": 3,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "I"
+              },
+              {
+                "from": "B",
+                "to": "I"
+              },
+              {
+                "from": "I",
+                "to": "C"
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "BI",
+                "ticks": 1
+              },
+              {
+                "segment": "IC",
+                "ticks": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-mediane-aires",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Une médiane partage l'aire en deux",
+          "text": "Les triangles ABI et AIC ont des bases [BI] et [IC] de même longueur, et la même hauteur issue de A. Ils ont donc la même aire : chacun a la moitié de l'aire de ABC."
+        },
+        {
+          "id": "ex-definition-mediane",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "La médiane issue de A dans le triangle ABC passe par A et par :",
+          "competencies": [
+            "c4.geo.triangles.tracer-medianes"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-le-milieu-de-bc",
+              "text": "le milieu de [BC]",
+              "correct": true
+            },
+            {
+              "id": "choix-le-pied-de-la-hauteur-issue-de",
+              "text": "le pied de la hauteur issue de A",
+              "correct": false
+            },
+            {
+              "id": "choix-le-centre-du-cercle-circonscri",
+              "text": "le centre du cercle circonscrit",
+              "correct": false
+            }
+          ],
+          "explanation": "Une médiane joint un sommet au milieu du côté opposé. Le pied de la hauteur n'est en général pas le milieu de [BC] (sur les figures, H et I sont différents)."
+        },
+        {
+          "id": "ex-mediane-aire",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle a une aire de 18 cm². Une de ses médianes le partage en deux triangles. Quelle est l'aire de chacun ?",
+          "competencies": [
+            "c4.geo.triangles.tracer-medianes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Une médiane partage un triangle en deux triangles de même aire : 18 ÷ 2 = 9 cm²."
+        },
+        {
+          "id": "ex-mediane-pourquoi",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pourquoi la médiane [AI] partage-t-elle le triangle ABC en deux triangles de même aire ?",
+          "competencies": [
+            "c4.geo.triangles.tracer-medianes"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-les-bases-bi-et-ic-ont-la-meme",
+              "text": "Les bases [BI] et [IC] ont la même longueur et les deux triangles ont la même hauteur issue de A",
+              "correct": true
+            },
+            {
+              "id": "choix-les-deux-triangles-sont-superp",
+              "text": "Les deux triangles sont superposables",
+              "correct": false
+            },
+            {
+              "id": "choix-la-mediane-est-perpendiculaire",
+              "text": "La médiane est perpendiculaire à [BC]",
+              "correct": false
+            }
+          ],
+          "explanation": "Aire = base × hauteur ÷ 2. Bases égales et même hauteur, donc aires égales. Les deux triangles ne sont en général pas superposables (sur la figure, l'un est plus « penché »), et la médiane n'est pas perpendiculaire à [BC]."
+        }
+      ]
+    },
+    {
+      "id": "aire",
+      "title": "L'aire d'un triangle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "formule-aire-triangle",
+          "type": "formula",
+          "latex": "\\mathcal{A} = \\frac{\\text{base} \\times \\text{hauteur}}{2}"
+        },
+        {
+          "id": "tip-hauteur-base",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Une hauteur pour chaque base",
+          "text": "La hauteur à utiliser est celle qui est perpendiculaire à la base choisie. Sur la figure de la hauteur, avec la base [BC], la hauteur est AH."
+        },
+        {
+          "id": "ex-aire-simple",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle a une base de 8 cm et une hauteur relative à cette base de 5 cm. Quelle est son aire ?",
+          "competencies": [
+            "c4.gm.aires.calculer-triangle"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 20,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "8 × 5 ÷ 2 = 40 ÷ 2 = 20 cm²."
+        },
+        {
+          "id": "ex-aire-figure",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur la figure de la hauteur, l'unité est le centimètre : BC = 6 cm et AH = 4 cm. Quelle est l'aire du triangle ABC ?",
+          "competencies": [
+            "c4.gm.aires.calculer-triangle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Base BC = 6 cm, hauteur AH = 4 cm : 6 × 4 ÷ 2 = 12 cm²."
+        },
+        {
+          "id": "ex-aire-piege",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans un triangle ABC, BC = 6 cm, AB = 5 cm et la hauteur issue de A mesure 4 cm. Quelle est son aire ?",
+          "competencies": [
+            "c4.gm.aires.calculer-triangle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-12-cm",
+              "text": "12 cm²",
+              "correct": true
+            },
+            {
+              "id": "choix-15-cm",
+              "text": "15 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-24-cm",
+              "text": "24 cm²",
+              "correct": false
+            }
+          ],
+          "explanation": "On multiplie la base [BC] par la hauteur qui lui est perpendiculaire : 6 × 4 ÷ 2 = 12 cm². 15 cm² utilise le côté AB, qui n'est pas une hauteur. 24 cm² oublie de diviser par 2."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 10,
+      "blocks": [
+        {
+          "id": "ex-centre-rectangle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Où se trouve le centre du cercle circonscrit à un triangle rectangle ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-mediatrices"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-au-milieu-de-l-hypotenuse",
+              "text": "Au milieu de l'hypoténuse",
+              "correct": true
+            },
+            {
+              "id": "choix-au-sommet-de-l-angle-droit",
+              "text": "Au sommet de l'angle droit",
+              "correct": false
+            },
+            {
+              "id": "choix-a-l-interieur-du-triangle-loin",
+              "text": "À l'intérieur du triangle, loin des côtés",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour un triangle rectangle, le centre du cercle circonscrit est le milieu de l'hypoténuse (voir la figure). Le sommet de l'angle droit est sur le cercle, pas au centre."
+        },
+        {
+          "id": "ex-nommer-ah",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la figure de la hauteur, que représente le segment [AH] ?",
+          "competencies": [
+            "c4.geo.triangles.tracer-hauteurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-la-hauteur-issue-de-a",
+              "text": "la hauteur issue de A",
+              "correct": true
+            },
+            {
+              "id": "choix-la-mediane-issue-de-a",
+              "text": "la médiane issue de A",
+              "correct": false
+            },
+            {
+              "id": "choix-la-mediatrice-de-bc",
+              "text": "la médiatrice de [BC]",
+              "correct": false
+            }
+          ],
+          "explanation": "[AH] part de A et coupe (BC) à angle droit en H : c'est la hauteur issue de A. H n'est pas le milieu de [BC], donc ce n'est ni une médiane ni une médiatrice."
+        },
+        {
+          "id": "ex-nommer-ai",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la figure de la médiane, pourquoi [AI] n'est-il pas une hauteur ?",
+          "competencies": [
+            "c4.geo.triangles.tracer-medianes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-il-n-est-pas-perpendiculaire-a",
+              "text": "Il n'est pas perpendiculaire à (BC)",
+              "correct": true
+            },
+            {
+              "id": "choix-i-n-est-pas-le-milieu-de-bc",
+              "text": "I n'est pas le milieu de [BC]",
+              "correct": false
+            },
+            {
+              "id": "choix-il-ne-passe-pas-par-a",
+              "text": "Il ne passe pas par A",
+              "correct": false
+            }
+          ],
+          "explanation": "I est bien le milieu de [BC] et [AI] passe par A : c'est une médiane. Mais [AI] n'est pas perpendiculaire à (BC), donc ce n'est pas une hauteur."
+        },
+        {
+          "id": "ex-aire-rectangle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle rectangle a des côtés de l'angle droit de 6 cm et 4,5 cm. Quelle est son aire ?",
+          "competencies": [
+            "c4.gm.aires.calculer-triangle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 13.5,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Dans un triangle rectangle, un côté de l'angle droit est la hauteur relative à l'autre : 6 × 4,5 ÷ 2 = 27 ÷ 2 = 13,5 cm²."
+        }
+      ]
+    }
+  ]
+}

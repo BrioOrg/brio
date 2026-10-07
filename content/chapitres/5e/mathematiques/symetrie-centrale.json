@@ -1,0 +1,489 @@
+{
+  "schemaVersion": 1,
+  "id": "symetrie-centrale",
+  "title": "Le demi-tour (symétrie centrale)",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 42,
+  "status": "published",
+  "sections": [
+    {
+      "id": "definir",
+      "title": "Le symétrique d'un point",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "construire le symétrique d'un point et d'une figure par un demi-tour ;",
+            "utiliser ce que le demi-tour conserve : longueurs, angles, aires, alignement ;",
+            "savoir que l'image d'une droite est une droite parallèle."
+          ]
+        },
+        {
+          "id": "intro-demi-tour",
+          "type": "prose",
+          "text": "En 6e, tu as étudié la symétrie axiale : on plie la feuille le long d'un axe. Le **demi-tour** est une autre transformation : on fait tourner la figure d'un demi-tour (180°) autour d'un point fixe, le **centre**."
+        },
+        {
+          "id": "def-symetrique-point",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Symétrique d'un point",
+          "text": "Le symétrique d'un point A par le demi-tour de centre O est le point A' tel que **O est le milieu du segment [AA']**. Le symétrique de O est O lui-même. On parle aussi de **symétrie centrale** de centre O."
+        },
+        {
+          "id": "fig-symetrique-point",
+          "type": "figure",
+          "alt": "Les points A, O et A' sont alignés ; O est le milieu du segment [AA'], les segments [AO] et [OA'] sont codés de même longueur.",
+          "caption": "A' est le symétrique de A par rapport à O.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 1,
+                "y": 1,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "O",
+                "x": 4,
+                "y": 3,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "A'",
+                "x": 7,
+                "y": 5,
+                "label": {
+                  "placement": "below-right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "O"
+              },
+              {
+                "from": "O",
+                "to": "A'"
+              }
+            ],
+            "lengthMarks": [
+              {
+                "segment": "AO",
+                "ticks": 1
+              },
+              {
+                "segment": "OA'",
+                "ticks": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "methode-construire",
+          "type": "steps",
+          "title": "Construire le symétrique de A par rapport à O",
+          "steps": [
+            {
+              "text": "On trace la demi-droite [AO) : elle part de A et passe par O."
+            },
+            {
+              "text": "Au compas, on reporte la longueur AO de l'autre côté de O, sur cette demi-droite."
+            },
+            {
+              "text": "On obtient A', avec OA' = OA."
+            }
+          ]
+        },
+        {
+          "id": "ex-milieu",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "A' est le symétrique de A par rapport à O. Que peut-on dire du point O ?",
+          "competencies": [
+            "c4.geo.transformations.construire-demi-tour"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-o-est-le-milieu-de-aa",
+              "text": "O est le milieu de [AA']",
+              "correct": true
+            },
+            {
+              "id": "choix-o-est-sur-la-mediatrice-de-aa",
+              "text": "O est sur la médiatrice de [AA'] mais pas sur le segment",
+              "correct": false
+            },
+            {
+              "id": "choix-oa-aa",
+              "text": "OA = AA'",
+              "correct": false
+            }
+          ],
+          "explanation": "Par définition, O est le milieu de [AA'] : il est sur le segment et à égale distance de A et de A'. La médiatrice intervient dans la symétrie axiale, pas dans le demi-tour. AA' vaut le double de OA."
+        },
+        {
+          "id": "ex-longueur-aa",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "A' est le symétrique de A par rapport à O, et AO = 4,5 cm. Quelle est la longueur AA' ?",
+          "competencies": [
+            "c4.geo.transformations.construire-demi-tour"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 9,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "O est le milieu de [AA'] : OA' = OA = 4,5 cm, donc AA' = 4,5 + 4,5 = 9 cm."
+        },
+        {
+          "id": "ex-repere-symetrique",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans un repère d'origine O, on place A(3 ; 2). Quelles sont les coordonnées du symétrique de A par rapport à O ?",
+          "competencies": [
+            "c4.geo.transformations.construire-demi-tour"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-2",
+              "text": "(−3 ; −2)",
+              "correct": true
+            },
+            {
+              "id": "choix-3-2-2",
+              "text": "(3 ; −2)",
+              "correct": false
+            },
+            {
+              "id": "choix-3-2-3",
+              "text": "(−3 ; 2)",
+              "correct": false
+            }
+          ],
+          "explanation": "O est le milieu de [AA'] : pour aller de A à O on fait 3 unités vers la gauche et 2 vers le bas, on recommence pour aller de O à A'. A'(−3 ; −2). (3 ; −2) est le symétrique par rapport à l'axe des abscisses, (−3 ; 2) par rapport à l'axe des ordonnées."
+        }
+      ]
+    },
+    {
+      "id": "figure",
+      "title": "Le symétrique d'une figure",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-figure",
+          "type": "prose",
+          "text": "Pour construire le symétrique d'un polygone, on construit le symétrique de chacun de ses sommets, puis on les relie dans le même ordre."
+        },
+        {
+          "id": "fig-triangle-symetrique",
+          "type": "figure",
+          "alt": "Le triangle ABC et son symétrique A'B'C' par le demi-tour de centre O. Le triangle A'B'C' est le triangle ABC retourné tête en bas.",
+          "caption": "Un demi-tour fait « tourner » la figure : elle se retrouve tête en bas.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 1,
+                "y": 1,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 3,
+                "y": 1,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "C",
+                "x": 2,
+                "y": 3,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "O",
+                "x": 4,
+                "y": 2,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "A'",
+                "x": 7,
+                "y": 3,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "B'",
+                "x": 5,
+                "y": 3,
+                "label": {
+                  "placement": "above-left"
+                }
+              },
+              {
+                "name": "C'",
+                "x": 6,
+                "y": 1,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              },
+              {
+                "vertices": [
+                  "A'",
+                  "B'",
+                  "C'"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-proprietes",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Ce que conserve le demi-tour",
+          "text": "Le symétrique d'une figure par un demi-tour lui est **superposable** : le demi-tour conserve les **longueurs**, les **angles**, les **aires** et l'**alignement**. De plus, l'image d'une droite est une droite qui lui est **parallèle**."
+        },
+        {
+          "id": "ex-conserve-longueur",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Le segment [BC] mesure 6,2 cm. Combien mesure son symétrique [B'C'] par un demi-tour ?",
+          "competencies": [
+            "c4.geo.transformations.utiliser-proprietes-demi-tour"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 6.2,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "Le demi-tour conserve les longueurs : B'C' = BC = 6,2 cm."
+        },
+        {
+          "id": "ex-conserve-angle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un angle mesure 47°. Combien mesure son symétrique par un demi-tour ?",
+          "competencies": [
+            "c4.geo.transformations.utiliser-proprietes-demi-tour"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 47,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Le demi-tour conserve les angles : l'angle symétrique mesure aussi 47°."
+        },
+        {
+          "id": "ex-image-droite",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le point O n'est pas sur la droite (d). Quelle est l'image de (d) par le demi-tour de centre O ?",
+          "competencies": [
+            "c4.geo.transformations.utiliser-proprietes-demi-tour"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-une-droite-parallele-a-d",
+              "text": "une droite parallèle à (d)",
+              "correct": true
+            },
+            {
+              "id": "choix-une-droite-perpendiculaire-a-d",
+              "text": "une droite perpendiculaire à (d)",
+              "correct": false
+            },
+            {
+              "id": "choix-la-droite-d-elle-meme",
+              "text": "la droite (d) elle-même",
+              "correct": false
+            }
+          ],
+          "explanation": "Faire un demi-tour, c'est tourner de 180° : une droite garde sa direction, son image est donc parallèle à (d). Elle n'est pas confondue avec (d) quand O n'est pas sur (d) ; si O était sur (d), l'image serait (d) elle-même."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-symetrique-centre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel est le symétrique du point O par le demi-tour de centre O ?",
+          "competencies": [
+            "c4.geo.transformations.construire-demi-tour"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-o-lui-meme",
+              "text": "O lui-même",
+              "correct": true
+            },
+            {
+              "id": "choix-il-n-existe-pas",
+              "text": "Il n'existe pas",
+              "correct": false
+            },
+            {
+              "id": "choix-n-importe-quel-point",
+              "text": "N'importe quel point",
+              "correct": false
+            }
+          ],
+          "explanation": "O est le milieu de [OO'] seulement si O' = O : le centre est le seul point qui ne bouge pas."
+        },
+        {
+          "id": "ex-aire-symetrique",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un triangle a une aire de 12 cm². Quelle est l'aire de son symétrique par un demi-tour ?",
+          "competencies": [
+            "c4.geo.transformations.utiliser-proprietes-demi-tour"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-12-cm",
+              "text": "12 cm²",
+              "correct": true
+            },
+            {
+              "id": "choix-24-cm",
+              "text": "24 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-6-cm",
+              "text": "6 cm²",
+              "correct": false
+            }
+          ],
+          "explanation": "Le demi-tour conserve les aires : 12 cm². Le symétrique n'est pas une figure deux fois plus grande, c'est la même figure qui a tourné."
+        },
+        {
+          "id": "ex-alignement",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Les points A, B et C sont alignés. Que peut-on dire de leurs symétriques A', B' et C' par un demi-tour ?",
+          "competencies": [
+            "c4.geo.transformations.utiliser-proprietes-demi-tour"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ils-sont-alignes",
+              "text": "Ils sont alignés",
+              "correct": true
+            },
+            {
+              "id": "choix-ils-forment-un-triangle",
+              "text": "Ils forment un triangle",
+              "correct": false
+            },
+            {
+              "id": "choix-on-ne-peut-pas-savoir",
+              "text": "On ne peut pas savoir",
+              "correct": false
+            }
+          ],
+          "explanation": "Le demi-tour conserve l'alignement : les symétriques de points alignés sont alignés."
+        },
+        {
+          "id": "ex-centre-symetrie",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces figures est sa propre image par un demi-tour autour d'un point bien choisi ?",
+          "competencies": [
+            "c4.geo.transformations.utiliser-proprietes-demi-tour"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-parallelogramme",
+              "text": "un parallélogramme",
+              "correct": true
+            },
+            {
+              "id": "choix-un-triangle-equilateral",
+              "text": "un triangle équilatéral",
+              "correct": false
+            },
+            {
+              "id": "choix-un-trapeze-quelconque",
+              "text": "un trapèze quelconque",
+              "correct": false
+            }
+          ],
+          "explanation": "Un parallélogramme a un **centre de symétrie** : le point d'intersection de ses diagonales. Un triangle équilatéral a trois axes de symétrie mais pas de centre de symétrie : après un demi-tour, il est tête en bas."
+        },
+        {
+          "id": "ex-construire-triangle",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Sur ton cahier, trace un triangle ABC et un point O extérieur au triangle. Construis son symétrique A'B'C' par le demi-tour de centre O.",
+          "competencies": [
+            "c4.geo.transformations.construire-demi-tour"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 6,
+          "solution": "On construit A' : sur la demi-droite [AO), on reporte au compas la longueur OA de l'autre côté de O. On fait de même pour B' et C'. On relie A', B' et C'. Contrôles : O est le milieu de [AA'], [BB'] et [CC'] ; A'B' = AB, B'C' = BC, A'C' = AC ; (A'B') est parallèle à (AB)."
+        }
+      ]
+    }
+  ]
+}

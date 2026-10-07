@@ -1,0 +1,537 @@
+{
+  "schemaVersion": 1,
+  "id": "developper-reduire",
+  "title": "Développer, factoriser, réduire, démontrer",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 59,
+  "status": "published",
+  "sections": [
+    {
+      "id": "developper",
+      "title": "Développer et factoriser",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "développer et factoriser avec k(a + b) = ka + kb ;",
+            "réduire une expression comme 2x + 3 + 4x − 1 ;",
+            "démontrer une propriété avec une lettre, ou prouver qu'une affirmation est fausse."
+          ]
+        },
+        {
+          "id": "intro-distributivite",
+          "type": "prose",
+          "text": "Au chapitre sur les priorités, tu as utilisé la distributivité avec des nombres : 7 × 102 = 7 × 100 + 7 × 2. Elle reste vraie quand une lettre remplace un nombre."
+        },
+        {
+          "id": "formule-distributivite",
+          "type": "formula",
+          "latex": "k(a + b) = ka + kb \\qquad k(a - b) = ka - kb"
+        },
+        {
+          "id": "def-developper-factoriser",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Développer, factoriser",
+          "text": "**Développer**, c'est transformer un produit en somme : 5(x + 2) = 5x + 10. **Factoriser**, c'est l'inverse, transformer une somme en produit en repérant un facteur commun : 7x + 21 = 7 × x + 7 × 3 = 7(x + 3)."
+        },
+        {
+          "id": "ex-developper-simple",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Développe 5(x + 2).",
+          "competencies": [
+            "c4.num.litteral.developper-factoriser"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-5x-10",
+              "text": "5x + 10",
+              "correct": true
+            },
+            {
+              "id": "choix-5x-2",
+              "text": "5x + 2",
+              "correct": false
+            },
+            {
+              "id": "choix-5x-7",
+              "text": "5x + 7",
+              "correct": false
+            }
+          ],
+          "explanation": "Le facteur 5 multiplie chacun des deux termes : 5 × x + 5 × 2 = 5x + 10. « 5x + 2 » oublie de multiplier 2 par 5. « 5x + 7 » ajoute 5 au lieu de multiplier."
+        },
+        {
+          "id": "ex-developper-difference",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Développe 3(2a − 4).",
+          "competencies": [
+            "c4.num.litteral.developper-factoriser"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-6a-12",
+              "text": "6a − 12",
+              "correct": true
+            },
+            {
+              "id": "choix-6a-4",
+              "text": "6a − 4",
+              "correct": false
+            },
+            {
+              "id": "choix-5a-7",
+              "text": "5a − 7",
+              "correct": false
+            }
+          ],
+          "explanation": "3 × 2a = 6a et 3 × 4 = 12, et on garde la soustraction : 6a − 12. « 6a − 4 » ne multiplie que le premier terme. « 5a − 7 » ajoute 3 au lieu de multiplier."
+        },
+        {
+          "id": "ex-developper-trous",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète le développement de 6(x + 4).",
+          "competencies": [
+            "c4.num.litteral.developper-factoriser"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "template": "6(x + 4) = {}x + {}",
+          "bank": [
+            "10",
+            "24",
+            "4",
+            "6"
+          ],
+          "expected": [
+            "6",
+            "24"
+          ],
+          "explanation": "6 × x = 6x et 6 × 4 = 24 : 6(x + 4) = 6x + 24."
+        },
+        {
+          "id": "ex-factoriser",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Factorise 4y + 12.",
+          "competencies": [
+            "c4.num.litteral.developper-factoriser"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-4-y-3",
+              "text": "4(y + 3)",
+              "correct": true
+            },
+            {
+              "id": "choix-4-y-12",
+              "text": "4(y + 12)",
+              "correct": false
+            },
+            {
+              "id": "choix-4y-3",
+              "text": "4y(3)",
+              "correct": false
+            }
+          ],
+          "explanation": "12 = 4 × 3 : 4y + 12 = 4 × y + 4 × 3 = 4(y + 3). On vérifie en développant : 4y + 12. 4(y + 12) redonne 4y + 48. « 4y(3) » est un produit qui vaut 12y."
+        }
+      ]
+    },
+    {
+      "id": "reduire",
+      "title": "Réduire une expression",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "intro-reduire",
+          "type": "prose",
+          "text": "3 boîtes de x billes plus 5 boîtes de x billes, cela fait 8 boîtes : 3x + 5x = 8x. On regroupe les termes en x entre eux, et les nombres entre eux : c'est **réduire** l'expression."
+        },
+        {
+          "id": "methode-reduire",
+          "type": "steps",
+          "title": "Réduire 2x + 3 + 4x − 1",
+          "steps": [
+            {
+              "text": "On regroupe les termes en x : 2x + 4x = 6x."
+            },
+            {
+              "text": "On regroupe les nombres : 3 − 1 = 2."
+            },
+            {
+              "text": "On écrit le résultat : 6x + 2."
+            }
+          ]
+        },
+        {
+          "id": "warning-reduire",
+          "type": "callout",
+          "variant": "warning",
+          "title": "On ne mélange pas les x et les nombres",
+          "text": "3x + 4 ne se réduit pas : 3x et 4 ne sont pas de même nature (pour x = 1, 3x + 4 = 7 ; pour x = 2, il vaut 10, pas 14)."
+        },
+        {
+          "id": "ex-reduire-x",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Réduis 3x + 5x.",
+          "competencies": [
+            "c4.num.litteral.reduire-expression"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-8x",
+              "text": "8x",
+              "correct": true
+            },
+            {
+              "id": "choix-8x-2",
+              "text": "$8x^2$",
+              "correct": false
+            },
+            {
+              "id": "choix-15x",
+              "text": "15x",
+              "correct": false
+            }
+          ],
+          "explanation": "3 fois x plus 5 fois x, c'est 8 fois x : 8x. $8x^2$ confond l'addition des termes avec la multiplication x × x. 15x multiplie les coefficients au lieu de les additionner."
+        },
+        {
+          "id": "ex-reduire-complet",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Réduis 2x + 3 + 4x − 1.",
+          "competencies": [
+            "c4.num.litteral.reduire-expression"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-6x-2",
+              "text": "6x + 2",
+              "correct": true
+            },
+            {
+              "id": "choix-8x",
+              "text": "8x",
+              "correct": false
+            },
+            {
+              "id": "choix-6x-4",
+              "text": "6x + 4",
+              "correct": false
+            }
+          ],
+          "explanation": "Termes en x : 2x + 4x = 6x. Nombres : 3 − 1 = 2. Résultat : 6x + 2. « 8x » ajoute les nombres aux x. « 6x + 4 » ajoute 1 au lieu de le soustraire."
+        },
+        {
+          "id": "ex-reduire-trous",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète pour réduire 7x − 2x + 5.",
+          "competencies": [
+            "c4.num.litteral.reduire-expression"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "template": "7x − 2x + 5 = {}x + {}",
+          "bank": [
+            "2",
+            "5",
+            "5",
+            "9"
+          ],
+          "expected": [
+            "5",
+            "5"
+          ],
+          "explanation": "7x − 2x = 5x, et le nombre 5 ne change pas : 5x + 5."
+        },
+        {
+          "id": "ex-reduire-impossible",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Peut-on réduire l'expression 3x + 4 ?",
+          "competencies": [
+            "c4.num.litteral.reduire-expression"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non-elle-est-deja-reduite",
+              "text": "Non, elle est déjà réduite",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-elle-est-egale-a-7x",
+              "text": "Oui, elle est égale à 7x",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-elle-est-egale-a-7",
+              "text": "Oui, elle est égale à 7",
+              "correct": false
+            }
+          ],
+          "explanation": "Un terme en x et un nombre ne se regroupent pas. Pour x = 2, 3x + 4 vaut 10 alors que 7x vaut 14 et 7 vaut 7 : ces deux écritures ne lui sont pas égales."
+        }
+      ]
+    },
+    {
+      "id": "demontrer",
+      "title": "Démontrer avec des lettres",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-demontrer",
+          "type": "prose",
+          "text": "Essayer sur des exemples permet de **conjecturer** une propriété, mais pas de la **démontrer** : on ne peut pas essayer tous les nombres. Le calcul littéral, lui, traite tous les nombres d'un coup."
+        },
+        {
+          "id": "exemple-consecutifs",
+          "type": "callout",
+          "variant": "example",
+          "title": "Trois entiers qui se suivent",
+          "text": "4 + 5 + 6 = 15, 10 + 11 + 12 = 33 : la somme semble toujours être un multiple de 3. Démonstration : si n est le premier, les suivants sont n + 1 et n + 2. n + (n + 1) + (n + 2) = 3n + 3 = 3(n + 1). C'est bien un multiple de 3, quel que soit n."
+        },
+        {
+          "id": "def-contre-exemple",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Contre-exemple",
+          "text": "Pour montrer qu'une affirmation est **fausse**, un seul exemple où elle ne marche pas suffit : c'est un **contre-exemple**."
+        },
+        {
+          "id": "ex-programme-double",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Programme : choisir un nombre x, ajouter 3, multiplier par 2, soustraire 6. On obtient 2(x + 3) − 6. Que peut-on démontrer ?",
+          "competencies": [
+            "c4.num.litteral.demontrer-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-on-obtient-toujours-le-double",
+              "text": "On obtient toujours le double du nombre choisi",
+              "correct": true
+            },
+            {
+              "id": "choix-on-obtient-toujours-0",
+              "text": "On obtient toujours 0",
+              "correct": false
+            },
+            {
+              "id": "choix-on-obtient-toujours-le-nombre",
+              "text": "On obtient toujours le nombre choisi plus 3",
+              "correct": false
+            }
+          ],
+          "explanation": "2(x + 3) − 6 = 2x + 6 − 6 = 2x. Le calcul est valable pour tout x : le résultat est toujours le double du nombre choisi. Avec x = 5, on obtient bien 10."
+        },
+        {
+          "id": "ex-contre-exemple-double",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Affirmation : « le double d'un nombre est toujours plus grand que ce nombre ». Quel nombre est un contre-exemple ?",
+          "competencies": [
+            "c4.num.litteral.demontrer-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1",
+              "text": "−1",
+              "correct": true
+            },
+            {
+              "id": "choix-3",
+              "text": "3",
+              "correct": false
+            },
+            {
+              "id": "choix-0-5",
+              "text": "0,5",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour −1, le double est −2, et −2 < −1 : l'affirmation est fausse pour ce nombre (0 est aussi un contre-exemple, car 2 × 0 = 0). Pour 3 et 0,5, le double est bien plus grand : ce sont des exemples, pas des contre-exemples."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "ex-factoriser-7",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Factorise 7x + 21.",
+          "competencies": [
+            "c4.num.litteral.developper-factoriser"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-7-x-3",
+              "text": "7(x + 3)",
+              "correct": true
+            },
+            {
+              "id": "choix-7-x-21",
+              "text": "7(x + 21)",
+              "correct": false
+            },
+            {
+              "id": "choix-21-x-7",
+              "text": "21(x + 7)",
+              "correct": false
+            }
+          ],
+          "explanation": "21 = 7 × 3 : 7x + 21 = 7(x + 3). En développant 7(x + 21), on obtiendrait 7x + 147."
+        },
+        {
+          "id": "ex-reduire-trois-x",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Réduis x + x + x.",
+          "competencies": [
+            "c4.num.litteral.reduire-expression"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3x",
+              "text": "3x",
+              "correct": true
+            },
+            {
+              "id": "choix-x-3",
+              "text": "$x^3$",
+              "correct": false
+            },
+            {
+              "id": "choix-x-3-2",
+              "text": "x + 3",
+              "correct": false
+            }
+          ],
+          "explanation": "Trois fois x, c'est 3x. $x^3$ est x × x × x : on multiplie, alors qu'ici on additionne."
+        },
+        {
+          "id": "ex-somme-consecutifs",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Si n est un entier, à quoi est égale la somme n + (n + 1) + (n + 2) ?",
+          "competencies": [
+            "c4.num.litteral.demontrer-propriete"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-n-1",
+              "text": "3(n + 1)",
+              "correct": true
+            },
+            {
+              "id": "choix-3n",
+              "text": "3n",
+              "correct": false
+            },
+            {
+              "id": "choix-n-3",
+              "text": "n + 3",
+              "correct": false
+            }
+          ],
+          "explanation": "n + n + 1 + n + 2 = 3n + 3 = 3(n + 1) : c'est un multiple de 3. 3n oublie les nombres 1 et 2. n + 3 additionne les nombres mais oublie deux des n."
+        },
+        {
+          "id": "ex-exemples-insuffisants",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Léo vérifie que $n^2 + n + 41$ est un nombre premier pour n = 0, 1, 2 et 3. Peut-il en conclure que c'est vrai pour tous les entiers n ?",
+          "competencies": [
+            "c4.num.litteral.demontrer-propriete"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non-des-exemples-ne-suffisent",
+              "text": "Non : des exemples ne suffisent pas à démontrer",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-quatre-exemples-suffisent",
+              "text": "Oui : quatre exemples suffisent",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-si-les-quatre-resultats-so",
+              "text": "Oui, si les quatre résultats sont différents",
+              "correct": false
+            }
+          ],
+          "explanation": "Des exemples permettent de conjecturer, pas de démontrer. D'ailleurs, pour n = 40, $40^2 + 40 + 41 = 1\\,681 = 41 \\times 41$, qui n'est pas premier : c'est un contre-exemple."
+        },
+        {
+          "id": "ex-pairs",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Démontre que la somme de deux nombres pairs est toujours un nombre pair.",
+          "competencies": [
+            "c4.num.litteral.demontrer-propriete"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 5,
+          "solution": "Un nombre pair s'écrit 2a, où a est un entier ; un autre nombre pair s'écrit 2b. Leur somme est 2a + 2b = 2(a + b). C'est le double d'un entier : c'est un nombre pair. Le calcul vaut pour tous les nombres pairs, donc la propriété est démontrée.",
+          "statement": "Indice : un nombre pair est le double d'un entier, il s'écrit 2a. Utilise deux lettres différentes pour les deux nombres."
+        }
+      ]
+    }
+  ]
+}

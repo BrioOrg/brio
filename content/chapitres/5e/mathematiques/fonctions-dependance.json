@@ -1,0 +1,606 @@
+{
+  "schemaVersion": 1,
+  "id": "fonctions-dependance",
+  "title": "Une grandeur en fonction d'une autre",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 51,
+  "status": "published",
+  "sections": [
+    {
+      "id": "dependance",
+      "title": "Tableaux de valeurs",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "exprimer une grandeur « en fonction de » une autre ;",
+            "produire et lire un tableau de valeurs ;",
+            "lire un graphique et placer des points dans un repère ;",
+            "écrire une formule qui relie deux grandeurs."
+          ]
+        },
+        {
+          "id": "intro-dependance",
+          "type": "prose",
+          "text": "Le périmètre d'un carré dépend de la longueur de son côté. On dit que le périmètre est donné **en fonction** du côté : quand le côté change, le périmètre change, et la formule P = 4c permet de le calculer."
+        },
+        {
+          "id": "def-tableau-valeurs",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Tableau de valeurs",
+          "text": "À partir d'une formule, on calcule plusieurs valeurs et on les range dans un **tableau de valeurs** : la première ligne contient les valeurs choisies, la deuxième les valeurs calculées."
+        },
+        {
+          "id": "table-perimetre-carre",
+          "type": "table",
+          "headers": [
+            "Côté c (cm)",
+            "1",
+            "2",
+            "2,5",
+            "4"
+          ],
+          "rows": [
+            [
+              "Périmètre P = 4c (cm)",
+              "4",
+              "8",
+              "?",
+              "16"
+            ]
+          ],
+          "caption": "Le périmètre d'un carré en fonction de son côté."
+        },
+        {
+          "id": "ex-en-fonction-de",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Que signifie « l'aire A d'un disque en fonction de son rayon r » ?",
+          "competencies": [
+            "c4.ogd.fonctions.utiliser-tableau-valeurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-a-depend-de-r-quand-r-change-a",
+              "text": "A dépend de r : quand r change, A change",
+              "correct": true
+            },
+            {
+              "id": "choix-r-depend-de-a-mais-a-ne-depend",
+              "text": "r dépend de A, mais A ne dépend pas de r",
+              "correct": false
+            },
+            {
+              "id": "choix-a-et-r-sont-toujours-egaux",
+              "text": "A et r sont toujours égaux",
+              "correct": false
+            }
+          ],
+          "explanation": "« A en fonction de r » : on choisit r et on en déduit A (ici A = π × $r^2$). A et r ne sont pas égaux : pour r = 1, A ≈ 3,14."
+        },
+        {
+          "id": "ex-tableau-perimetre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le tableau du périmètre du carré, quelle valeur faut-il écrire à la place du point d'interrogation ?",
+          "competencies": [
+            "c4.ogd.fonctions.utiliser-tableau-valeurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 10,
+          "tolerance": 0,
+          "explanation": "On applique la formule P = 4c pour c = 2,5 : 4 × 2,5 = 10 cm."
+        },
+        {
+          "id": "ex-produire-tableau",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Complète le tableau de valeurs de la formule y = 3x + 2.",
+          "competencies": [
+            "c4.ogd.fonctions.utiliser-tableau-valeurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "x = 0 → y = {} ; x = 1 → y = {} ; x = 2 → y = {}",
+          "bank": [
+            "2",
+            "3",
+            "5",
+            "6",
+            "8"
+          ],
+          "expected": [
+            "2",
+            "5",
+            "8"
+          ],
+          "explanation": "Pour x = 0 : 3 × 0 + 2 = 2. Pour x = 1 : 3 × 1 + 2 = 5. Pour x = 2 : 3 × 2 + 2 = 8. Attention aux priorités : on multiplie avant d'ajouter."
+        },
+        {
+          "id": "table-trajet",
+          "type": "table",
+          "headers": [
+            "Durée (h)",
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "rows": [
+            [
+              "Distance parcourue (km)",
+              "15",
+              "30",
+              "45",
+              "60"
+            ]
+          ],
+          "caption": "Un cycliste roule à vitesse constante."
+        },
+        {
+          "id": "ex-lire-tableau",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "D'après le tableau du cycliste, combien de temps lui faut-il pour parcourir 60 km ?",
+          "competencies": [
+            "c4.ogd.fonctions.utiliser-tableau-valeurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 4,
+          "tolerance": 0,
+          "unit": "h",
+          "explanation": "On cherche 60 dans la ligne des distances : il correspond à 4 h dans la ligne des durées."
+        }
+      ]
+    },
+    {
+      "id": "graphique",
+      "title": "Lire un graphique",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-graphique",
+          "type": "prose",
+          "text": "Un graphique montre d'un coup d'œil comment une grandeur varie en fonction d'une autre. Ici, on a relevé la température toutes les 4 heures pendant une journée et l'on a relié les points."
+        },
+        {
+          "id": "fig-temperature",
+          "type": "figure",
+          "alt": "Graphique de la température en fonction de l'heure. Valeurs relevées : 0 h, 6 °C ; 4 h, 4 °C ; 8 h, 8 °C ; 12 h, 16 °C ; 16 h, 18 °C ; 20 h, 12 °C ; 24 h, 8 °C. Les points sont reliés par des segments.",
+          "caption": "La température au cours d'une journée.",
+          "spec": {
+            "points": [
+              {
+                "name": "         ",
+                "x": 0,
+                "y": 0
+              },
+              {
+                "name": "        ",
+                "x": 0,
+                "y": 20
+              },
+              {
+                "name": " ",
+                "x": 0,
+                "y": 6
+              },
+              {
+                "name": "  ",
+                "x": 4,
+                "y": 4
+              },
+              {
+                "name": "   ",
+                "x": 8,
+                "y": 8
+              },
+              {
+                "name": "    ",
+                "x": 12,
+                "y": 16
+              },
+              {
+                "name": "     ",
+                "x": 16,
+                "y": 18
+              },
+              {
+                "name": "      ",
+                "x": 20,
+                "y": 12
+              },
+              {
+                "name": "       ",
+                "x": 24,
+                "y": 8
+              }
+            ],
+            "segments": [
+              {
+                "from": "         ",
+                "to": "        "
+              },
+              {
+                "from": " ",
+                "to": "  "
+              },
+              {
+                "from": "  ",
+                "to": "   "
+              },
+              {
+                "from": "   ",
+                "to": "    "
+              },
+              {
+                "from": "    ",
+                "to": "     "
+              },
+              {
+                "from": "     ",
+                "to": "      "
+              },
+              {
+                "from": "      ",
+                "to": "       "
+              }
+            ],
+            "labels": [
+              {
+                "text": "2",
+                "x": -1,
+                "y": 2
+              },
+              {
+                "text": "4",
+                "x": -1,
+                "y": 4
+              },
+              {
+                "text": "6",
+                "x": -1,
+                "y": 6
+              },
+              {
+                "text": "8",
+                "x": -1,
+                "y": 8
+              },
+              {
+                "text": "10",
+                "x": -1,
+                "y": 10
+              },
+              {
+                "text": "12",
+                "x": -1,
+                "y": 12
+              },
+              {
+                "text": "14",
+                "x": -1,
+                "y": 14
+              },
+              {
+                "text": "16",
+                "x": -1,
+                "y": 16
+              },
+              {
+                "text": "18",
+                "x": -1,
+                "y": 18
+              },
+              {
+                "text": "20",
+                "x": -1,
+                "y": 20
+              },
+              {
+                "text": "heure",
+                "x": 26.5,
+                "y": 0.9
+              },
+              {
+                "text": "°C",
+                "x": 1.2,
+                "y": 21
+              }
+            ],
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 24,
+                "step": 2,
+                "labelEvery": 4
+              }
+            ]
+          }
+        },
+        {
+          "id": "tip-lire",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Lire une valeur",
+          "text": "Pour lire la température à une heure donnée, on part de cette heure sur l'axe horizontal, on monte jusqu'à la courbe, puis on se déplace horizontalement jusqu'à l'axe vertical."
+        },
+        {
+          "id": "ex-lire-midi",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "D'après le graphique, quelle température fait-il à 12 h ?",
+          "competencies": [
+            "c4.ogd.fonctions.lire-graphique"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 16,
+          "tolerance": 0,
+          "unit": "°C",
+          "explanation": "Au-dessus de 12 h, le point est à la hauteur de 16 sur l'axe vertical : 16 °C."
+        },
+        {
+          "id": "ex-lire-maximum",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "À quelle heure la température relevée est-elle la plus élevée ?",
+          "competencies": [
+            "c4.ogd.fonctions.lire-graphique"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 16,
+          "tolerance": 0,
+          "unit": "h",
+          "explanation": "Le point le plus haut est au-dessus de 16 h, à 18 °C. Attention : on demande l'heure (16 h), pas la température."
+        },
+        {
+          "id": "ex-variation",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Entre 4 h et 16 h, comment varie la température ?",
+          "competencies": [
+            "c4.ogd.fonctions.lire-graphique"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-elle-augmente",
+              "text": "Elle augmente",
+              "correct": true
+            },
+            {
+              "id": "choix-elle-diminue",
+              "text": "Elle diminue",
+              "correct": false
+            },
+            {
+              "id": "choix-elle-reste-constante",
+              "text": "Elle reste constante",
+              "correct": false
+            }
+          ],
+          "explanation": "De 4 h à 16 h, la courbe monte : la température passe de 4 °C à 18 °C. Elle diminue ensuite, de 16 h à minuit."
+        },
+        {
+          "id": "ex-placer-point",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On veut placer dans un repère le point qui correspond à la colonne « x = 3, y = 7 » d'un tableau de valeurs. Où le place-t-on ?",
+          "competencies": [
+            "c4.ogd.fonctions.lire-graphique"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-a-l-abscisse-3-et-a-l-ordonnee",
+              "text": "À l'abscisse 3 et à l'ordonnée 7",
+              "correct": true
+            },
+            {
+              "id": "choix-a-l-abscisse-7-et-a-l-ordonnee",
+              "text": "À l'abscisse 7 et à l'ordonnée 3",
+              "correct": false
+            },
+            {
+              "id": "choix-sur-l-axe-horizontal-entre-3-e",
+              "text": "Sur l'axe horizontal, entre 3 et 7",
+              "correct": false
+            }
+          ],
+          "explanation": "La première ligne du tableau (x) se lit sur l'axe horizontal, la deuxième (y) sur l'axe vertical : le point a pour coordonnées (3 ; 7). Inverser les deux donne un autre point."
+        }
+      ]
+    },
+    {
+      "id": "formule",
+      "title": "Écrire une formule",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "exemple-formules",
+          "type": "callout",
+          "variant": "example",
+          "title": "Deux tarifs de cinéma",
+          "text": "Tarif A : 5 € par séance. Pour n séances, on paie P = 5n. Tarif B : un abonnement de 10 €, puis 3 € par séance. Pour n séances, on paie P = 10 + 3n."
+        },
+        {
+          "id": "ex-formule-tarif-a",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une séance de cinéma coûte 5 €. Quelle formule donne le prix P de n séances ?",
+          "competencies": [
+            "c4.ogd.fonctions.produire-formule"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-p-5n",
+              "text": "P = 5n",
+              "correct": true
+            },
+            {
+              "id": "choix-p-n-5",
+              "text": "P = n + 5",
+              "correct": false
+            },
+            {
+              "id": "choix-p-5",
+              "text": "P = 5",
+              "correct": false
+            }
+          ],
+          "explanation": "Chaque séance coûte 5 € : n séances coûtent 5 × n. « n + 5 » ajoute 5 une seule fois. « P = 5 » ne dépend pas du nombre de séances."
+        },
+        {
+          "id": "ex-formule-abonnement",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un abonnement coûte 10 €, puis chaque séance coûte 3 €. Quelle formule donne le prix P pour n séances ?",
+          "competencies": [
+            "c4.ogd.fonctions.produire-formule"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-p-10-3n",
+              "text": "P = 10 + 3n",
+              "correct": true
+            },
+            {
+              "id": "choix-p-13n",
+              "text": "P = 13n",
+              "correct": false
+            },
+            {
+              "id": "choix-p-10n-3",
+              "text": "P = 10n + 3",
+              "correct": false
+            }
+          ],
+          "explanation": "On paie 10 € une seule fois, plus 3 € par séance : 10 + 3n. « 13n » fait payer l'abonnement à chaque séance. « 10n + 3 » inverse le prix fixe et le prix par séance."
+        },
+        {
+          "id": "ex-formule-perimetre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un rectangle a une longueur de 6 cm et une largeur ℓ (en cm). Quelle formule donne son périmètre P en fonction de ℓ ?",
+          "competencies": [
+            "c4.ogd.fonctions.produire-formule"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-p-12-2",
+              "text": "P = 12 + 2ℓ",
+              "correct": true
+            },
+            {
+              "id": "choix-p-6",
+              "text": "P = 6ℓ",
+              "correct": false
+            },
+            {
+              "id": "choix-p-6-2",
+              "text": "P = 6 + ℓ",
+              "correct": false
+            }
+          ],
+          "explanation": "P = 2 × (6 + ℓ) = 12 + 2ℓ. « 6ℓ » est l'aire du rectangle. « 6 + ℓ » est la moitié du périmètre."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 10,
+      "blocks": [
+        {
+          "id": "ex-formule-tableau",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un tableau de valeurs contient : x = 1 → y = 4 ; x = 2 → y = 7 ; x = 3 → y = 10. Quelle formule lui correspond ?",
+          "competencies": [
+            "c4.ogd.fonctions.produire-formule"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-y-3x-1",
+              "text": "y = 3x + 1",
+              "correct": true
+            },
+            {
+              "id": "choix-y-4x",
+              "text": "y = 4x",
+              "correct": false
+            },
+            {
+              "id": "choix-y-x-3",
+              "text": "y = x + 3",
+              "correct": false
+            }
+          ],
+          "explanation": "Quand x augmente de 1, y augmente de 3 : on a 3x plus un nombre fixe. Pour x = 1 : 3 + 1 = 4. On vérifie : 3 × 3 + 1 = 10. « 4x » marche pour x = 1 mais donne 8 pour x = 2. « x + 3 » donne 5 pour x = 2."
+        },
+        {
+          "id": "ex-nombre-fois",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "D'après le graphique de la température, à combien des heures relevées la température est-elle de 8 °C ?",
+          "competencies": [
+            "c4.ogd.fonctions.lire-graphique"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 2,
+          "tolerance": 0,
+          "explanation": "Les points à 8 °C sont ceux de 8 h et de 24 h : il y en a deux."
+        },
+        {
+          "id": "ex-tableau-formule",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Avec la formule P = 10 + 3n (abonnement de cinéma), combien paie-t-on pour 4 séances ?",
+          "competencies": [
+            "c4.ogd.fonctions.utiliser-tableau-valeurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 22,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "On remplace n par 4 : 10 + 3 × 4 = 10 + 12 = 22 €."
+        }
+      ]
+    }
+  ]
+}

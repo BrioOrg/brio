@@ -1,0 +1,410 @@
+{
+  "schemaVersion": 1,
+  "id": "puissances-carre-cube",
+  "title": "Carrés et cubes : premières puissances",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 52,
+  "status": "published",
+  "sections": [
+    {
+      "id": "notation",
+      "title": "La notation puissance",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "écrire un produit de facteurs égaux avec la notation puissance ;",
+            "connaitre les carrés des nombres de 0 à 12 et le cube de 10 ;",
+            "calculer une expression qui contient des carrés ou des cubes."
+          ]
+        },
+        {
+          "id": "intro-puissance",
+          "type": "prose",
+          "text": "L'aire d'un carré de côté 5 cm est 5 × 5 = 25 cm². Le volume d'un cube d'arête 5 cm est 5 × 5 × 5 = 125 cm³. Ces produits de facteurs égaux ont une écriture courte."
+        },
+        {
+          "id": "def-carre-cube",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Carré et cube d'un nombre",
+          "text": "Le **carré** de a est a × a, noté $a^2$ (« a au carré »). Le **cube** de a est a × a × a, noté $a^3$ (« a au cube »). Le petit nombre en haut est l'**exposant** : il indique combien de facteurs égaux on multiplie."
+        },
+        {
+          "id": "warning-exposant",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Ce n'est pas une multiplication par l'exposant",
+          "text": "$5^2$ = 5 × 5 = 25, pas 5 × 2 = 10. $2^3$ = 2 × 2 × 2 = 8, pas 2 × 3 = 6."
+        },
+        {
+          "id": "ex-sens-carre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Que signifie $5^2$ ?",
+          "competencies": [
+            "c4.num.puissances.ecrire-carre-cube"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-5-5",
+              "text": "5 × 5",
+              "correct": true
+            },
+            {
+              "id": "choix-5-2",
+              "text": "5 × 2",
+              "correct": false
+            },
+            {
+              "id": "choix-5-5-2",
+              "text": "5 + 5",
+              "correct": false
+            }
+          ],
+          "explanation": "L'exposant 2 indique deux facteurs égaux à 5 : $5^2$ = 5 × 5 = 25. 5 × 2 et 5 + 5 valent 10 : c'est l'erreur classique qui multiplie par l'exposant."
+        },
+        {
+          "id": "ex-ecrire-cube",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Écris 7 × 7 × 7 avec la notation puissance (tu peux taper 7^3).",
+          "competencies": [
+            "c4.num.puissances.ecrire-carre-cube"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "acceptedAnswers": [
+            "7^3",
+            "7³"
+          ],
+          "explanation": "Trois facteurs égaux à 7 : on écrit $7^3$ (« 7 au cube »)."
+        },
+        {
+          "id": "ex-lire-cube",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Comment se lit $a^3$ ?",
+          "competencies": [
+            "c4.num.puissances.ecrire-carre-cube"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-a-au-cube",
+              "text": "a au cube",
+              "correct": true
+            },
+            {
+              "id": "choix-a-au-carre",
+              "text": "a au carré",
+              "correct": false
+            },
+            {
+              "id": "choix-a-fois-3",
+              "text": "a fois 3",
+              "correct": false
+            }
+          ],
+          "explanation": "L'exposant 3 se lit « au cube » : $a^3$ = a × a × a. « Au carré » correspond à l'exposant 2. « a fois 3 » s'écrit 3a."
+        }
+      ]
+    },
+    {
+      "id": "a-connaitre",
+      "title": "Les carrés et les cubes à connaitre",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "table-carres",
+          "type": "table",
+          "headers": [
+            "n",
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ],
+          "rows": [
+            [
+              "$n^2$",
+              "0",
+              "1",
+              "4",
+              "9",
+              "16",
+              "25",
+              "36",
+              "49",
+              "64",
+              "81",
+              "100",
+              "121",
+              "144"
+            ]
+          ],
+          "caption": "Les carrés des entiers de 0 à 12, à connaitre par cœur."
+        },
+        {
+          "id": "def-cube-10",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Le cube de 10",
+          "text": "$10^3$ = 10 × 10 × 10 = 1 000. C'est le nombre de cubes de 1 cm d'arête dans un cube de 10 cm d'arête, soit le nombre de cm³ dans 1 dm³."
+        },
+        {
+          "id": "ex-carre-12",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien vaut $12^2$ ?",
+          "competencies": [
+            "c4.num.puissances.connaitre-carres"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 144,
+          "tolerance": 0,
+          "explanation": "$12^2$ = 12 × 12 = 144. À connaitre par cœur."
+        },
+        {
+          "id": "ex-cube-10",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien vaut $10^3$ ?",
+          "competencies": [
+            "c4.num.puissances.connaitre-carres"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 1000,
+          "tolerance": 0,
+          "explanation": "$10^3$ = 10 × 10 × 10 = 1 000. Le résultat s'écrit avec 1 suivi de trois zéros."
+        },
+        {
+          "id": "ex-racine-81",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel nombre a pour carré 81 ?",
+          "competencies": [
+            "c4.num.puissances.connaitre-carres"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-9",
+              "text": "9",
+              "correct": true
+            },
+            {
+              "id": "choix-40-5",
+              "text": "40,5",
+              "correct": false
+            },
+            {
+              "id": "choix-8",
+              "text": "8",
+              "correct": false
+            }
+          ],
+          "explanation": "9 × 9 = 81, donc $9^2$ = 81. 40,5 est la moitié de 81 : c'est l'erreur qui confond carré et double. $8^2$ = 64."
+        }
+      ]
+    },
+    {
+      "id": "calculer",
+      "title": "Calculer avec des puissances",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-priorite-puissance",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Priorité des puissances",
+          "text": "Dans un calcul, on calcule les puissances **avant** les multiplications et les additions (mais après ce qui est entre parenthèses). 2 × $5^2$ = 2 × 25 = 50."
+        },
+        {
+          "id": "ex-pythagore-numerique",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule $3^2 + 4^2$.",
+          "competencies": [
+            "c4.num.puissances.calculer-expressions"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 25,
+          "tolerance": 0,
+          "explanation": "On calcule d'abord les carrés : $3^2$ = 9 et $4^2$ = 16. Puis 9 + 16 = 25."
+        },
+        {
+          "id": "ex-priorite-puissance",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 2 × $5^2$.",
+          "competencies": [
+            "c4.num.puissances.calculer-expressions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 50,
+          "tolerance": 0,
+          "explanation": "La puissance passe avant la multiplication : $5^2$ = 25, puis 2 × 25 = 50. Calculer (2 × 5)² = 100 serait une erreur : la puissance ne porte que sur 5."
+        },
+        {
+          "id": "ex-carre-somme",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Combien vaut $(2 + 3)^2$ ?",
+          "competencies": [
+            "c4.num.puissances.calculer-expressions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-25",
+              "text": "25",
+              "correct": true
+            },
+            {
+              "id": "choix-13",
+              "text": "13",
+              "correct": false
+            },
+            {
+              "id": "choix-10",
+              "text": "10",
+              "correct": false
+            }
+          ],
+          "explanation": "Les parenthèses d'abord : 2 + 3 = 5, puis $5^2$ = 25. 13 vient de $2^2 + 3^2$ = 4 + 9 : le carré d'une somme n'est pas la somme des carrés. 10 multiplie par l'exposant."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-ecrire-64",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelles écritures sont égales à 64 ?",
+          "competencies": [
+            "c4.num.puissances.ecrire-carre-cube"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": true,
+          "choices": [
+            {
+              "id": "choix-8-2",
+              "text": "$8^2$",
+              "correct": true
+            },
+            {
+              "id": "choix-4-3",
+              "text": "$4^3$",
+              "correct": true
+            },
+            {
+              "id": "choix-6-2",
+              "text": "$6^2$",
+              "correct": false
+            },
+            {
+              "id": "choix-32-2",
+              "text": "$32^2$",
+              "correct": false
+            }
+          ],
+          "explanation": "$8^2$ = 8 × 8 = 64 et $4^3$ = 4 × 4 × 4 = 64. $6^2$ = 36. $32^2$ est bien plus grand : 32 × 2 = 64, mais c'est un double, pas un carré."
+        },
+        {
+          "id": "ex-carre-11",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien vaut $11^2$ ?",
+          "competencies": [
+            "c4.num.puissances.connaitre-carres"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 121,
+          "tolerance": 0,
+          "explanation": "11 × 11 = 110 + 11 = 121."
+        },
+        {
+          "id": "ex-aire-carre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est l'aire, en cm², d'un carré de côté 7 cm ?",
+          "competencies": [
+            "c4.num.puissances.connaitre-carres"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 49,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "L'aire d'un carré de côté c est $c^2$ : $7^2$ = 49 cm²."
+        },
+        {
+          "id": "ex-difference-puissances",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule $10^3 - 6^2$.",
+          "competencies": [
+            "c4.num.puissances.calculer-expressions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 964,
+          "tolerance": 0,
+          "explanation": "$10^3$ = 1 000 et $6^2$ = 36. Puis 1 000 − 36 = 964."
+        },
+        {
+          "id": "ex-expression-litterale",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule $x^2 + 3x$ pour x = 4.",
+          "competencies": [
+            "c4.num.puissances.calculer-expressions"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 28,
+          "tolerance": 0,
+          "explanation": "On remplace x par 4 : $4^2$ + 3 × 4 = 16 + 12 = 28. Attention : 3x signifie 3 × x."
+        }
+      ]
+    }
+  ]
+}

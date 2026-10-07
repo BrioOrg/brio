@@ -1,0 +1,525 @@
+{
+  "schemaVersion": 1,
+  "id": "expressions-priorites",
+  "title": "Enchainer les opérations : priorités et distributivité",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 70,
+  "status": "published",
+  "sections": [
+    {
+      "id": "nommer-un-calcul",
+      "title": "Nommer un calcul",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "dire si un calcul est une somme, une différence, un produit ou un quotient ;",
+            "calculer une expression en respectant les priorités ;",
+            "écrire un programme de calcul en une seule expression ;",
+            "utiliser la distributivité pour calculer astucieusement."
+          ]
+        },
+        {
+          "id": "def-somme-produit",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Somme, différence, produit, quotient",
+          "text": "Le résultat d'une addition est une **somme** ; les nombres additionnés sont ses **termes**. Le résultat d'une multiplication est un **produit** ; les nombres multipliés sont ses **facteurs**. On parle aussi de **différence** (soustraction) et de **quotient** (division)."
+        },
+        {
+          "id": "tip-derniere-operation",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Quelle est la nature d'un calcul ?",
+          "text": "Un calcul porte le nom de la **dernière** opération que l'on effectue. Dans 5 + 3 × 4, on calcule d'abord 3 × 4, puis on ajoute : c'est une somme."
+        },
+        {
+          "id": "ex-nom-facteurs",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Dans le produit 7 × 9, comment appelle-t-on les nombres 7 et 9 ?",
+          "competencies": [
+            "c4.num.operations.nommer-calcul"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "acceptedAnswers": [
+            "facteurs",
+            "des facteurs",
+            "les facteurs"
+          ],
+          "explanation": "7 et 9 sont les **facteurs** du produit 7 × 9. Les « termes » sont les nombres d'une somme ou d'une différence."
+        },
+        {
+          "id": "ex-nature-somme",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le calcul 5 + 3 × 4 est :",
+          "competencies": [
+            "c4.num.operations.nommer-calcul"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-une-somme",
+              "text": "une somme",
+              "correct": true
+            },
+            {
+              "id": "choix-un-produit",
+              "text": "un produit",
+              "correct": false
+            },
+            {
+              "id": "choix-une-difference",
+              "text": "une différence",
+              "correct": false
+            }
+          ],
+          "explanation": "On effectue d'abord 3 × 4 = 12, puis 5 + 12 = 17 : la dernière opération est une addition, donc c'est une somme dont les termes sont 5 et 3 × 4. Le signe × est bien présent, mais ce n'est pas la dernière opération. Il n'y a aucune soustraction."
+        },
+        {
+          "id": "ex-nature-produit",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le calcul (5 + 3) × 4 est :",
+          "competencies": [
+            "c4.num.operations.nommer-calcul"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-produit",
+              "text": "un produit",
+              "correct": true
+            },
+            {
+              "id": "choix-une-somme",
+              "text": "une somme",
+              "correct": false
+            },
+            {
+              "id": "choix-un-quotient",
+              "text": "un quotient",
+              "correct": false
+            }
+          ],
+          "explanation": "Les parenthèses obligent à calculer 5 + 3 en premier ; la dernière opération est la multiplication 8 × 4. C'est donc un produit de facteurs (5 + 3) et 4. L'addition entre parenthèses n'est pas la dernière opération."
+        }
+      ]
+    },
+    {
+      "id": "priorites",
+      "title": "Les priorités opératoires",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "regle-priorites",
+          "type": "steps",
+          "title": "Dans quel ordre calculer ?",
+          "steps": [
+            {
+              "text": "On calcule d'abord ce qui est **entre parenthèses**."
+            },
+            {
+              "text": "Puis les **multiplications et divisions**, de gauche à droite."
+            },
+            {
+              "text": "Enfin les **additions et soustractions**, de gauche à droite."
+            }
+          ]
+        },
+        {
+          "id": "exemple-priorites",
+          "type": "callout",
+          "variant": "example",
+          "title": "Calculer 4 × (9 − 2) + 6",
+          "text": "Parenthèses : 9 − 2 = 7. Multiplication : 4 × 7 = 28. Addition : 28 + 6 = 34."
+        },
+        {
+          "id": "ex-priorite-simple",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 7 + 3 × 5.",
+          "competencies": [
+            "c4.num.operations.appliquer-priorites"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 22,
+          "tolerance": 0,
+          "explanation": "La multiplication passe avant l'addition : 3 × 5 = 15, puis 7 + 15 = 22. Calculer de gauche à droite donnerait 10 × 5 = 50, ce qui est faux."
+        },
+        {
+          "id": "ex-priorite-division",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Combien vaut 20 − 8 ÷ 4 ?",
+          "competencies": [
+            "c4.num.operations.appliquer-priorites"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-18",
+              "text": "18",
+              "correct": true
+            },
+            {
+              "id": "choix-3",
+              "text": "3",
+              "correct": false
+            },
+            {
+              "id": "choix-12",
+              "text": "12",
+              "correct": false
+            }
+          ],
+          "explanation": "La division passe avant la soustraction : 8 ÷ 4 = 2, puis 20 − 2 = 18. Le résultat 3 vient de (20 − 8) ÷ 4 : on a calculé de gauche à droite comme s'il y avait des parenthèses. 12 vient de 20 − 8, en oubliant la division."
+        },
+        {
+          "id": "ex-gauche-droite",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Combien vaut 18 − 6 + 2 ?",
+          "competencies": [
+            "c4.num.operations.appliquer-priorites"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-14",
+              "text": "14",
+              "correct": true
+            },
+            {
+              "id": "choix-10",
+              "text": "10",
+              "correct": false
+            }
+          ],
+          "explanation": "Additions et soustractions se calculent de gauche à droite : 18 − 6 = 12, puis 12 + 2 = 14. Le résultat 10 vient de 18 − (6 + 2) : l'addition n'est pas prioritaire sur la soustraction."
+        },
+        {
+          "id": "ex-priorite-parentheses",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 4 × (9 − 2) + 6.",
+          "competencies": [
+            "c4.num.operations.appliquer-priorites"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 34,
+          "tolerance": 0,
+          "explanation": "Parenthèses : 9 − 2 = 7. Multiplication : 4 × 7 = 28. Addition : 28 + 6 = 34."
+        }
+      ]
+    },
+    {
+      "id": "traduire",
+      "title": "Écrire un calcul en une seule expression",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "intro-traduire",
+          "type": "prose",
+          "text": "Une suite de calculs peut s'écrire en une seule ligne. Les parenthèses servent à indiquer ce qui doit être calculé en premier quand les priorités ne suffisent pas."
+        },
+        {
+          "id": "exemple-programme",
+          "type": "callout",
+          "variant": "example",
+          "title": "Un programme de calcul",
+          "text": "« Choisis 6, ajoute 3, puis multiplie le résultat par 4. » L'addition doit être faite avant la multiplication : on écrit (6 + 3) × 4 = 36. Sans parenthèses, 6 + 3 × 4 = 18 : ce n'est pas le même calcul."
+        },
+        {
+          "id": "ex-traduire-sans-parentheses",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "« Choisis 7, multiplie-le par 2, puis ajoute 5. » Quelle expression traduit ce programme ?",
+          "competencies": [
+            "c4.num.operations.traduire-expression"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-7-2-5",
+              "text": "7 × 2 + 5",
+              "correct": true
+            },
+            {
+              "id": "choix-7-2-5-2",
+              "text": "7 × (2 + 5)",
+              "correct": false
+            },
+            {
+              "id": "choix-7-5-2",
+              "text": "(7 + 5) × 2",
+              "correct": false
+            }
+          ],
+          "explanation": "On multiplie d'abord, puis on ajoute : 7 × 2 + 5 = 19. La multiplication est déjà prioritaire, aucune parenthèse n'est utile. 7 × (2 + 5) ajoute avant de multiplier. (7 + 5) × 2 ajoute 5 au nombre de départ."
+        },
+        {
+          "id": "ex-traduire-parentheses",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "« Ajoute 3 à 6, puis multiplie le résultat par 4. » Quelle expression traduit ce programme ?",
+          "competencies": [
+            "c4.num.operations.traduire-expression"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-6-3-4",
+              "text": "(6 + 3) × 4",
+              "correct": true
+            },
+            {
+              "id": "choix-6-3-4-2",
+              "text": "6 + 3 × 4",
+              "correct": false
+            },
+            {
+              "id": "choix-6-4-3",
+              "text": "6 × 4 + 3",
+              "correct": false
+            }
+          ],
+          "explanation": "Le résultat de l'addition est multiplié : il faut des parenthèses, (6 + 3) × 4 = 36. 6 + 3 × 4 = 18 multiplie seulement 3 par 4, à cause des priorités. 6 × 4 + 3 change l'ordre des étapes."
+        },
+        {
+          "id": "ex-traduire-phrase",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle expression traduit « la différence entre 20 et le produit de 3 par 4 » ?",
+          "competencies": [
+            "c4.num.operations.traduire-expression"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-20-3-4",
+              "text": "20 − 3 × 4",
+              "correct": true
+            },
+            {
+              "id": "choix-20-3-4-2",
+              "text": "(20 − 3) × 4",
+              "correct": false
+            },
+            {
+              "id": "choix-3-4-20",
+              "text": "3 × 4 − 20",
+              "correct": false
+            }
+          ],
+          "explanation": "C'est une différence : le premier terme est 20, le second est le produit 3 × 4. Comme la multiplication est prioritaire, 20 − 3 × 4 = 8 se passe de parenthèses. (20 − 3) × 4 est un produit, pas une différence. 3 × 4 − 20 inverse les deux termes."
+        }
+      ]
+    },
+    {
+      "id": "distributivite",
+      "title": "La distributivité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "intro-distributivite",
+          "type": "prose",
+          "text": "Pour calculer 7 × 102 de tête, on peut penser 7 × 100 plus 7 × 2. C'est la distributivité de la multiplication sur l'addition."
+        },
+        {
+          "id": "formule-distributivite",
+          "type": "formula",
+          "latex": "k \\times (a + b) = k \\times a + k \\times b \\qquad k \\times (a - b) = k \\times a - k \\times b"
+        },
+        {
+          "id": "exemple-distributivite",
+          "type": "callout",
+          "variant": "example",
+          "title": "Deux calculs astucieux",
+          "text": "7 × 102 = 7 × 100 + 7 × 2 = 700 + 14 = 714. Dans l'autre sens : 13 × 6 + 13 × 4 = 13 × (6 + 4) = 13 × 10 = 130."
+        },
+        {
+          "id": "ex-distrib-103",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 6 × 103 en utilisant la distributivité.",
+          "competencies": [
+            "c4.num.operations.utiliser-distributivite"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 618,
+          "tolerance": 0,
+          "explanation": "6 × 103 = 6 × 100 + 6 × 3 = 600 + 18 = 618."
+        },
+        {
+          "id": "ex-distrib-egal",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle expression est égale à 8 × (10 + 3) ?",
+          "competencies": [
+            "c4.num.operations.utiliser-distributivite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-8-10-8-3",
+              "text": "8 × 10 + 8 × 3",
+              "correct": true
+            },
+            {
+              "id": "choix-8-10-3",
+              "text": "8 × 10 + 3",
+              "correct": false
+            },
+            {
+              "id": "choix-8-10-3-2",
+              "text": "8 + 10 × 3",
+              "correct": false
+            }
+          ],
+          "explanation": "Le facteur 8 multiplie chacun des deux termes : 8 × 10 + 8 × 3 = 80 + 24 = 104. 8 × 10 + 3 oublie de multiplier 3 par 8 (on trouverait 83). 8 + 10 × 3 n'a plus rien à voir avec le produit de départ."
+        },
+        {
+          "id": "ex-distrib-99",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 9 × 99 de tête, en remarquant que 99 = 100 − 1.",
+          "competencies": [
+            "c4.num.operations.utiliser-distributivite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 891,
+          "tolerance": 0,
+          "explanation": "9 × 99 = 9 × (100 − 1) = 9 × 100 − 9 × 1 = 900 − 9 = 891."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 18,
+      "blocks": [
+        {
+          "id": "ex-priorite-longue",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 30 − 12 ÷ 3 × 2.",
+          "competencies": [
+            "c4.num.operations.appliquer-priorites"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 22,
+          "tolerance": 0,
+          "explanation": "Divisions et multiplications d'abord, de gauche à droite : 12 ÷ 3 = 4, puis 4 × 2 = 8. Ensuite 30 − 8 = 22."
+        },
+        {
+          "id": "ex-priorite-mixte",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 2 + 3 × (8 − 5) − 1.",
+          "competencies": [
+            "c4.num.operations.appliquer-priorites"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 10,
+          "tolerance": 0,
+          "explanation": "Parenthèses : 8 − 5 = 3. Multiplication : 3 × 3 = 9. Puis de gauche à droite : 2 + 9 = 11 et 11 − 1 = 10."
+        },
+        {
+          "id": "ex-nature-terme",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans la somme 8 + 2 × 5, le calcul 2 × 5 est :",
+          "competencies": [
+            "c4.num.operations.nommer-calcul"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-terme-de-la-somme",
+              "text": "un terme de la somme",
+              "correct": true
+            },
+            {
+              "id": "choix-un-facteur-de-la-somme",
+              "text": "un facteur de la somme",
+              "correct": false
+            },
+            {
+              "id": "choix-la-somme-elle-meme",
+              "text": "la somme elle-même",
+              "correct": false
+            }
+          ],
+          "explanation": "La somme 8 + 2 × 5 a deux termes : 8 et 2 × 5. Le calcul 2 × 5 est lui-même un produit, mais dans la somme il joue le rôle d'un terme. Une somme n'a pas de facteurs."
+        },
+        {
+          "id": "ex-monnaie",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Léo achète 3 cahiers à 2,50 € et un stylo à 1,20 €. Il paie avec un billet de 10 €. On traduit la situation par 10 − (3 × 2,50 + 1,20). Combien la caissière lui rend-elle ?",
+          "competencies": [
+            "c4.num.operations.traduire-expression",
+            "c4.num.operations.appliquer-priorites"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 1.3,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "Parenthèses d'abord : 3 × 2,50 = 7,50 puis 7,50 + 1,20 = 8,70 €. Ensuite 10 − 8,70 = 1,30 €. Les parenthèses sont indispensables : sans elles, on soustrairait seulement les cahiers."
+        },
+        {
+          "id": "ex-distrib-factoriser",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule astucieusement 25 × 4,3 + 25 × 5,7.",
+          "competencies": [
+            "c4.num.operations.utiliser-distributivite"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 250,
+          "tolerance": 0,
+          "explanation": "Le facteur 25 est commun aux deux produits : 25 × 4,3 + 25 × 5,7 = 25 × (4,3 + 5,7) = 25 × 10 = 250."
+        }
+      ]
+    }
+  ]
+}
