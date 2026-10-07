@@ -1,3 +1,7 @@
+'use client'
+
+import * as Tabs from '@radix-ui/react-tabs'
+import { EntraidePanel } from '@/components/entraide/entraide-panel'
 import { TuteurPanel } from '@/components/tutor-panel'
 import type { TutorTarget } from '@/lib/api'
 
@@ -33,8 +37,43 @@ export function RailContent({ sections, target, onNavigate }: RailProps) {
         </nav>
       )}
 
-      <TuteurPanel target={target} />
+      {target.kind === 'chapitre' ? (
+        <TuteurEtEntraide target={target} slug={target.slug} />
+      ) : (
+        <TuteurPanel target={target} />
+      )}
     </div>
+  )
+}
+
+const ONGLET =
+  'flex-1 rounded-md px-3 py-1.5 font-display text-sm font-extrabold text-ink-muted transition-colors duration-[var(--duration-fast)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=active]:bg-surface-raised data-[state=active]:text-ink'
+
+/**
+ * On a catalogue chapter the tutor shares the rail with the class entraide (ADR 0023). Both
+ * panels stay mounted, so switching tabs keeps the tutor conversation and the open thread.
+ */
+function TuteurEtEntraide({ target, slug }: { target: TutorTarget; slug: string }) {
+  return (
+    <Tabs.Root defaultValue="tuteur" className="flex flex-col gap-4">
+      <Tabs.List
+        aria-label="Aide sur ce chapitre"
+        className="flex gap-1 rounded-lg border border-line bg-surface-panel p-1"
+      >
+        <Tabs.Trigger value="tuteur" className={ONGLET}>
+          Tuteur
+        </Tabs.Trigger>
+        <Tabs.Trigger value="entraide" className={ONGLET}>
+          Entraide
+        </Tabs.Trigger>
+      </Tabs.List>
+      <Tabs.Content value="tuteur" forceMount className="data-[state=inactive]:hidden">
+        <TuteurPanel target={target} />
+      </Tabs.Content>
+      <Tabs.Content value="entraide" forceMount className="data-[state=inactive]:hidden">
+        <EntraidePanel portee="chapitre" porteeRef={slug} />
+      </Tabs.Content>
+    </Tabs.Root>
   )
 }
 

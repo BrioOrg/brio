@@ -6,6 +6,7 @@ import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sideb
 import { ChapterRail } from '@/components/chapter-rail'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
 import { ChapterInteractionProvider } from '@/components/chapter-interaction-context'
+import { EntraideProvider } from '@/components/entraide/entraide-context'
 import { tutorRequestCap } from '@/lib/tutor-config'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
@@ -120,7 +121,9 @@ export default async function ChapterPage({
             />
 
             <div className="mx-auto max-w-[68ch]">
-              <ChapterView chapitre={chapitre} />
+              <EntraideProvider>
+                <ChapterView chapitre={chapitre} />
+              </EntraideProvider>
             </div>
           </main>
 

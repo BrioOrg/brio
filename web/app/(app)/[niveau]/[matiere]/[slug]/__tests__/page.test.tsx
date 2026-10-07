@@ -11,6 +11,8 @@ vi.mock('@brio/api-client', () => ({
   // The TuteurPanel checks for an open control/exam on mount (ADR 0025/0027) — default: none.
   controleActif: async () => ({ enControle: false, titre: null, echeanceAt: null }),
   examenActif: async () => ({ enExamen: false, annaleId: null, titre: null, endsAt: null }),
+  // The rail's entraide tab loads the reader's classes on mount (ADR 0023) — default: none.
+  mesClasses: async () => [],
 }))
 
 vi.mock('@/lib/api', () => ({
