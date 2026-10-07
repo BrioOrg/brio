@@ -1964,6 +1964,27 @@
         }
       }
     },
+    "/api/moi/classes" : {
+      "get" : {
+        "tags" : [ "session-controller" ],
+        "operationId" : "classesDuCompte",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ClasseInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/entraide/{filId}" : {
       "get" : {
         "tags" : [ "Entraide" ],
