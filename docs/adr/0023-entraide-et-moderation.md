@@ -1,6 +1,6 @@
 # 0023 — Entraide (F6a) et socle de modération
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-10-05
 - **Deciders**: Gabrielle Clamaran
 

@@ -118,6 +118,12 @@ export function MesCours() {
           >
             Devoirs
           </Link>
+          <Link
+            href="/prof/signalements"
+            className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-page px-4 py-2.5 font-display text-sm font-extrabold text-ink hover:border-accent"
+          >
+            Signalements
+          </Link>
           <button
             type="button"
             onClick={() => {

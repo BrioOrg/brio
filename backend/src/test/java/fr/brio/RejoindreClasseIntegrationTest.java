@@ -1,5 +1,6 @@
 package fr.brio;
 
+import com.jayway.jsonpath.JsonPath;
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.api.EtablissementInfo;
 import fr.brio.identite.domain.BaseLegale;
@@ -151,6 +152,38 @@ class RejoindreClasseIntegrationTest {
                                 {"code":"%s","motDePasse":"monMotDePasse1","nomAffiche":"Sam"}
                                 """.formatted(mixedCode)))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldListTheJoinedClassForTheStudent() throws Exception {
+        String identifiant = JsonPath.read(
+                mockMvc.perform(post("/api/classes/rejoindre")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {"code":"%s","motDePasse":"monMotDePasse1","nomAffiche":"Inès"}
+                                        """.formatted(rawCode)))
+                        .andExpect(status().isCreated())
+                        .andReturn().getResponse().getContentAsString(),
+                "$.identifiantConnexion");
+
+        mockMvc.perform(get("/api/moi/classes").session(login(identifiant, "monMotDePasse1")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(classeId.toString()))
+                .andExpect(jsonPath("$[0].libelle").value("4e B"));
+    }
+
+    @Test
+    void shouldListTheClassesATeacherRuns() throws Exception {
+        mockMvc.perform(get("/api/moi/classes").session(enseignantSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        classeService.assignerEnseignantPrincipal(classeId, enseignantCompte.getId());
+
+        mockMvc.perform(get("/api/moi/classes").session(enseignantSession))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(classeId.toString()));
     }
 
     // ── Failure cases ─────────────────────────────────────────────────────────

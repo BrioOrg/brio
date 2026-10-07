@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { soumettre, type SoumissionResult } from '@/lib/api'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { useProgression } from '@/components/progression-context'
+import { EntraideExercice } from '@/components/entraide/entraide-exercice'
+import { useEntraideActive } from '@/components/entraide/entraide-context'
 import { OptionRow, type OptionState } from '@/components/ui/option-row'
 import { TextInput } from '@/components/ui/text-input'
 import { Button } from '@/components/ui/button'
@@ -137,6 +139,7 @@ export function ExerciceWidget({
 }: ExerciceWidgetProps) {
   const { setActiveExerciceId } = useChapterInteraction()
   const { refresh: refreshProgression } = useProgression()
+  const entraide = useEntraideActive()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [numericValue, setNumericValue] = useState('')
   const [shortAnswerText, setShortAnswerText] = useState('')
@@ -433,6 +436,8 @@ export function ExerciceWidget({
           onReset={reset}
         />
       )}
+
+      {entraide && exerciceId && <EntraideExercice exerciceId={exerciceId} />}
     </div>
   )
 }

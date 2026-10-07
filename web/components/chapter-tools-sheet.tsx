@@ -27,7 +27,7 @@ export function ChapterToolsSheet({ sections, target }: ChapterToolsSheetProps) 
             className="fixed bottom-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 rounded-pill border border-line bg-surface-raised px-5 py-3 font-display text-sm font-extrabold text-ink shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <Icon name="book-open" size={18} className="text-accent" aria-hidden="true" />
-            Sommaire &amp; tuteur
+            {target.kind === 'chapitre' ? 'Sommaire, tuteur & entraide' : 'Sommaire & tuteur'}
           </button>
         </Dialog.Trigger>
 

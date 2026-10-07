@@ -256,6 +256,7 @@ public class EntraideService {
                     s.getId(),
                     message.getId(),
                     fil.getId(),
+                    fil.getClasseId(),
                     fil.getTitre(),
                     message.getAuteurId(),
                     noms.getOrDefault(message.getAuteurId(), NOM_INCONNU),

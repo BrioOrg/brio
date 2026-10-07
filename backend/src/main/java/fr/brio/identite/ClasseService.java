@@ -410,6 +410,23 @@ public class ClasseService {
                 .toList();
     }
 
+    /**
+     * The active classes the given student is enrolled in, by label — how the web learns which
+     * class an entraide thread belongs to (ADR 0023). Empty for an account with no class.
+     */
+    @Transactional(readOnly = true)
+    public List<ClasseInfo> classesDeLEleve(UUID eleveId) {
+        List<UUID> ids = inscriptions.findByIdCompteId(eleveId).stream()
+                .filter(i -> "eleve".equals(i.getRoleDansClasse()))
+                .map(i -> i.getId().classeId())
+                .toList();
+        return classes.findAllById(ids).stream()
+                .filter(c -> c.getStatut() == StatutClasse.active)
+                .sorted(Comparator.comparing(Classe::getLibelle))
+                .map(ClasseService::toClasseInfo)
+                .toList();
+    }
+
     private static ClasseInfo toClasseInfo(Classe c) {
         return new ClasseInfo(c.getId(), c.getEtablissementId(), c.getNiveauCode(),
                 c.getLibelle(), c.getAnneeScolaire(), c.getStatut().name(),

@@ -109,3 +109,32 @@ export {
   ExamenDemarreSchema,
 } from './annales.js'
 export type { AnnaleVue, EntrainementExercice, ExamenActif, ExamenDemarre } from './annales.js'
+export {
+  mesClasses,
+  listerFils,
+  ouvrirFil,
+  consulterFil,
+  repondre,
+  marquerUtile,
+  signaler,
+  fileSignalements,
+  masquerMessage,
+  sanctionner,
+  EntraideError,
+  FilVueSchema,
+  FilDetailSchema,
+  MessageVueSchema,
+  SignalementVueSchema,
+  MaClasseSchema,
+} from './entraide.js'
+export type {
+  MaClasse,
+  FilVue,
+  FilDetail,
+  MessageVue,
+  SignalementVue,
+  PorteeEntraide,
+  OuvrirFilInput,
+  TypeSanction,
+  SanctionnerInput,
+} from './entraide.js'
