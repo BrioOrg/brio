@@ -821,14 +821,19 @@
       ],
       "domaine": "nombres-et-calculs",
       "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Nombres et calculs ; attendus de fin d'année de 5e (2019)",
-      "programme": "cycle4-2020"
+      "programme": "cycle4-2020",
+      "deprecatedSince": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026",
+      "remplacePar": [
+        "c4.num.relatifs.reperer-droite",
+        "c4.num.relatifs.comparer-ranger",
+        "c4.geo.reperage.lire-placer-coordonnees"
+      ]
     },
     {
       "code": "c4.num.relatifs.addition-soustraction",
       "intitule": "Additionner et soustraire des nombres relatifs",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "nombres-et-calculs",
@@ -852,7 +857,6 @@
       "intitule": "Calculer une expression avec enchaînement d'opérations en respectant les priorités opératoires",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -865,7 +869,6 @@
       "intitule": "Pratiquer le calcul mental et estimer un ordre de grandeur sur les nombres rationnels",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -878,7 +881,6 @@
       "intitule": "Utiliser la calculatrice ou un tableur pour effectuer, vérifier ou automatiser un calcul",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -891,7 +893,6 @@
       "intitule": "Reconnaître des écritures fractionnaires égales et simplifier une fraction",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "nombres-et-calculs",
@@ -903,7 +904,6 @@
       "intitule": "Comparer des nombres en écriture fractionnaire",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "nombres-et-calculs",
@@ -915,7 +915,6 @@
       "intitule": "Additionner et soustraire des nombres en écriture fractionnaire",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "nombres-et-calculs",
@@ -998,7 +997,6 @@
       "intitule": "Connaître la notion de nombre premier et reconnaître les nombres premiers inférieurs à 30",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "nombres-et-calculs",
@@ -1021,7 +1019,6 @@
       "intitule": "Produire une expression littérale pour traduire une situation ou un programme de calcul",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1034,7 +1031,6 @@
       "intitule": "Substituer une valeur numérique à une lettre pour calculer la valeur d'une expression",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1093,7 +1089,6 @@
       "intitule": "Tester si une égalité est vraie pour des valeurs numériques données des lettres",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "nombres-et-calculs",
@@ -1140,7 +1135,6 @@
       "intitule": "Reconnaître une situation de proportionnalité ou de non-proportionnalité (tableau, graphique, énoncé)",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1153,7 +1147,6 @@
       "intitule": "Utiliser le coefficient de proportionnalité ou le passage à l'unité pour résoudre un problème",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
@@ -1177,7 +1170,6 @@
       "intitule": "Utiliser un pourcentage : appliquer un taux, déterminer un taux, traiter une augmentation ou une diminution simple",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1190,7 +1182,6 @@
       "intitule": "Utiliser une échelle sur un plan, une carte ou un dessin",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
@@ -1202,7 +1193,6 @@
       "intitule": "Utiliser la notion de ratio pour partager une quantité",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1227,7 +1217,6 @@
       "intitule": "Recueillir, organiser et représenter des données sous forme de tableaux et de diagrammes",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1240,7 +1229,6 @@
       "intitule": "Lire, interpréter et commenter des représentations de données en exerçant son esprit critique",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1253,7 +1241,6 @@
       "intitule": "Calculer des effectifs et des fréquences",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
@@ -1265,7 +1252,6 @@
       "intitule": "Calculer et interpréter une moyenne, y compris pondérée",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1302,7 +1288,6 @@
       "intitule": "Utiliser le vocabulaire des probabilités : expérience aléatoire, issue, événement, probabilité",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "organisation-et-gestion-de-donnees-fonctions",
@@ -1314,7 +1299,6 @@
       "intitule": "Utiliser les propriétés élémentaires des probabilités : valeurs entre 0 et 1, somme, événement contraire",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1327,7 +1311,6 @@
       "intitule": "Calculer des probabilités dans des situations simples d'équiprobabilité",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1396,7 +1379,6 @@
       "intitule": "Calculer le périmètre et l'aire des figures usuelles, y compris le disque",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "grandeurs-et-mesures",
@@ -1408,7 +1390,6 @@
       "intitule": "Calculer le périmètre ou l'aire d'une figure composée par décomposition en figures usuelles",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1421,7 +1402,6 @@
       "intitule": "Calculer le volume d'un prisme droit ou d'un cylindre",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "grandeurs-et-mesures",
@@ -1456,7 +1436,6 @@
       "intitule": "Convertir des unités de longueur, d'aire, de volume et de contenance",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1507,14 +1486,17 @@
       ],
       "domaine": "espace-et-geometrie",
       "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
-      "programme": "cycle4-2020"
+      "programme": "cycle4-2020",
+      "deprecatedSince": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026",
+      "remplacePar": [
+        "c4.geo.triangles.utiliser-somme-angles"
+      ]
     },
     {
       "code": "c4.geo.angles.alternes-internes",
       "intitule": "Utiliser les angles alternes-internes et correspondants pour caractériser le parallélisme de deux droites",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "espace-et-geometrie",
@@ -1530,7 +1512,9 @@
       ],
       "domaine": "espace-et-geometrie",
       "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
-      "programme": "cycle4-2020"
+      "programme": "cycle4-2020",
+      "deprecatedSince": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026",
+      "remplacePar": []
     },
     {
       "code": "c4.geo.triangles.construire",
@@ -1541,7 +1525,11 @@
       ],
       "domaine": "espace-et-geometrie",
       "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
-      "programme": "cycle4-2020"
+      "programme": "cycle4-2020",
+      "deprecatedSince": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026",
+      "remplacePar": [
+        "c4.geo.triangles.construire-donnees-partielles"
+      ]
     },
     {
       "code": "c4.geo.triangles.egaux",
@@ -1571,7 +1559,6 @@
       "intitule": "Connaître et utiliser les droites remarquables du triangle : médiatrices et hauteurs",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "espace-et-geometrie",
@@ -1587,14 +1574,18 @@
       ],
       "domaine": "espace-et-geometrie",
       "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
-      "programme": "cycle4-2020"
+      "programme": "cycle4-2020",
+      "deprecatedSince": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026",
+      "remplacePar": [
+        "c4.geo.parallelogrammes.definir-construire",
+        "c4.geo.parallelogrammes.utiliser-proprietes"
+      ]
     },
     {
       "code": "c4.geo.parallelogramme.particuliers",
       "intitule": "Reconnaître et caractériser le rectangle, le losange et le carré comme parallélogrammes particuliers",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "espace-et-geometrie",
@@ -1610,7 +1601,12 @@
       ],
       "domaine": "espace-et-geometrie",
       "referenceOfficielle": "BOEN n°31 du 30/07/2020, programme du cycle 4, Espace et géométrie ; attendus de fin d'année de 5e (2019)",
-      "programme": "cycle4-2020"
+      "programme": "cycle4-2020",
+      "deprecatedSince": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026",
+      "remplacePar": [
+        "c4.geo.transformations.construire-demi-tour",
+        "c4.geo.transformations.utiliser-proprietes-demi-tour"
+      ]
     },
     {
       "code": "c4.geo.transformations.translation",
@@ -1652,7 +1648,6 @@
       "intitule": "Utiliser les propriétés de conservation des transformations du plan pour raisonner sur une figure",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1755,7 +1750,6 @@
       "intitule": "Se repérer dans le plan muni d'un repère orthogonal : lire et placer des coordonnées",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "espace-et-geometrie",
@@ -1779,7 +1773,6 @@
       "intitule": "Représenter des solides et des situations spatiales : perspective cavalière, patrons, vues",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1803,7 +1796,6 @@
       "intitule": "Écrire et mettre au point un programme dans un environnement de programmation par blocs",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1840,7 +1832,6 @@
       "intitule": "Utiliser des boucles et des instructions conditionnelles dans un programme",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e",
         "3e"
       ],
@@ -1864,7 +1855,6 @@
       "intitule": "Programmer des déplacements ou des constructions géométriques",
       "cycle": 4,
       "niveaux": [
-        "5e",
         "4e"
       ],
       "domaine": "algorithmique-et-programmation",
@@ -2519,6 +2509,787 @@
       "domaine": "algorithmique-et-programmation",
       "programme": "cycle3-2025",
       "referenceOfficielle": "Arrêté du 10 avril 2025, BO n°16 du 17 avril 2025, programme de mathématiques du cycle 3, Initiation à la pensée informatique"
+    },
+    {
+      "code": "c4.num.operations.resoudre-problemes",
+      "intitule": "Choisir et effectuer les opérations (addition, soustraction, multiplication, division) qui résolvent un problème et contrôler la vraisemblance du résultat",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.operations.diviser-decimal",
+      "intitule": "Diviser un nombre décimal par un nombre décimal",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.operations.traduire-expression",
+      "intitule": "Traduire un problème, une succession d'opérations ou un programme de calcul en une seule expression, avec ou sans parenthèses",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.operations.nommer-calcul",
+      "intitule": "Nommer un calcul : distinguer somme et produit, termes et facteurs",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.operations.appliquer-priorites",
+      "intitule": "Connaitre et appliquer les priorités opératoires pour calculer une expression numérique",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.operations.utiliser-distributivite",
+      "intitule": "Utiliser la distributivité simple sur des exemples numériques",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.arithmetique.utiliser-multiples-diviseurs",
+      "intitule": "Utiliser les notions de multiple et de diviseur d'un nombre entier",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.arithmetique.appliquer-criteres-divisibilite",
+      "intitule": "Connaitre et appliquer les critères de divisibilité par 3 et par 9",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Opérations"
+    },
+    {
+      "code": "c4.num.relatifs.definir-opposes",
+      "intitule": "Définir un nombre relatif, son opposé et sa valeur absolue (sa distance à zéro) ; distinguer nombres positifs, négatifs, strictement positifs et strictement négatifs",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres relatifs"
+    },
+    {
+      "code": "c4.num.relatifs.representer-grandeurs",
+      "intitule": "Utiliser les nombres relatifs pour représenter des grandeurs qui peuvent être inférieures à zéro (température, altitude, temps)",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres relatifs"
+    },
+    {
+      "code": "c4.num.relatifs.reperer-droite",
+      "intitule": "Lire l'abscisse d'un point d'une droite graduée et placer un point d'abscisse relative donnée",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres relatifs"
+    },
+    {
+      "code": "c4.num.relatifs.comparer-ranger",
+      "intitule": "Comparer et ranger dans l'ordre croissant ou décroissant des nombres décimaux relatifs",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres relatifs"
+    },
+    {
+      "code": "c4.num.relatifs.additionner-soustraire",
+      "intitule": "Additionner et soustraire des nombres décimaux relatifs",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres relatifs"
+    },
+    {
+      "code": "c4.num.relatifs.simplifier-ecritures",
+      "intitule": "Simplifier l'écriture d'une somme comportant des parenthèses et repérer les cas où les parenthèses sont indispensables",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres relatifs"
+    },
+    {
+      "code": "c4.num.relatifs.enchainer-calculs",
+      "intitule": "Enchainer additions et soustractions de nombres décimaux relatifs pour résoudre un problème",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres relatifs"
+    },
+    {
+      "code": "c4.num.fractions.comparer-fractions",
+      "intitule": "Comparer des fractions",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres rationnels"
+    },
+    {
+      "code": "c4.num.fractions.additionner-soustraire",
+      "intitule": "Additionner et soustraire des fractions de dénominateurs quelconques",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres rationnels"
+    },
+    {
+      "code": "c4.num.fractions.resoudre-problemes",
+      "intitule": "Résoudre des problèmes mobilisant l'addition et la soustraction de fractions",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Nombres rationnels"
+    },
+    {
+      "code": "c4.num.puissances.ecrire-carre-cube",
+      "intitule": "Utiliser la notation puissance pour le carré et le cube d'un nombre et écrire un nombre sous la forme d'une puissance 2 ou 3",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Puissances"
+    },
+    {
+      "code": "c4.num.puissances.connaitre-carres",
+      "intitule": "Connaitre les carrés des entiers de 0 à 12 et le cube de 10",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Puissances"
+    },
+    {
+      "code": "c4.num.puissances.calculer-expressions",
+      "intitule": "Calculer la valeur d'une expression numérique ou littérale contenant des puissances simples, des sommes, des différences et des produits",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Puissances"
+    },
+    {
+      "code": "c4.num.litteral.produire-formule",
+      "intitule": "Produire une formule (double, triple, carré, successeur, prédécesseur, aire, périmètre) pour traduire une situation",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.litteral.substituer-valeur",
+      "intitule": "Calculer la valeur d'une expression littérale en remplaçant la lettre par un nombre",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.litteral.tester-egalite",
+      "intitule": "Tester si une égalité entre deux expressions comportant une variable est vraie ou fausse pour une valeur donnée",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.litteral.identifier-structure",
+      "intitule": "Déterminer si une expression littérale est une somme ou un produit",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.litteral.developper-factoriser",
+      "intitule": "Utiliser k(a + b) = ka + kb et k(a − b) = ka − kb pour développer ou factoriser une expression littérale",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.litteral.reduire-expression",
+      "intitule": "Réduire une expression littérale de la forme ax + b",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.litteral.demontrer-propriete",
+      "intitule": "Démontrer une propriété générale par le calcul littéral, ou prouver qu'une affirmation est fausse par un contre-exemple",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.equations.modeliser-probleme",
+      "intitule": "Donner à la lettre le statut d'inconnue et traduire un problème par une équation du type ax = c ou x + b = c",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.num.equations.resoudre-operations-inverses",
+      "intitule": "Résoudre une équation du type ax = c ou x + b = c à l'aide de l'opération inverse",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "nombres-et-calculs",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Nombres et calculs, Cinquième, Calcul littéral et algébrique"
+    },
+    {
+      "code": "c4.geo.reperage.lire-placer-coordonnees",
+      "intitule": "Dans un repère orthogonal du plan, lire les coordonnées d'un point et placer un point de coordonnées données",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Repérage sur une droite et dans le plan"
+    },
+    {
+      "code": "c4.geo.espace.representer-perspective",
+      "intitule": "Construire et mettre en relation des représentations en perspective cavalière d'un pavé droit, d'un cube, d'un prisme droit et d'un cylindre de révolution",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Représentation de l’espace"
+    },
+    {
+      "code": "c4.geo.espace.relier-patron",
+      "intitule": "Mettre en relation une représentation en perspective cavalière et un patron d'un pavé droit, d'un prisme droit ou d'un cylindre de révolution",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Représentation de l’espace"
+    },
+    {
+      "code": "c4.gm.volumes.calculer-pave-prisme",
+      "intitule": "Calculer le volume d'un cube, d'un pavé droit et d'un prisme droit",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Représentation de l’espace"
+    },
+    {
+      "code": "c4.gm.volumes.calculer-cylindre",
+      "intitule": "Calculer le volume d'un cylindre de révolution",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Représentation de l’espace"
+    },
+    {
+      "code": "c4.gm.aires.calculer-disque",
+      "intitule": "Calculer l'aire d'un disque",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Représentation de l’espace"
+    },
+    {
+      "code": "c4.gm.unites.convertir-volumes-contenances",
+      "intitule": "Connaitre et convertir les unités usuelles de volume et de contenance",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Représentation de l’espace"
+    },
+    {
+      "code": "c4.geo.transformations.construire-demi-tour",
+      "intitule": "Définir le demi-tour (symétrie centrale) et construire l'image d'un point ou d'une figure par un demi-tour",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Transformations"
+    },
+    {
+      "code": "c4.geo.transformations.utiliser-proprietes-demi-tour",
+      "intitule": "Connaitre et utiliser les propriétés du demi-tour : conservation des longueurs, des angles, des aires et de l'alignement ; image d'une droite parallèle à celle-ci",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Transformations"
+    },
+    {
+      "code": "c4.geo.angles.reconnaitre-alternes-correspondants",
+      "intitule": "Reconnaitre des angles alternes-internes et des angles correspondants formés par deux droites et une sécante",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Angles"
+    },
+    {
+      "code": "c4.geo.angles.caracteriser-parallelisme",
+      "intitule": "Utiliser les angles alternes-internes et correspondants pour démontrer que deux droites sont parallèles ou pour calculer une mesure d'angle",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Angles"
+    },
+    {
+      "code": "c4.geo.triangles.utiliser-somme-angles",
+      "intitule": "Connaitre, démontrer et utiliser la somme des angles d'un triangle",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Triangles"
+    },
+    {
+      "code": "c4.geo.triangles.construire-donnees-partielles",
+      "intitule": "Construire un triangle à partir de données partielles (longueurs et mesures d'angles)",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Triangles"
+    },
+    {
+      "code": "c4.geo.triangles.utiliser-mediatrices",
+      "intitule": "Connaitre et utiliser les propriétés des médiatrices d'un triangle et de son cercle circonscrit, notamment dans des triangles particuliers",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Triangles"
+    },
+    {
+      "code": "c4.geo.triangles.tracer-hauteurs",
+      "intitule": "Définir et tracer les hauteurs d'un triangle et savoir qu'elles sont concourantes",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Triangles"
+    },
+    {
+      "code": "c4.geo.triangles.tracer-medianes",
+      "intitule": "Définir et tracer les médianes d'un triangle et savoir qu'une médiane le partage en deux triangles de même aire",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Triangles"
+    },
+    {
+      "code": "c4.gm.aires.calculer-triangle",
+      "intitule": "Calculer l'aire d'un triangle",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Triangles"
+    },
+    {
+      "code": "c4.geo.parallelogrammes.definir-construire",
+      "intitule": "Définir et construire un parallélogramme",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Parallélogrammes"
+    },
+    {
+      "code": "c4.geo.parallelogrammes.utiliser-proprietes",
+      "intitule": "Connaitre et utiliser les propriétés caractéristiques du parallélogramme (côtés opposés, diagonales) pour le construire ou déterminer la nature d'un quadrilatère",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Parallélogrammes"
+    },
+    {
+      "code": "c4.geo.parallelogrammes.caracteriser-particuliers",
+      "intitule": "Définir le rectangle, le losange et le carré comme parallélogrammes particuliers et utiliser leurs propriétés caractéristiques",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "espace-et-geometrie",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Parallélogrammes"
+    },
+    {
+      "code": "c4.gm.aires.calculer-parallelogramme",
+      "intitule": "Calculer l'aire d'un parallélogramme et d'une figure complexe",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Parallélogrammes"
+    },
+    {
+      "code": "c4.gm.unites.convertir-longueurs-aires",
+      "intitule": "Résoudre des problèmes faisant appel à des conversions d'unités de longueur et d'aire",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "grandeurs-et-mesures",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Espace et géométrie, Cinquième, Parallélogrammes"
+    },
+    {
+      "code": "c4.ogd.statistiques.recueillir-organiser",
+      "intitule": "Recueillir et organiser des données",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Statistiques"
+    },
+    {
+      "code": "c4.ogd.statistiques.calculer-effectifs-frequences",
+      "intitule": "Calculer des effectifs et des fréquences exprimées sous forme décimale, fractionnaire ou de pourcentage",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Statistiques"
+    },
+    {
+      "code": "c4.ogd.statistiques.lire-representations",
+      "intitule": "Lire et interpréter des informations présentées sous forme de tableaux, de diagrammes et de graphiques",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Statistiques"
+    },
+    {
+      "code": "c4.ogd.statistiques.representer-donnees",
+      "intitule": "Représenter des données par un tableau, un diagramme en barres, un diagramme circulaire ou un graphique cartésien, et choisir une représentation adaptée",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Statistiques"
+    },
+    {
+      "code": "c4.ogd.statistiques.calculer-moyenne",
+      "intitule": "Calculer et interpréter la moyenne simple d'une série de données",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Statistiques"
+    },
+    {
+      "code": "c4.ogd.probabilites.utiliser-vocabulaire",
+      "intitule": "Utiliser le vocabulaire des probabilités dans des contextes concrets : expérience aléatoire, issue, évènement",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Probabilités"
+    },
+    {
+      "code": "c4.ogd.probabilites.attribuer-equiprobabilite",
+      "intitule": "Attribuer des probabilités dans des cas simples d'équiprobabilité",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Probabilités"
+    },
+    {
+      "code": "c4.ogd.probabilites.enregistrer-frequences",
+      "intitule": "Répéter une expérience aléatoire simple et enregistrer les résultats observés dans un tableau d'effectifs et de fréquences",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Organisation et gestion de données et probabilités, Cinquième, Probabilités"
+    },
+    {
+      "code": "c4.ogd.proportionnalite.identifier-situation",
+      "intitule": "Identifier une situation de proportionnalité dans un contexte concret (prix, recettes, distances, échelles) ou à partir d'un tableau",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Proportionnalité, fonctions, Cinquième, Proportionnalité"
+    },
+    {
+      "code": "c4.ogd.proportionnalite.utiliser-coefficient",
+      "intitule": "Utiliser un coefficient de proportionnalité dans un contexte concret (prix unitaire, vitesse moyenne, échelle)",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Proportionnalité, fonctions, Cinquième, Proportionnalité"
+    },
+    {
+      "code": "c4.ogd.proportionnalite.appliquer-pourcentages",
+      "intitule": "Utiliser, calculer et appliquer des proportions et des pourcentages",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Proportionnalité, fonctions, Cinquième, Proportionnalité"
+    },
+    {
+      "code": "c4.ogd.proportionnalite.representer-graphique",
+      "intitule": "Représenter une situation de proportionnalité par un graphique et reconnaitre graphiquement si un nuage de points traduit une situation de proportionnalité",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Proportionnalité, fonctions, Cinquième, Proportionnalité"
+    },
+    {
+      "code": "c4.ogd.fonctions.utiliser-tableau-valeurs",
+      "intitule": "Exprimer une grandeur « en fonction de » une autre, produire un tableau de valeurs à partir d'une formule, et lire un tableau de valeurs",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Proportionnalité, fonctions, Cinquième, Fonctions"
+    },
+    {
+      "code": "c4.ogd.fonctions.lire-graphique",
+      "intitule": "Placer dans un repère les points d'un tableau de valeurs et lire ou interpréter un graphique cartésien (courbe ou nuage de points)",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Proportionnalité, fonctions, Cinquième, Fonctions"
+    },
+    {
+      "code": "c4.ogd.fonctions.produire-formule",
+      "intitule": "Produire une formule simple qui représente la dépendance entre deux grandeurs",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "organisation-et-gestion-de-donnees-fonctions",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, Proportionnalité, fonctions, Cinquième, Fonctions"
+    },
+    {
+      "code": "c4.algo.programmes.sequencer-instructions",
+      "intitule": "Manipuler et séquencer des instructions simples, et identifier les entrées et les sorties d'un programme",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "algorithmique-et-programmation",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, La pensée informatique, Cinquième"
+    },
+    {
+      "code": "c4.algo.programmes.calculer-formules",
+      "intitule": "Représenter une formule dans un langage de programmation par blocs et la calculer par une suite d'instructions",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "algorithmique-et-programmation",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, La pensée informatique, Cinquième"
+    },
+    {
+      "code": "c4.algo.programmes.prevoir-valeur",
+      "intitule": "Prévoir la valeur d'une expression avant l'exécution d'un programme, analyser un programme simple et modifier ses paramètres",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "algorithmique-et-programmation",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, La pensée informatique, Cinquième"
+    },
+    {
+      "code": "c4.algo.programmes.repeter-boucle",
+      "intitule": "Utiliser une boucle inconditionnelle pour répéter un nombre précis de fois une séquence d'instructions",
+      "cycle": 4,
+      "niveaux": [
+        "5e"
+      ],
+      "domaine": "algorithmique-et-programmation",
+      "programme": "cycle4-2026",
+      "referenceOfficielle": "Arrêté du 18 février 2026, BO n°10 du 5 mars 2026, programme de mathématiques du cycle 4, La pensée informatique, Cinquième"
     }
   ]
 }
