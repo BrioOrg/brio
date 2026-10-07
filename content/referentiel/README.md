@@ -25,11 +25,28 @@ from accidentally mixing entries from two programme generations.
 |---|---|---|
 | Cycle-3, 2020 programme (deprecated) | 57 | `cycle3-2020` |
 | Cycle-3, 2025 programme (active, Arrêté du 10 avril 2025) | 59 | `cycle3-2025` |
-| Cycle-4, 2020 programme (active) | 89 | `cycle4-2020` |
+| Cycle-4, 2020 programme, 5e-only entries (deprecated) | 6 | `cycle4-2020` |
+| Cycle-4, 2020 programme (active, 4e and 3e only) | 83 | `cycle4-2020` |
+| Cycle-4, 2026 programme (active, 5e; Arrêté du 18 février 2026) | 71 | `cycle4-2026` |
 
 The 2025 cycle-3 entries were authored from the arrêté annex (BO n°16 du 17
 avril 2025, Licence Ouverte). The éduscol mise-en-œuvre document was used solely
 to resolve ambiguities and is not included in the repo (© Ministère).
+
+The 2026 cycle-4 entries were authored from annexe 2 of the arrêté du 18 février
+2026 (BO n°10 du 5 mars 2026, Licence Ouverte), section « Cinquième » of each
+domain. The ~110 objectifs d'apprentissage are grouped into observable
+capabilities; the « automatismes » get no code (they revisit earlier years).
+The programme's « Proportionnalité, fonctions » domain is filed under `ogd`, and
+volumes, areas and unit conversions under `gm`, so the five domains are unchanged.
+
+### Programme transition (cycle 4, 2026 → 2028)
+
+The 2026 programme reaches one level per year: 5e in 2026-2027, 4e in
+2027-2028, 3e in 2028-2029. When a level switches, remove it from the `niveaux`
+of every `cycle4-2020` entry, deprecate the entries left with no level, and add
+the level to the `cycle4-2026` entries that continue (or add new ones). See
+ADR 0009, « Staggered rollout ».
 
 ## Adding a code
 

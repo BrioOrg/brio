@@ -89,6 +89,26 @@ angles moved from `gm` to `geo`, and solides/patrons/masses were removed from
 6e. New codes therefore live under `c3.num.algebre.*`, `c3.geo.angles.*`,
 `c3.ogd.probabilites.*` etc.; the old `c3.gm.*` angle entries are deprecated.
 
+**Staggered rollout (cycle 4, 2026)** — amended 2026-10-07 (issue #213). The
+Arrêté du 18 février 2026 (BO n°10 du 5 mars 2026) replaces the 2020 cycle-4
+programme one year at a time: 5e from 2026-2027, 4e from 2027-2028, 3e from
+2028-2029. Many `cycle4-2020` entries span several niveaux (`["5e", "4e",
+"3e"]`) and stay valid for the levels not yet switched, so they cannot be
+deprecated as a whole. Rule: **when a niveau switches programme, it is removed
+from the `niveaux` of every entry of the old programme**. The code string and
+its meaning are untouched, so the freeze policy holds; `niveaux` only says
+where the entry is taught. An entry left with no niveau is deprecated instead
+(`deprecatedSince` + `remplacePar`). The new programme's entries carry the new
+niveau; their `niveaux` grow as later levels switch. This keeps the per-niveau
+invariant: on any date, each niveau belongs to exactly one programme.
+
+Applied in 2026 for 5e: 71 `cycle4-2026` entries, 36 `cycle4-2020` entries
+narrowed to 4e/3e, and the 6 entries taught only in 5e deprecated
+(`c4.geo.triangles.inegalite` with `remplacePar: []` until the 4e codes exist).
+To repeat for 4e in 2027 and 3e in 2028. New codes must not reuse an existing
+string even for an unchanged capability; verb-first `capacite` segments
+(`additionner-soustraire` vs. 2020 `addition-soustraction`) keep them distinct.
+
 ## Consequences
 
 ### Positive
