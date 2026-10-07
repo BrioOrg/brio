@@ -1,0 +1,437 @@
+{
+  "schemaVersion": 1,
+  "id": "multiples-diviseurs",
+  "title": "Multiples, diviseurs et critères de divisibilité",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 49,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 4,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "reconnaitre un multiple et un diviseur d'un nombre entier ;",
+            "utiliser les critères de divisibilité par 2, 3, 5, 9 et 10 ;",
+            "résoudre des problèmes de partage sans reste."
+          ]
+        },
+        {
+          "id": "auto-criteres-2-5-10",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le nombre 1 230 est divisible par :",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": true,
+          "choices": [
+            {
+              "id": "choix-2",
+              "text": "2",
+              "correct": true
+            },
+            {
+              "id": "choix-5",
+              "text": "5",
+              "correct": true
+            },
+            {
+              "id": "choix-10",
+              "text": "10",
+              "correct": true
+            }
+          ],
+          "explanation": "1 230 se termine par 0 : il est divisible par 10, donc aussi par 2 (chiffre des unités pair) et par 5 (chiffre des unités 0 ou 5)."
+        },
+        {
+          "id": "auto-table",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Complète : 56 = 7 × …",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "C'est la table de 7 : 7 × 8 = 56."
+        }
+      ]
+    },
+    {
+      "id": "multiples-et-diviseurs",
+      "title": "Multiples et diviseurs",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "def-multiple",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Multiple, diviseur",
+          "text": "Soient a et b deux nombres entiers, b non nul. S'il existe un entier k tel que a = b × k, on dit que **a est un multiple de b**, que **b est un diviseur de a**, ou que **a est divisible par b**. Autrement dit : la division euclidienne de a par b a un reste égal à 0."
+        },
+        {
+          "id": "exemple-42",
+          "type": "callout",
+          "variant": "example",
+          "title": "42 et 6",
+          "text": "42 = 6 × 7 : 42 est un multiple de 6 (et de 7), 6 est un diviseur de 42. En revanche, 42 = 5 × 8 + 2 : le reste n'est pas nul, donc 5 n'est pas un diviseur de 42."
+        },
+        {
+          "id": "ex-sens-diviseur",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "« 6 est un diviseur de 42 » signifie :",
+          "competencies": [
+            "c4.num.arithmetique.utiliser-multiples-diviseurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-la-division-de-42-par-6-tombe",
+              "text": "la division de 42 par 6 tombe juste : 42 = 6 × 7",
+              "correct": true
+            },
+            {
+              "id": "choix-42-est-un-diviseur-de-6",
+              "text": "42 est un diviseur de 6",
+              "correct": false
+            },
+            {
+              "id": "choix-6-est-un-multiple-de-42",
+              "text": "6 est un multiple de 42",
+              "correct": false
+            }
+          ],
+          "explanation": "Un diviseur « rentre » un nombre entier de fois : 42 = 6 × 7, le reste est 0. Les deux autres phrases inversent les rôles : 42 est un multiple de 6, pas un diviseur de 6, et 6 n'est pas un multiple de 42."
+        },
+        {
+          "id": "ex-multiple-7",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Lequel de ces nombres est un multiple de 7 ?",
+          "competencies": [
+            "c4.num.arithmetique.utiliser-multiples-diviseurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-91",
+              "text": "91",
+              "correct": true
+            },
+            {
+              "id": "choix-47",
+              "text": "47",
+              "correct": false
+            },
+            {
+              "id": "choix-71",
+              "text": "71",
+              "correct": false
+            },
+            {
+              "id": "choix-27",
+              "text": "27",
+              "correct": false
+            }
+          ],
+          "explanation": "91 = 7 × 13, c'est un multiple de 7. 47 = 7 × 6 + 5 et 71 = 7 × 10 + 1 : il y a un reste. 27 contient le chiffre 7, mais 27 = 7 × 3 + 6 : contenir le chiffre 7 ne veut pas dire être dans la table de 7."
+        },
+        {
+          "id": "ex-nombre-diviseurs",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien le nombre 24 a-t-il de diviseurs ?",
+          "competencies": [
+            "c4.num.arithmetique.utiliser-multiples-diviseurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "On cherche les produits égaux à 24 : 1 × 24, 2 × 12, 3 × 8, 4 × 6. Les diviseurs sont 1, 2, 3, 4, 6, 8, 12 et 24 : il y en a 8. Pense à compter 1 et 24 eux-mêmes."
+        },
+        {
+          "id": "note-premiers",
+          "type": "callout",
+          "variant": "note",
+          "title": "Pour aller plus loin : les nombres premiers",
+          "text": "Un nombre qui a exactement deux diviseurs, 1 et lui-même, est appelé **nombre premier** : 2, 3, 5, 7, 11, 13… Les Grecs savaient déjà qu'il y en a une infinité. Le crible d'Ératosthène permet de les trouver."
+        }
+      ]
+    },
+    {
+      "id": "criteres",
+      "title": "Les critères de divisibilité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "table-criteres",
+          "type": "table",
+          "headers": [
+            "Un nombre entier est divisible par…",
+            "si…"
+          ],
+          "rows": [
+            [
+              "2",
+              "son chiffre des unités est 0, 2, 4, 6 ou 8"
+            ],
+            [
+              "5",
+              "son chiffre des unités est 0 ou 5"
+            ],
+            [
+              "10",
+              "son chiffre des unités est 0"
+            ],
+            [
+              "3",
+              "la somme de ses chiffres est divisible par 3"
+            ],
+            [
+              "9",
+              "la somme de ses chiffres est divisible par 9"
+            ]
+          ],
+          "caption": "Les critères de divisibilité."
+        },
+        {
+          "id": "exemple-critere-3",
+          "type": "callout",
+          "variant": "example",
+          "title": "Le nombre 2 541",
+          "text": "2 + 5 + 4 + 1 = 12. 12 est divisible par 3 mais pas par 9 : 2 541 est divisible par 3 (2 541 = 3 × 847), mais pas par 9."
+        },
+        {
+          "id": "warning-dernier-chiffre",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Pour 3 et 9, le dernier chiffre ne suffit pas",
+          "text": "13 se termine par 3 mais n'est pas divisible par 3. 27 se termine par 7 et il est divisible par 3. Pour 3 et 9, on regarde la **somme des chiffres**."
+        },
+        {
+          "id": "ex-divisible-3",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Lequel de ces nombres est divisible par 3 ?",
+          "competencies": [
+            "c4.num.arithmetique.appliquer-criteres-divisibilite"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-2-541",
+              "text": "2 541",
+              "correct": true
+            },
+            {
+              "id": "choix-1-234",
+              "text": "1 234",
+              "correct": false
+            },
+            {
+              "id": "choix-7-001",
+              "text": "7 001",
+              "correct": false
+            },
+            {
+              "id": "choix-4-573",
+              "text": "4 573",
+              "correct": false
+            }
+          ],
+          "explanation": "Sommes des chiffres : 2 541 → 12, divisible par 3. 1 234 → 10, 7 001 → 8 et 4 573 → 19 ne sont pas divisibles par 3. 4 573 se termine par 3, mais ce n'est pas le chiffre des unités qui compte pour 3."
+        },
+        {
+          "id": "ex-642",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le nombre 642 est divisible par :",
+          "competencies": [
+            "c4.num.arithmetique.appliquer-criteres-divisibilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": true,
+          "choices": [
+            {
+              "id": "choix-2",
+              "text": "2",
+              "correct": true
+            },
+            {
+              "id": "choix-3",
+              "text": "3",
+              "correct": true
+            },
+            {
+              "id": "choix-5",
+              "text": "5",
+              "correct": false
+            },
+            {
+              "id": "choix-9",
+              "text": "9",
+              "correct": false
+            }
+          ],
+          "explanation": "642 se termine par 2 : divisible par 2, pas par 5. 6 + 4 + 2 = 12 : 12 est divisible par 3 mais pas par 9. Donc 642 est divisible par 2 et par 3, mais ni par 5 ni par 9."
+        },
+        {
+          "id": "ex-chiffre-manquant",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On cherche un chiffre ? pour que le nombre 4?7 (quatre cent …-sept) soit divisible par 9. Quel chiffre convient ?",
+          "competencies": [
+            "c4.num.arithmetique.appliquer-criteres-divisibilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "La somme des chiffres est 4 + ? + 7 = 11 + ?. Elle doit être un multiple de 9 : 11 + ? = 18 donne ? = 7 (27 est trop grand, car ? vaut au plus 9). On vérifie : 477 = 9 × 53."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-diviseurs-36",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quels nombres sont des diviseurs de 36 ?",
+          "competencies": [
+            "c4.num.arithmetique.utiliser-multiples-diviseurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": true,
+          "choices": [
+            {
+              "id": "choix-4",
+              "text": "4",
+              "correct": true
+            },
+            {
+              "id": "choix-9",
+              "text": "9",
+              "correct": true
+            },
+            {
+              "id": "choix-12",
+              "text": "12",
+              "correct": true
+            },
+            {
+              "id": "choix-8",
+              "text": "8",
+              "correct": false
+            },
+            {
+              "id": "choix-24",
+              "text": "24",
+              "correct": false
+            }
+          ],
+          "explanation": "36 = 4 × 9 = 3 × 12 : 4, 9 et 12 sont des diviseurs de 36. 8 n'en est pas un (36 = 8 × 4 + 4), ni 24 (36 = 24 × 1 + 12). 24 est un multiple de 4 et de 12, mais ce n'est pas un diviseur de 36."
+        },
+        {
+          "id": "ex-bouquets",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un fleuriste a 48 roses. Il veut faire des bouquets identiques, tous avec plus de 5 roses, sans qu'il reste de rose. Quel est le plus petit nombre de roses possible dans un bouquet ?",
+          "competencies": [
+            "c4.num.arithmetique.utiliser-multiples-diviseurs"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 6,
+          "tolerance": 0,
+          "explanation": "Le nombre de roses par bouquet doit être un diviseur de 48 : 1, 2, 3, 4, 6, 8, 12, 16, 24, 48. Le plus petit qui dépasse 5 est 6 (8 bouquets de 6 roses)."
+        },
+        {
+          "id": "ex-9-implique-3",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un nombre divisible par 9 est-il toujours divisible par 3 ?",
+          "competencies": [
+            "c4.num.arithmetique.appliquer-criteres-divisibilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-oui-car-9-3-3",
+              "text": "Oui, car 9 = 3 × 3",
+              "correct": true
+            },
+            {
+              "id": "choix-non-par-exemple-18",
+              "text": "Non, par exemple 18",
+              "correct": false
+            },
+            {
+              "id": "choix-seulement-s-il-est-pair",
+              "text": "Seulement s'il est pair",
+              "correct": false
+            }
+          ],
+          "explanation": "Si a = 9 × k, alors a = 3 × (3 × k) : a est aussi un multiple de 3. 18 = 3 × 6 est bien divisible par 3, ce n'est pas un contre-exemple. La parité n'a rien à voir : 27 est impair et divisible par 3."
+        },
+        {
+          "id": "ex-3-implique-9",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un nombre divisible par 3 est-il toujours divisible par 9 ?",
+          "competencies": [
+            "c4.num.arithmetique.appliquer-criteres-divisibilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non-12-est-divisible-par-3-mai",
+              "text": "Non : 12 est divisible par 3 mais pas par 9",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-car-3-et-9-ont-le-meme-cri",
+              "text": "Oui, car 3 et 9 ont le même critère",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-car-9-est-un-multiple-de-3",
+              "text": "Oui, car 9 est un multiple de 3",
+              "correct": false
+            }
+          ],
+          "explanation": "Le critère n'est pas le même : pour 9, la somme des chiffres doit être divisible par 9. 12 a une somme de chiffres égale à 3 : il est divisible par 3, pas par 9. Que 9 soit un multiple de 3 marche dans l'autre sens seulement."
+        }
+      ]
+    }
+  ]
+}

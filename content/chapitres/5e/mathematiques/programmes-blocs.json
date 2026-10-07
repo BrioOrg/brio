@@ -1,0 +1,490 @@
+{
+  "schemaVersion": 1,
+  "id": "programmes-blocs",
+  "title": "Programmer : instructions, formules et boucles",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 60,
+  "status": "published",
+  "sections": [
+    {
+      "id": "instructions",
+      "title": "Instructions, entrées et sorties",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "écrire une suite d'instructions dans le bon ordre ;",
+            "repérer les entrées et les sorties d'un programme ;",
+            "traduire une formule dans un programme et prévoir ce qu'il affiche ;",
+            "répéter des instructions avec une boucle."
+          ]
+        },
+        {
+          "id": "intro-blocs",
+          "type": "prose",
+          "text": "Dans un langage par blocs comme Scratch, un programme est une suite d'instructions exécutées **dans l'ordre**, de haut en bas. Ici, les blocs sont écrits en texte, un bloc par ligne."
+        },
+        {
+          "id": "code-programme-calcul",
+          "type": "code",
+          "language": "text",
+          "code": "quand le drapeau vert est cliqué\ndemander « Choisis un nombre » et attendre\nmettre x à (réponse)\nmettre résultat à ((x × 3) + 4)\ndire (résultat)"
+        },
+        {
+          "id": "def-entree-sortie",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Entrée, sortie, variable",
+          "text": "Une **entrée** est une donnée que le programme reçoit (ici, le nombre tapé au clavier, rangé dans « réponse »). Une **sortie** est ce que le programme produit (ici, ce que le lutin dit). Une **variable** est une case mémoire qui porte un nom (x, résultat) et contient une valeur."
+        },
+        {
+          "id": "ex-entree",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans ce programme, quelle est l'entrée ?",
+          "competencies": [
+            "c4.algo.programmes.sequencer-instructions"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-le-nombre-tape-par-l-utilisate",
+              "text": "le nombre tapé par l'utilisateur",
+              "correct": true
+            },
+            {
+              "id": "choix-le-resultat-dit-par-le-lutin",
+              "text": "le résultat dit par le lutin",
+              "correct": false
+            },
+            {
+              "id": "choix-le-drapeau-vert",
+              "text": "le drapeau vert",
+              "correct": false
+            }
+          ],
+          "explanation": "L'entrée est la donnée fournie au programme : la réponse à la question « Choisis un nombre ». Le résultat dit par le lutin est la sortie. Le drapeau vert lance le programme, ce n'est pas une donnée."
+        },
+        {
+          "id": "ex-sortie",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans ce programme, quelle est la sortie ?",
+          "competencies": [
+            "c4.algo.programmes.sequencer-instructions"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ce-que-le-lutin-dit",
+              "text": "ce que le lutin dit",
+              "correct": true
+            },
+            {
+              "id": "choix-la-question-posee",
+              "text": "la question posée",
+              "correct": false
+            },
+            {
+              "id": "choix-la-variable-x",
+              "text": "la variable x",
+              "correct": false
+            }
+          ],
+          "explanation": "La sortie est ce que le programme produit à la fin : le lutin dit la valeur de « résultat ». La question sert à obtenir l'entrée. x est une variable intermédiaire."
+        },
+        {
+          "id": "ex-ordre",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Remets ces instructions dans l'ordre pour obtenir un programme qui dit le double du nombre choisi.",
+          "competencies": [
+            "c4.algo.programmes.sequencer-instructions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "1. {} — 2. {} — 3. {}",
+          "bank": [
+            "calculer le double",
+            "demander un nombre",
+            "dire le résultat"
+          ],
+          "expected": [
+            "demander un nombre",
+            "calculer le double",
+            "dire le résultat"
+          ],
+          "explanation": "On ne peut pas calculer le double d'un nombre qu'on n'a pas encore demandé, ni dire un résultat qui n'est pas encore calculé : entrée, puis calcul, puis sortie."
+        },
+        {
+          "id": "ex-ordre-faux",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Que se passe-t-il si l'on place « dire (résultat) » juste après « mettre x à (réponse) », avant le calcul ?",
+          "competencies": [
+            "c4.algo.programmes.sequencer-instructions"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-le-lutin-dit-une-valeur-qui-n",
+              "text": "Le lutin dit une valeur qui n'a pas encore été calculée",
+              "correct": true
+            },
+            {
+              "id": "choix-le-programme-calcule-quand-mem",
+              "text": "Le programme calcule quand même avant de parler",
+              "correct": false
+            },
+            {
+              "id": "choix-le-programme-refuse-de-demarre",
+              "text": "Le programme refuse de démarrer",
+              "correct": false
+            }
+          ],
+          "explanation": "Les instructions s'exécutent dans l'ordre : au moment de « dire », la variable résultat n'a pas encore reçu le calcul. Le lutin dit son ancienne valeur (souvent 0)."
+        }
+      ]
+    },
+    {
+      "id": "formules",
+      "title": "Des formules dans un programme",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-operateurs",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Écrire une formule en blocs",
+          "text": "Les opérations sont des blocs que l'on emboîte : (x × 3) + 4 calcule d'abord x × 3, puis ajoute 4. Les blocs emboîtés jouent le rôle des parenthèses."
+        },
+        {
+          "id": "ex-prevoir-cinq",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le programme du début, l'utilisateur tape 5. Quel nombre dit le lutin ?",
+          "competencies": [
+            "c4.algo.programmes.calculer-formules",
+            "c4.algo.programmes.prevoir-valeur"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 19,
+          "tolerance": 0,
+          "explanation": "x vaut 5. résultat = (5 × 3) + 4 = 15 + 4 = 19."
+        },
+        {
+          "id": "ex-bloc-formule",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle instruction calcule 2x + 5 ?",
+          "competencies": [
+            "c4.algo.programmes.calculer-formules"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-mettre-resultat-a-2-x-5",
+              "text": "mettre résultat à ((2 × x) + 5)",
+              "correct": true
+            },
+            {
+              "id": "choix-mettre-resultat-a-2-x-5-2",
+              "text": "mettre résultat à (2 × (x + 5))",
+              "correct": false
+            },
+            {
+              "id": "choix-mettre-resultat-a-2-x-5-3",
+              "text": "mettre résultat à ((2 + x) × 5)",
+              "correct": false
+            }
+          ],
+          "explanation": "2x + 5 : on multiplie x par 2, puis on ajoute 5. Le bloc (2 × x) doit être à l'intérieur du bloc + 5. « 2 × (x + 5) » calcule 2x + 10. « (2 + x) × 5 » n'a rien à voir."
+        },
+        {
+          "id": "ex-bloc-carre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Que calcule le bloc ((x + 1) × (x + 1)) ?",
+          "competencies": [
+            "c4.algo.programmes.calculer-formules"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-le-carre-de-x-1",
+              "text": "le carré de x + 1",
+              "correct": true
+            },
+            {
+              "id": "choix-le-double-de-x-1",
+              "text": "le double de x + 1",
+              "correct": false
+            },
+            {
+              "id": "choix-x-au-carre-plus-1",
+              "text": "x au carré, plus 1",
+              "correct": false
+            }
+          ],
+          "explanation": "Un nombre multiplié par lui-même donne son carré : ici, le nombre est x + 1. « x au carré, plus 1 » s'écrirait ((x × x) + 1)."
+        },
+        {
+          "id": "ex-bloc-disque",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle instruction calcule l'aire d'un disque de rayon r (avec π ≈ 3,14) ?",
+          "competencies": [
+            "c4.algo.programmes.calculer-formules"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-mettre-aire-a-3-14-r-r",
+              "text": "mettre aire à ((3.14 × r) × r)",
+              "correct": true
+            },
+            {
+              "id": "choix-mettre-aire-a-2-3-14-r",
+              "text": "mettre aire à ((2 × 3.14) × r)",
+              "correct": false
+            },
+            {
+              "id": "choix-mettre-aire-a-3-14-r-r-2",
+              "text": "mettre aire à (3.14 × (r + r))",
+              "correct": false
+            }
+          ],
+          "explanation": "Aire = π × r × r. « 2 × 3.14 × r » est le périmètre du cercle. « 3.14 × (r + r) » est aussi le périmètre, écrit autrement. Remarque : dans Scratch, les décimaux s'écrivent avec un point."
+        }
+      ]
+    },
+    {
+      "id": "prevoir",
+      "title": "Prévoir et modifier",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "tip-tableau",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Suivre les variables à la main",
+          "text": "Pour prévoir ce que dit un programme, on fait un tableau avec une colonne par variable, et on note la nouvelle valeur après chaque instruction."
+        },
+        {
+          "id": "code-variable-a",
+          "type": "code",
+          "language": "text",
+          "code": "mettre a à 7\nmettre a à (a + 3)\nmettre a à (a × 2)\ndire (a)"
+        },
+        {
+          "id": "ex-prevoir-a",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quel nombre dit le lutin à la fin de ce programme ?",
+          "competencies": [
+            "c4.algo.programmes.prevoir-valeur"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 20,
+          "tolerance": 0,
+          "explanation": "a vaut 7. Puis a reçoit 7 + 3 = 10. Puis a reçoit 10 × 2 = 20. Le lutin dit 20. Une variable garde seulement sa dernière valeur."
+        },
+        {
+          "id": "code-deux-variables",
+          "type": "code",
+          "language": "text",
+          "code": "mettre a à 4\nmettre b à (a + 1)\nmettre a à (b × 2)\ndire (a)"
+        },
+        {
+          "id": "ex-prevoir-ab",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel nombre dit le lutin à la fin de ce deuxième programme ?",
+          "competencies": [
+            "c4.algo.programmes.prevoir-valeur"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-10",
+              "text": "10",
+              "correct": true
+            },
+            {
+              "id": "choix-8",
+              "text": "8",
+              "correct": false
+            },
+            {
+              "id": "choix-5",
+              "text": "5",
+              "correct": false
+            }
+          ],
+          "explanation": "a = 4, puis b = 4 + 1 = 5, puis a = 5 × 2 = 10. Le lutin dit 10. 8 vient de l'erreur qui calcule 4 × 2 en oubliant que b vaut 5. 5 est la valeur de b, pas celle de a."
+        },
+        {
+          "id": "ex-modifier-parametre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le programme du début, par quel nombre faut-il remplacer le 4 pour que le lutin dise 25 quand on tape 5 ?",
+          "competencies": [
+            "c4.algo.programmes.prevoir-valeur"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 10,
+          "tolerance": 0,
+          "explanation": "Avec x = 5, on calcule 5 × 3 = 15. Pour obtenir 25, il faut ajouter 25 − 15 = 10."
+        }
+      ]
+    },
+    {
+      "id": "boucles",
+      "title": "Répéter des instructions",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "def-boucle",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Boucle « répéter »",
+          "text": "Une boucle **répéter n fois** exécute n fois de suite les instructions qu'elle contient. Elle évite d'écrire plusieurs fois les mêmes blocs."
+        },
+        {
+          "id": "code-carre-boucle",
+          "type": "code",
+          "language": "text",
+          "code": "répéter 4 fois\n    avancer de 50 pas\n    tourner à droite de 90 degrés\nfin"
+        },
+        {
+          "id": "ex-distance-boucle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien de pas le lutin parcourt-il en tout avec ce programme ?",
+          "competencies": [
+            "c4.algo.programmes.repeter-boucle"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 200,
+          "tolerance": 0,
+          "explanation": "La boucle s'exécute 4 fois, et le lutin avance de 50 pas à chaque fois : 4 × 50 = 200 pas. Il trace un carré de 50 pas de côté."
+        },
+        {
+          "id": "ex-triangle-boucle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle figure trace le programme « répéter 3 fois : avancer de 100 pas, tourner à droite de 120 degrés » ?",
+          "competencies": [
+            "c4.algo.programmes.repeter-boucle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-un-triangle-equilateral",
+              "text": "un triangle équilatéral",
+              "correct": true
+            },
+            {
+              "id": "choix-un-carre",
+              "text": "un carré",
+              "correct": false
+            },
+            {
+              "id": "choix-un-hexagone",
+              "text": "un hexagone",
+              "correct": false
+            }
+          ],
+          "explanation": "3 côtés de même longueur, et le lutin a fait un tour complet (3 × 120 = 360°) : c'est un triangle équilatéral. Un carré demande 4 côtés et des virages de 90°."
+        },
+        {
+          "id": "code-compteur",
+          "type": "code",
+          "language": "text",
+          "code": "mettre n à 0\nrépéter 5 fois\n    ajouter 3 à n\nfin\ndire (n)"
+        },
+        {
+          "id": "ex-compteur",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quel nombre dit le lutin à la fin de ce programme ?",
+          "competencies": [
+            "c4.algo.programmes.repeter-boucle"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 15,
+          "tolerance": 0,
+          "explanation": "n vaut 0 au départ, puis la boucle lui ajoute 3 cinq fois : 3, 6, 9, 12, 15. Le lutin dit 15."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 8,
+      "blocks": [
+        {
+          "id": "ex-hexagone",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour tracer un hexagone régulier, on écrit « répéter 6 fois : avancer de 50 pas, tourner à droite de … degrés ». Quel angle faut-il ?",
+          "competencies": [
+            "c4.algo.programmes.repeter-boucle"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-60",
+              "text": "60",
+              "correct": true
+            },
+            {
+              "id": "choix-120",
+              "text": "120",
+              "correct": false
+            },
+            {
+              "id": "choix-6",
+              "text": "6",
+              "correct": false
+            }
+          ],
+          "explanation": "Le lutin doit faire un tour complet en 6 virages égaux : 360 ÷ 6 = 60 degrés. 120° est l'angle intérieur de l'hexagone, pas l'angle dont le lutin tourne."
+        }
+      ]
+    }
+  ]
+}

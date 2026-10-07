@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 1,
+  "id": "aires-figures-complexes",
+  "title": "Aires : parallélogramme, disque, figures complexes",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 60,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 3,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "calculer l'aire d'un parallélogramme ;",
+            "calculer l'aire d'un disque ;",
+            "calculer l'aire d'une figure complexe en la découpant ;",
+            "convertir des unités de longueur et d'aire."
+          ]
+        },
+        {
+          "id": "auto-aire-rectangle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est l'aire d'un rectangle de 7 cm sur 4 cm ?",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 28,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Longueur × largeur : 7 × 4 = 28 cm²."
+        }
+      ]
+    },
+    {
+      "id": "parallelogramme",
+      "title": "L'aire d'un parallélogramme",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-parallelogramme",
+          "type": "prose",
+          "text": "On découpe le triangle qui dépasse d'un côté d'un parallélogramme et on le recolle de l'autre côté : on obtient un rectangle de même base et de même hauteur."
+        },
+        {
+          "id": "formule-parallelogramme",
+          "type": "formula",
+          "latex": "\\mathcal{A} = \\text{base} \\times \\text{hauteur}"
+        },
+        {
+          "id": "fig-parallelogramme-hauteur",
+          "type": "figure",
+          "alt": "Parallélogramme ABCD avec [AB] horizontal en bas. Le segment [DH] descend verticalement de D jusqu'à H sur [AB], avec un angle droit en H.",
+          "caption": "La hauteur [DH] relative à la base [AB].",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 5,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": "C",
+                "x": 7,
+                "y": 3,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "D",
+                "x": 2,
+                "y": 3,
+                "label": {
+                  "placement": "above-left"
+                }
+              },
+              {
+                "name": "H",
+                "x": 2,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C",
+                  "D"
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": "D",
+                "to": "H"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "H",
+                "from": "B",
+                "to": "D",
+                "right": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-aire-para-simple",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un parallélogramme a une base de 8 cm et une hauteur relative à cette base de 3,5 cm. Quelle est son aire ?",
+          "competencies": [
+            "c4.gm.aires.calculer-parallelogramme"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 28,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Base × hauteur : 8 × 3,5 = 28 cm². Pas de division par 2 : c'est pour le triangle."
+        },
+        {
+          "id": "ex-aire-para-figure",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur la figure, l'unité est le centimètre : AB = 5 cm et DH = 3 cm. Quelle est l'aire du parallélogramme ABCD ?",
+          "competencies": [
+            "c4.gm.aires.calculer-parallelogramme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 15,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Base AB = 5 cm, hauteur DH = 3 cm : 5 × 3 = 15 cm²."
+        },
+        {
+          "id": "ex-aire-para-piege",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans le parallélogramme ABCD, AB = 5 cm, AD = 3,6 cm et la hauteur DH relative à [AB] mesure 3 cm. Quelle est son aire ?",
+          "competencies": [
+            "c4.gm.aires.calculer-parallelogramme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-15-cm",
+              "text": "15 cm²",
+              "correct": true
+            },
+            {
+              "id": "choix-18-cm",
+              "text": "18 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-7-5-cm",
+              "text": "7,5 cm²",
+              "correct": false
+            }
+          ],
+          "explanation": "On multiplie la base par la hauteur qui lui est perpendiculaire : 5 × 3 = 15 cm². 18 cm² utilise le côté AD au lieu de la hauteur : ce serait l'aire d'un rectangle de 5 sur 3,6, plus grand que le parallélogramme. 7,5 cm² divise par 2 comme pour un triangle."
+        }
+      ]
+    },
+    {
+      "id": "disque",
+      "title": "L'aire d'un disque",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "formule-disque",
+          "type": "formula",
+          "latex": "\\mathcal{A} = \\pi \\times r^2"
+        },
+        {
+          "id": "def-pi",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Le nombre π",
+          "text": "π est le nombre par lequel on multiplie le diamètre d'un cercle pour obtenir son périmètre. Il vaut environ 3,14. Pour calculer l'aire d'un disque de rayon r, on multiplie π par le carré du rayon."
+        },
+        {
+          "id": "warning-rayon",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Rayon ou diamètre ?",
+          "text": "La formule utilise le **rayon**. Si l'énoncé donne le diamètre, on le divise d'abord par 2."
+        },
+        {
+          "id": "ex-disque-5",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule l'aire d'un disque de rayon 5 cm, en prenant π ≈ 3,14.",
+          "competencies": [
+            "c4.gm.aires.calculer-disque"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 78.5,
+          "tolerance": 0.1,
+          "unit": "cm²",
+          "explanation": "π × $5^2$ ≈ 3,14 × 25 = 78,5 cm²."
+        },
+        {
+          "id": "ex-disque-diametre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle est l'aire d'un disque de diamètre 6 cm ?",
+          "competencies": [
+            "c4.gm.aires.calculer-disque"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-2-28-3-cm",
+              "text": "π × $3^2$ ≈ 28,3 cm²",
+              "correct": true
+            },
+            {
+              "id": "choix-6-2-113-cm",
+              "text": "π × $6^2$ ≈ 113 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-2-3-18-8-cm",
+              "text": "2 × π × 3 ≈ 18,8 cm²",
+              "correct": false
+            }
+          ],
+          "explanation": "Le rayon est la moitié du diamètre : 3 cm. Aire : π × $3^2$ = 9π ≈ 28,3 cm². « π × $6^2$ » prend le diamètre pour le rayon. « 2 × π × 3 » est le périmètre du cercle, pas l'aire du disque."
+        },
+        {
+          "id": "ex-double-rayon",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Si l'on double le rayon d'un disque, son aire est :",
+          "competencies": [
+            "c4.gm.aires.calculer-disque"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-multipliee-par-4",
+              "text": "multipliée par 4",
+              "correct": true
+            },
+            {
+              "id": "choix-multipliee-par-2",
+              "text": "multipliée par 2",
+              "correct": false
+            },
+            {
+              "id": "choix-inchangee",
+              "text": "inchangée",
+              "correct": false
+            }
+          ],
+          "explanation": "Le rayon est élevé au carré : π × $(2r)^2$ = π × 4 × $r^2$. L'aire est multipliée par 4. Exemple : rayon 1 → π ; rayon 2 → 4π."
+        }
+      ]
+    },
+    {
+      "id": "conversions",
+      "title": "Convertir des longueurs et des aires",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "table-conversions-aires",
+          "type": "table",
+          "headers": [
+            "m²",
+            "dm²",
+            "cm²",
+            "mm²"
+          ],
+          "rows": [
+            [
+              "1",
+              "100",
+              "10 000",
+              "1 000 000"
+            ]
+          ],
+          "caption": "1 m = 10 dm, donc 1 m² = 10 × 10 = 100 dm². Pour les aires, on multiplie par 100 à chaque rang."
+        },
+        {
+          "id": "warning-aires",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Pas 10, mais 100",
+          "text": "Un carré de 1 m de côté contient 10 rangées de 10 carrés de 1 dm de côté : 1 m² = 100 dm², et non 10 dm²."
+        },
+        {
+          "id": "ex-m2-dm2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 3 m² en dm².",
+          "competencies": [
+            "c4.gm.unites.convertir-longueurs-aires"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 300,
+          "tolerance": 0,
+          "unit": "dm²",
+          "explanation": "1 m² = 100 dm², donc 3 m² = 300 dm²."
+        },
+        {
+          "id": "ex-m2-cm2",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "1 m² est égal à :",
+          "competencies": [
+            "c4.gm.unites.convertir-longueurs-aires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-10-000-cm",
+              "text": "10 000 cm²",
+              "correct": true
+            },
+            {
+              "id": "choix-100-cm",
+              "text": "100 cm²",
+              "correct": false
+            },
+            {
+              "id": "choix-1-000-cm",
+              "text": "1 000 cm²",
+              "correct": false
+            }
+          ],
+          "explanation": "1 m = 100 cm, donc 1 m² = 100 × 100 = 10 000 cm². 100 cm² est la conversion des longueurs appliquée par erreur aux aires. 1 000 cm² correspond à une conversion de volumes ou de contenances (×1 000)."
+        },
+        {
+          "id": "ex-cm2-mm2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 2,5 cm² en mm².",
+          "competencies": [
+            "c4.gm.unites.convertir-longueurs-aires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 250,
+          "tolerance": 0,
+          "unit": "mm²",
+          "explanation": "1 cm² = 100 mm², donc 2,5 cm² = 250 mm²."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Problèmes",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 18,
+      "blocks": [
+        {
+          "id": "ex-figure-maison",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une figure est formée d'un rectangle de 6 cm sur 4 cm, surmonté d'un triangle dont la base est le côté de 6 cm et la hauteur 3 cm. Quelle est l'aire totale ?",
+          "competencies": [
+            "c4.gm.aires.calculer-parallelogramme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 33,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Rectangle : 6 × 4 = 24 cm². Triangle : 6 × 3 ÷ 2 = 9 cm². Total : 24 + 9 = 33 cm²."
+        },
+        {
+          "id": "ex-figure-trou",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans une plaque rectangulaire de 10 cm sur 8 cm, on découpe un carré de 3 cm de côté. Quelle est l'aire de la plaque restante ?",
+          "competencies": [
+            "c4.gm.aires.calculer-parallelogramme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 71,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "Plaque : 10 × 8 = 80 cm². Carré : 3 × 3 = 9 cm². Reste : 80 − 9 = 71 cm²."
+        },
+        {
+          "id": "ex-tapis",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un tapis rectangulaire mesure 1,2 m sur 50 cm. Quelle est son aire en cm² ?",
+          "competencies": [
+            "c4.gm.unites.convertir-longueurs-aires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 6000,
+          "tolerance": 0,
+          "unit": "cm²",
+          "explanation": "On met les deux longueurs dans la même unité : 1,2 m = 120 cm. Aire : 120 × 50 = 6 000 cm². Multiplier 1,2 par 50 donnerait 60, un nombre sans unité cohérente."
+        },
+        {
+          "id": "ex-cm2-m2",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 45 000 cm² en m².",
+          "competencies": [
+            "c4.gm.unites.convertir-longueurs-aires"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 4.5,
+          "tolerance": 0,
+          "unit": "m²",
+          "explanation": "1 m² = 10 000 cm², donc 45 000 cm² = 45 000 ÷ 10 000 = 4,5 m²."
+        },
+        {
+          "id": "ex-demi-disque",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule l'aire d'un demi-disque de rayon 4 cm, en prenant π ≈ 3,14.",
+          "competencies": [
+            "c4.gm.aires.calculer-disque"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 25.12,
+          "tolerance": 0.05,
+          "unit": "cm²",
+          "explanation": "Disque entier : 3,14 × $4^2$ = 3,14 × 16 = 50,24 cm². La moitié : 25,12 cm²."
+        }
+      ]
+    }
+  ]
+}

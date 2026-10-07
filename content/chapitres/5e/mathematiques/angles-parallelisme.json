@@ -1,0 +1,529 @@
+{
+  "schemaVersion": 1,
+  "id": "angles-parallelisme",
+  "title": "Angles et parallélisme",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 46,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 4,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "reconnaitre des angles alternes-internes et des angles correspondants ;",
+            "calculer des angles quand deux droites sont parallèles ;",
+            "démontrer que deux droites sont parallèles grâce aux angles."
+          ]
+        },
+        {
+          "id": "auto-supplementaire",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Deux angles adjacents forment un angle plat. L'un mesure 130°. Combien mesure l'autre ?",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 50,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Un angle plat mesure 180° : 180 − 130 = 50°. Les deux angles sont supplémentaires."
+        }
+      ]
+    },
+    {
+      "id": "reconnaitre",
+      "title": "Deux droites et une sécante",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "intro-secante",
+          "type": "prose",
+          "text": "Deux droites (d₁) et (d₂) sont coupées par une troisième droite (t), appelée **sécante**. Aux deux points d'intersection se forment huit angles. Certains couples d'angles portent un nom."
+        },
+        {
+          "id": "def-alternes",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Angles alternes-internes",
+          "text": "Deux angles sont **alternes-internes** quand ils sont situés **entre** les deux droites (internes), **de part et d'autre** de la sécante (alternes), et qu'ils n'ont pas le même sommet."
+        },
+        {
+          "id": "fig-alternes",
+          "type": "figure",
+          "alt": "Deux droites horizontales (d₁) en haut et (d₂) en bas, coupées par une sécante (t) qui monte vers la droite, en N sur (d₁) et en M sur (d₂). En N, l'angle codé est sous (d₁), à gauche de (t). En M, l'angle codé est au-dessus de (d₂), à droite de (t).",
+          "caption": "Deux angles alternes-internes.",
+          "spec": {
+            "points": [
+              {
+                "name": " ",
+                "x": -1,
+                "y": 3
+              },
+              {
+                "name": "(d₁)",
+                "x": 7,
+                "y": 3,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "  ",
+                "x": -1,
+                "y": 0
+              },
+              {
+                "name": "(d₂)",
+                "x": 7,
+                "y": 0,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "   ",
+                "x": -0.5,
+                "y": -1.5
+              },
+              {
+                "name": "(t)",
+                "x": 5.5,
+                "y": 4.5,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "N",
+                "x": 4,
+                "y": 3,
+                "label": {
+                  "placement": "above-left"
+                }
+              },
+              {
+                "name": "M",
+                "x": 1,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": " ",
+                "to": "(d₁)"
+              },
+              {
+                "from": "  ",
+                "to": "(d₂)"
+              },
+              {
+                "from": "   ",
+                "to": "(t)"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "N",
+                "from": " ",
+                "to": "   "
+              },
+              {
+                "vertex": "M",
+                "from": "(d₂)",
+                "to": "(t)"
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-correspondants",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Angles correspondants",
+          "text": "Deux angles sont **correspondants** quand ils sont situés **du même côté** de la sécante, l'un entre les deux droites et l'autre à l'extérieur, et qu'ils occupent la même position à chaque intersection."
+        },
+        {
+          "id": "fig-correspondants",
+          "type": "figure",
+          "alt": "Les mêmes droites (d₁), (d₂) et la sécante (t). En N, l'angle codé est au-dessus de (d₁), à droite de (t). En M, l'angle codé est au-dessus de (d₂), à droite de (t) : même position aux deux intersections.",
+          "caption": "Deux angles correspondants.",
+          "spec": {
+            "points": [
+              {
+                "name": " ",
+                "x": -1,
+                "y": 3
+              },
+              {
+                "name": "(d₁)",
+                "x": 7,
+                "y": 3,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "  ",
+                "x": -1,
+                "y": 0
+              },
+              {
+                "name": "(d₂)",
+                "x": 7,
+                "y": 0,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "   ",
+                "x": -0.5,
+                "y": -1.5
+              },
+              {
+                "name": "(t)",
+                "x": 5.5,
+                "y": 4.5,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "N",
+                "x": 4,
+                "y": 3,
+                "label": {
+                  "placement": "above-left"
+                }
+              },
+              {
+                "name": "M",
+                "x": 1,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": " ",
+                "to": "(d₁)"
+              },
+              {
+                "from": "  ",
+                "to": "(d₂)"
+              },
+              {
+                "from": "   ",
+                "to": "(t)"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "N",
+                "from": "(d₁)",
+                "to": "(t)"
+              },
+              {
+                "vertex": "M",
+                "from": "(d₂)",
+                "to": "(t)"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-nommer-correspondants",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la figure « Deux angles correspondants », comment s'appellent les angles codés en N et en M ?",
+          "competencies": [
+            "c4.geo.angles.reconnaitre-alternes-correspondants"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-des-angles-correspondants",
+              "text": "des angles correspondants",
+              "correct": true
+            },
+            {
+              "id": "choix-des-angles-alternes-internes",
+              "text": "des angles alternes-internes",
+              "correct": false
+            },
+            {
+              "id": "choix-des-angles-opposes-par-le-somm",
+              "text": "des angles opposés par le sommet",
+              "correct": false
+            }
+          ],
+          "explanation": "Les deux angles sont du même côté de (t), au-dessus de chaque droite : même position aux deux intersections, ce sont des angles correspondants. Des angles opposés par le sommet auraient le même sommet."
+        },
+        {
+          "id": "ex-position-alternes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Deux angles alternes-internes sont situés :",
+          "competencies": [
+            "c4.geo.angles.reconnaitre-alternes-correspondants"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-entre-les-deux-droites-de-part",
+              "text": "entre les deux droites, de part et d'autre de la sécante",
+              "correct": true
+            },
+            {
+              "id": "choix-entre-les-deux-droites-du-meme",
+              "text": "entre les deux droites, du même côté de la sécante",
+              "correct": false
+            },
+            {
+              "id": "choix-a-l-exterieur-des-deux-droites",
+              "text": "à l'extérieur des deux droites, de part et d'autre de la sécante",
+              "correct": false
+            }
+          ],
+          "explanation": "« Internes » : entre les deux droites. « Alternes » : de part et d'autre de la sécante. Entre les droites et du même côté, ce ne sont pas des alternes-internes. À l'extérieur, on parlerait d'angles alternes-externes."
+        },
+        {
+          "id": "ex-position-correspondants",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Deux angles correspondants sont situés :",
+          "competencies": [
+            "c4.geo.angles.reconnaitre-alternes-correspondants"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-du-meme-cote-de-la-secante-l-u",
+              "text": "du même côté de la sécante, l'un entre les droites et l'autre à l'extérieur",
+              "correct": true
+            },
+            {
+              "id": "choix-de-part-et-d-autre-de-la-secan",
+              "text": "de part et d'autre de la sécante, tous deux entre les droites",
+              "correct": false
+            },
+            {
+              "id": "choix-au-meme-sommet-de-part-et-d-au",
+              "text": "au même sommet, de part et d'autre de la sécante",
+              "correct": false
+            }
+          ],
+          "explanation": "Les angles correspondants occupent la même position à chacune des deux intersections : même côté de la sécante, l'un intérieur et l'autre extérieur. La deuxième réponse décrit des angles alternes-internes ; la troisième, des angles qui ont le même sommet."
+        }
+      ]
+    },
+    {
+      "id": "parallelisme",
+      "title": "Angles et droites parallèles",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "def-propriete-directe",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Si les droites sont parallèles",
+          "text": "Si deux droites parallèles sont coupées par une sécante, alors les angles alternes-internes ont la même mesure, et les angles correspondants ont la même mesure."
+        },
+        {
+          "id": "def-propriete-reciproque",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Pour démontrer que deux droites sont parallèles",
+          "text": "Si deux droites coupées par une sécante forment deux angles alternes-internes de même mesure (ou deux angles correspondants de même mesure), alors ces droites sont parallèles."
+        },
+        {
+          "id": "note-euclide",
+          "type": "callout",
+          "variant": "note",
+          "title": "Un résultat très ancien",
+          "text": "Cette propriété figure déjà dans les *Éléments* d'Euclide, écrits vers 300 av. J.-C. (livre I, propositions 27 et 28)."
+        },
+        {
+          "id": "ex-correspondant-62",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Les droites (d₁) et (d₂) sont parallèles. Un angle formé par (d₁) et la sécante mesure 62°. Combien mesure l'angle qui lui correspond, formé par (d₂) et la sécante ?",
+          "competencies": [
+            "c4.geo.angles.caracteriser-parallelisme"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 62,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Les droites sont parallèles : deux angles correspondants ont la même mesure, 62°."
+        },
+        {
+          "id": "ex-pas-paralleles",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Deux droites coupées par une sécante forment deux angles alternes-internes de 75° et de 78°. Ces droites sont-elles parallèles ?",
+          "competencies": [
+            "c4.geo.angles.caracteriser-parallelisme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "Oui",
+              "correct": false
+            },
+            {
+              "id": "choix-on-ne-peut-pas-savoir",
+              "text": "On ne peut pas savoir",
+              "correct": false
+            }
+          ],
+          "explanation": "Si les droites étaient parallèles, les angles alternes-internes auraient la même mesure. Ici 75° ≠ 78° : les droites ne sont pas parallèles. On peut conclure, puisque la propriété directe donne une condition que les mesures ne respectent pas."
+        },
+        {
+          "id": "ex-paralleles",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Deux droites coupées par une sécante forment deux angles alternes-internes qui mesurent tous les deux 54°. Que peut-on conclure ?",
+          "competencies": [
+            "c4.geo.angles.caracteriser-parallelisme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-les-droites-sont-paralleles",
+              "text": "Les droites sont parallèles",
+              "correct": true
+            },
+            {
+              "id": "choix-les-droites-sont-perpendiculai",
+              "text": "Les droites sont perpendiculaires",
+              "correct": false
+            },
+            {
+              "id": "choix-la-secante-est-perpendiculaire",
+              "text": "La sécante est perpendiculaire aux droites",
+              "correct": false
+            }
+          ],
+          "explanation": "Deux angles alternes-internes de même mesure : les droites sont parallèles (propriété réciproque). Rien n'indique un angle droit."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "ex-nommer-alternes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur la figure « Deux angles alternes-internes », pourquoi les angles codés sont-ils alternes-internes ?",
+          "competencies": [
+            "c4.geo.angles.reconnaitre-alternes-correspondants"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ils-sont-entre-d-et-d-de-part",
+              "text": "Ils sont entre (d₁) et (d₂), de part et d'autre de (t)",
+              "correct": true
+            },
+            {
+              "id": "choix-ils-sont-du-meme-cote-de-t",
+              "text": "Ils sont du même côté de (t)",
+              "correct": false
+            },
+            {
+              "id": "choix-ils-ont-le-meme-sommet",
+              "text": "Ils ont le même sommet",
+              "correct": false
+            }
+          ],
+          "explanation": "L'angle en N est sous (d₁), l'angle en M au-dessus de (d₂) : tous deux entre les droites. L'un est à gauche de (t), l'autre à droite : de part et d'autre. Ils n'ont pas le même sommet (N et M)."
+        },
+        {
+          "id": "ex-alterne-110",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Les droites (d₁) et (d₂) sont parallèles. Un angle alterne-interne mesure 110°. Combien mesure l'autre ?",
+          "competencies": [
+            "c4.geo.angles.caracteriser-parallelisme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 110,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Droites parallèles : les angles alternes-internes ont la même mesure, 110°."
+        },
+        {
+          "id": "ex-methode-demontrer",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour démontrer que deux droites sont parallèles avec les angles, que faut-il montrer ?",
+          "competencies": [
+            "c4.geo.angles.caracteriser-parallelisme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-que-deux-angles-alternes-inter",
+              "text": "Que deux angles alternes-internes (ou correspondants) ont la même mesure",
+              "correct": true
+            },
+            {
+              "id": "choix-que-deux-angles-alternes-i-2",
+              "text": "Que deux angles alternes-internes sont supplémentaires",
+              "correct": false
+            },
+            {
+              "id": "choix-que-la-secante-est-perpendicul",
+              "text": "Que la sécante est perpendiculaire à l'une des droites",
+              "correct": false
+            }
+          ],
+          "explanation": "C'est la propriété réciproque : angles alternes-internes ou correspondants de même mesure ⇒ droites parallèles. Des angles alternes-internes supplémentaires n'impliquent le parallélisme que s'ils valent 90° chacun. Une sécante perpendiculaire à une seule droite ne dit rien de l'autre."
+        }
+      ]
+    }
+  ]
+}

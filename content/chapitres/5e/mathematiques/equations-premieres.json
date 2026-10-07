@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "id": "equations-premieres",
+  "title": "Premières équations",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 44,
+  "status": "published",
+  "sections": [
+    {
+      "id": "inconnue",
+      "title": "La lettre inconnue",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "traduire un problème par une équation du type ax = c ou x + b = c ;",
+            "résoudre ces équations avec l'opération inverse ;",
+            "vérifier une solution."
+          ]
+        },
+        {
+          "id": "intro-inconnue",
+          "type": "prose",
+          "text": "« Je pense à un nombre, j'ajoute 13 et je trouve 41. » Pour retrouver le nombre, on peut le désigner par une lettre, x, et écrire ce que dit l'énoncé : x + 13 = 41. La lettre désigne alors une **inconnue**, un nombre que l'on cherche."
+        },
+        {
+          "id": "def-equation",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Équation, solution",
+          "text": "Une **équation** est une égalité qui contient une inconnue. Une **solution** est une valeur de l'inconnue qui rend l'égalité vraie. **Résoudre** l'équation, c'est trouver ses solutions."
+        },
+        {
+          "id": "note-al-khwarizmi",
+          "type": "callout",
+          "variant": "note",
+          "title": "Un peu d'histoire",
+          "text": "Au IXe siècle, à Bagdad, le mathématicien Al-Khwarizmi résolvait des problèmes en cherchant « la chose » inconnue. Le mot **algèbre** vient du titre de son livre (al-jabr)."
+        },
+        {
+          "id": "ex-modeliser-stylos",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Cinq stylos identiques coûtent 8,50 € en tout. On note p le prix d'un stylo. Quelle équation traduit la situation ?",
+          "competencies": [
+            "c4.num.equations.modeliser-probleme"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-5p-8-50",
+              "text": "5p = 8,50",
+              "correct": true
+            },
+            {
+              "id": "choix-p-5-8-50",
+              "text": "p + 5 = 8,50",
+              "correct": false
+            },
+            {
+              "id": "choix-8-50p-5",
+              "text": "8,50p = 5",
+              "correct": false
+            }
+          ],
+          "explanation": "5 stylos au prix p coûtent 5 × p : 5p = 8,50. « p + 5 » ajoute 5 au prix au lieu de le multiplier. « 8,50p = 5 » inverse les rôles des nombres."
+        },
+        {
+          "id": "ex-modeliser-age",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans 3 ans, Lina aura 15 ans. On note a son âge actuel. Quelle équation traduit la situation ?",
+          "competencies": [
+            "c4.num.equations.modeliser-probleme"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-a-3-15",
+              "text": "a + 3 = 15",
+              "correct": true
+            },
+            {
+              "id": "choix-3a-15",
+              "text": "3a = 15",
+              "correct": false
+            },
+            {
+              "id": "choix-a-3-15-2",
+              "text": "a − 3 = 15",
+              "correct": false
+            }
+          ],
+          "explanation": "Dans 3 ans, Lina aura a + 3 ans : a + 3 = 15. 3a serait le triple de son âge. a − 3 serait son âge il y a 3 ans."
+        },
+        {
+          "id": "ex-modeliser-rectangle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un rectangle a une aire de 36 cm² et une largeur de 4 cm. On note L sa longueur. Quelle équation traduit la situation ?",
+          "competencies": [
+            "c4.num.equations.modeliser-probleme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-4l-36",
+              "text": "4L = 36",
+              "correct": true
+            },
+            {
+              "id": "choix-l-4-36",
+              "text": "L + 4 = 36",
+              "correct": false
+            },
+            {
+              "id": "choix-2l-8-36",
+              "text": "2L + 8 = 36",
+              "correct": false
+            }
+          ],
+          "explanation": "L'aire d'un rectangle est longueur × largeur : 4 × L = 36. « L + 4 = 36 » additionne les dimensions. « 2L + 8 = 36 » traduit un périmètre de 36 cm, pas une aire."
+        }
+      ]
+    },
+    {
+      "id": "resoudre",
+      "title": "Résoudre avec l'opération inverse",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "table-operations-inverses",
+          "type": "table",
+          "headers": [
+            "Équation",
+            "Opération inverse",
+            "Solution"
+          ],
+          "rows": [
+            [
+              "x + 13 = 41",
+              "on soustrait 13 : x = 41 − 13",
+              "x = 28"
+            ],
+            [
+              "4x = 28",
+              "on divise par 4 : x = 28 ÷ 4",
+              "x = 7"
+            ]
+          ],
+          "caption": "Chaque opération se défait par l'opération inverse."
+        },
+        {
+          "id": "tip-verifier",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Toujours vérifier",
+          "text": "On remplace x par la valeur trouvée dans l'équation de départ : 28 + 13 = 41, l'égalité est vraie. La solution est correcte."
+        },
+        {
+          "id": "ex-resoudre-addition",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Résous l'équation x + 7 = 15.",
+          "competencies": [
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "On soustrait 7 : x = 15 − 7 = 8. Vérification : 8 + 7 = 15."
+        },
+        {
+          "id": "ex-resoudre-produit",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Résous l'équation 4x = 28.",
+          "competencies": [
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 7,
+          "tolerance": 0,
+          "explanation": "4x signifie 4 × x. On divise par 4 : x = 28 ÷ 4 = 7. Vérification : 4 × 7 = 28."
+        },
+        {
+          "id": "ex-calcul-inverse",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour résoudre l'équation 6x = 3, on calcule :",
+          "competencies": [
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-6",
+              "text": "3 ÷ 6",
+              "correct": true
+            },
+            {
+              "id": "choix-6-3",
+              "text": "6 ÷ 3",
+              "correct": false
+            },
+            {
+              "id": "choix-3-6-2",
+              "text": "3 − 6",
+              "correct": false
+            }
+          ],
+          "explanation": "On défait la multiplication par 6 en divisant par 6 : x = 3 ÷ 6 = 0,5. Vérification : 6 × 0,5 = 3. 6 ÷ 3 = 2 ne vérifie pas l'équation (6 × 2 = 12). 3 − 6 défait une addition, pas une multiplication."
+        },
+        {
+          "id": "ex-resoudre-decimal",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Résous l'équation x + 2,5 = 6.",
+          "competencies": [
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 3.5,
+          "tolerance": 0,
+          "explanation": "On soustrait 2,5 : x = 6 − 2,5 = 3,5. Vérification : 3,5 + 2,5 = 6."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Problèmes",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "ex-resoudre-demi",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Résous l'équation 0,5x = 6.",
+          "competencies": [
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 12,
+          "tolerance": 0,
+          "explanation": "On divise par 0,5 : x = 6 ÷ 0,5 = 12 (diviser par 0,5, c'est multiplier par 2). Vérification : 0,5 × 12 = 6."
+        },
+        {
+          "id": "ex-nombre-pense",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Je pense à un nombre, j'ajoute 13 et je trouve 41. Quel est ce nombre ?",
+          "competencies": [
+            "c4.num.equations.modeliser-probleme",
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 28,
+          "tolerance": 0,
+          "explanation": "Équation : x + 13 = 41. On soustrait 13 : x = 28. Vérification : 28 + 13 = 41."
+        },
+        {
+          "id": "ex-tickets",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un carnet de 12 tickets de bus coûte 21 €. On note t le prix d'un ticket. Écris l'équation et résous-la : quel est le prix d'un ticket ?",
+          "competencies": [
+            "c4.num.equations.modeliser-probleme",
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 1.75,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "12 tickets au prix t : 12t = 21. On divise par 12 : t = 21 ÷ 12 = 1,75 €. Vérification : 12 × 1,75 = 21."
+        },
+        {
+          "id": "ex-temperature",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Ce matin, il faisait −4 °C. La température a augmenté de d degrés et il fait maintenant 9 °C. On a donc −4 + d = 9. Que vaut d ?",
+          "competencies": [
+            "c4.num.equations.modeliser-probleme",
+            "c4.num.equations.resoudre-operations-inverses"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 13,
+          "tolerance": 0,
+          "unit": "°C",
+          "explanation": "On soustrait −4, c'est-à-dire qu'on ajoute 4 : d = 9 + 4 = 13. Vérification : −4 + 13 = 9."
+        }
+      ]
+    }
+  ]
+}

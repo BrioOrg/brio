@@ -1,0 +1,775 @@
+{
+  "schemaVersion": 1,
+  "id": "solides-volumes",
+  "title": "Solides : représentations, patrons et volumes",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 69,
+  "status": "published",
+  "sections": [
+    {
+      "id": "perspective",
+      "title": "La perspective cavalière",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "connaitre les règles de la perspective cavalière ;",
+            "relier un solide et son patron ;",
+            "calculer le volume d'un pavé, d'un prisme droit et d'un cylindre ;",
+            "convertir des unités de volume et de contenance."
+          ]
+        },
+        {
+          "id": "intro-perspective",
+          "type": "prose",
+          "text": "Pour dessiner un solide sur une feuille plate, on utilise souvent la **perspective cavalière**. Elle ne montre pas le solide tel que l'œil le voit, mais elle conserve des informations utiles pour raisonner."
+        },
+        {
+          "id": "regles-perspective",
+          "type": "steps",
+          "title": "Les règles de la perspective cavalière",
+          "steps": [
+            {
+              "text": "La face avant (et la face arrière) sont dessinées **en vraie grandeur** : un carré reste un carré."
+            },
+            {
+              "text": "Les arêtes qui « s'enfoncent » (les **fuyantes**) sont dessinées en biais et raccourcies."
+            },
+            {
+              "text": "Des arêtes parallèles dans la réalité restent **parallèles** sur le dessin."
+            },
+            {
+              "text": "Les arêtes cachées sont dessinées **en pointillés**."
+            }
+          ]
+        },
+        {
+          "id": "note-dessin",
+          "type": "callout",
+          "variant": "note",
+          "title": "À faire sur ton cahier",
+          "text": "Entraîne-toi à dessiner un cube et un pavé en perspective cavalière sur papier quadrillé : commence par la face avant, puis trace les fuyantes, puis la face arrière."
+        },
+        {
+          "id": "ex-aretes-cachees",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "En perspective cavalière, comment dessine-t-on les arêtes cachées ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-en-pointilles",
+              "text": "en pointillés",
+              "correct": true
+            },
+            {
+              "id": "choix-en-traits-pleins",
+              "text": "en traits pleins",
+              "correct": false
+            },
+            {
+              "id": "choix-on-ne-les-dessine-pas",
+              "text": "on ne les dessine pas",
+              "correct": false
+            }
+          ],
+          "explanation": "Les arêtes cachées sont dessinées en pointillés : on sait qu'elles existent, mais on ne les voit pas. Les dessiner en traits pleins rendrait le solide difficile à lire ; les omettre ferait perdre de l'information."
+        },
+        {
+          "id": "ex-face-avant",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "En perspective cavalière, comment est représentée la face avant d'un pavé droit ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-par-un-rectangle-de-memes-dime",
+              "text": "par un rectangle de mêmes dimensions que la face réelle",
+              "correct": true
+            },
+            {
+              "id": "choix-par-un-parallelogramme",
+              "text": "par un parallélogramme",
+              "correct": false
+            },
+            {
+              "id": "choix-par-un-rectangle-plus-petit-qu",
+              "text": "par un rectangle plus petit que la face réelle",
+              "correct": false
+            }
+          ],
+          "explanation": "La face avant est en vraie grandeur. Ce sont les faces de côté et du dessus qui deviennent des parallélogrammes, à cause des fuyantes."
+        },
+        {
+          "id": "ex-paralleles",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur un dessin en perspective cavalière, deux arêtes parallèles dans la réalité sont représentées par :",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-des-segments-paralleles",
+              "text": "des segments parallèles",
+              "correct": true
+            },
+            {
+              "id": "choix-des-segments-perpendiculaires",
+              "text": "des segments perpendiculaires",
+              "correct": false
+            },
+            {
+              "id": "choix-des-segments-de-meme-longueur",
+              "text": "des segments de même longueur, forcément",
+              "correct": false
+            }
+          ],
+          "explanation": "La perspective cavalière conserve le parallélisme. Elle ne conserve pas toujours les longueurs : les fuyantes sont raccourcies."
+        },
+        {
+          "id": "ex-nombre-cachees",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le dessin habituel d'un cube en perspective cavalière (vu de face, un peu par-dessus et par la droite), combien d'arêtes sont cachées ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "answer": 3,
+          "tolerance": 0,
+          "explanation": "Le sommet arrière en bas à gauche est caché : les 3 arêtes qui en partent sont cachées. Les 9 autres arêtes du cube sont visibles."
+        }
+      ]
+    },
+    {
+      "id": "patrons",
+      "title": "Les patrons",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-patron",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Patron",
+          "text": "Un **patron** d'un solide est une figure plane, d'un seul morceau, qui permet de fabriquer le solide par pliage, sans recouvrement."
+        },
+        {
+          "id": "fig-patron-cube",
+          "type": "figure",
+          "alt": "Six carrés identiques en forme de croix : quatre carrés alignés horizontalement, un carré au-dessus du deuxième et un carré en dessous du deuxième.",
+          "caption": "Un patron de cube.",
+          "spec": {
+            "points": [
+              {
+                "name": " ",
+                "x": 0,
+                "y": 1
+              },
+              {
+                "name": "  ",
+                "x": 1,
+                "y": 1
+              },
+              {
+                "name": "   ",
+                "x": 2,
+                "y": 1
+              },
+              {
+                "name": "    ",
+                "x": 3,
+                "y": 1
+              },
+              {
+                "name": "     ",
+                "x": 4,
+                "y": 1
+              },
+              {
+                "name": "      ",
+                "x": 0,
+                "y": 2
+              },
+              {
+                "name": "       ",
+                "x": 1,
+                "y": 2
+              },
+              {
+                "name": "        ",
+                "x": 2,
+                "y": 2
+              },
+              {
+                "name": "         ",
+                "x": 3,
+                "y": 2
+              },
+              {
+                "name": "          ",
+                "x": 4,
+                "y": 2
+              },
+              {
+                "name": "           ",
+                "x": 1,
+                "y": 0
+              },
+              {
+                "name": "            ",
+                "x": 2,
+                "y": 0
+              },
+              {
+                "name": "             ",
+                "x": 1,
+                "y": 3
+              },
+              {
+                "name": "              ",
+                "x": 2,
+                "y": 3
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  " ",
+                  "  ",
+                  "       ",
+                  "      "
+                ]
+              },
+              {
+                "vertices": [
+                  "  ",
+                  "   ",
+                  "        ",
+                  "       "
+                ]
+              },
+              {
+                "vertices": [
+                  "   ",
+                  "    ",
+                  "         ",
+                  "        "
+                ]
+              },
+              {
+                "vertices": [
+                  "    ",
+                  "     ",
+                  "          ",
+                  "         "
+                ]
+              },
+              {
+                "vertices": [
+                  "           ",
+                  "            ",
+                  "   ",
+                  "  "
+                ]
+              },
+              {
+                "vertices": [
+                  "       ",
+                  "        ",
+                  "              ",
+                  "             "
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-patron-cube",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "La figure en croix ci-dessus est-elle un patron de cube ?",
+          "competencies": [
+            "c4.geo.espace.relier-patron"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-oui",
+              "text": "Oui",
+              "correct": true
+            },
+            {
+              "id": "choix-non-il-faudrait-8-carres",
+              "text": "Non, il faudrait 8 carrés",
+              "correct": false
+            },
+            {
+              "id": "choix-non-les-carres-doivent-etre-su",
+              "text": "Non, les carrés doivent être sur une seule ligne",
+              "correct": false
+            }
+          ],
+          "explanation": "En pliant, les quatre carrés alignés forment le tour du cube, et les deux carrés du haut et du bas ferment le dessus et le dessous. Un cube a 6 faces, pas 8. Six carrés sur une seule ligne ne se referment pas : les faces se recouvriraient."
+        },
+        {
+          "id": "fig-patron-cylindre",
+          "type": "figure",
+          "alt": "Un rectangle horizontal, avec un disque collé au milieu gauche de son bord supérieur et un autre au milieu gauche de son bord inférieur.",
+          "caption": "Un patron de cylindre : un rectangle et deux disques.",
+          "spec": {
+            "points": [
+              {
+                "name": " ",
+                "x": 0,
+                "y": 0
+              },
+              {
+                "name": "  ",
+                "x": 6.28,
+                "y": 0
+              },
+              {
+                "name": "   ",
+                "x": 6.28,
+                "y": 3
+              },
+              {
+                "name": "    ",
+                "x": 0,
+                "y": 3
+              },
+              {
+                "name": "     ",
+                "x": 2,
+                "y": 4
+              },
+              {
+                "name": "      ",
+                "x": 2,
+                "y": -1
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  " ",
+                  "  ",
+                  "   ",
+                  "    "
+                ]
+              }
+            ],
+            "circles": [
+              {
+                "center": "     ",
+                "radius": 1
+              },
+              {
+                "center": "      ",
+                "radius": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "def-patron-cylindre",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Le patron d'un cylindre",
+          "text": "Il est formé de deux disques (les bases) et d'un rectangle (la surface latérale). La largeur du rectangle est la hauteur du cylindre ; sa longueur est le **périmètre** du disque de base, 2 × π × r, car il s'enroule tout autour."
+        },
+        {
+          "id": "ex-patron-cylindre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On fabrique un cylindre de rayon 2 cm et de hauteur 5 cm. Quelle doit être la longueur du rectangle de son patron ? (prends π ≈ 3,14)",
+          "competencies": [
+            "c4.geo.espace.relier-patron"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 12.56,
+          "tolerance": 0.02,
+          "unit": "cm",
+          "explanation": "La longueur du rectangle est le périmètre du disque de base : 2 × π × 2 ≈ 2 × 3,14 × 2 = 12,56 cm. La hauteur 5 cm est l'autre dimension du rectangle."
+        },
+        {
+          "id": "ex-patron-prisme",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le patron d'un prisme droit à base triangulaire est formé de :",
+          "competencies": [
+            "c4.geo.espace.relier-patron"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-2-triangles-et-3-rectangles",
+              "text": "2 triangles et 3 rectangles",
+              "correct": true
+            },
+            {
+              "id": "choix-3-triangles-et-2-rectangles",
+              "text": "3 triangles et 2 rectangles",
+              "correct": false
+            },
+            {
+              "id": "choix-2-triangles-et-4-rectangles",
+              "text": "2 triangles et 4 rectangles",
+              "correct": false
+            }
+          ],
+          "explanation": "Un prisme droit a deux bases identiques (ici des triangles) et autant de faces latérales rectangulaires que la base a de côtés : 3. On a 5 faces en tout."
+        },
+        {
+          "id": "ex-patron-pave",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Combien de faces compte le patron d'un pavé droit ?",
+          "competencies": [
+            "c4.geo.espace.relier-patron"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-6",
+              "text": "6",
+              "correct": true
+            },
+            {
+              "id": "choix-4",
+              "text": "4",
+              "correct": false
+            },
+            {
+              "id": "choix-8",
+              "text": "8",
+              "correct": false
+            }
+          ],
+          "explanation": "Un pavé droit a 6 faces rectangulaires, opposées deux à deux : le patron en a 6. 8 est le nombre de sommets."
+        }
+      ]
+    },
+    {
+      "id": "volumes",
+      "title": "Volumes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "table-volumes",
+          "type": "table",
+          "headers": [
+            "Solide",
+            "Volume"
+          ],
+          "rows": [
+            [
+              "Pavé droit",
+              "longueur × largeur × hauteur"
+            ],
+            [
+              "Cube d'arête c",
+              "$c^3$"
+            ],
+            [
+              "Prisme droit",
+              "aire de la base × hauteur"
+            ],
+            [
+              "Cylindre de rayon r et de hauteur h",
+              "π × $r^2$ × h"
+            ]
+          ],
+          "caption": "Le cylindre et le prisme droit se calculent de la même manière : aire de la base × hauteur."
+        },
+        {
+          "id": "ex-volume-pave",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule le volume d'un pavé droit de 5 cm sur 3 cm sur 2 cm.",
+          "competencies": [
+            "c4.gm.volumes.calculer-pave-prisme"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 30,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "5 × 3 × 2 = 30 cm³."
+        },
+        {
+          "id": "ex-volume-cube",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule le volume d'un cube d'arête 4 cm.",
+          "competencies": [
+            "c4.gm.volumes.calculer-pave-prisme"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 64,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "$4^3$ = 4 × 4 × 4 = 64 cm³."
+        },
+        {
+          "id": "ex-volume-prisme",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un prisme droit a pour base un triangle rectangle dont les côtés de l'angle droit mesurent 3 cm et 4 cm. Sa hauteur est 10 cm. Calcule son volume.",
+          "competencies": [
+            "c4.gm.volumes.calculer-pave-prisme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 60,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "Aire de la base : 3 × 4 ÷ 2 = 6 cm². Volume : 6 × 10 = 60 cm³. Oublier la division par 2 donnerait 120 cm³."
+        },
+        {
+          "id": "ex-volume-cylindre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule le volume d'un cylindre de rayon 2 cm et de hauteur 5 cm, en prenant π ≈ 3,14.",
+          "competencies": [
+            "c4.gm.volumes.calculer-cylindre"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 62.8,
+          "tolerance": 0.1,
+          "unit": "cm³",
+          "explanation": "Aire de la base : 3,14 × $2^2$ = 12,56 cm². Volume : 12,56 × 5 = 62,8 cm³."
+        },
+        {
+          "id": "ex-cylindre-diametre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un cylindre a un diamètre de 10 cm et une hauteur de 4 cm. Quel calcul donne son volume ?",
+          "competencies": [
+            "c4.gm.volumes.calculer-cylindre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-5-2-4",
+              "text": "π × $5^2$ × 4",
+              "correct": true
+            },
+            {
+              "id": "choix-10-2-4",
+              "text": "π × $10^2$ × 4",
+              "correct": false
+            },
+            {
+              "id": "choix-2-5-4",
+              "text": "2 × π × 5 × 4",
+              "correct": false
+            }
+          ],
+          "explanation": "Le rayon est la moitié du diamètre : 5 cm. Volume : π × $5^2$ × 4 = 100π ≈ 314 cm³. « π × $10^2$ » prend le diamètre pour le rayon : le résultat est 4 fois trop grand. « 2 × π × 5 × 4 » est l'aire du rectangle du patron, pas un volume."
+        }
+      ]
+    },
+    {
+      "id": "contenances",
+      "title": "Volumes et contenances",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 12,
+      "blocks": [
+        {
+          "id": "table-contenances",
+          "type": "table",
+          "headers": [
+            "Volume",
+            "Contenance"
+          ],
+          "rows": [
+            [
+              "1 dm³",
+              "1 L"
+            ],
+            [
+              "1 cm³",
+              "1 mL"
+            ],
+            [
+              "1 m³",
+              "1 000 L"
+            ]
+          ],
+          "caption": "Les correspondances à connaitre."
+        },
+        {
+          "id": "warning-1000",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Pour les volumes, c'est 1 000",
+          "text": "1 dm = 10 cm, donc 1 dm³ = 10 × 10 × 10 = 1 000 cm³. Pour les volumes, on multiplie par 1 000 à chaque rang."
+        },
+        {
+          "id": "ex-litres-cm3",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 2,5 L en cm³.",
+          "competencies": [
+            "c4.gm.unites.convertir-volumes-contenances"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 2500,
+          "tolerance": 0,
+          "unit": "cm³",
+          "explanation": "1 L = 1 dm³ = 1 000 cm³, donc 2,5 L = 2 500 cm³."
+        },
+        {
+          "id": "ex-m3-litres",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "1 m³ est égal à :",
+          "competencies": [
+            "c4.gm.unites.convertir-volumes-contenances"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1-000-l",
+              "text": "1 000 L",
+              "correct": true
+            },
+            {
+              "id": "choix-100-l",
+              "text": "100 L",
+              "correct": false
+            },
+            {
+              "id": "choix-10-l",
+              "text": "10 L",
+              "correct": false
+            }
+          ],
+          "explanation": "1 m³ = 1 000 dm³ et 1 dm³ = 1 L, donc 1 m³ = 1 000 L. 100 L applique la règle des aires (×100) aux volumes."
+        },
+        {
+          "id": "ex-cm3-litres",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Convertis 750 cm³ en litres.",
+          "competencies": [
+            "c4.gm.unites.convertir-volumes-contenances"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 0.75,
+          "tolerance": 0,
+          "unit": "L",
+          "explanation": "1 000 cm³ = 1 L, donc 750 cm³ = 0,75 L (c'est le volume d'une bouteille de 75 cL)."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Problèmes",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-aquarium",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un aquarium a la forme d'un pavé droit de 50 cm sur 30 cm sur 40 cm. Combien de litres d'eau peut-il contenir ?",
+          "competencies": [
+            "c4.gm.volumes.calculer-pave-prisme",
+            "c4.gm.unites.convertir-volumes-contenances"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 60,
+          "tolerance": 0,
+          "unit": "L",
+          "explanation": "Volume : 50 × 30 × 40 = 60 000 cm³. Comme 1 L = 1 000 cm³, cela fait 60 000 ÷ 1 000 = 60 L."
+        },
+        {
+          "id": "ex-verre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un verre cylindrique a un rayon de 3 cm et une hauteur de 10 cm. Quel est son volume en cm³ ? (prends π ≈ 3,14)",
+          "competencies": [
+            "c4.gm.volumes.calculer-cylindre"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 282.6,
+          "tolerance": 0.1,
+          "unit": "cm³",
+          "explanation": "3,14 × $3^2$ × 10 = 3,14 × 9 × 10 = 282,6 cm³, soit environ 28 cL."
+        },
+        {
+          "id": "ex-formule-prisme",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelle formule donne le volume d'un prisme droit ?",
+          "competencies": [
+            "c4.gm.volumes.calculer-pave-prisme"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-aire-de-la-base-hauteur",
+              "text": "aire de la base × hauteur",
+              "correct": true
+            },
+            {
+              "id": "choix-perimetre-de-la-base-hauteur",
+              "text": "périmètre de la base × hauteur",
+              "correct": false
+            },
+            {
+              "id": "choix-aire-de-la-base-hauteur-2",
+              "text": "aire de la base × hauteur ÷ 2",
+              "correct": false
+            }
+          ],
+          "explanation": "Comme pour le pavé : on empile la base sur toute la hauteur. Le périmètre de la base × hauteur donne l'aire latérale (les rectangles du patron). Diviser par 2 n'a pas lieu d'être : le ÷ 2 de l'aire d'un triangle est déjà dans l'aire de la base si elle est triangulaire."
+        }
+      ]
+    }
+  ]
+}

@@ -88,6 +88,11 @@ soumis chaque exercice juste et faux, vérifié que la réponse de l'API ne cont
 sensible (`answer`, `acceptedAnswers`, `referenceAnswer`, `rubric`, `correct`). Le basculement
 `draft → published` est un acte d'attestation, pas un paramètre technique.
 
+**Exception, tant que le produit est en développement** (décision de Pierce, #213, 2026-10-07) :
+les nouveaux chapitres sont publiés directement, sans cette relecture préalable. Elle redevient
+obligatoire avant l'ouverture à de vrais élèves (ce sont des mineurs) : chaque chapitre publié
+sans attestation devra alors passer la checklist ci-dessous.
+
 ---
 
 ## Entrées à donner au modèle pour écrire un chapitre

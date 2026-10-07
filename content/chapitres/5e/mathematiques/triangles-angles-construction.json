@@ -1,0 +1,478 @@
+{
+  "schemaVersion": 1,
+  "id": "triangles-angles-construction",
+  "title": "Triangles : somme des angles et constructions",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 49,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 4,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "connaitre la somme des angles d'un triangle et la démontrer ;",
+            "calculer un angle manquant ;",
+            "construire un triangle à partir de quelques mesures, et savoir quand c'est impossible."
+          ]
+        },
+        {
+          "id": "auto-equerre",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Les angles de l'équerre « 30-60-90 » mesurent 30°, 60° et 90°. Quelle est leur somme ?",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-180",
+              "text": "180°",
+              "correct": true
+            },
+            {
+              "id": "choix-90",
+              "text": "90°",
+              "correct": false
+            },
+            {
+              "id": "choix-360",
+              "text": "360°",
+              "correct": false
+            }
+          ],
+          "explanation": "30 + 60 + 90 = 180. Ce n'est pas un hasard : c'est vrai pour tous les triangles."
+        }
+      ]
+    },
+    {
+      "id": "somme",
+      "title": "La somme des angles d'un triangle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 16,
+      "blocks": [
+        {
+          "id": "def-somme",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Propriété",
+          "text": "Dans un triangle, la somme des mesures des trois angles est égale à **180°**."
+        },
+        {
+          "id": "intro-demonstration",
+          "type": "prose",
+          "text": "On peut le démontrer avec les angles alternes-internes. Soit un triangle ABC. On trace la droite qui passe par A et qui est parallèle à (BC)."
+        },
+        {
+          "id": "fig-demonstration",
+          "type": "figure",
+          "alt": "Triangle ABC, avec B en bas à gauche, C en bas à droite et A en haut. Une droite horizontale passe par A, parallèle à (BC). Quatre angles sont codés : en A, l'angle entre cette droite et [AB] et l'angle entre [AC] et cette droite ; puis les angles du triangle en B et en C. Entre les deux angles codés en A se trouve l'angle du triangle en A.",
+          "caption": "La parallèle à (BC) passant par A.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 2,
+                "y": 3,
+                "label": {
+                  "placement": "above"
+                }
+              },
+              {
+                "name": "B",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "C",
+                "x": 5,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              },
+              {
+                "name": " ",
+                "x": -1,
+                "y": 3
+              },
+              {
+                "name": "  ",
+                "x": 7,
+                "y": 3
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": " ",
+                "to": "  "
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "A",
+                "from": " ",
+                "to": "B"
+              },
+              {
+                "vertex": "B",
+                "from": "C",
+                "to": "A"
+              },
+              {
+                "vertex": "A",
+                "from": "C",
+                "to": "  "
+              },
+              {
+                "vertex": "C",
+                "from": "A",
+                "to": "B"
+              }
+            ]
+          }
+        },
+        {
+          "id": "demonstration",
+          "type": "steps",
+          "title": "Démonstration",
+          "steps": [
+            {
+              "text": "La parallèle et (BC) sont coupées par la sécante (AB) : l'angle entre la parallèle et [AB], en A, et l'angle en B sont alternes-internes. Comme les droites sont parallèles, ils ont la même mesure."
+            },
+            {
+              "text": "De même, avec la sécante (AC), l'angle entre [AC] et la parallèle, en A, a la même mesure que l'angle en C."
+            },
+            {
+              "text": "En A, les trois angles côte à côte forment un angle plat : leur somme vaut 180°. Ils ont les mêmes mesures que les trois angles du triangle, donc la somme des angles du triangle vaut 180°."
+            }
+          ]
+        },
+        {
+          "id": "ex-angle-manquant",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans un triangle, deux angles mesurent 50° et 70°. Combien mesure le troisième ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-somme-angles"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 60,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "180 − (50 + 70) = 180 − 120 = 60°."
+        },
+        {
+          "id": "ex-triangle-rectangle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle est rectangle et l'un de ses angles mesure 35°. Combien mesure son troisième angle ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-somme-angles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 55,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "L'angle droit mesure 90°. 180 − (90 + 35) = 55°. Dans un triangle rectangle, les deux angles aigus ont une somme de 90°."
+        },
+        {
+          "id": "ex-isocele",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un triangle est isocèle et l'angle de son sommet principal mesure 40°. Combien mesure chacun des deux angles à la base ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-somme-angles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 70,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Les deux angles à la base sont égaux. Ensemble, ils mesurent 180 − 40 = 140°, donc chacun mesure 140 ÷ 2 = 70°."
+        },
+        {
+          "id": "ex-demonstration-alternes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans la démonstration, pourquoi l'angle en A entre la parallèle et [AB] a-t-il la même mesure que l'angle en B ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-somme-angles"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ce-sont-des-angles-alternes-in",
+              "text": "Ce sont des angles alternes-internes formés par deux droites parallèles",
+              "correct": true
+            },
+            {
+              "id": "choix-ce-sont-des-angles-opposes-par",
+              "text": "Ce sont des angles opposés par le sommet",
+              "correct": false
+            },
+            {
+              "id": "choix-le-triangle-est-isocele",
+              "text": "Le triangle est isocèle",
+              "correct": false
+            }
+          ],
+          "explanation": "La parallèle et (BC) sont coupées par la sécante (AB) ; les deux angles sont de part et d'autre de (AB), entre les deux droites. Des angles alternes-internes formés par des droites parallèles ont la même mesure. Ils n'ont pas le même sommet, et la démonstration marche pour tout triangle, isocèle ou non."
+        }
+      ]
+    },
+    {
+      "id": "construire",
+      "title": "Construire un triangle",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "table-constructions",
+          "type": "table",
+          "headers": [
+            "On connait…",
+            "On utilise…"
+          ],
+          "rows": [
+            [
+              "les trois longueurs",
+              "la règle graduée et le compas"
+            ],
+            [
+              "deux longueurs et l'angle compris entre ces deux côtés",
+              "la règle graduée et le rapporteur"
+            ],
+            [
+              "une longueur et les deux angles à ses extrémités",
+              "la règle graduée et le rapporteur"
+            ]
+          ],
+          "caption": "Trois façons de construire un triangle."
+        },
+        {
+          "id": "methode-cote-angles",
+          "type": "steps",
+          "title": "Construire ABC avec AB = 5 cm, l'angle en A de 40° et l'angle en B de 65°",
+          "steps": [
+            {
+              "text": "On trace le segment [AB] de 5 cm."
+            },
+            {
+              "text": "Au rapporteur, on trace en A une demi-droite qui fait 40° avec [AB]."
+            },
+            {
+              "text": "En B, du même côté, on trace une demi-droite qui fait 65° avec [BA]."
+            },
+            {
+              "text": "Les deux demi-droites se coupent en C."
+            }
+          ]
+        },
+        {
+          "id": "warning-constructible",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Pas toujours possible",
+          "text": "Si les deux angles donnés ont une somme supérieure ou égale à 180°, les deux demi-droites ne se coupent pas : le triangle n'existe pas."
+        },
+        {
+          "id": "ex-outils-trois-longueurs",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Pour construire un triangle dont on connait les trois longueurs, on utilise :",
+          "competencies": [
+            "c4.geo.triangles.construire-donnees-partielles"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-la-regle-graduee-et-le-compas",
+              "text": "la règle graduée et le compas",
+              "correct": true
+            },
+            {
+              "id": "choix-le-rapporteur-seul",
+              "text": "le rapporteur seul",
+              "correct": false
+            },
+            {
+              "id": "choix-l-equerre-et-le-rapporteur",
+              "text": "l'équerre et le rapporteur",
+              "correct": false
+            }
+          ],
+          "explanation": "On trace un côté à la règle, puis les deux autres côtés sont des rayons de cercles tracés au compas depuis ses extrémités. Le rapporteur sert à reporter des angles, qu'on ne connait pas ici."
+        },
+        {
+          "id": "ex-impossible",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Peut-on construire un triangle ABC avec AB = 6 cm, un angle de 100° en A et un angle de 90° en B ?",
+          "competencies": [
+            "c4.geo.triangles.construire-donnees-partielles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non-car-100-90-depasse-180",
+              "text": "Non, car 100 + 90 dépasse 180",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-en-tracant-d-abord-ab",
+              "text": "Oui, en traçant d'abord [AB]",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-mais-il-sera-tres-grand",
+              "text": "Oui, mais il sera très grand",
+              "correct": false
+            }
+          ],
+          "explanation": "La somme des angles d'un triangle vaut 180°. Or 100 + 90 = 190 > 180 : les deux demi-droites tracées en A et en B s'écartent et ne se coupent jamais. Aucun triangle, même très grand, ne convient."
+        },
+        {
+          "id": "ex-construire-troisieme",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "On construit un triangle ABC avec BC = 7 cm, un angle de 50° en B et un angle de 60° en C. Quelle sera la mesure de l'angle en A ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-somme-angles",
+            "c4.geo.triangles.construire-donnees-partielles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 70,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "180 − (50 + 60) = 70°. On peut le vérifier au rapporteur sur la construction."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "ex-equilateral",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Combien mesure chaque angle d'un triangle équilatéral ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-somme-angles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 60,
+          "tolerance": 0,
+          "unit": "°",
+          "explanation": "Les trois angles d'un triangle équilatéral sont égaux : 180 ÷ 3 = 60°."
+        },
+        {
+          "id": "ex-deux-obtus",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un triangle peut-il avoir deux angles obtus ?",
+          "competencies": [
+            "c4.geo.triangles.utiliser-somme-angles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non",
+              "correct": true
+            },
+            {
+              "id": "choix-oui",
+              "text": "Oui",
+              "correct": false
+            },
+            {
+              "id": "choix-seulement-s-il-est-isocele",
+              "text": "Seulement s'il est isocèle",
+              "correct": false
+            }
+          ],
+          "explanation": "Un angle obtus mesure plus de 90°. Deux angles obtus mesureraient ensemble plus de 180°, ce qui dépasse déjà la somme des trois angles d'un triangle."
+        },
+        {
+          "id": "ex-trois-angles",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On donne seulement les trois angles d'un triangle : 50°, 60° et 70°. Combien de triangles différents peut-on construire ?",
+          "competencies": [
+            "c4.geo.triangles.construire-donnees-partielles"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-une-infinite-de-tailles-differ",
+              "text": "Une infinité, de tailles différentes",
+              "correct": true
+            },
+            {
+              "id": "choix-un-seul",
+              "text": "Un seul",
+              "correct": false
+            },
+            {
+              "id": "choix-aucun",
+              "text": "Aucun",
+              "correct": false
+            }
+          ],
+          "explanation": "Les angles fixent la forme mais pas la taille : on peut agrandir ou réduire le triangle sans changer ses angles. Il faut au moins une longueur pour obtenir un triangle unique. Le triangle existe bien, puisque 50 + 60 + 70 = 180."
+        },
+        {
+          "id": "ex-construire-cote-angle-cote",
+          "type": "exercise",
+          "exerciseType": "paper",
+          "prompt": "Construis un triangle ABC tel que AB = 6 cm, AC = 4 cm et l'angle en A mesure 50°.",
+          "competencies": [
+            "c4.geo.triangles.construire-donnees-partielles"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 6,
+          "solution": "On trace [AB] de 6 cm. Au rapporteur, on trace en A une demi-droite qui fait 50° avec [AB]. Sur cette demi-droite, on place C à 4 cm de A. On relie B et C. Contrôle : en mesurant, on trouve BC ≈ 4,6 cm."
+        }
+      ]
+    }
+  ]
+}

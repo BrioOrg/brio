@@ -1,0 +1,756 @@
+{
+  "schemaVersion": 1,
+  "id": "nombres-relatifs",
+  "title": "Les nombres relatifs : repérer, comparer",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 57,
+  "status": "published",
+  "sections": [
+    {
+      "id": "definir",
+      "title": "Des nombres plus petits que zéro",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "utiliser des nombres négatifs pour décrire des températures, des altitudes, des dates ;",
+            "trouver l'opposé et la distance à zéro d'un nombre ;",
+            "placer des nombres relatifs sur une droite graduée et les comparer ;",
+            "lire et placer des points dans un repère."
+          ]
+        },
+        {
+          "id": "intro-relatifs",
+          "type": "prose",
+          "text": "Un thermomètre affiche −3 °C, un parking est au niveau −2, la mer Morte est à environ 430 m sous le niveau de la mer. Pour décrire ces situations, on utilise des nombres **négatifs**, écrits avec le signe −."
+        },
+        {
+          "id": "def-relatifs",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Nombres relatifs",
+          "text": "Un nombre **relatif** est formé d'un signe (+ ou −) et d'une **distance à zéro**. Les nombres écrits avec + (ou sans signe) sont **positifs**, ceux écrits avec − sont **négatifs**. Le nombre 0 est à la fois positif et négatif. On dit qu'un nombre est **strictement** positif (ou négatif) s'il n'est pas égal à 0."
+        },
+        {
+          "id": "def-oppose",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Opposé et valeur absolue",
+          "text": "Deux nombres sont **opposés** quand ils ont la même distance à zéro et des signes contraires : 4,5 et −4,5 sont opposés. La distance à zéro d'un nombre s'appelle aussi sa **valeur absolue** : la valeur absolue de −4,5 est 4,5."
+        },
+        {
+          "id": "ex-oppose",
+          "type": "exercise",
+          "exerciseType": "short-answer",
+          "prompt": "Quel est l'opposé de −7,5 ?",
+          "competencies": [
+            "c4.num.relatifs.definir-opposes"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "acceptedAnswers": [
+            "7,5",
+            "+7,5"
+          ],
+          "explanation": "L'opposé de −7,5 a la même distance à zéro, 7,5, et le signe contraire : c'est 7,5 (on peut écrire +7,5)."
+        },
+        {
+          "id": "ex-zero",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le nombre 0 est :",
+          "competencies": [
+            "c4.num.relatifs.definir-opposes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-a-la-fois-positif-et-negatif",
+              "text": "à la fois positif et négatif",
+              "correct": true
+            },
+            {
+              "id": "choix-ni-positif-ni-negatif",
+              "text": "ni positif ni négatif",
+              "correct": false
+            },
+            {
+              "id": "choix-strictement-positif",
+              "text": "strictement positif",
+              "correct": false
+            }
+          ],
+          "explanation": "Par convention, 0 est à la fois positif et négatif ; c'est pour cela qu'on distingue « positif » et « strictement positif ». Il n'est pas strictement positif, puisqu'il est égal à 0."
+        },
+        {
+          "id": "ex-valeur-absolue",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est la valeur absolue (la distance à zéro) de −12 ?",
+          "competencies": [
+            "c4.num.relatifs.definir-opposes"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 12,
+          "tolerance": 0,
+          "explanation": "La valeur absolue est la distance à zéro : on oublie le signe. La valeur absolue de −12 est 12. Une distance n'est jamais négative."
+        },
+        {
+          "id": "ex-altitude-fosse",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une plongeuse descend à 35 m sous le niveau de la mer. Quel nombre représente son altitude ?",
+          "competencies": [
+            "c4.num.relatifs.representer-grandeurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-35",
+              "text": "−35",
+              "correct": true
+            },
+            {
+              "id": "choix-35-2",
+              "text": "35",
+              "correct": false
+            },
+            {
+              "id": "choix-35-3",
+              "text": "+35",
+              "correct": false
+            }
+          ],
+          "explanation": "Le niveau de la mer correspond à l'altitude 0. Sous ce niveau, les altitudes sont négatives : −35 m. 35 ou +35 désigneraient un point situé 35 m au-dessus de la mer."
+        },
+        {
+          "id": "ex-temperature-monte",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "À 6 h, le thermomètre indique −3 °C. À midi, la température a monté de 8 °C. Quelle température indique-t-il à midi ?",
+          "competencies": [
+            "c4.num.relatifs.representer-grandeurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "unit": "°C",
+          "explanation": "On part de −3 et on monte de 8 : 3 degrés pour revenir à 0, puis encore 5. La température est 5 °C."
+        },
+        {
+          "id": "ex-sous-sol",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans un immeuble, le rez-de-chaussée est le niveau 0. Quel nombre représente le deuxième sous-sol ?",
+          "competencies": [
+            "c4.num.relatifs.representer-grandeurs"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-2",
+              "text": "−2",
+              "correct": true
+            },
+            {
+              "id": "choix-2-2",
+              "text": "2",
+              "correct": false
+            },
+            {
+              "id": "choix-1",
+              "text": "−1",
+              "correct": false
+            }
+          ],
+          "explanation": "Les sous-sols sont en dessous du niveau 0 : le premier est −1, le deuxième est −2. Le niveau 2 serait le deuxième étage."
+        }
+      ]
+    },
+    {
+      "id": "droite-graduee",
+      "title": "Sur une droite graduée",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-droite",
+          "type": "prose",
+          "text": "Sur une droite graduée, les nombres négatifs se placent à gauche de l'origine 0, les positifs à droite. Le nombre qui repère un point s'appelle son **abscisse**."
+        },
+        {
+          "id": "fig-droite-a",
+          "type": "figure",
+          "alt": "Droite graduée de −6 à 6, de 1 en 1, avec un nombre écrit toutes les 2 graduations. Le point A est placé à l'abscisse −3.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": -6,
+                "to": 6,
+                "step": 1,
+                "labelEvery": 2,
+                "marks": [
+                  {
+                    "value": -3,
+                    "label": "A"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-abscisse-a",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est l'abscisse du point A sur la droite graduée ci-dessus ?",
+          "competencies": [
+            "c4.num.relatifs.reperer-droite"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": -3,
+          "tolerance": 0,
+          "explanation": "A est à 3 graduations à gauche de 0, juste entre −4 et −2 : son abscisse est −3. On compte à partir de l'origine, et à gauche on écrit le signe −."
+        },
+        {
+          "id": "fig-droite-b",
+          "type": "figure",
+          "alt": "Droite graduée de −2 à 2 avec des graduations tous les 0,5. Le point B est placé entre −2 et −1, exactement au milieu.",
+          "spec": {
+            "numberLines": [
+              {
+                "from": -2,
+                "to": 2,
+                "step": 0.5,
+                "labelEvery": 1,
+                "marks": [
+                  {
+                    "value": -1.5,
+                    "label": "B"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-abscisse-b",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est l'abscisse du point B sur cette deuxième droite graduée ?",
+          "competencies": [
+            "c4.num.relatifs.reperer-droite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": -1.5,
+          "tolerance": 0,
+          "explanation": "Chaque graduation vaut 0,5. B est au milieu de −2 et −1 : son abscisse est −1,5. Attention, ce n'est pas −2,5 : on reste entre −2 et −1."
+        },
+        {
+          "id": "ex-position-moins-4",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur une droite graduée, le point d'abscisse −4 est situé :",
+          "competencies": [
+            "c4.num.relatifs.reperer-droite"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-a-4-unites-a-gauche-de-l-origi",
+              "text": "à 4 unités à gauche de l'origine",
+              "correct": true
+            },
+            {
+              "id": "choix-a-4-unites-a-droite-de-l-origi",
+              "text": "à 4 unités à droite de l'origine",
+              "correct": false
+            },
+            {
+              "id": "choix-a-4-unites-a-gauche-du-point-d",
+              "text": "à 4 unités à gauche du point d'abscisse −1",
+              "correct": false
+            }
+          ],
+          "explanation": "Le signe − indique la gauche de l'origine et 4 est la distance à zéro. À droite, ce serait 4. Le point d'abscisse −1 n'est pas l'origine : de −1 à −4, il n'y a que 3 unités."
+        },
+        {
+          "id": "def-comparer",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Comparer deux relatifs",
+          "text": "Sur une droite graduée orientée vers la droite, le plus petit des deux nombres est le plus à gauche. Entre deux nombres négatifs, le plus petit est celui qui a la plus grande distance à zéro : −7 < −2."
+        },
+        {
+          "id": "ex-plus-petit",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel est le plus petit de ces nombres ?",
+          "competencies": [
+            "c4.num.relatifs.comparer-ranger"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-7",
+              "text": "−7",
+              "correct": true
+            },
+            {
+              "id": "choix-2",
+              "text": "−2",
+              "correct": false
+            },
+            {
+              "id": "choix-0",
+              "text": "0",
+              "correct": false
+            },
+            {
+              "id": "choix-3",
+              "text": "3",
+              "correct": false
+            }
+          ],
+          "explanation": "−7 est le plus à gauche sur la droite graduée. Beaucoup pensent que −2 est plus petit parce que 2 < 7, mais pour les négatifs c'est l'inverse : être plus loin à gauche de zéro, c'est être plus petit."
+        },
+        {
+          "id": "ex-comparer-decimaux",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Comment se comparent −3,2 et −3,5 ?",
+          "competencies": [
+            "c4.num.relatifs.comparer-ranger"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-2-3-5",
+              "text": "−3,2 > −3,5",
+              "correct": true
+            },
+            {
+              "id": "choix-3-2-3-5-2",
+              "text": "−3,2 < −3,5",
+              "correct": false
+            },
+            {
+              "id": "choix-ils-sont-egaux-a-3-pres",
+              "text": "Ils sont égaux à 3 près",
+              "correct": false
+            }
+          ],
+          "explanation": "−3,5 est plus loin de zéro, à gauche : c'est le plus petit. Donc −3,2 > −3,5. Comparer les distances à zéro (3,2 < 3,5) donne le mauvais sens pour des négatifs."
+        },
+        {
+          "id": "ex-ranger",
+          "type": "exercise",
+          "exerciseType": "fill-blank",
+          "prompt": "Range ces nombres dans l'ordre croissant : 2,5 ; −3 ; −0,5 ; 1.",
+          "competencies": [
+            "c4.num.relatifs.comparer-ranger"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "template": "{} < {} < {} < {}",
+          "bank": [
+            "1",
+            "2,5",
+            "−0,5",
+            "−3"
+          ],
+          "expected": [
+            "−3",
+            "−0,5",
+            "1",
+            "2,5"
+          ],
+          "explanation": "Ordre croissant : du plus petit au plus grand, donc de gauche à droite sur la droite graduée. −3 < −0,5 < 1 < 2,5."
+        }
+      ]
+    },
+    {
+      "id": "repere",
+      "title": "Se repérer dans le plan",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "intro-repere",
+          "type": "prose",
+          "text": "Deux droites graduées perpendiculaires, de même origine O, forment un **repère orthogonal**. L'axe horizontal est l'**axe des abscisses**, l'axe vertical est l'**axe des ordonnées**."
+        },
+        {
+          "id": "def-coordonnees",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Coordonnées d'un point",
+          "text": "Un point est repéré par deux nombres : son **abscisse** (lue sur l'axe horizontal) puis son **ordonnée** (lue sur l'axe vertical). On écrit A(3 ; 2) : l'abscisse vient toujours en premier."
+        },
+        {
+          "id": "fig-repere-abc",
+          "type": "figure",
+          "alt": "Repère orthogonal d'origine O, graduations de −3 à 3 sur chaque axe. A est à 3 unités à droite et 2 unités en haut. B est à 2 unités à gauche et 1 unité en haut. C est à 1 unité à droite et 3 unités en bas.",
+          "caption": "Les points A, B et C dans un repère.",
+          "spec": {
+            "points": [
+              {
+                "name": "y",
+                "x": 0,
+                "y": 4,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "y'",
+                "x": 0,
+                "y": -4,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "A",
+                "x": 3,
+                "y": 2,
+                "label": {
+                  "placement": "above-right"
+                }
+              },
+              {
+                "name": "B",
+                "x": -2,
+                "y": 1,
+                "label": {
+                  "placement": "above-left"
+                }
+              },
+              {
+                "name": "C",
+                "x": 1,
+                "y": -3,
+                "label": {
+                  "placement": "right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "y'",
+                "to": "y"
+              }
+            ],
+            "labels": [
+              {
+                "text": "-3",
+                "x": -0.4,
+                "y": -3
+              },
+              {
+                "text": "-2",
+                "x": -0.4,
+                "y": -2
+              },
+              {
+                "text": "1",
+                "x": -0.4,
+                "y": 1
+              },
+              {
+                "text": "2",
+                "x": -0.4,
+                "y": 2
+              },
+              {
+                "text": "3",
+                "x": -0.4,
+                "y": 3
+              },
+              {
+                "text": "x",
+                "x": 4.4,
+                "y": -0.4
+              }
+            ],
+            "numberLines": [
+              {
+                "from": -4,
+                "to": 4,
+                "step": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-coord-a",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelles sont les coordonnées du point A ?",
+          "competencies": [
+            "c4.geo.reperage.lire-placer-coordonnees"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-3-2",
+              "text": "(3 ; 2)",
+              "correct": true
+            },
+            {
+              "id": "choix-2-3",
+              "text": "(2 ; 3)",
+              "correct": false
+            },
+            {
+              "id": "choix-3-2-2",
+              "text": "(−3 ; 2)",
+              "correct": false
+            }
+          ],
+          "explanation": "On lit d'abord l'abscisse sur l'axe horizontal : 3, puis l'ordonnée sur l'axe vertical : 2. A(3 ; 2). (2 ; 3) inverse l'ordre des coordonnées. A est à droite de l'axe vertical, son abscisse est positive."
+        },
+        {
+          "id": "ex-coord-b",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quelles sont les coordonnées du point B ?",
+          "competencies": [
+            "c4.geo.reperage.lire-placer-coordonnees"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-2-1",
+              "text": "(−2 ; 1)",
+              "correct": true
+            },
+            {
+              "id": "choix-1-2",
+              "text": "(1 ; −2)",
+              "correct": false
+            },
+            {
+              "id": "choix-2-1-2",
+              "text": "(2 ; 1)",
+              "correct": false
+            }
+          ],
+          "explanation": "B est à 2 unités à gauche de l'axe vertical, donc son abscisse est −2 ; il est 1 unité au-dessus de l'axe horizontal, donc son ordonnée est 1. (1 ; −2) inverse l'ordre ; (2 ; 1) oublie le signe."
+        },
+        {
+          "id": "ex-ordonnee-c",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quelle est l'ordonnée du point C ?",
+          "competencies": [
+            "c4.geo.reperage.lire-placer-coordonnees"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": -3,
+          "tolerance": 0,
+          "explanation": "L'ordonnée se lit sur l'axe vertical. C est 3 unités sous l'axe des abscisses : son ordonnée est −3. Son abscisse est 1."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 15,
+      "blocks": [
+        {
+          "id": "ex-opposes-definition",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Deux nombres opposés :",
+          "competencies": [
+            "c4.num.relatifs.definir-opposes"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ont-la-meme-distance-a-zero-et",
+              "text": "ont la même distance à zéro et des signes contraires",
+              "correct": true
+            },
+            {
+              "id": "choix-sont-toujours-un-positif-et-un",
+              "text": "sont toujours un positif et un négatif différents de 0",
+              "correct": false
+            },
+            {
+              "id": "choix-ont-une-somme-egale-a-1",
+              "text": "ont une somme égale à 1",
+              "correct": false
+            }
+          ],
+          "explanation": "C'est la définition : même distance à zéro, signes contraires (par exemple 6 et −6). L'opposé de 0 est 0 lui-même : la deuxième phrase oublie ce cas. La somme de deux opposés vaut 0, pas 1."
+        },
+        {
+          "id": "ex-dates",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur une frise, l'an 0 est au centre. Quel nombre représente l'année 300 avant J.-C. ?",
+          "competencies": [
+            "c4.num.relatifs.representer-grandeurs"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-300",
+              "text": "−300",
+              "correct": true
+            },
+            {
+              "id": "choix-300-2",
+              "text": "300",
+              "correct": false
+            },
+            {
+              "id": "choix-3",
+              "text": "−3",
+              "correct": false
+            }
+          ],
+          "explanation": "Les années avant J.-C. se placent avant l'origine : −300. 300 désignerait l'an 300 après J.-C. −3 confond années et siècles."
+        },
+        {
+          "id": "ex-position-axe",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le point D(−4 ; 0) est situé :",
+          "competencies": [
+            "c4.geo.reperage.lire-placer-coordonnees"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-sur-l-axe-des-abscisses",
+              "text": "sur l'axe des abscisses",
+              "correct": true
+            },
+            {
+              "id": "choix-sur-l-axe-des-ordonnees",
+              "text": "sur l'axe des ordonnées",
+              "correct": false
+            },
+            {
+              "id": "choix-en-bas-a-gauche-du-repere",
+              "text": "en bas à gauche du repère",
+              "correct": false
+            }
+          ],
+          "explanation": "Son ordonnée est 0 : D est à la hauteur de l'origine, donc sur l'axe horizontal (axe des abscisses), 4 unités à gauche de O. Il serait sur l'axe des ordonnées si c'était son abscisse qui valait 0."
+        },
+        {
+          "id": "ex-quart-plan",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans quelle partie du repère se trouve le point E(−1 ; −2) ?",
+          "competencies": [
+            "c4.geo.reperage.lire-placer-coordonnees"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-en-bas-a-gauche",
+              "text": "en bas à gauche",
+              "correct": true
+            },
+            {
+              "id": "choix-en-haut-a-gauche",
+              "text": "en haut à gauche",
+              "correct": false
+            },
+            {
+              "id": "choix-en-bas-a-droite",
+              "text": "en bas à droite",
+              "correct": false
+            }
+          ],
+          "explanation": "Abscisse négative : à gauche de l'axe vertical. Ordonnée négative : sous l'axe horizontal. E est donc en bas à gauche."
+        },
+        {
+          "id": "ex-entier-inferieur",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Quel est le plus grand nombre entier strictement inférieur à −2,4 ?",
+          "competencies": [
+            "c4.num.relatifs.comparer-ranger"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 2,
+          "answer": -3,
+          "tolerance": 0,
+          "explanation": "Sur la droite graduée, −2,4 est entre −3 et −2. Les entiers plus petits que −2,4 sont −3, −4, −5… Le plus grand d'entre eux est −3. −2 est plus grand que −2,4, il ne convient pas."
+        },
+        {
+          "id": "ex-deplacement-gauche",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur une droite graduée, on place A d'abscisse −1 puis on avance de 3 unités vers la gauche. Quelle est l'abscisse du point d'arrivée ?",
+          "competencies": [
+            "c4.num.relatifs.reperer-droite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-4",
+              "text": "−4",
+              "correct": true
+            },
+            {
+              "id": "choix-2",
+              "text": "2",
+              "correct": false
+            },
+            {
+              "id": "choix-2-2",
+              "text": "−2",
+              "correct": false
+            }
+          ],
+          "explanation": "Aller vers la gauche fait diminuer l'abscisse : de −1 on passe à −2, −3, puis −4. 2 correspond à un déplacement vers la droite. −2 ne compte qu'une unité."
+        }
+      ]
+    }
+  ]
+}

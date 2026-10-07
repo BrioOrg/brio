@@ -1,0 +1,805 @@
+{
+  "schemaVersion": 1,
+  "id": "proportionnalite-pourcentages",
+  "title": "Proportionnalité et pourcentages",
+  "subject": "mathematiques",
+  "level": "5e",
+  "difficulty": "standard",
+  "estimatedDurationMinutes": 68,
+  "status": "published",
+  "sections": [
+    {
+      "id": "automatismes",
+      "title": "Automatismes",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 4,
+      "blocks": [
+        {
+          "id": "objectifs",
+          "type": "objectives",
+          "title": "Dans ce chapitre, tu vas apprendre à",
+          "items": [
+            "reconnaitre une situation de proportionnalité, dans un texte, un tableau ou un graphique ;",
+            "utiliser un coefficient de proportionnalité : prix unitaire, vitesse moyenne, échelle ;",
+            "calculer et appliquer un pourcentage."
+          ]
+        },
+        {
+          "id": "auto-recette",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une recette pour 4 personnes demande 300 g de farine. Combien en faut-il pour 2 personnes ?",
+          "competencies": [],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 150,
+          "tolerance": 0,
+          "unit": "g",
+          "explanation": "2 personnes, c'est deux fois moins que 4 : 300 ÷ 2 = 150 g."
+        }
+      ]
+    },
+    {
+      "id": "reconnaitre",
+      "title": "Reconnaitre la proportionnalité",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "def-proportionnalite",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Grandeurs proportionnelles",
+          "text": "Deux grandeurs sont **proportionnelles** quand on passe de l'une à l'autre en multipliant toujours par le même nombre, appelé **coefficient de proportionnalité**."
+        },
+        {
+          "id": "table-prix-tomates",
+          "type": "table",
+          "headers": [
+            "Masse de tomates (kg)",
+            "1",
+            "2",
+            "5",
+            "4,3"
+          ],
+          "rows": [
+            [
+              "Prix (€)",
+              "2,40",
+              "4,80",
+              "12",
+              "?"
+            ]
+          ],
+          "caption": "Le prix est proportionnel à la masse : on multiplie toujours par 2,40."
+        },
+        {
+          "id": "warning-pas-proportionnel",
+          "type": "callout",
+          "variant": "warning",
+          "title": "Attention aux situations qui y ressemblent",
+          "text": "Un taxi qui facture 3 € de prise en charge plus 1,50 € par kilomètre : 1 km coûte 4,50 €, mais 2 km coûtent 6 €, pas 9 €. Ce n'est pas proportionnel."
+        },
+        {
+          "id": "ex-situation-proportionnelle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Laquelle de ces situations est une situation de proportionnalité ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.identifier-situation"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-le-prix-paye-et-la-masse-de-po",
+              "text": "Le prix payé et la masse de pommes achetées à 2 € le kilo",
+              "correct": true
+            },
+            {
+              "id": "choix-la-taille-d-un-enfant-et-son-a",
+              "text": "La taille d'un enfant et son âge",
+              "correct": false
+            },
+            {
+              "id": "choix-la-temperature-et-l-heure-de-l",
+              "text": "La température et l'heure de la journée",
+              "correct": false
+            }
+          ],
+          "explanation": "Le prix est la masse multipliée par 2 : c'est proportionnel. Un enfant de 10 ans ne mesure pas le double d'un enfant de 5 ans, et la température monte puis redescend dans la journée."
+        },
+        {
+          "id": "ex-taxi",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Un taxi coûte 3 € de prise en charge plus 1,50 € par kilomètre. Le prix est-il proportionnel à la distance ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.identifier-situation"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non",
+              "text": "Non",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-de-coefficient-1-50",
+              "text": "Oui, de coefficient 1,50",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-de-coefficient-4-50",
+              "text": "Oui, de coefficient 4,50",
+              "correct": false
+            }
+          ],
+          "explanation": "1 km coûte 4,50 €, et 2 km coûtent 3 + 3 = 6 €. Or 6 ≠ 2 × 4,50 : le prix n'est pas multiplié par 2 quand la distance double. La prise en charge fixe empêche la proportionnalité."
+        },
+        {
+          "id": "ex-tableau",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Lequel de ces tableaux est un tableau de proportionnalité (première ligne → deuxième ligne) ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.identifier-situation"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-2-6-5-15-7-21",
+              "text": "2 → 6 ; 5 → 15 ; 7 → 21",
+              "correct": true
+            },
+            {
+              "id": "choix-2-6-5-9-7-11",
+              "text": "2 → 6 ; 5 → 9 ; 7 → 11",
+              "correct": false
+            },
+            {
+              "id": "choix-2-4-5-25-7-49",
+              "text": "2 → 4 ; 5 → 25 ; 7 → 49",
+              "correct": false
+            }
+          ],
+          "explanation": "Dans le premier, on multiplie toujours par 3. Dans le deuxième, on ajoute 4 : 2 × 3 = 6 mais 5 × 3 ≠ 9. Dans le troisième, on prend le carré : le coefficient change à chaque colonne."
+        }
+      ]
+    },
+    {
+      "id": "coefficient",
+      "title": "Utiliser un coefficient",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "table-coefficients",
+          "type": "table",
+          "headers": [
+            "Situation",
+            "Coefficient",
+            "Exemple"
+          ],
+          "rows": [
+            [
+              "Prix et quantité",
+              "prix unitaire",
+              "2,40 € le kg"
+            ],
+            [
+              "Distance et durée",
+              "vitesse moyenne",
+              "90 km par heure"
+            ],
+            [
+              "Longueur sur la carte et longueur réelle",
+              "échelle",
+              "1 cm représente 500 m"
+            ]
+          ],
+          "caption": "Trois coefficients de proportionnalité courants."
+        },
+        {
+          "id": "ex-tomates",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Les tomates coûtent 2,40 € le kilo. Combien coûtent 4,3 kg ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.utiliser-coefficient"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 10.32,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "On multiplie par le prix unitaire : 4,3 × 2,40 = 10,32 €."
+        },
+        {
+          "id": "ex-vitesse",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une voiture parcourt 180 km en 2 h, à vitesse constante. Quelle est sa vitesse moyenne en km/h ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.utiliser-coefficient"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 90,
+          "tolerance": 0,
+          "unit": "km/h",
+          "explanation": "La vitesse moyenne est la distance parcourue en 1 h : 180 ÷ 2 = 90 km/h."
+        },
+        {
+          "id": "ex-echelle",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Sur une carte à l'échelle 1/50 000, deux villages sont à 3 cm l'un de l'autre. Quelle est la distance réelle, en km ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.utiliser-coefficient"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "answer": 1.5,
+          "tolerance": 0,
+          "unit": "km",
+          "explanation": "1/50 000 : 1 cm sur la carte représente 50 000 cm en réalité. 3 cm représentent 150 000 cm = 1 500 m = 1,5 km."
+        },
+        {
+          "id": "ex-recette-six",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Une recette pour 4 personnes demande 300 g de farine. Combien en faut-il pour 6 personnes ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.utiliser-coefficient"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 450,
+          "tolerance": 0,
+          "unit": "g",
+          "explanation": "Retour à l'unité : pour 1 personne, 300 ÷ 4 = 75 g ; pour 6 personnes, 75 × 6 = 450 g. Autre méthode : 6 = 4 + 2, donc 300 + 150 = 450 g."
+        }
+      ]
+    },
+    {
+      "id": "pourcentages",
+      "title": "Les pourcentages",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 14,
+      "blocks": [
+        {
+          "id": "def-pourcentage",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Pourcentage",
+          "text": "Prendre t % d'une quantité, c'est la multiplier par $\\frac{t}{100}$. Un pourcentage exprime aussi une **proportion** : 6 filles sur 24 élèves, c'est $\\frac{6}{24}$ = $\\frac{25}{100}$ = 25 %."
+        },
+        {
+          "id": "table-pourcentages-faciles",
+          "type": "table",
+          "headers": [
+            "Prendre…",
+            "c'est…"
+          ],
+          "rows": [
+            [
+              "50 %",
+              "la moitié"
+            ],
+            [
+              "25 %",
+              "le quart"
+            ],
+            [
+              "10 %",
+              "diviser par 10"
+            ],
+            [
+              "1 %",
+              "diviser par 100"
+            ]
+          ],
+          "caption": "Des pourcentages à calculer de tête."
+        },
+        {
+          "id": "ex-dix-pourcent",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 10 % de 80.",
+          "competencies": [
+            "c4.ogd.proportionnalite.appliquer-pourcentages"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 8,
+          "tolerance": 0,
+          "explanation": "10 %, c'est diviser par 10 : 80 ÷ 10 = 8."
+        },
+        {
+          "id": "ex-vingt-cinq-pourcent",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 25 % de 60.",
+          "competencies": [
+            "c4.ogd.proportionnalite.appliquer-pourcentages"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "answer": 15,
+          "tolerance": 0,
+          "explanation": "25 %, c'est le quart : 60 ÷ 4 = 15."
+        },
+        {
+          "id": "ex-delegues",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Pour l'élection des délégués, Chloé a obtenu 12 voix sur 24. Quel pourcentage des voix a-t-elle obtenu ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.appliquer-pourcentages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 50,
+          "tolerance": 0,
+          "unit": "%",
+          "explanation": "12 sur 24, c'est la moitié : 50 %. Ou : 12 ÷ 24 = 0,5 = $\\frac{50}{100}$."
+        },
+        {
+          "id": "ex-solde",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un pull coûte 40 €. Il est soldé de 30 %. Quel est son nouveau prix ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.appliquer-pourcentages"
+          ],
+          "difficulty": "approfondissement",
+          "estimatedDurationMinutes": 3,
+          "answer": 28,
+          "tolerance": 0,
+          "unit": "€",
+          "explanation": "La réduction est 30 % de 40 € : 40 × 30 ÷ 100 = 12 €. Nouveau prix : 40 − 12 = 28 €. Attention : 12 € est la réduction, pas le prix."
+        }
+      ]
+    },
+    {
+      "id": "graphique",
+      "title": "Proportionnalité et graphique",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 13,
+      "blocks": [
+        {
+          "id": "def-graphique",
+          "type": "callout",
+          "variant": "definition",
+          "title": "Reconnaitre la proportionnalité sur un graphique",
+          "text": "Une situation de proportionnalité se représente par des points **alignés avec l'origine** du repère. Si les points ne sont pas alignés, ou si la droite qui les porte ne passe pas par l'origine, la situation n'est pas proportionnelle."
+        },
+        {
+          "id": "fig-graphique-1",
+          "type": "figure",
+          "alt": "Graphique 1 : repère avec les points A(1 ; 1,5), B(2 ; 3), C(3 ; 4,5) et D(4 ; 6). Ils sont alignés sur une droite qui passe par l'origine O.",
+          "caption": "Graphique 1.",
+          "spec": {
+            "points": [
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "y",
+                "x": 0,
+                "y": 10,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "A",
+                "x": 1,
+                "y": 1.5,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "B",
+                "x": 2,
+                "y": 3,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "C",
+                "x": 3,
+                "y": 4.5,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "D",
+                "x": 4,
+                "y": 6,
+                "label": {
+                  "placement": "right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "O",
+                "to": "y"
+              }
+            ],
+            "labels": [
+              {
+                "text": "1",
+                "x": -0.35,
+                "y": 1
+              },
+              {
+                "text": "2",
+                "x": -0.35,
+                "y": 2
+              },
+              {
+                "text": "3",
+                "x": -0.35,
+                "y": 3
+              },
+              {
+                "text": "4",
+                "x": -0.35,
+                "y": 4
+              },
+              {
+                "text": "5",
+                "x": -0.35,
+                "y": 5
+              },
+              {
+                "text": "6",
+                "x": -0.35,
+                "y": 6
+              },
+              {
+                "text": "7",
+                "x": -0.35,
+                "y": 7
+              },
+              {
+                "text": "8",
+                "x": -0.35,
+                "y": 8
+              },
+              {
+                "text": "9",
+                "x": -0.35,
+                "y": 9
+              },
+              {
+                "text": "x",
+                "x": 5.4,
+                "y": -0.5
+              }
+            ],
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 5,
+                "step": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "fig-graphique-2",
+          "type": "figure",
+          "alt": "Graphique 2 : repère avec les points E(1 ; 4,5), F(2 ; 6), G(3 ; 7,5) et H(4 ; 9). Ils sont alignés, mais sur une droite qui coupe l'axe vertical en 3, pas à l'origine.",
+          "caption": "Graphique 2 : le prix du taxi.",
+          "spec": {
+            "points": [
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "y",
+                "x": 0,
+                "y": 10,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "E",
+                "x": 1,
+                "y": 4.5,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "F",
+                "x": 2,
+                "y": 6,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "G",
+                "x": 3,
+                "y": 7.5,
+                "label": {
+                  "placement": "right"
+                }
+              },
+              {
+                "name": "H",
+                "x": 4,
+                "y": 9,
+                "label": {
+                  "placement": "right"
+                }
+              }
+            ],
+            "segments": [
+              {
+                "from": "O",
+                "to": "y"
+              }
+            ],
+            "labels": [
+              {
+                "text": "1",
+                "x": -0.35,
+                "y": 1
+              },
+              {
+                "text": "2",
+                "x": -0.35,
+                "y": 2
+              },
+              {
+                "text": "3",
+                "x": -0.35,
+                "y": 3
+              },
+              {
+                "text": "4",
+                "x": -0.35,
+                "y": 4
+              },
+              {
+                "text": "5",
+                "x": -0.35,
+                "y": 5
+              },
+              {
+                "text": "6",
+                "x": -0.35,
+                "y": 6
+              },
+              {
+                "text": "7",
+                "x": -0.35,
+                "y": 7
+              },
+              {
+                "text": "8",
+                "x": -0.35,
+                "y": 8
+              },
+              {
+                "text": "9",
+                "x": -0.35,
+                "y": 9
+              },
+              {
+                "text": "x",
+                "x": 5.4,
+                "y": -0.5
+              }
+            ],
+            "numberLines": [
+              {
+                "from": 0,
+                "to": 5,
+                "step": 1
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-graphique-1",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le graphique 1 représente-t-il une situation de proportionnalité ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.representer-graphique"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-oui-les-points-sont-alignes-av",
+              "text": "Oui : les points sont alignés avec l'origine",
+              "correct": true
+            },
+            {
+              "id": "choix-non-les-points-ne-sont-pas-sur",
+              "text": "Non : les points ne sont pas sur l'axe",
+              "correct": false
+            },
+            {
+              "id": "choix-on-ne-peut-pas-savoir-sans-tab",
+              "text": "On ne peut pas savoir sans tableau",
+              "correct": false
+            }
+          ],
+          "explanation": "A, B, C et D sont sur une même droite qui passe par O : la situation est proportionnelle. On peut le vérifier : chaque ordonnée est 1,5 fois l'abscisse."
+        },
+        {
+          "id": "ex-graphique-2",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le graphique 2 représente-t-il une situation de proportionnalité ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.representer-graphique"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-non-les-points-sont-alignes-ma",
+              "text": "Non : les points sont alignés, mais la droite ne passe pas par l'origine",
+              "correct": true
+            },
+            {
+              "id": "choix-oui-les-points-sont-alignes",
+              "text": "Oui : les points sont alignés",
+              "correct": false
+            },
+            {
+              "id": "choix-oui-l-ordonnee-augmente-quand",
+              "text": "Oui : l'ordonnée augmente quand l'abscisse augmente",
+              "correct": false
+            }
+          ],
+          "explanation": "Aligné ne suffit pas : la droite doit passer par l'origine. Ici, en prolongeant, elle coupe l'axe vertical en 3 (la prise en charge du taxi). Qu'une grandeur augmente avec l'autre ne prouve pas la proportionnalité."
+        },
+        {
+          "id": "ex-coefficient-graphique",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Dans le graphique 1, quel est le coefficient de proportionnalité (ordonnée ÷ abscisse) ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.representer-graphique",
+            "c4.ogd.proportionnalite.utiliser-coefficient"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-1-5",
+              "text": "1,5",
+              "correct": true
+            },
+            {
+              "id": "choix-1",
+              "text": "1",
+              "correct": false
+            },
+            {
+              "id": "choix-0-5",
+              "text": "0,5",
+              "correct": false
+            }
+          ],
+          "explanation": "B(2 ; 3) : 3 ÷ 2 = 1,5. On vérifie avec D(4 ; 6) : 6 ÷ 4 = 1,5. 0,5 est l'écart entre ordonnée et abscisse pour A, pas un coefficient multiplicatif."
+        }
+      ]
+    },
+    {
+      "id": "exercices",
+      "title": "Exercices",
+      "kind": "exercises",
+      "estimatedDurationMinutes": 10,
+      "blocks": [
+        {
+          "id": "ex-recette-proportionnelle",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une recette indique 3 œufs pour 6 crêpes. Le nombre d'œufs est-il proportionnel au nombre de crêpes, si l'on suit la recette ?",
+          "competencies": [
+            "c4.ogd.proportionnalite.identifier-situation"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-oui-avec-un-demi-uf-par-crepe",
+              "text": "Oui, avec un demi-œuf par crêpe",
+              "correct": true
+            },
+            {
+              "id": "choix-non-car-on-ne-peut-pas-couper",
+              "text": "Non, car on ne peut pas couper un œuf",
+              "correct": false
+            },
+            {
+              "id": "choix-non-car-3-et-6-sont-differents",
+              "text": "Non, car 3 et 6 sont différents",
+              "correct": false
+            }
+          ],
+          "explanation": "Pour 12 crêpes, il faut 6 œufs ; pour 18, 9 œufs : on multiplie toujours par 0,5. Que l'on ne coupe pas un œuf en pratique ne change pas le modèle mathématique."
+        },
+        {
+          "id": "ex-un-pourcent",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Calcule 1 % de 350.",
+          "competencies": [
+            "c4.ogd.proportionnalite.appliquer-pourcentages"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "answer": 3.5,
+          "tolerance": 0,
+          "explanation": "1 %, c'est diviser par 100 : 350 ÷ 100 = 3,5."
+        },
+        {
+          "id": "ex-points-alignes",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Une situation de proportionnalité est représentée dans un repère par :",
+          "competencies": [
+            "c4.ogd.proportionnalite.representer-graphique"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-des-points-alignes-avec-l-orig",
+              "text": "des points alignés avec l'origine",
+              "correct": true
+            },
+            {
+              "id": "choix-des-points-alignes-n-importe-o",
+              "text": "des points alignés, n'importe où",
+              "correct": false
+            },
+            {
+              "id": "choix-des-points-sur-une-courbe-qui",
+              "text": "des points sur une courbe qui monte",
+              "correct": false
+            }
+          ],
+          "explanation": "Les points d'une situation de proportionnalité sont sur une droite passant par l'origine. Des points alignés sur une droite qui ne passe pas par l'origine (graphique 2) ne représentent pas une situation de proportionnalité."
+        }
+      ]
+    }
+  ]
+}
