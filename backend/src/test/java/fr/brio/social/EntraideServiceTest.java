@@ -14,6 +14,7 @@ import fr.brio.identite.api.InscriptionsQuery;
 import fr.brio.social.api.ReponseUtileValidee;
 import fr.brio.social.domain.Fil;
 import fr.brio.social.domain.Message;
+import fr.brio.social.domain.Signalement;
 import fr.brio.social.infrastructure.FilRepository;
 import fr.brio.social.infrastructure.MessageRepository;
 import fr.brio.social.infrastructure.SanctionRepository;
@@ -200,5 +201,57 @@ class EntraideServiceTest {
 
         assertThatThrownBy(() -> service.repondre(filId, membre, "la correction est sur http://triche.fr"))
                 .isInstanceOf(MessageInvalideException.class);
+    }
+
+    // ---- file de modération ------------------------------------------------
+
+    @Test
+    void the_moderation_queue_carries_the_class_a_sanction_applies_to() {
+        UUID prof = UUID.randomUUID();
+        UUID classeId = UUID.randomUUID();
+        UUID autreClasse = UUID.randomUUID();
+        when(enseignants.classesEnseignees(prof)).thenReturn(Set.of(classeId));
+
+        Signalement chezMoi = signalementSur(messageDans(filDans(classeId)));
+        Signalement ailleurs = signalementSur(messageDans(filDans(autreClasse)));
+        when(signalements.findByStatutOrderByCreatedAtAsc(Signalement.STATUT_OUVERT))
+                .thenReturn(List.of(chezMoi, ailleurs));
+
+        List<SignalementVue> file = service.fileSignalements(prof);
+
+        assertThat(file).singleElement().satisfies(v -> {
+            assertThat(v.id()).isEqualTo(chezMoi.getId());
+            assertThat(v.classeId()).isEqualTo(classeId);
+        });
+    }
+
+    private Fil filDans(UUID classeId) {
+        Fil fil = mock(Fil.class);
+        UUID id = UUID.randomUUID();
+        when(fil.getId()).thenReturn(id);
+        when(fil.getClasseId()).thenReturn(classeId);
+        when(fils.findById(id)).thenReturn(java.util.Optional.of(fil));
+        return fil;
+    }
+
+    private Message messageDans(Fil fil) {
+        Message message = mock(Message.class);
+        UUID id = UUID.randomUUID();
+        UUID filId = fil.getId();
+        when(message.getId()).thenReturn(id);
+        when(message.getFilId()).thenReturn(filId);
+        when(message.getAuteurId()).thenReturn(UUID.randomUUID());
+        when(message.getCorps()).thenReturn("un message");
+        when(messages.findById(id)).thenReturn(java.util.Optional.of(message));
+        return message;
+    }
+
+    private Signalement signalementSur(Message message) {
+        Signalement s = mock(Signalement.class);
+        UUID id = UUID.randomUUID();
+        UUID messageId = message.getId();
+        when(s.getId()).thenReturn(id);
+        when(s.getMessageId()).thenReturn(messageId);
+        return s;
     }
 }

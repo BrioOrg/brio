@@ -3314,6 +3314,10 @@
             "type" : "string",
             "format" : "uuid"
           },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
           "filTitre" : {
             "type" : "string"
           },
