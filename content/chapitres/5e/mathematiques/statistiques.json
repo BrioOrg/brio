@@ -240,171 +240,217 @@
           "spec": {
             "points": [
               {
-                "name": " ",
+                "name": "b1a",
                 "x": 1,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "  ",
+                "name": "b1b",
                 "x": 2.5,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "   ",
+                "name": "b1c",
                 "x": 2.5,
-                "y": 8
+                "y": 8,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "    ",
+                "name": "b1d",
                 "x": 1,
-                "y": 8
+                "y": 8,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "     ",
+                "name": "b2a",
                 "x": 4,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "      ",
+                "name": "b2b",
                 "x": 5.5,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "       ",
+                "name": "b2c",
                 "x": 5.5,
-                "y": 5
+                "y": 5,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "        ",
+                "name": "b2d",
                 "x": 4,
-                "y": 5
+                "y": 5,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "         ",
+                "name": "b3a",
                 "x": 7,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "          ",
+                "name": "b3b",
                 "x": 8.5,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "           ",
+                "name": "b3c",
                 "x": 8.5,
-                "y": 7
+                "y": 7,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "            ",
+                "name": "b3d",
                 "x": 7,
-                "y": 7
+                "y": 7,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "             ",
+                "name": "b4a",
                 "x": 10,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "              ",
+                "name": "b4b",
                 "x": 11.5,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "               ",
+                "name": "b4c",
                 "x": 11.5,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                ",
+                "name": "b4d",
                 "x": 10,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                 ",
+                "name": "b5a",
                 "x": 13,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                  ",
+                "name": "b5b",
                 "x": 14.5,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                   ",
+                "name": "b5c",
                 "x": 14.5,
-                "y": 2
+                "y": 2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                    ",
+                "name": "b5d",
                 "x": 13,
-                "y": 2
+                "y": 2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                     ",
+                "name": "o",
                 "x": 0,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                      ",
+                "name": "xfin",
                 "x": 15.5,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "                       ",
+                "name": "yfin",
                 "x": 0,
-                "y": 9
+                "y": 9,
+                "dot": false,
+                "showName": false
               }
             ],
             "polygons": [
               {
                 "vertices": [
-                  " ",
-                  "  ",
-                  "   ",
-                  "    "
+                  "b1a",
+                  "b1b",
+                  "b1c",
+                  "b1d"
                 ]
               },
               {
                 "vertices": [
-                  "     ",
-                  "      ",
-                  "       ",
-                  "        "
+                  "b2a",
+                  "b2b",
+                  "b2c",
+                  "b2d"
                 ]
               },
               {
                 "vertices": [
-                  "         ",
-                  "          ",
-                  "           ",
-                  "            "
+                  "b3a",
+                  "b3b",
+                  "b3c",
+                  "b3d"
                 ]
               },
               {
                 "vertices": [
-                  "             ",
-                  "              ",
-                  "               ",
-                  "                "
+                  "b4a",
+                  "b4b",
+                  "b4c",
+                  "b4d"
                 ]
               },
               {
                 "vertices": [
-                  "                 ",
-                  "                  ",
-                  "                   ",
-                  "                    "
+                  "b5a",
+                  "b5b",
+                  "b5c",
+                  "b5d"
                 ]
               }
             ],
             "segments": [
               {
-                "from": "                     ",
-                "to": "                      "
+                "from": "o",
+                "to": "xfin"
               },
               {
-                "from": "                     ",
-                "to": "                       "
+                "from": "o",
+                "to": "yfin"
               }
             ],
             "labels": [

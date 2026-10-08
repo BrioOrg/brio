@@ -182,151 +182,77 @@
           "alt": "Graphique de la température en fonction de l'heure. Valeurs relevées : 0 h, 6 °C ; 4 h, 4 °C ; 8 h, 8 °C ; 12 h, 16 °C ; 16 h, 18 °C ; 20 h, 12 °C ; 24 h, 8 °C. Les points sont reliés par des segments.",
           "caption": "La température au cours d'une journée.",
           "spec": {
-            "points": [
-              {
-                "name": "         ",
-                "x": 0,
-                "y": 0
-              },
-              {
-                "name": "        ",
-                "x": 0,
-                "y": 20
-              },
-              {
-                "name": " ",
-                "x": 0,
-                "y": 6
-              },
-              {
-                "name": "  ",
-                "x": 4,
-                "y": 4
-              },
-              {
-                "name": "   ",
-                "x": 8,
-                "y": 8
-              },
-              {
-                "name": "    ",
-                "x": 12,
-                "y": 16
-              },
-              {
-                "name": "     ",
-                "x": 16,
-                "y": 18
-              },
-              {
-                "name": "      ",
-                "x": 20,
-                "y": 12
-              },
-              {
-                "name": "       ",
-                "x": 24,
-                "y": 8
-              }
-            ],
-            "segments": [
-              {
-                "from": "         ",
-                "to": "        "
-              },
-              {
-                "from": " ",
-                "to": "  "
-              },
-              {
-                "from": "  ",
-                "to": "   "
-              },
-              {
-                "from": "   ",
-                "to": "    "
-              },
-              {
-                "from": "    ",
-                "to": "     "
-              },
-              {
-                "from": "     ",
-                "to": "      "
-              },
-              {
-                "from": "      ",
-                "to": "       "
-              }
-            ],
-            "labels": [
-              {
-                "text": "2",
-                "x": -1,
-                "y": 2
-              },
-              {
-                "text": "4",
-                "x": -1,
-                "y": 4
-              },
-              {
-                "text": "6",
-                "x": -1,
-                "y": 6
-              },
-              {
-                "text": "8",
-                "x": -1,
-                "y": 8
-              },
-              {
-                "text": "10",
-                "x": -1,
-                "y": 10
-              },
-              {
-                "text": "12",
-                "x": -1,
-                "y": 12
-              },
-              {
-                "text": "14",
-                "x": -1,
-                "y": 14
-              },
-              {
-                "text": "16",
-                "x": -1,
-                "y": 16
-              },
-              {
-                "text": "18",
-                "x": -1,
-                "y": 18
-              },
-              {
-                "text": "20",
-                "x": -1,
-                "y": 20
-              },
-              {
-                "text": "heure",
-                "x": 26.5,
-                "y": 0.9
-              },
-              {
-                "text": "°C",
-                "x": 1.2,
-                "y": 21
-              }
-            ],
-            "numberLines": [
-              {
+            "axes": {
+              "x": {
                 "from": 0,
                 "to": 24,
                 "step": 2,
-                "labelEvery": 4
+                "labelEvery": 4,
+                "title": "Heure (h)"
+              },
+              "y": {
+                "from": 0,
+                "to": 20,
+                "step": 2,
+                "title": "Température (°C)"
+              },
+              "grid": true
+            },
+            "points": [
+              {
+                "name": "t0",
+                "x": 0,
+                "y": 6,
+                "showName": false
+              },
+              {
+                "name": "t4",
+                "x": 4,
+                "y": 4,
+                "showName": false
+              },
+              {
+                "name": "t8",
+                "x": 8,
+                "y": 8,
+                "showName": false
+              },
+              {
+                "name": "t12",
+                "x": 12,
+                "y": 16,
+                "showName": false
+              },
+              {
+                "name": "t16",
+                "x": 16,
+                "y": 18,
+                "showName": false
+              },
+              {
+                "name": "t20",
+                "x": 20,
+                "y": 12,
+                "showName": false
+              },
+              {
+                "name": "t24",
+                "x": 24,
+                "y": 8,
+                "showName": false
+              }
+            ],
+            "polylines": [
+              {
+                "points": [
+                  "t0",
+                  "t4",
+                  "t8",
+                  "t12",
+                  "t16",
+                  "t20",
+                  "t24"
+                ]
               }
             ]
           }

@@ -104,14 +104,18 @@
                 }
               },
               {
-                "name": " ",
+                "name": "dg",
                 "x": -1,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "  ",
+                "name": "dd",
                 "x": 7,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               }
             ],
             "polygons": [
@@ -125,14 +129,14 @@
             ],
             "segments": [
               {
-                "from": " ",
-                "to": "  "
+                "from": "dg",
+                "to": "dd"
               }
             ],
             "angleMarks": [
               {
                 "vertex": "A",
-                "from": " ",
+                "from": "dg",
                 "to": "B"
               },
               {
@@ -143,7 +147,7 @@
               {
                 "vertex": "A",
                 "from": "C",
-                "to": "  "
+                "to": "dd"
               },
               {
                 "vertex": "C",

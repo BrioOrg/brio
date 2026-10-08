@@ -100,12 +100,12 @@ par les fractions), mais si l'ordre devient gênant en classe, c'est ce fichier 
   par case, vue de dessus) et des vues décrites en texte ; les dessins en perspective cavalière
   restent à faire quand une représentation 3D existera. Les patrons ne figurent pas dans les attendus
   de 6e du programme 2025.
-- **Droites** : le renderer étiquette chaque point par son nom et ne trace que des segments. Pour
-  un axe nommé « (d) » (`symetrie-axiale`), l'extrémité basse porte un nom blanc (`" "`), ce qui
-  laisse un point visible sans étiquette.
+- **Droites** : le renderer ne trace que des segments. Un axe nommé « (d) » (`symetrie-axiale`)
+  est un segment entre deux points sans point noir (`dot: false`, #214), dont l'un porte le nom.
 - **Demi-cercles** : seuls les cercles complets se dessinent ; les figures composées de
   `perimetres` sont décrites en texte.
-- **Graphiques** : aucun bloc ne trace de repère ni de diagramme ; `donnees-tableaux` ne couvre pas
-  la représentation de mesures dans un repère (partie de `c3.ogd.donnees.planifier-recueillir`).
+- **Graphiques** : aucun bloc ne trace de diagramme (#216). Le repère existe depuis #214, mais
+  `donnees-tableaux` ne couvre pas encore la représentation de mesures dans un repère (partie de
+  `c3.ogd.donnees.planifier-recueillir`).
 - Les exercices `paper` (auto-évalués) ne sont pas comptés comme réussis : chaque chapitre en a au
   plus 2, pour rester au-dessus du seuil de complétion de 80 %.

@@ -466,7 +466,9 @@
         "angleMarks":  { "type": "array", "items": { "$ref": "#/$defs/figureAngleMark" } },
         "lengthMarks": { "type": "array", "items": { "$ref": "#/$defs/figureLengthMark" } },
         "labels":      { "type": "array", "items": { "$ref": "#/$defs/figureLabel" } },
-        "numberLines": { "type": "array", "items": { "$ref": "#/$defs/figureNumberLine" } }
+        "numberLines": { "type": "array", "items": { "$ref": "#/$defs/figureNumberLine" } },
+        "polylines":   { "type": "array", "items": { "$ref": "#/$defs/figurePolyline" } },
+        "axes":        { "$ref": "#/$defs/figureAxes" }
       }
     },
 
@@ -490,6 +492,14 @@
         "name": { "type": "string", "minLength": 1 },
         "x": { "type": "number" },
         "y": { "type": "number" },
+        "dot": {
+          "description": "false hides the dot: for a point that only builds something (an end of a curve, a corner of a bar). Defaults to true.",
+          "type": "boolean"
+        },
+        "showName": {
+          "description": "false hides the point's name. The name still identifies the point inside the spec. Defaults to true.",
+          "type": "boolean"
+        },
         "label": {
           "type": "object",
           "additionalProperties": false,
@@ -580,6 +590,39 @@
       }
     },
 
+    "figurePolyline": {
+      "description": "A broken line through named points, in order, without declaring each segment.",
+      "type": "object",
+      "required": ["points"],
+      "additionalProperties": false,
+      "properties": {
+        "points": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "figureAxes": {
+      "description": "An orthogonal coordinate system: two graduated axes crossing at the origin, with arrows. Each axis has its own scale; the axes define the visible area (no coordinateSpace alongside). See ADR 0013, amendment #214.",
+      "type": "object",
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "properties": {
+        "x":    { "$ref": "#/$defs/figureAxis" },
+        "y":    { "$ref": "#/$defs/figureAxis" },
+        "grid": { "description": "Draws a grid line at every step of each axis.", "type": "boolean" }
+      }
+    },
+    "figureAxis": {
+      "description": "One graduated axis. Ticks fall on the multiples of step between from and to; 0 must lie in [from, to]. labelEvery (a multiple of step, defaults to step) says which ticks carry a number.",
+      "type": "object",
+      "required": ["from", "to", "step"],
+      "additionalProperties": false,
+      "properties": {
+        "from":       { "type": "number" },
+        "to":         { "type": "number" },
+        "step":       { "type": "number", "exclusiveMinimum": 0 },
+        "labelEvery": { "type": "number", "exclusiveMinimum": 0 },
+        "title":      { "description": "What the axis measures, e.g. \"Heure (h)\".", "type": "string", "minLength": 1 }
+      }
+    },
     "figureNumberLine": {
       "description": "A graduated horizontal axis. Tick positions are derived from from/to/step; labelEvery controls which ticks get a label (defaults to step). marks adds emphasis dots at arbitrary values.",
       "type": "object",

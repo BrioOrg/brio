@@ -7,13 +7,19 @@
  *
  * 2. Figure spec correctness — structural and geometric:
  *    - All segment/polygon/angleMark/lengthMark references name a defined point.
- *    - No duplicate point names within a figure.
+ *    - No duplicate point names within a figure, and no blank one: hide a construction point
+ *      with dot: false / showName: false instead (#214).
  *    - Every polygon has ≥ 3 non-collinear vertices.
  *    - Every angleMark with right:true measures 90° ± 0.5° at the given coordinates.
  *    - Every lengthMark references a segment that exists.
  *    - Segments sharing the same tick count have equal Euclidean length ± 1e-6 relative.
  *    - Every circle's center and through point (if given) are defined.
  *    - numberLines: from < to, step > 0, labelEvery > 0 and a multiple of step.
+ *    - polylines: every point is defined.
+ *    - axes (repère, ADR 0013 amendment #214): on each axis from < to, from ≤ 0 ≤ to,
+ *      step > 0, labelEvery a multiple of step; no coordinateSpace or numberLines alongside.
+ *      Each axis has its own scale, so angleMarks, lengthMarks and circles are only allowed
+ *      when both spans are equal: otherwise the drawing would not show what CI measured.
  *
  * 3. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
@@ -140,6 +146,13 @@ function checkFigureBlock(block, file, blockPath) {
   const seenNames = new Set()
   for (let i = 0; i < points.length; i++) {
     const p = points[i]
+    if (p.name.trim() === '') {
+      fail(
+        file,
+        `${blockPath}.spec.points[${i}]`,
+        'blank point name: give it a real name and hide it with "dot": false, "showName": false',
+      )
+    }
     if (seenNames.has(p.name)) {
       fail(file, `${blockPath}.spec.points[${i}]`, `duplicate point name "${p.name}"`)
     }
@@ -254,6 +267,14 @@ function checkFigureBlock(block, file, blockPath) {
     }
   }
 
+  // Polylines
+  for (let i = 0; i < (spec.polylines ?? []).length; i++) {
+    const p = `${blockPath}.spec.polylines[${i}]`
+    for (const name of spec.polylines[i].points) requirePt(name, p + '.points')
+  }
+
+  if (spec.axes) checkAxes(spec, file, `${blockPath}.spec.axes`)
+
   // Number lines
   for (let i = 0; i < (spec.numberLines ?? []).length; i++) {
     const nl = spec.numberLines[i]
@@ -268,6 +289,43 @@ function checkFigureBlock(block, file, blockPath) {
         if (Math.abs(ratio - Math.round(ratio)) > 1e-9) {
           fail(file, p, `numberLine: labelEvery (${nl.labelEvery}) must be a positive multiple of step (${nl.step})`)
         }
+      }
+    }
+  }
+}
+
+function checkAxes(spec, file, path) {
+  for (const name of ['x', 'y']) {
+    const axis = spec.axes[name]
+    const p = `${path}.${name}`
+    if (axis.from >= axis.to) fail(file, p, `axis: from (${axis.from}) must be less than to (${axis.to})`)
+    if (axis.from > 0 || axis.to < 0) {
+      fail(file, p, `axis: 0 must lie between from (${axis.from}) and to (${axis.to}) — the axes cross at the origin`)
+    }
+    if (axis.step <= 0) fail(file, p, `axis: step must be > 0, got ${axis.step}`)
+    if (axis.labelEvery !== undefined && axis.step > 0) {
+      const ratio = axis.labelEvery / axis.step
+      if (axis.labelEvery <= 0 || Math.abs(ratio - Math.round(ratio)) > 1e-9) {
+        fail(file, p, `axis: labelEvery (${axis.labelEvery}) must be a positive multiple of step (${axis.step})`)
+      }
+    }
+  }
+  if (spec.coordinateSpace) {
+    fail(file, path, 'axes define the visible area: remove coordinateSpace')
+  }
+  if ((spec.numberLines ?? []).length > 0) {
+    fail(file, path, 'a repère already draws its horizontal axis: remove numberLines')
+  }
+  const xSpan = spec.axes.x.to - spec.axes.x.from
+  const ySpan = spec.axes.y.to - spec.axes.y.from
+  if (Math.abs(xSpan - ySpan) > 1e-9) {
+    for (const key of ['angleMarks', 'lengthMarks', 'circles']) {
+      if ((spec[key] ?? []).length > 0) {
+        fail(
+          file,
+          path,
+          `${key} need the same scale on both axes, but the spans differ (x: ${xSpan}, y: ${ySpan})`,
+        )
       }
     }
   }

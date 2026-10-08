@@ -64,4 +64,44 @@ describe('FigureRenderer', () => {
     )
     expect(container.firstChild).toMatchSnapshot()
   })
+
+  it('draws a repère: grid, two arrowed axes, French numbers, a single 0', () => {
+    const { container } = render(
+      <FigureRenderer
+        alt="Repère"
+        spec={{
+          axes: {
+            x: { from: -2, to: 2, step: 1, title: 'x' },
+            y: { from: -2, to: 2, step: 0.5, labelEvery: 1 },
+            grid: true,
+          },
+        }}
+      />
+    )
+    expect(container.querySelectorAll('line.stroke-line')).toHaveLength(5 + 9)
+    expect(container.querySelectorAll('polygon')).toHaveLength(2) // two arrowheads
+    const texts = [...container.querySelectorAll('text')].map((t) => t.textContent)
+    expect(texts).toContain('\u22122')
+    expect(texts.filter((t) => t === '0')).toHaveLength(1)
+    expect(texts).toContain('x')
+  })
+
+  it('draws a polyline and no dot for a hidden point', () => {
+    const { container } = render(
+      <FigureRenderer
+        alt="Courbe"
+        spec={{
+          points: [
+            { name: 'a', x: 0, y: 0, dot: false, showName: false },
+            { name: 'b', x: 1, y: 2, dot: false, showName: false },
+            { name: 'c', x: 2, y: 1, dot: false, showName: false },
+          ],
+          polylines: [{ points: ['a', 'b', 'c'] }],
+        }}
+      />
+    )
+    expect(container.querySelectorAll('polyline')).toHaveLength(1)
+    expect(container.querySelectorAll('circle')).toHaveLength(0)
+    expect(container.querySelectorAll('text')).toHaveLength(0)
+  })
 })

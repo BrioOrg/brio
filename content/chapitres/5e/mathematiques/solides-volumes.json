@@ -183,123 +183,151 @@
           "spec": {
             "points": [
               {
-                "name": " ",
+                "name": "c01",
                 "x": 0,
-                "y": 1
+                "y": 1,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "  ",
+                "name": "c11",
                 "x": 1,
-                "y": 1
+                "y": 1,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "   ",
+                "name": "c21",
                 "x": 2,
-                "y": 1
+                "y": 1,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "    ",
+                "name": "c31",
                 "x": 3,
-                "y": 1
+                "y": 1,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "     ",
+                "name": "c41",
                 "x": 4,
-                "y": 1
+                "y": 1,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "      ",
+                "name": "c02",
                 "x": 0,
-                "y": 2
+                "y": 2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "       ",
+                "name": "c12",
                 "x": 1,
-                "y": 2
+                "y": 2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "        ",
+                "name": "c22",
                 "x": 2,
-                "y": 2
+                "y": 2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "         ",
+                "name": "c32",
                 "x": 3,
-                "y": 2
+                "y": 2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "          ",
+                "name": "c42",
                 "x": 4,
-                "y": 2
+                "y": 2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "           ",
+                "name": "c10",
                 "x": 1,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "            ",
+                "name": "c20",
                 "x": 2,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "             ",
+                "name": "c13",
                 "x": 1,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "              ",
+                "name": "c23",
                 "x": 2,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               }
             ],
             "polygons": [
               {
                 "vertices": [
-                  " ",
-                  "  ",
-                  "       ",
-                  "      "
+                  "c01",
+                  "c11",
+                  "c12",
+                  "c02"
                 ]
               },
               {
                 "vertices": [
-                  "  ",
-                  "   ",
-                  "        ",
-                  "       "
+                  "c11",
+                  "c21",
+                  "c22",
+                  "c12"
                 ]
               },
               {
                 "vertices": [
-                  "   ",
-                  "    ",
-                  "         ",
-                  "        "
+                  "c21",
+                  "c31",
+                  "c32",
+                  "c22"
                 ]
               },
               {
                 "vertices": [
-                  "    ",
-                  "     ",
-                  "          ",
-                  "         "
+                  "c31",
+                  "c41",
+                  "c42",
+                  "c32"
                 ]
               },
               {
                 "vertices": [
-                  "           ",
-                  "            ",
-                  "   ",
-                  "  "
+                  "c10",
+                  "c20",
+                  "c21",
+                  "c11"
                 ]
               },
               {
                 "vertices": [
-                  "       ",
-                  "        ",
-                  "              ",
-                  "             "
+                  "c12",
+                  "c22",
+                  "c23",
+                  "c13"
                 ]
               }
             ]
@@ -343,53 +371,65 @@
           "spec": {
             "points": [
               {
-                "name": " ",
+                "name": "r1",
                 "x": 0,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "  ",
+                "name": "r2",
                 "x": 6.28,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "   ",
+                "name": "r3",
                 "x": 6.28,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "    ",
+                "name": "r4",
                 "x": 0,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "     ",
+                "name": "oh",
                 "x": 2,
-                "y": 4
+                "y": 4,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "      ",
+                "name": "ob",
                 "x": 2,
-                "y": -1
+                "y": -1,
+                "dot": false,
+                "showName": false
               }
             ],
             "polygons": [
               {
                 "vertices": [
-                  " ",
-                  "  ",
-                  "   ",
-                  "    "
+                  "r1",
+                  "r2",
+                  "r3",
+                  "r4"
                 ]
               }
             ],
             "circles": [
               {
-                "center": "     ",
+                "center": "oh",
                 "radius": 1
               },
               {
-                "center": "      ",
+                "center": "ob",
                 "radius": 1
               }
             ]

@@ -176,7 +176,8 @@ ADR 0013.
   3-4-5 plutôt qu'une approximation). Les coordonnées sont des faits mathématiques
   vérifiables par CI.
 - **`coordinateSpace`** : omettre sauf si la vue doit s'étendre au-delà des points
-  déclarés (ex. droite graduée de 0 à 10 avec des marks seulement en 3 et 7).
+  déclarés (ex. droite graduée de 0 à 10 avec des marks seulement en 3 et 7). Jamais avec
+  `axes`.
 - **`angleMarks` droit** : utiliser `"right": true` uniquement quand l'angle est
   effectivement 90°. `check-content.mjs` vérifie la valeur aux coordonnées données.
 - **`lengthMarks`** : le champ `segment` est la concaténation des noms des deux
@@ -205,6 +206,52 @@ label personnalisé (séparateur décimal français : virgule).
 **Ne jamais énumérer les graduations à la main** : déclare toujours `from`, `to`, `step` —
 le renderer calcule les positions. Lister 101 points pour une droite de 0 à 10 par pas de
 0,1 est une erreur d'authoring.
+
+Le renderer écrit les nombres des graduations à la française (« −3 », « 0,5 ») ; l'étiquette
+d'une `mark` se place au-dessus de la droite, les nombres en dessous.
+
+#### Repère orthogonal
+
+Pour lire ou placer des points, tracer une courbe ou un graphique de proportionnalité, utilise
+`axes` (ADR 0013, amendement #214) : jamais une droite graduée plus un segment vertical.
+
+```json
+"spec": {
+  "axes": {
+    "x": { "from": 0, "to": 24, "step": 2, "labelEvery": 4, "title": "Heure (h)" },
+    "y": { "from": 0, "to": 20, "step": 2, "labelEvery": 4, "title": "Température (°C)" },
+    "grid": true
+  },
+  "points": [
+    { "name": "t0", "x": 0, "y": 6, "dot": false, "showName": false },
+    { "name": "t4", "x": 4, "y": 4, "dot": false, "showName": false },
+    { "name": "t8", "x": 8, "y": 8, "dot": false, "showName": false }
+  ],
+  "polylines": [{ "points": ["t0", "t4", "t8"] }]
+}
+```
+
+- Les deux axes se coupent à l'origine : `0` doit être entre `from` et `to` sur chaque axe.
+  Un seul « 0 » est écrit, en bas à gauche de l'origine ; un point nommé à l'origine (souvent
+  `O`) le remplace.
+- Chaque axe a **sa propre échelle** : le repère remplit le cadre même si les plages sont
+  très différentes (de 0 à 5 en abscisse, de 0 à 200 en ordonnée).
+- `labelEvery` (multiple de `step`) dit quelles graduations portent un nombre. `title` dit
+  ce que mesure l'axe, unité comprise.
+- `grid: true` trace un quadrillage à chaque graduation : à mettre dès que l'élève doit lire
+  une coordonnée.
+- Pas de `coordinateSpace` ni de `numberLines` avec `axes` : les axes fixent la zone visible.
+- `angleMarks`, `lengthMarks` et `circles` ne sont acceptés que si les deux axes ont la
+  **même plage** (`to − from` égal) : sinon le dessin est étiré et ne montrerait pas ce que
+  le script vérifie.
+
+#### Points de construction et lignes brisées
+
+- `"dot": false` masque le point noir, `"showName": false` masque le nom. Le nom reste
+  l'identifiant du point dans la spec : donne-lui un nom court et unique (`t4`, `b1h`…).
+  **Jamais de nom blanc** (`" "`) : `check-content.mjs` le refuse.
+- `"polylines": [{ "points": ["A", "B", "C"] }]` trace une ligne brisée sans déclarer chaque
+  segment (une courbe point par point, un contour ouvert).
 
 ### Formules
 
