@@ -166,6 +166,29 @@ describe('ChapterView — table block', () => {
     expect(getByRole('img', { name: 'Sport préféré : Football 8, Basket 5' })).toBeDefined()
   })
 
+  it('renders a scratch code block as blocks, with the source for screen readers', () => {
+    const code = 'mettre a à 7\nmettre a à (a * 2)\ndire (a)'
+    const { getByRole, container } = render(
+      <ChapterView
+        chapitre={makeChapter([{ id: 'c1', type: 'code', language: 'scratch', code }])}
+      />
+    )
+    const figure = getByRole('figure', { name: 'Programme Scratch' })
+    expect(figure.querySelector('pre')?.textContent).toBe(code)
+    expect(container.querySelector('.bg-scratch-variables')).not.toBeNull()
+  })
+
+  it('falls back to plain text when a scratch programme does not parse', () => {
+    const code = 'mettre a à (a × 2)'
+    const { container } = render(
+      <ChapterView
+        chapitre={makeChapter([{ id: 'c2', type: 'code', language: 'scratch', code }])}
+      />
+    )
+    expect(container.querySelector('#c2 code')?.textContent).toBe(code)
+    expect(container.querySelector('[class*="bg-scratch"]')).toBeNull()
+  })
+
   it('renders a headerless table (no thead)', () => {
     const { container } = render(
       <ChapterView chapitre={makeChapter([{ id: 't2', type: 'table', rows: [['a', 'b']] }])} />

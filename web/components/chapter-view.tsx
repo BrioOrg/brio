@@ -1,9 +1,16 @@
 import katex from 'katex'
-import { parseRichText, type RichTextToken, type FigureSpec, type ChartSpec } from '@brio/content'
+import {
+  parseRichText,
+  parseScratch,
+  type RichTextToken,
+  type FigureSpec,
+  type ChartSpec,
+} from '@brio/content'
 
 import { ExerciceWidget, PaperExercise } from '@/components/exercice-widget'
 import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
+import { ScratchBlocks } from '@/components/scratch-blocks'
 import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
 
@@ -132,7 +139,12 @@ function BlockRenderer({ block, apercu }: { block: Block; apercu: boolean }) {
     case 'callout':
       return <Callout id={block.id} block={block} />
 
-    case 'code':
+    case 'code': {
+      // A Scratch programme that does not parse (a teacher's course skips CI) stays as text.
+      const scratch = block.language === 'scratch' ? parseScratch(block.code as string) : null
+      if (scratch?.ok) {
+        return <ScratchBlocks id={block.id} code={block.code as string} script={scratch.script} />
+      }
       return (
         <pre
           id={block.id}
@@ -141,6 +153,7 @@ function BlockRenderer({ block, apercu }: { block: Block; apercu: boolean }) {
           <code>{block.code as string}</code>
         </pre>
       )
+    }
 
     case 'image':
       return (
