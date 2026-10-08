@@ -145,7 +145,8 @@ export type DrawingAxes = {
   x: DrawingAxis
   y: DrawingAxis
   grid: DrawingSegment[]
-  origin: DrawingText
+  /** null when a named point (usually O) already labels the origin. */
+  origin: DrawingText | null
 }
 
 export type DrawingModel = {
@@ -506,7 +507,11 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
       .join(' '),
   }))
 
-  const axes = spec.axes ? buildAxes(spec.axes, toSvg) : null
+  // A visible point named at (0, 0), usually O, labels the origin itself: no "0" on top of it.
+  const originNamed = (spec.points ?? []).some(
+    (p) => p.x === 0 && p.y === 0 && p.showName !== false
+  )
+  const axes = spec.axes ? buildAxes(spec.axes, toSvg, originNamed) : null
 
   return {
     viewBox: `0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`,
@@ -553,7 +558,11 @@ function assertDrawableAxis(axis: FigureAxis, name: string): void {
   }
 }
 
-function buildAxes(spec: FigureAxes, toSvg: (lx: number, ly: number) => Pt2): DrawingAxes {
+function buildAxes(
+  spec: FigureAxes,
+  toSvg: (lx: number, ly: number) => Pt2,
+  originNamed: boolean
+): DrawingAxes {
   const { x, y } = spec
   const origin = toSvg(0, 0)
   const xValues = axisValues(x)
@@ -662,13 +671,15 @@ function buildAxes(spec: FigureAxes, toSvg: (lx: number, ly: number) => Pt2): Dr
   }
 
   // A single "0" below-left of the crossing, instead of one on each axis.
-  const originLabel: DrawingText = {
-    text: '0',
-    x: origin.x - AXIS_LABEL_GAP_PX,
-    y: origin.y + AXIS_LABEL_GAP_PX,
-    anchor: 'end',
-    baseline: 'hanging',
-  }
+  const originLabel: DrawingText | null = originNamed
+    ? null
+    : {
+        text: '0',
+        x: origin.x - AXIS_LABEL_GAP_PX,
+        y: origin.y + AXIS_LABEL_GAP_PX,
+        anchor: 'end',
+        baseline: 'hanging',
+      }
 
   return { x: xAxis, y: yAxis, grid, origin: originLabel }
 }

@@ -261,13 +261,23 @@ describe('buildDrawingModel — repère (axes)', () => {
     expect(yLabels).toEqual(['\u22124', '4', '8', '12', '16', '20'])
     const xLabels = axes.x.ticks.flatMap((t) => (t.label ? [t.label.text] : []))
     expect(xLabels).not.toContain('0')
-    expect(axes.origin.text).toBe('0')
+    expect(axes.origin?.text).toBe('0')
   })
 
   it('places the single 0 below-left of the origin', () => {
     const axes = buildDrawingModel(repere).axes!
-    expect(axes.origin.x).toBeLessThan(axes.y.line.x1)
-    expect(axes.origin.y).toBeGreaterThan(axes.x.line.y1)
+    expect(axes.origin!.x).toBeLessThan(axes.y.line.x1)
+    expect(axes.origin!.y).toBeGreaterThan(axes.x.line.y1)
+  })
+
+  it('lets a named point at the origin replace the 0', () => {
+    const named = buildDrawingModel({ ...repere, points: [{ name: 'O', x: 0, y: 0 }] })
+    expect(named.axes!.origin).toBeNull()
+    const hidden = buildDrawingModel({
+      ...repere,
+      points: [{ name: 'o', x: 0, y: 0, showName: false }],
+    })
+    expect(hidden.axes!.origin?.text).toBe('0')
   })
 
   it('draws one grid line per step of each axis', () => {

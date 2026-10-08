@@ -232,7 +232,8 @@ Pour lire ou placer des points, tracer une courbe ou un graphique de proportionn
 ```
 
 - Les deux axes se coupent à l'origine : `0` doit être entre `from` et `to` sur chaque axe.
-  Un seul « 0 » est écrit, en bas à gauche de l'origine.
+  Un seul « 0 » est écrit, en bas à gauche de l'origine ; un point nommé à l'origine (souvent
+  `O`) le remplace.
 - Chaque axe a **sa propre échelle** : le repère remplit le cadre même si les plages sont
   très différentes (de 0 à 5 en abscisse, de 0 à 200 en ordonnée).
 - `labelEvery` (multiple de `step`) dit quelles graduations portent un nombre. `title` dit

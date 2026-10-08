@@ -46,7 +46,7 @@ export function FigureRenderer({
             <g>
               <Axis axis={model.axes.x} />
               <Axis axis={model.axes.y} />
-              <AxisText text={model.axes.origin} fontSize={11} />
+              {model.axes.origin && <AxisText text={model.axes.origin} fontSize={11} />}
             </g>
           )}
 

@@ -92,7 +92,8 @@ labels came from `String(value)`: "-3" and "0.5" instead of "−3" and "0,5".
 4. **`grid: true`** draws a line at every `step` of each axis, in the muted
    line colour.
 5. **A single "0"** is written below-left of the origin; neither axis
-   repeats it.
+   repeats it. A point with a visible name at (0, 0), usually O, labels the
+   origin instead of the "0".
 6. **`dot: false` / `showName: false`** on a point hide its dot or its name,
    for points that only build something (axis ends, curve vertices, bar
    corners). Blank point names, the previous workaround, are rejected by
