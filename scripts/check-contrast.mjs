@@ -55,6 +55,12 @@ const dark = {
   'feedback-incorrect-edge': '#b5730a',
   xp: '#ffcf3f',
   streak: '#ff9600',
+  'chart-1': '#17c26b',
+  'chart-2': '#4bb4ff',
+  'chart-3': '#f0a83a',
+  'chart-4': '#b99bff',
+  'chart-5': '#ff7aa8',
+  'chart-6': '#c9d4ce',
 }
 
 const light = {
@@ -77,6 +83,12 @@ const light = {
   'feedback-incorrect-edge': '#7a4f00',
   xp: '#b88000',
   streak: '#d97000',
+  'chart-1': '#0d9a5a',
+  'chart-2': '#1a80d4',
+  'chart-3': '#b87a00',
+  'chart-4': '#6b40cc',
+  'chart-5': '#c2185b',
+  'chart-6': '#6b7a72',
 }
 
 // ── Pairs to check ───────────────────────────────────────────────────────────
@@ -84,6 +96,13 @@ const light = {
 // Format: [foreground-token, background-token, level]
 //   level "AA"       → 4.5 : 1 (body text)
 //   level "AA-large" → 3.0 : 1 (large text / graphical elements)
+
+// Chart fills are graphics, never text: 3 : 1 against both grounds a chart can sit on (#216).
+function chartPairs(theme) {
+  return [1, 2, 3, 4, 5, 6].flatMap((n) =>
+    ['surface-panel', 'surface-page'].map((bg) => ({ theme, fg: `chart-${n}`, bg, level: 'AA-large' }))
+  )
+}
 
 const pairs = [
   // Dark theme
@@ -100,6 +119,7 @@ const pairs = [
   { theme: 'dark', fg: 'info', bg: 'surface-panel', level: 'AA-large' },
   { theme: 'dark', fg: 'xp', bg: 'surface-panel', level: 'AA-large' },
   { theme: 'dark', fg: 'streak', bg: 'surface-panel', level: 'AA-large' },
+  ...chartPairs('dark'),
 
   // Light theme
   { theme: 'light', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -118,6 +138,7 @@ const pairs = [
   { theme: 'light', fg: 'info', bg: 'surface-page', level: 'AA-large' },
   { theme: 'light', fg: 'xp', bg: 'surface-panel', level: 'AA-large' },
   { theme: 'light', fg: 'streak', bg: 'surface-panel', level: 'AA-large' },
+  ...chartPairs('light'),
 ]
 
 // ── Run checks ───────────────────────────────────────────────────────────────
