@@ -23,7 +23,8 @@
  *    - solids (perspective cavalière, ADR 0013 amendment #215): positive dimensions, reduction
  *      in ]0, 1], angle in ]0°, 180°[ and not 90°, a convex non-degenerate prism base, names in
  *      the right number (front face then back face), unique, not blank and not shared with a
- *      point; no solid in a repère or next to a number line.
+ *      point; no solid in a repère or next to a number line. An assemblage (amendment #226):
+ *      a rectangular plan coté of whole heights ≥ 0, with at least one cube.
  *
  * 3. Chart blocks (ADR 0030): exactly one series; 2 to 12 categories (6 for a pie), labels not
  *    blank and not duplicated; finite values, none negative in a bar, all positive in a pie;
@@ -357,6 +358,19 @@ function checkSolid(solid, pointNames, solidNames, file, path) {
   if (solid.angle !== undefined && !(solid.angle > 0 && solid.angle < 180 && solid.angle !== 90)) {
     fail(file, path, `solid: angle must be in ]0, 180[ and not 90 (receding edges would be vertical), got ${solid.angle}`)
   }
+  if (solid.kind === 'assemblage') {
+    const rows = solid.heights ?? []
+    const width = rows[0]?.length ?? 0
+    if (rows.length === 0 || width === 0) fail(file, path + '.heights', 'assemblage: the plan coté has no cell')
+    if (rows.some((row) => row.length !== width)) {
+      fail(file, path + '.heights', `assemblage: every row of the plan coté must have ${width} cells`)
+    }
+    const cells = rows.flat()
+    if (cells.some((h) => !Number.isInteger(h) || h < 0)) {
+      fail(file, path + '.heights', 'assemblage: each height is a whole number of cubes ≥ 0')
+    }
+    if (!cells.some((h) => h > 0)) fail(file, path + '.heights', 'assemblage: the plan coté has no cube')
+  }
   let vertexCount = 0
   if (solid.kind === 'pave' || solid.kind === 'cube') vertexCount = 8
   if (solid.kind === 'prisme') {
@@ -367,8 +381,8 @@ function checkSolid(solid, pointNames, solidNames, file, path) {
     }
   }
   if (solid.names === undefined) return
-  if (solid.kind === 'cylindre') {
-    fail(file, path + '.names', 'a cylinder has no vertices to name')
+  if (solid.kind === 'cylindre' || solid.kind === 'assemblage') {
+    fail(file, path + '.names', `a ${solid.kind === 'cylindre' ? 'cylinder' : 'cube assemblage'} has no vertices to name`)
     return
   }
   if (solid.names.length !== vertexCount) {

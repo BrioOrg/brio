@@ -697,12 +697,12 @@
       }
     },
     "figureSolid": {
-      "description": "A solid in perspective cavalière, expanded by the renderer into edges; the renderer decides which edges are hidden (dashed). (x, y) is the front bottom-left vertex of a pavé or cube, the first vertex of a prism's base, the centre of a cylinder's lower base. names: vertex names, front face first then the back face in the same order (not for a cylinder). See ADR 0013, amendment #215.",
+      "description": "A solid in perspective cavalière, expanded by the renderer into edges; the renderer decides which edges are hidden (dashed). (x, y) is the front bottom-left vertex of a pavé or cube, the first vertex of a prism's base, the centre of a cylinder's lower base, the front bottom-left corner of an assemblage's front-left cell. names: vertex names, front face first then the back face in the same order (not for a cylinder or an assemblage). An assemblage is drawn as shaded visible faces, without hidden edges. See ADR 0013, amendments #215 and #226.",
       "type": "object",
       "required": ["kind", "x", "y"],
       "additionalProperties": false,
       "properties": {
-        "kind":      { "enum": ["pave", "cube", "prisme", "cylindre"] },
+        "kind":      { "enum": ["pave", "cube", "prisme", "cylindre", "assemblage"] },
         "x":         { "type": "number" },
         "y":         { "type": "number" },
         "width":     { "type": "number", "exclusiveMinimum": 0 },
@@ -720,6 +720,12 @@
             "additionalProperties": false,
             "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
           }
+        },
+        "heights": {
+          "description": "Assemblage only: its plan coté, the number of unit cubes stacked in each cell. Rows from the back to the front, cells from left to right; every row the same length.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 0 } }
         },
         "angle":     { "description": "Angle of the receding edges, in degrees. Defaults to 45.", "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 180 },
         "reduction": { "description": "Reduction coefficient of the receding edges. Defaults to 0.5.", "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
@@ -741,6 +747,11 @@
         {
           "if": { "properties": { "kind": { "const": "cylindre" } } },
           "then": { "required": ["radius", "height"], "properties": { "width": false, "depth": false, "edge": false, "base": false, "names": false } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "assemblage" } } },
+          "then": { "required": ["heights"], "properties": { "width": false, "height": false, "depth": false, "edge": false, "radius": false, "base": false, "names": false } },
+          "else": { "properties": { "heights": false } }
         }
       ]
     },

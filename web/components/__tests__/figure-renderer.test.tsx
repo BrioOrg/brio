@@ -128,4 +128,22 @@ describe('FigureRenderer', () => {
     expect(paths).toHaveLength(4)
     expect(paths.filter((p) => p.hasAttribute('stroke-dasharray'))).toHaveLength(1)
   })
+
+  it('draws an assemblage as shaded faces, without dashed edges', () => {
+    const { container } = render(
+      <FigureRenderer
+        spec={{ solids: [{ kind: 'assemblage', x: 0, y: 0, heights: [[1, 1]] }] }}
+        alt="Deux cubes côte à côte."
+      />
+    )
+    const faces = Array.from(container.querySelectorAll('polygon'))
+    expect(faces.map((f) => f.getAttribute('class'))).toEqual([
+      'fill-cube-top',
+      'fill-cube-front',
+      'fill-cube-top',
+      'fill-cube-side',
+      'fill-cube-front',
+    ])
+    expect(container.querySelectorAll('[stroke-dasharray]')).toHaveLength(0)
+  })
 })

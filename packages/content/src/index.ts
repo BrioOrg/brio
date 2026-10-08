@@ -39,6 +39,9 @@ export type {
   SolidEdge,
   SolidArc,
   SolidDrawing,
+  SolidFace,
+  CubeShade,
+  DrawingCubeFace,
 } from './figure'
 export {
   buildDrawingModel,

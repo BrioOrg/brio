@@ -8,6 +8,13 @@ import {
 // Hidden edges and construction lines, in viewBox units like the stroke widths (ADR 0013, #215).
 const DASH = '5 4'
 
+// One shade per kind of face of an assemblage's cubes (ADR 0013, #226).
+const CUBE_FILL = {
+  top: 'fill-cube-top',
+  front: 'fill-cube-front',
+  side: 'fill-cube-side',
+} as const
+
 export function FigureRenderer({
   spec,
   alt,
@@ -52,6 +59,18 @@ export function FigureRenderer({
               {model.axes.origin && <AxisText text={model.axes.origin} fontSize={11} />}
             </g>
           )}
+
+          {/* Cube assemblages: filled faces in drawing order, under the author's elements */}
+          {model.cubeFaces.map((face, i) => (
+            <polygon
+              key={`cube-${i}`}
+              points={face.points}
+              className={CUBE_FILL[face.shade]}
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinejoin="round"
+            />
+          ))}
 
           {/* Polygons */}
           {model.polygons.map((poly, i) => (

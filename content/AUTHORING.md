@@ -298,6 +298,37 @@ Les autres solides :
 - Un **patron** se dessine avec des `polygons` (points masqués) ; un solide et son patron
   peuvent partager la même figure, à la même échelle.
 
+#### Assemblages de cubes
+
+Un assemblage de cubes se décrit par son **plan coté** (ADR 0013, amendement #226) : le même
+tableau que celui de la leçon, recopié dans `heights`. Le renderer dessine les faces visibles,
+ombrées (dessus clair, face, côté foncé), et les cubes de devant cachent ceux de derrière. Rien
+n'est en pointillés : un cube caché ne se dessine pas.
+
+Recette — dessiner l'assemblage dont le plan coté est « fond 2, 1, 0 ; devant 3, 1, 1 » :
+
+```json
+"spec": {
+  "solids": [
+    { "kind": "assemblage", "x": 0, "y": 0, "heights": [[2, 1, 0], [3, 1, 1]] }
+  ]
+}
+```
+
+1. `heights` : une ligne par rangée, **la rangée du fond en premier**, les cases de gauche à
+   droite, comme le plan coté vu de dessus. Toutes les lignes ont autant de cases ; une case
+   vide vaut `0`. Des nombres entiers.
+2. Les cubes ont une arête de 1. `x`, `y` : le coin avant en bas à gauche de la rangée de
+   devant.
+3. `angle` et `reduction` comme pour les autres solides. À 45°, on voit le dessus, la face et
+   le côté **droit** ; au-delà de 90°, le côté gauche.
+4. Pas de `names`.
+- Dessine l'assemblage **à côté de son plan coté**, pas à sa place : l'élève apprend à passer
+  de l'un à l'autre.
+- Pas d'assemblage dans l'énoncé d'un exercice « que voit-on de face / de côté ? » : le dessin
+  montre déjà la réponse. Le plan coté seul fait travailler le raisonnement.
+- Les **vues** (dessus, face, côté) ne sont pas dessinées par le renderer.
+
 ### Diagrammes statistiques
 
 Un diagramme en barres, circulaire ou une courbe à abscisses catégorielles est un bloc `chart`,
