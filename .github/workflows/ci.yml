@@ -52,7 +52,8 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/check-competencies.mjs
-      - run: node scripts/check-content.mjs
+      # Imports the Scratch parser as TypeScript (ADR 0031).
+      - run: node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/check-content.mjs
 
   shell:
     # Deployment scripts (ADR 0024) run on the server only; lint them here so a

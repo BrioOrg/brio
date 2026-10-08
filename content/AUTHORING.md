@@ -355,7 +355,7 @@ la prose sans balisage : un `$a + b$` inline pour une expression simple est du b
 | `\$` | dollar littéral |
 
 Un délimiteur non fermé (`**gras`, `$formule`) s'affiche tel quel, délimiteur compris —
-c'est une erreur visible plutôt qu'une perte silencieuse. `node scripts/check-content.mjs`
+c'est une erreur visible plutôt qu'une perte silencieuse. `pnpm check:content`
 détecte ces cas avant le commit.
 
 ### Callouts
@@ -399,7 +399,7 @@ Vérifications à faire à la main, dans le navigateur et via l'API :
 
 - [ ] `npx ajv-cli@5 validate --spec=draft2020 -s docs/schema/course-content.schema.json -d "<chemin-du-fichier>.json"` passe.
 - [ ] `node scripts/check-competencies.mjs` passe.
-- [ ] `node scripts/check-content.mjs` passe (délimiteurs richText équilibrés).
+- [ ] `pnpm check:content` passe (délimiteurs richText équilibrés).
 
 ### Ingestion
 

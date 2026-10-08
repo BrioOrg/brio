@@ -30,15 +30,33 @@
  *    yMax not below the largest value; yStep positive and at most 20 graduations; no axis
  *    field (xLabel, yLabel, yMax, yStep, showValues) on a pie.
  *
- * 4. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
+ * 4. Scratch programmes (ADR 0031): a code block with language "scratch" must parse with the
+ *    renderer's own parser (packages/content/src/scratch.ts), every faulty line reported. The
+ *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
+ *    Scratch's multiplication sign there.
+ *
+ * 5. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
  *    on `id` alone.
  *
  * Scanned: content/ (excluding referentiel) + docs/schema/examples/.
- * Zero dependencies; exits non-zero on any problem.
+ * No dependencies; it imports the Scratch parser as TypeScript, so it runs with Node's type
+ * stripping: `pnpm check:content` (node --experimental-strip-types). Exits non-zero on any problem.
  */
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+
+let parseScratch
+try {
+  ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
+} catch (e) {
+  console.error(
+    '✗ check-content loads the Scratch parser as TypeScript: run `pnpm check:content`\n' +
+      '  (node --experimental-strip-types scripts/check-content.mjs).\n  ' +
+      e.message,
+  )
+  process.exit(1)
+}
 
 // --- Geometry helpers (duplicated from packages/content to keep zero dependencies) ---
 
@@ -133,6 +151,8 @@ function walkStrings(node, file, path) {
     node.forEach((item, i) => walkStrings(item, file, `${path}[${i}]`))
   } else if (node !== null && typeof node === 'object') {
     for (const [key, value] of Object.entries(node)) {
+      // A code block's text is shown as written, never as rich text (ADR 0031).
+      if (node.type === 'code' && key === 'code') continue
       walkStrings(value, file, path ? `${path}.${key}` : key)
     }
   }
@@ -457,6 +477,16 @@ function checkChartBlock(block, file, path) {
   }
 }
 
+// --- Scratch programmes (ADR 0031) ---
+
+function checkScratchBlock(block, file, path) {
+  const result = parseScratch(block.code)
+  if (result.ok) return
+  for (const { line, message } of result.errors) {
+    fail(file, `${path}.code (line ${line})`, message)
+  }
+}
+
 function checkFigures(doc, file) {
   for (const section of doc.sections ?? []) {
     for (let i = 0; i < (section.blocks ?? []).length; i++) {
@@ -464,6 +494,7 @@ function checkFigures(doc, file) {
       const path = `sections[id=${section.id}].blocks[${i}]`
       if (block.type === 'figure') checkFigureBlock(block, file, path)
       else if (block.type === 'chart') checkChartBlock(block, file, path)
+      else if (block.type === 'code' && block.language === 'scratch') checkScratchBlock(block, file, path)
     }
   }
 }
@@ -527,4 +558,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + unique chapter ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + Scratch programmes + unique chapter ids).`)
