@@ -468,7 +468,8 @@
         "labels":      { "type": "array", "items": { "$ref": "#/$defs/figureLabel" } },
         "numberLines": { "type": "array", "items": { "$ref": "#/$defs/figureNumberLine" } },
         "polylines":   { "type": "array", "items": { "$ref": "#/$defs/figurePolyline" } },
-        "axes":        { "$ref": "#/$defs/figureAxes" }
+        "axes":        { "$ref": "#/$defs/figureAxes" },
+        "solids":      { "type": "array", "items": { "$ref": "#/$defs/figureSolid" } }
       }
     },
 
@@ -520,9 +521,15 @@
       "required": ["from", "to"],
       "additionalProperties": false,
       "properties": {
-        "from": { "type": "string", "minLength": 1 },
-        "to":   { "type": "string", "minLength": 1 }
+        "from":  { "type": "string", "minLength": 1 },
+        "to":    { "type": "string", "minLength": 1 },
+        "style": { "$ref": "#/$defs/figureLineStyle" }
       }
+    },
+
+    "figureLineStyle": {
+      "description": "\"dashed\" draws the line in dashes (a hidden edge, a construction line). Defaults to \"solid\". See ADR 0013, amendment #215.",
+      "enum": ["solid", "dashed"]
     },
 
     "figurePolygon": {
@@ -534,7 +541,8 @@
           "type": "array",
           "minItems": 3,
           "items": { "type": "string", "minLength": 1 }
-        }
+        },
+        "style": { "$ref": "#/$defs/figureLineStyle" }
       }
     },
 
@@ -596,8 +604,57 @@
       "required": ["points"],
       "additionalProperties": false,
       "properties": {
-        "points": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } }
+        "points": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+        "style":  { "$ref": "#/$defs/figureLineStyle" }
       }
+    },
+    "figureSolid": {
+      "description": "A solid in perspective cavalière, expanded by the renderer into edges; the renderer decides which edges are hidden (dashed). (x, y) is the front bottom-left vertex of a pavé or cube, the first vertex of a prism's base, the centre of a cylinder's lower base. names: vertex names, front face first then the back face in the same order (not for a cylinder). See ADR 0013, amendment #215.",
+      "type": "object",
+      "required": ["kind", "x", "y"],
+      "additionalProperties": false,
+      "properties": {
+        "kind":      { "enum": ["pave", "cube", "prisme", "cylindre"] },
+        "x":         { "type": "number" },
+        "y":         { "type": "number" },
+        "width":     { "type": "number", "exclusiveMinimum": 0 },
+        "height":    { "type": "number", "exclusiveMinimum": 0 },
+        "depth":     { "type": "number", "exclusiveMinimum": 0 },
+        "edge":      { "type": "number", "exclusiveMinimum": 0 },
+        "radius":    { "type": "number", "exclusiveMinimum": 0 },
+        "base": {
+          "description": "Prism only: the front face in true size, as (x, y) offsets from the solid's position. Convex, at least 3 vertices.",
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["x", "y"],
+            "additionalProperties": false,
+            "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+          }
+        },
+        "angle":     { "description": "Angle of the receding edges, in degrees. Defaults to 45.", "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 180 },
+        "reduction": { "description": "Reduction coefficient of the receding edges. Defaults to 0.5.", "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "names":     { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "pave" } } },
+          "then": { "required": ["width", "height", "depth"], "properties": { "edge": false, "radius": false, "base": false } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "cube" } } },
+          "then": { "required": ["edge"], "properties": { "width": false, "height": false, "depth": false, "radius": false, "base": false } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "prisme" } } },
+          "then": { "required": ["base", "depth"], "properties": { "width": false, "height": false, "edge": false, "radius": false } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "cylindre" } } },
+          "then": { "required": ["radius", "height"], "properties": { "width": false, "depth": false, "edge": false, "base": false, "names": false } }
+        }
+      ]
     },
     "figureAxes": {
       "description": "An orthogonal coordinate system: two graduated axes crossing at the origin, with arrows. Each axis has its own scale; the axes define the visible area (no coordinateSpace alongside). See ADR 0013, amendment #214.",

@@ -5,7 +5,7 @@
   "subject": "mathematiques",
   "level": "5e",
   "difficulty": "standard",
-  "estimatedDurationMinutes": 69,
+  "estimatedDurationMinutes": 78,
   "status": "published",
   "sections": [
     {
@@ -48,6 +48,71 @@
               "text": "Les arêtes cachées sont dessinées **en pointillés**."
             }
           ]
+        },
+        {
+          "id": "fig-pave-perspective",
+          "type": "figure",
+          "alt": "Un pavé droit ABCDEFGH en perspective cavalière. La face avant ABCD est un rectangle de 4 carreaux sur 3 : A en bas à gauche, B en bas à droite, C en haut à droite, D en haut à gauche. Les fuyantes partent en biais vers le haut et la droite, jusqu'à la face arrière EFGH. Les arêtes [AE], [EF] et [EH] sont en pointillés.",
+          "caption": "Un pavé droit en perspective cavalière : la face avant ABCD est en vraie grandeur, les fuyantes sont en biais et raccourcies, les arêtes cachées en pointillés.",
+          "spec": {
+            "solids": [
+              {
+                "kind": "pave",
+                "x": 0,
+                "y": 0,
+                "width": 4,
+                "height": 3,
+                "depth": 2,
+                "names": [
+                  "A",
+                  "B",
+                  "C",
+                  "D",
+                  "E",
+                  "F",
+                  "G",
+                  "H"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "fig-prisme-cylindre",
+          "type": "figure",
+          "alt": "À gauche, un prisme droit dont la face avant est un triangle rectangle, angle droit en bas à gauche ; trois arêtes cachées en pointillés partent du sommet de l'angle droit, à l'arrière. À droite, un cylindre debout : deux bases en forme d'ellipse reliées par deux traits verticaux, la moitié arrière de la base du bas en pointillés.",
+          "caption": "Un prisme droit à base triangulaire et un cylindre en perspective cavalière.",
+          "spec": {
+            "solids": [
+              {
+                "kind": "prisme",
+                "x": 0,
+                "y": 0,
+                "base": [
+                  {
+                    "x": 0,
+                    "y": 0
+                  },
+                  {
+                    "x": 3,
+                    "y": 0
+                  },
+                  {
+                    "x": 0,
+                    "y": 4
+                  }
+                ],
+                "depth": 3
+              },
+              {
+                "kind": "cylindre",
+                "x": 7,
+                "y": 0,
+                "radius": 1.5,
+                "height": 4
+              }
+            ]
+          }
         },
         {
           "id": "note-dessin",
@@ -159,6 +224,90 @@
           "answer": 3,
           "tolerance": 0,
           "explanation": "Le sommet arrière en bas à gauche est caché : les 3 arêtes qui en partent sont cachées. Les 9 autres arêtes du cube sont visibles."
+        },
+        {
+          "id": "ex-pave-aretes-cachees",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur le pavé droit ABCDEFGH dessiné plus haut, quelles arêtes sont cachées ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-ae-ef-eh",
+              "text": "[AE], [EF] et [EH]",
+              "correct": true
+            },
+            {
+              "id": "choix-bf-fg-cg",
+              "text": "[BF], [FG] et [CG]",
+              "correct": false
+            },
+            {
+              "id": "choix-dh-hg-cg",
+              "text": "[DH], [HG] et [CG]",
+              "correct": false
+            },
+            {
+              "id": "choix-ae-bf-cg",
+              "text": "[AE], [BF] et [CG]",
+              "correct": false
+            }
+          ],
+          "explanation": "Le sommet E est derrière A, en bas à gauche de la face arrière : on ne le voit pas. Les trois arêtes qui partent de E, [AE], [EF] et [EH], sont donc cachées et dessinées en pointillés. Les fuyantes [BF] et [CG] et l'arête [HG] bordent la face de droite ou celle du dessus, que l'on voit."
+        },
+        {
+          "id": "ex-pave-vraie-grandeur",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Sur ce même dessin, quelles faces du pavé sont dessinées en vraie grandeur ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-abcd-seulement",
+              "text": "ABCD seulement",
+              "correct": false
+            },
+            {
+              "id": "choix-abcd-et-efgh",
+              "text": "ABCD et EFGH",
+              "correct": true
+            },
+            {
+              "id": "choix-toutes-les-faces",
+              "text": "toutes les faces",
+              "correct": false
+            },
+            {
+              "id": "choix-abfe-et-dcgh",
+              "text": "ABFE et DCGH",
+              "correct": false
+            }
+          ],
+          "explanation": "La face avant ABCD et la face arrière EFGH sont parallèles à la feuille : elles sont dessinées en vraie grandeur, ce sont deux rectangles de 4 sur 3. Les autres faces contiennent des fuyantes, raccourcies et en biais : ce sont des parallélogrammes qui ne sont pas en vraie grandeur."
+        },
+        {
+          "id": "ex-longueur-fuyante",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Un pavé droit a une profondeur de 2 cm. On le dessine en perspective cavalière avec un coefficient de réduction de 0,5. Quelle longueur, en cm, mesure la fuyante [AE] sur le dessin ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 1,
+          "tolerance": 0,
+          "explanation": "Les fuyantes sont raccourcies : on multiplie leur vraie longueur par le coefficient de réduction. 2 × 0,5 = 1, donc [AE] mesure 1 cm sur le dessin, alors qu'elle mesure 2 cm en réalité."
         }
       ]
     },
@@ -178,8 +327,8 @@
         {
           "id": "fig-patron-cube",
           "type": "figure",
-          "alt": "Six carrés identiques en forme de croix : quatre carrés alignés horizontalement, un carré au-dessus du deuxième et un carré en dessous du deuxième.",
-          "caption": "Un patron de cube.",
+          "alt": "À gauche, un cube en perspective cavalière, ses trois arêtes cachées en pointillés. À droite, six carrés identiques en forme de croix : quatre carrés alignés horizontalement, un carré au-dessus du deuxième et un carré en dessous du deuxième.",
+          "caption": "Un cube et un de ses patrons.",
           "spec": {
             "points": [
               {
@@ -329,6 +478,14 @@
                   "c23",
                   "c13"
                 ]
+              }
+            ],
+            "solids": [
+              {
+                "kind": "cube",
+                "x": -2,
+                "y": 1,
+                "edge": 1
               }
             ]
           }
@@ -486,6 +643,281 @@
             }
           ],
           "explanation": "Un prisme droit a deux bases identiques (ici des triangles) et autant de faces latérales rectangulaires que la base a de côtés : 3. On a 5 faces en tout."
+        },
+        {
+          "id": "fig-patron-prisme-1",
+          "type": "figure",
+          "alt": "Figure 1 : trois rectangles côte à côte, de même hauteur 3 et de largeurs 3, 4 et 5. Un triangle rectangle est collé sur le haut du premier rectangle, un autre sur le haut du deuxième.",
+          "caption": "Figure 1",
+          "spec": {
+            "points": [
+              {
+                "name": "ub0",
+                "x": 0,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "uh0",
+                "x": 0,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "ub1",
+                "x": 3,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "uh1",
+                "x": 3,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "ub2",
+                "x": 7,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "uh2",
+                "x": 7,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "ub3",
+                "x": 12,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "uh3",
+                "x": 12,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "ut1",
+                "x": 3,
+                "y": 7,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "ut2",
+                "x": 3,
+                "y": 6,
+                "dot": false,
+                "showName": false
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "ub0",
+                  "ub1",
+                  "uh1",
+                  "uh0"
+                ]
+              },
+              {
+                "vertices": [
+                  "ub1",
+                  "ub2",
+                  "uh2",
+                  "uh1"
+                ]
+              },
+              {
+                "vertices": [
+                  "ub2",
+                  "ub3",
+                  "uh3",
+                  "uh2"
+                ]
+              },
+              {
+                "vertices": [
+                  "uh0",
+                  "uh1",
+                  "ut1"
+                ]
+              },
+              {
+                "vertices": [
+                  "uh1",
+                  "uh2",
+                  "ut2"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "fig-patron-prisme-2",
+          "type": "figure",
+          "alt": "Figure 2 : trois rectangles côte à côte, de même hauteur 3 et de largeurs 3, 4 et 5. Un triangle rectangle est collé sur le haut du premier rectangle, un autre sur le bas du même rectangle.",
+          "caption": "Figure 2",
+          "spec": {
+            "points": [
+              {
+                "name": "vb0",
+                "x": 0,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vh0",
+                "x": 0,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vb1",
+                "x": 3,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vh1",
+                "x": 3,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vb2",
+                "x": 7,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vh2",
+                "x": 7,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vb3",
+                "x": 12,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vh3",
+                "x": 12,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vt1",
+                "x": 3,
+                "y": 7,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "vt2",
+                "x": 3,
+                "y": -4,
+                "dot": false,
+                "showName": false
+              }
+            ],
+            "polygons": [
+              {
+                "vertices": [
+                  "vb0",
+                  "vb1",
+                  "vh1",
+                  "vh0"
+                ]
+              },
+              {
+                "vertices": [
+                  "vb1",
+                  "vb2",
+                  "vh2",
+                  "vh1"
+                ]
+              },
+              {
+                "vertices": [
+                  "vb2",
+                  "vb3",
+                  "vh3",
+                  "vh2"
+                ]
+              },
+              {
+                "vertices": [
+                  "vh0",
+                  "vh1",
+                  "vt1"
+                ]
+              },
+              {
+                "vertices": [
+                  "vb0",
+                  "vb1",
+                  "vt2"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-patron-prisme-figures",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Le prisme droit dessiné au début du chapitre a pour base un triangle rectangle de côtés 3, 4 et 5. Laquelle des figures 1 et 2 est un patron de ce prisme ?",
+          "competencies": [
+            "c4.geo.espace.relier-patron"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-figure-1",
+              "text": "la figure 1",
+              "correct": false
+            },
+            {
+              "id": "choix-figure-2",
+              "text": "la figure 2",
+              "correct": true
+            },
+            {
+              "id": "choix-les-deux",
+              "text": "les deux",
+              "correct": false
+            },
+            {
+              "id": "choix-aucune",
+              "text": "aucune des deux",
+              "correct": false
+            }
+          ],
+          "explanation": "Les trois rectangles s'enroulent pour former les faces latérales. Les deux bases doivent fermer les deux extrémités, donc l'une en haut et l'autre en bas de la bande : c'est la figure 2. Dans la figure 1, les deux triangles se retrouvent au même bout après pliage : ils se recouvrent et l'autre bout reste ouvert."
         },
         {
           "id": "ex-patron-pave",

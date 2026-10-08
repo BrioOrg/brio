@@ -43,7 +43,7 @@ le produit est en développement (voir `content/AUTHORING.md`, règle 3).
 | `triangles-droites-remarquables` | Triangles : médiatrices, hauteurs, médianes et aire | ✅ |
 | `parallelogrammes` | Le parallélogramme et les parallélogrammes particuliers | ✅ |
 | `aires-figures-complexes` | Aires : parallélogramme, disque, figures complexes | ✅ |
-| `solides-volumes` | Solides : représentations, patrons et volumes | 🚧 pas de perspective cavalière (#215) |
+| `solides-volumes` | Solides : représentations, patrons et volumes | ✅ |
 
 Le programme range aires, volumes et conversions dans « Espace et géométrie » ; le référentiel Brio
 les garde dans le domaine `gm` (décision de #213 : pas de nouveau domaine).
@@ -88,9 +88,8 @@ les exercices ont `competencies: []`. Ils ne comptent donc pas dans la maîtrise
 
 ## Limites de rendu (lot de #213)
 
-- **Perspective cavalière** (#215) : aucun solide n'est dessiné en perspective, faute de traits
-  pointillés pour les arêtes cachées. Les règles sont décrites en texte. Les patrons (cube,
-  cylindre) sont dessinés, sans point aux sommets.
+- **Perspective cavalière** : réglé par #215. Le pavé, le cube, le prisme droit et le cylindre
+  sont dessinés par `solids` ; les patrons restent des `polygons`.
 - **Diagrammes** (#216) : le diagramme en barres est fait de rectangles (catégories sur
   deux hauteurs pour ne pas se chevaucher, axe vertical sans graduations). Aucun diagramme circulaire.
 - **Programmes par blocs** (#217) : texte dans un bloc `code`. Le signe × remplace le `*` de

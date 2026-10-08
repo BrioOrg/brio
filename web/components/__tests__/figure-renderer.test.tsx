@@ -104,4 +104,28 @@ describe('FigureRenderer', () => {
     expect(container.querySelectorAll('circle')).toHaveLength(0)
     expect(container.querySelectorAll('text')).toHaveLength(0)
   })
+
+  it('draws the hidden edges of a cube dashed, and only those', () => {
+    const { container } = render(
+      <FigureRenderer
+        spec={{ solids: [{ kind: 'cube', x: 0, y: 0, edge: 2 }] }}
+        alt="Un cube en perspective cavalière."
+      />
+    )
+    const lines = Array.from(container.querySelectorAll('line'))
+    expect(lines).toHaveLength(12)
+    expect(lines.filter((l) => l.hasAttribute('stroke-dasharray'))).toHaveLength(3)
+  })
+
+  it('draws a cylinder with one dashed half-ellipse', () => {
+    const { container } = render(
+      <FigureRenderer
+        spec={{ solids: [{ kind: 'cylindre', x: 0, y: 0, radius: 2, height: 5 }] }}
+        alt="Un cylindre."
+      />
+    )
+    const paths = Array.from(container.querySelectorAll('path'))
+    expect(paths).toHaveLength(4)
+    expect(paths.filter((p) => p.hasAttribute('stroke-dasharray'))).toHaveLength(1)
+  })
 })

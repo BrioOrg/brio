@@ -177,6 +177,48 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptSolidsAndDashedLines() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un pavé et un cylindre",
+                  "spec": {
+                    "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 1, "y": 0 } ],
+                    "segments": [ { "from": "A", "to": "B", "style": "dashed" } ],
+                    "solids": [
+                      { "kind": "pave", "x": 0, "y": 0, "width": 4, "height": 3, "depth": 2,
+                        "names": ["A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1"] },
+                      { "kind": "prisme", "x": 6, "y": 0, "depth": 3, "angle": 30, "reduction": 0.6,
+                        "base": [ { "x": 0, "y": 0 }, { "x": 3, "y": 0 }, { "x": 0, "y": 4 } ] },
+                      { "kind": "cylindre", "x": 12, "y": 0, "radius": 1.5, "height": 4 }
+                    ] } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectTheDimensionsOfAnotherKindOfSolid() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un cube",
+                  "spec": { "solids": [ { "kind": "cube", "x": 0, "y": 0, "edge": 2, "width": 3 } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectVertexNamesOnACylinder() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un cylindre",
+                  "spec": { "solids": [ { "kind": "cylindre", "x": 0, "y": 0, "radius": 1, "height": 2,
+                                          "names": ["O"] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldLocateAMissingExerciseFieldByItsName() {
         String block = """
                 { "id": "ex1", "type": "exercise", "exerciseType": "numeric", "prompt": "Combien ?" }

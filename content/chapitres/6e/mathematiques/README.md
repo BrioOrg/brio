@@ -95,14 +95,14 @@ par les fractions), mais si l'ordre devient gênant en classe, c'est ce fichier 
 
 ## Limites de rendu rencontrées (lot de chapitres 5 à 22)
 
-- **`espace-solides`** : le bloc `figure` (ADR 0013) ne dessine pas en perspective. Le chapitre
-  couvre `c3.geo.espace.visualiser-assemblages` avec le **plan coté** (tableau du nombre de cubes
-  par case, vue de dessus) et des vues décrites en texte ; les dessins en perspective cavalière
-  restent à faire quand une représentation 3D existera. Les patrons ne figurent pas dans les attendus
-  de 6e du programme 2025.
+- **`espace-solides`** : le bloc `figure` dessine un solide isolé en perspective cavalière
+  depuis #215 (`solids`), mais pas un **assemblage de cubes** (#226). Le chapitre couvre
+  `c3.geo.espace.visualiser-assemblages` avec le **plan coté** (tableau du nombre de cubes par
+  case, vue de dessus) et des vues décrites en texte. Les patrons ne figurent pas dans les
+  attendus de 6e du programme 2025.
 - **Droites** : le renderer ne trace que des segments. Un axe nommé « (d) » (`symetrie-axiale`)
   est un segment entre deux points sans point noir (`dot: false`, #214), dont l'un porte le nom.
-- **Demi-cercles** : seuls les cercles complets se dessinent ; les figures composées de
+- **Demi-cercles** (#227) : seuls les cercles complets se dessinent ; les figures composées de
   `perimetres` sont décrites en texte.
 - **Graphiques** : aucun bloc ne trace de diagramme (#216). Le repère existe depuis #214, mais
   `donnees-tableaux` ne couvre pas encore la représentation de mesures dans un repère (partie de

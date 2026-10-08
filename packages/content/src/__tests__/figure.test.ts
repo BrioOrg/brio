@@ -3,6 +3,7 @@ import {
   angleDegrees,
   buildDrawingModel,
   euclideanLength,
+  expandSolid,
   formatNumber,
   isCollinear,
   type FigureSpec,
@@ -364,5 +365,151 @@ describe('buildDrawingModel — hidden points and polylines', () => {
         polylines: [{ points: ['P', 'Z'] }],
       })
     ).toThrow('Point "Z" not found')
+  })
+})
+
+describe('line styles', () => {
+  const square: FigureSpec = {
+    points: [
+      { name: 'A', x: 0, y: 0 },
+      { name: 'B', x: 1, y: 0 },
+      { name: 'C', x: 1, y: 1 },
+    ],
+    segments: [
+      { from: 'A', to: 'B' },
+      { from: 'B', to: 'C', style: 'dashed' },
+    ],
+    polygons: [{ vertices: ['A', 'B', 'C'], style: 'dashed' }],
+    polylines: [{ points: ['A', 'C'] }],
+  }
+
+  it('marks dashed segments, polygons and polylines, and only those', () => {
+    const model = buildDrawingModel(square)
+    expect(model.segments.map((s) => s.dashed)).toEqual([false, true])
+    expect(model.polygons[0].dashed).toBe(true)
+    expect(model.polylines[0].dashed).toBe(false)
+  })
+})
+
+describe('expandSolid', () => {
+  const hidden = (drawing: ReturnType<typeof expandSolid>) =>
+    drawing.edges.filter((e) => e.hidden).map((e) => [e.from, e.to])
+
+  it('hides the three edges of the back bottom-left vertex of a cube', () => {
+    const cube = expandSolid({ kind: 'cube', x: 0, y: 0, edge: 2 })
+    expect(cube.edges).toHaveLength(12)
+    // Vertices: A B C D (front), E F G H (back); E is behind A.
+    expect(hidden(cube)).toEqual([
+      [4, 5], // EF, back bottom
+      [0, 4], // AE, receding from A
+      [7, 4], // HE, back left
+    ])
+  })
+
+  it('projects the back face along the receding direction, reduced', () => {
+    const pave = expandSolid({ kind: 'pave', x: 1, y: 2, width: 4, height: 3, depth: 2 })
+    const offset = 2 * 0.5 * Math.cos(Math.PI / 4)
+    expect(pave.vertices[4].x).toBeCloseTo(1 + offset, 9)
+    expect(pave.vertices[4].y).toBeCloseTo(2 + offset, 9)
+    expect(pave.vertices[6].x).toBeCloseTo(5 + offset, 9)
+    expect(pave.vertices[6].y).toBeCloseTo(5 + offset, 9)
+  })
+
+  it('hides the back bottom-right vertex instead when the receding edges go up-left', () => {
+    const cube = expandSolid({ kind: 'cube', x: 0, y: 0, edge: 1, angle: 135 })
+    expect(hidden(cube)).toEqual([
+      [4, 5], // EF, back bottom
+      [5, 6], // FG, back right
+      [1, 5], // BF, receding from B
+    ])
+  })
+
+  it('does not depend on the orientation the base is written in', () => {
+    const base = [
+      { x: 0, y: 0 },
+      { x: 3, y: 0 },
+      { x: 0, y: 2 },
+    ]
+    const ccw = expandSolid({ kind: 'prisme', x: 0, y: 0, base, depth: 4 })
+    const cw = expandSolid({ kind: 'prisme', x: 0, y: 0, base: [...base].reverse(), depth: 4 })
+    expect(ccw.edges).toHaveLength(9)
+    expect(hidden(ccw)).toHaveLength(hidden(cw).length)
+  })
+
+  it('hides only the receding edge and back side behind a right-angled triangular prism', () => {
+    // Right angle at the bottom-left: the bottom and left sides face away from the viewer.
+    const prism = expandSolid({
+      kind: 'prisme',
+      x: 0,
+      y: 0,
+      base: [
+        { x: 0, y: 0 },
+        { x: 3, y: 0 },
+        { x: 0, y: 2 },
+      ],
+      depth: 4,
+    })
+    expect(hidden(prism)).toEqual([
+      [3, 4], // back bottom side
+      [0, 3], // receding from the right angle
+      [5, 3], // back left side
+    ])
+  })
+
+  it('draws an upright cylinder with the back half of its lower base dashed', () => {
+    const cyl = expandSolid({ kind: 'cylindre', x: 0, y: 0, radius: 2, height: 5 })
+    expect(cyl.edges.every((e) => !e.hidden)).toBe(true)
+    expect(cyl.arcs.filter((a) => a.hidden)).toEqual([
+      expect.objectContaining({ cy: 0, half: 'upper' }),
+    ])
+    expect(cyl.arcs[0].ry).toBeCloseTo(2 * 0.5 * Math.sin(Math.PI / 4), 9)
+  })
+})
+
+describe('buildDrawingModel with solids', () => {
+  it('turns solid edges into segments, dashed when hidden', () => {
+    const model = buildDrawingModel({ solids: [{ kind: 'cube', x: 0, y: 0, edge: 2 }] })
+    expect(model.segments).toHaveLength(12)
+    expect(model.segments.filter((s) => s.dashed)).toHaveLength(3)
+  })
+
+  it('fits the whole solid in the frame', () => {
+    const model = buildDrawingModel({
+      solids: [{ kind: 'pave', x: 0, y: 0, width: 4, height: 3, depth: 2 }],
+    })
+    for (const s of model.segments) {
+      for (const v of [s.x1, s.y1, s.x2, s.y2]) {
+        expect(v).toBeGreaterThanOrEqual(0)
+        expect(v).toBeLessThanOrEqual(320)
+      }
+    }
+  })
+
+  it('writes vertex names away from the solid, hidden vertices included', () => {
+    const model = buildDrawingModel({
+      solids: [
+        {
+          kind: 'cube',
+          x: 0,
+          y: 0,
+          edge: 2,
+          names: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+        },
+      ],
+    })
+    expect(model.pointLabels.map((l) => l.text)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])
+    expect(model.dots).toHaveLength(0)
+    const a = model.pointLabels[0]
+    expect(a.anchor).toBe('end') // A is bottom-left: its name goes to the left
+  })
+
+  it('draws the cylinder bases as four half-ellipses, one dashed', () => {
+    const model = buildDrawingModel({
+      solids: [{ kind: 'cylindre', x: 0, y: 0, radius: 2, height: 5 }],
+    })
+    expect(model.curves).toHaveLength(4)
+    expect(model.curves.filter((c) => c.dashed)).toHaveLength(1)
+    expect(model.curves[0].d).toMatch(/^M [\d.]+ [\d.]+ A [\d.]+ [\d.]+ 0 0 0 /)
+    expect(model.segments).toHaveLength(2)
   })
 })

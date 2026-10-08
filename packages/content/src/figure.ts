@@ -22,13 +22,18 @@ export type FigurePoint = {
   label?: { placement?: LabelPlacement }
 }
 
+/** "dashed" draws a hidden edge or a construction line (ADR 0013, amendment #215). */
+export type FigureLineStyle = 'solid' | 'dashed'
+
 export type FigureSegment = {
   from: string
   to: string
+  style?: FigureLineStyle
 }
 
 export type FigurePolygon = {
   vertices: string[]
+  style?: FigureLineStyle
 }
 
 export type FigureCircle =
@@ -63,7 +68,37 @@ export type FigureNumberLine = {
 
 export type FigurePolyline = {
   points: string[]
+  style?: FigureLineStyle
 }
+
+type SolidPlacement = {
+  /** Front bottom-left vertex (pavé, cube), first base vertex (prisme), lower base centre (cylindre). */
+  x: number
+  y: number
+  /** Angle of the receding edges in degrees, default 45. */
+  angle?: number
+  /** Reduction coefficient of the receding edges, default 0.5. */
+  reduction?: number
+}
+
+/** A solid in perspective cavalière; the drawing model decides which edges are hidden. */
+export type FigureSolid =
+  | (SolidPlacement & {
+      kind: 'pave'
+      width: number
+      height: number
+      depth: number
+      names?: string[]
+    })
+  | (SolidPlacement & { kind: 'cube'; edge: number; names?: string[] })
+  | (SolidPlacement & {
+      kind: 'prisme'
+      /** Front face in true size, as offsets from (x, y). Convex. */
+      base: Array<{ x: number; y: number }>
+      depth: number
+      names?: string[]
+    })
+  | (SolidPlacement & { kind: 'cylindre'; radius: number; height: number })
 
 export type FigureAxis = {
   from: number
@@ -98,12 +133,17 @@ export type FigureSpec = {
   numberLines?: FigureNumberLine[]
   polylines?: FigurePolyline[]
   axes?: FigureAxes
+  solids?: FigureSolid[]
 }
 
 // --- Drawing model (SVG-ready, all coordinates in SVG pixels) ---
 
 export type DrawingSegment = { x1: number; y1: number; x2: number; y2: number }
+export type DrawingStroke = DrawingSegment & { dashed: boolean }
 export type DrawingPolygon = { points: string }
+export type DrawingShape = DrawingPolygon & { dashed: boolean }
+/** An SVG path (half-ellipses of a cylinder). */
+export type DrawingCurve = { d: string; dashed: boolean }
 export type DrawingCircle = { cx: number; cy: number; r: number }
 export type DrawingRightAngleSquare = { points: string }
 export type DrawingAngleArc = { d: string }
@@ -132,7 +172,7 @@ export type DrawingNumberLine = {
   }>
 }
 
-export type DrawingPolyline = { points: string }
+export type DrawingPolyline = { points: string; dashed: boolean }
 /** A positioned text with its own anchor and baseline (axis numbers, titles, the origin). */
 export type DrawingText = DrawingPointLabel
 export type DrawingAxis = {
@@ -151,8 +191,9 @@ export type DrawingAxes = {
 
 export type DrawingModel = {
   viewBox: string
-  segments: DrawingSegment[]
-  polygons: DrawingPolygon[]
+  segments: DrawingStroke[]
+  polygons: DrawingShape[]
+  curves: DrawingCurve[]
   circles: DrawingCircle[]
   rightAngleSquares: DrawingRightAngleSquare[]
   angleArcs: DrawingAngleArc[]
@@ -215,6 +256,12 @@ function computeViewport(spec: FigureSpec): CoordinateSpace {
   for (const nl of spec.numberLines ?? []) {
     xs.push(nl.from, nl.to)
     ys.push(0)
+  }
+  for (const solid of spec.solids ?? []) {
+    for (const p of expandSolid(solid).extent) {
+      xs.push(p.x)
+      ys.push(p.y)
+    }
   }
 
   if (xs.length === 0) return { xMin: -1, xMax: 1, yMin: -1, yMax: 1 }
@@ -330,22 +377,22 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
   const toSvg = spec.axes ? makeAxesTransform(viewport) : makeTransform(viewport)
 
   // Segments
-  const segments: DrawingSegment[] = (spec.segments ?? []).map((seg) => {
+  const segments: DrawingStroke[] = (spec.segments ?? []).map((seg) => {
     const p1 = requirePoint(pointMap, seg.from)
     const p2 = requirePoint(pointMap, seg.to)
     const s1 = toSvg(p1.x, p1.y)
     const s2 = toSvg(p2.x, p2.y)
-    return { x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y }
+    return { x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y, dashed: seg.style === 'dashed' }
   })
 
   // Polygons
-  const polygons: DrawingPolygon[] = (spec.polygons ?? []).map((poly) => {
+  const polygons: DrawingShape[] = (spec.polygons ?? []).map((poly) => {
     const pts = poly.vertices.map((name) => {
       const p = requirePoint(pointMap, name)
       const s = toSvg(p.x, p.y)
       return `${fmt(s.x)},${fmt(s.y)}`
     })
-    return { points: pts.join(' ') }
+    return { points: pts.join(' '), dashed: poly.style === 'dashed' }
   })
 
   // Circles
@@ -505,7 +552,23 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
         return `${fmt(s.x)},${fmt(s.y)}`
       })
       .join(' '),
+    dashed: pl.style === 'dashed',
   }))
+
+  // Solids: their edges join the segments, their half-ellipses the curves, their names the labels.
+  const curves: DrawingCurve[] = []
+  for (const solid of spec.solids ?? []) {
+    const drawing = expandSolid(solid)
+    for (const edge of drawing.edges) {
+      const a = drawing.vertices[edge.from]
+      const b = drawing.vertices[edge.to]
+      const s1 = toSvg(a.x, a.y)
+      const s2 = toSvg(b.x, b.y)
+      segments.push({ x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y, dashed: edge.hidden })
+    }
+    for (const arc of drawing.arcs) curves.push(ellipseArcPath(arc, toSvg))
+    pointLabels.push(...solidNameLabels(solid, drawing, toSvg))
+  }
 
   // A visible point named at (0, 0), usually O, labels the origin itself: no "0" on top of it.
   const originNamed = (spec.points ?? []).some(
@@ -517,6 +580,7 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     viewBox: `0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`,
     segments,
     polygons,
+    curves,
     circles,
     rightAngleSquares,
     angleArcs,
@@ -682,6 +746,194 @@ function buildAxes(
       }
 
   return { x: xAxis, y: yAxis, grid, origin: originLabel }
+}
+
+// --- Solids in perspective cavalière (ADR 0013, amendment #215) ---
+
+export type SolidEdge = { from: number; to: number; hidden: boolean }
+/** Half of an ellipse with horizontal and vertical semi-axes, in logical coordinates. */
+export type SolidArc = {
+  cx: number
+  cy: number
+  rx: number
+  ry: number
+  half: 'lower' | 'upper'
+  hidden: boolean
+}
+export type SolidDrawing = {
+  /** Projected vertices, in `names` order: front face, then the back face in the same order. */
+  vertices: Pt2[]
+  edges: SolidEdge[]
+  arcs: SolidArc[]
+  /** Every point the drawing reaches, for the bounding box. */
+  extent: Pt2[]
+}
+
+const DEFAULT_SOLID_ANGLE = 45
+const DEFAULT_SOLID_REDUCTION = 0.5
+
+/** Front face of a prism-like solid, as absolute coordinates. */
+function frontFace(solid: Exclude<FigureSolid, { kind: 'cylindre' }>): Pt2[] {
+  const { x, y } = solid
+  switch (solid.kind) {
+    case 'pave':
+      return [
+        { x, y },
+        { x: x + solid.width, y },
+        { x: x + solid.width, y: y + solid.height },
+        { x, y: y + solid.height },
+      ]
+    case 'cube':
+      return [
+        { x, y },
+        { x: x + solid.edge, y },
+        { x: x + solid.edge, y: y + solid.edge },
+        { x, y: y + solid.edge },
+      ]
+    case 'prisme':
+      return solid.base.map((p) => ({ x: x + p.x, y: y + p.y }))
+  }
+}
+
+function solidDepth(solid: Exclude<FigureSolid, { kind: 'cylindre' }>): number {
+  return solid.kind === 'cube' ? solid.edge : solid.depth
+}
+
+/**
+ * Projects a solid in perspective cavalière: a point at depth z is drawn at
+ * (x + z·k·cos α, y + z·k·sin α). A lateral face is visible when its outward normal points along
+ * the receding direction; the front face always is, the back face never is. An edge is hidden
+ * when none of its faces is visible. A cylinder is drawn upright with elliptical bases.
+ */
+export function expandSolid(solid: FigureSolid): SolidDrawing {
+  const angle = ((solid.angle ?? DEFAULT_SOLID_ANGLE) * Math.PI) / 180
+  const k = solid.reduction ?? DEFAULT_SOLID_REDUCTION
+
+  if (solid.kind === 'cylindre') {
+    const { x, y, radius: r, height: h } = solid
+    const ry = r * k * Math.abs(Math.sin(angle))
+    const top = y + h
+    const vertices = [
+      { x: x - r, y },
+      { x: x + r, y },
+      { x: x - r, y: top },
+      { x: x + r, y: top },
+    ]
+    return {
+      vertices,
+      edges: [
+        { from: 0, to: 2, hidden: false },
+        { from: 1, to: 3, hidden: false },
+      ],
+      arcs: [
+        { cx: x, cy: y, rx: r, ry, half: 'lower', hidden: false },
+        { cx: x, cy: y, rx: r, ry, half: 'upper', hidden: true },
+        { cx: x, cy: top, rx: r, ry, half: 'lower', hidden: false },
+        { cx: x, cy: top, rx: r, ry, half: 'upper', hidden: false },
+      ],
+      extent: [
+        { x: x - r, y: y - ry },
+        { x: x + r, y: top + ry },
+      ],
+    }
+  }
+
+  const front = frontFace(solid)
+  const n = front.length
+  const depth = solidDepth(solid) * k
+  const recede = { x: Math.cos(angle), y: Math.sin(angle) }
+  const back = front.map((p) => ({ x: p.x + depth * recede.x, y: p.y + depth * recede.y }))
+
+  // Shoelace: the outward normal of side (dx, dy) is (dy, −dx) on a counter-clockwise face.
+  let area = 0
+  for (let i = 0; i < n; i++) {
+    const a = front[i]
+    const b = front[(i + 1) % n]
+    area += a.x * b.y - b.x * a.y
+  }
+  const orientation = area >= 0 ? 1 : -1
+  const lateralVisible = front.map((a, i) => {
+    const b = front[(i + 1) % n]
+    const normal = { x: (b.y - a.y) * orientation, y: -(b.x - a.x) * orientation }
+    return dotProduct(normal, recede) > 1e-9
+  })
+
+  const edges: SolidEdge[] = []
+  for (let i = 0; i < n; i++) {
+    const next = (i + 1) % n
+    edges.push({ from: i, to: next, hidden: false })
+    edges.push({ from: n + i, to: n + next, hidden: !lateralVisible[i] })
+    const previous = (i + n - 1) % n
+    edges.push({ from: i, to: n + i, hidden: !lateralVisible[previous] && !lateralVisible[i] })
+  }
+
+  const vertices = [...front, ...back]
+  return { vertices, edges, arcs: [], extent: vertices }
+}
+
+function ellipseArcPath(arc: SolidArc, toSvg: (lx: number, ly: number) => Pt2): DrawingCurve {
+  const left = toSvg(arc.cx - arc.rx, arc.cy)
+  const right = toSvg(arc.cx + arc.rx, arc.cy)
+  const centre = toSvg(arc.cx, arc.cy)
+  const rx = Math.abs(right.x - centre.x)
+  const ry = Math.abs(toSvg(arc.cx, arc.cy + arc.ry).y - centre.y)
+  // From left to right, sweep 0 passes below the centre on screen (the lower half), sweep 1 above.
+  const sweep = arc.half === 'lower' ? 0 : 1
+  return {
+    d: `M ${fmt(left.x)} ${fmt(left.y)} A ${fmt(rx)} ${fmt(ry)} 0 0 ${sweep} ${fmt(right.x)} ${fmt(right.y)}`,
+    dashed: arc.hidden,
+  }
+}
+
+const SOLID_NAME_OFFSET_PX = 9
+
+/**
+ * A vertex name sits in the widest free angle between the edges that meet at the vertex, so it
+ * never lies on an edge; between two equal angles, the one facing away from the solid wins.
+ */
+function solidNameLabels(
+  solid: FigureSolid,
+  drawing: SolidDrawing,
+  toSvg: (lx: number, ly: number) => Pt2
+): DrawingPointLabel[] {
+  if (solid.kind === 'cylindre' || !solid.names) return []
+  const svg = drawing.vertices.map((v) => toSvg(v.x, v.y))
+  const centre = {
+    x: svg.reduce((sum, v) => sum + v.x, 0) / svg.length,
+    y: svg.reduce((sum, v) => sum + v.y, 0) / svg.length,
+  }
+  return solid.names.slice(0, svg.length).map((name, i) => {
+    const v = svg[i]
+    const directions = drawing.edges
+      .filter((e) => e.from === i || e.to === i)
+      .map((e) => svg[e.from === i ? e.to : e.from])
+      .map((w) => Math.atan2(w.y - v.y, w.x - v.x))
+      .sort((a, b) => a - b)
+    const away = Math.atan2(v.y - centre.y, v.x - centre.x)
+    let best = { gap: -1, mid: away }
+    directions.forEach((a, k) => {
+      const b = k + 1 < directions.length ? directions[k + 1] : directions[0] + 2 * Math.PI
+      const gap = b - a
+      const mid = a + gap / 2
+      const closer = angularDistance(mid, away) < angularDistance(best.mid, away)
+      if (gap > best.gap + 1e-6 || (Math.abs(gap - best.gap) <= 1e-6 && closer)) {
+        best = { gap, mid }
+      }
+    })
+    const u = { x: Math.cos(best.mid), y: Math.sin(best.mid) }
+    return {
+      text: name,
+      x: v.x + u.x * SOLID_NAME_OFFSET_PX,
+      y: v.y + u.y * SOLID_NAME_OFFSET_PX,
+      anchor: u.x > 0.38 ? 'start' : u.x < -0.38 ? 'end' : 'middle',
+      baseline: u.y > 0.38 ? 'hanging' : u.y < -0.38 ? 'auto' : 'middle',
+    }
+  })
+}
+
+function angularDistance(a: number, b: number): number {
+  const d = Math.abs(a - b) % (2 * Math.PI)
+  return d > Math.PI ? 2 * Math.PI - d : d
 }
 
 // --- Geometry validation helpers (used by check-content.mjs and tests) ---

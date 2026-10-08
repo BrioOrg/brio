@@ -5,6 +5,8 @@
 - **Deciders**: Pierce
 - **Amended**: 2026-10-08 (#214) — orthogonal repère (`axes`), hidden points, polylines,
   French number formatting; a repère gives each axis its own scale (see "Amendment (#214)")
+- **Amended**: 2026-10-08 (#215) — dashed lines and solids in perspective cavalière (`solids`);
+  the renderer, not the author, decides which edges are hidden (see "Amendment (#215)")
 
 ## Context
 
@@ -111,6 +113,46 @@ that needs both (symmetry in a repère, a right angle between two lines) uses
 equal spans. Letting a student *place* a point in a repère is a different
 exercise type and stays out of scope.
 
+## Amendment (#215) — perspective cavalière
+
+**Context.** The 5e chapter `solides-volumes` (cycle-4 programme of 2026) asks students to
+read and draw a pavé, a cube, a prisme droit and a cylindre in perspective cavalière, and to
+match a solid with its patron. Every line the block drew was solid, so a cube would have shown
+twelve solid edges: the central rule of the convention, hidden edges dashed, would have been
+taught wrong. The chapter had no drawing at all. Writing the receding edges by hand (angle,
+reduction coefficient) is error-prone, and CI cannot tell which edges should be hidden.
+
+**Decision.** Additive schema changes, `schemaVersion` unchanged (ADR 0004):
+
+1. **`style: "dashed"`** on `segments`, `polylines` and `polygons` (default `"solid"`). A single
+   dashed side of a polygon is drawn as a segment.
+2. **`spec.solids`**, a high-level element the drawing model expands into edges:
+   - `pave` (`width`, `height`, `depth`), `cube` (`edge`), `prisme` (`base`: a convex polygon,
+     the front face in true size, plus `depth`), `cylindre` (`radius`, `height`);
+   - placed by `x`, `y`: the front bottom-left vertex, the first vertex of a prism's base, or the
+     centre of a cylinder's lower base;
+   - `angle` (default 45°) and `reduction` (default 0.5) of the receding edges;
+   - `names`: optional vertex names, front face first, then the back face in the same order
+     (ABCD then EFGH for a pavé). They are written next to the vertices, hidden ones included.
+     They are not `points`: other elements cannot reference them.
+3. **The renderer decides what is hidden.** A point at depth z is drawn at
+   `(x + z·k·cos α, y + z·k·sin α)`. A lateral face is visible when its outward normal points
+   along the receding direction; the front face is always visible, the back face never. An edge
+   is dashed when none of its faces is visible. The author gives dimensions, never a dashed edge
+   of a solid, so a wrong convention cannot be written.
+4. **The cylinder is drawn upright**, as in textbooks: two ellipses of horizontal semi-axis r and
+   vertical semi-axis r·k·sin α, the two outer generators, and the back half of the lower base
+   dashed. This is the conventional drawing, not the exact oblique projection of a horizontal
+   circle (a slanted ellipse). No public ellipse element: no figure needs one outside a cylinder.
+5. `check-content` rejects non-positive dimensions, a reduction outside ]0, 1], an angle outside
+   ]0°, 180°[ or equal to 90°, a non-convex or degenerate prism base, and names in the wrong
+   number, duplicated, blank or shared with a point. `solids` cannot sit in a repère or next to a
+   number line, which use their own scales.
+
+**Consequences.** Solids are authored as data, checked by CI and rendered the same way on web and
+mobile. A patron is still drawn with polygons. Out of scope: arcs and half-disks, cube assemblages
+(6e `espace-solides`), pyramids and cones (4e), length marks on a solid's edges.
+
 ## Consequences
 
 ### Positive
@@ -142,7 +184,8 @@ exercise type and stays out of scope.
 - Parallel-coding marks (arrows on parallel sides): deferred until the
   positions-relatives chapter.
 - 3D solids and nets: chapter `espace-solides` remains blocked and is noted
-  as such in the 6e README.
+  as such in the 6e README. *Amended by #215: prisms and cylinders are drawn by `solids`; cube
+  assemblages remain out of scope.*
 
 ## Alternatives considered
 
