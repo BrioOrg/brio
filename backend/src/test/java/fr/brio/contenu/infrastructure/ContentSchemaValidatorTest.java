@@ -219,6 +219,47 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptACubeAssemblageDescribedByItsPlanCote() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un assemblage de 8 cubes",
+                  "spec": { "solids": [ { "kind": "assemblage", "x": 0, "y": 0, "angle": 30,
+                                          "heights": [ [2, 1, 0], [3, 1, 1] ] } ] } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectVertexNamesOrAFractionalHeightOnAnAssemblage() {
+        String named =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un assemblage",
+                  "spec": { "solids": [ { "kind": "assemblage", "x": 0, "y": 0, "heights": [ [1] ],
+                                          "names": ["A"] } ] } }
+                """;
+        String fractional =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un assemblage",
+                  "spec": { "solids": [ { "kind": "assemblage", "x": 0, "y": 0, "heights": [ [1.5] ] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(named)))
+                .isInstanceOf(InvalidContentException.class);
+        assertThatThrownBy(() -> validator.validate(chapterWith(fractional)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectAPlanCoteOnAnotherKindOfSolid() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un cube",
+                  "spec": { "solids": [ { "kind": "cube", "x": 0, "y": 0, "edge": 2, "heights": [ [1] ] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldAcceptABarAPieAndALineChart() {
         String bar =
                 """
