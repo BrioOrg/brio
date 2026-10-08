@@ -90,9 +90,9 @@ les exercices ont `competencies: []`. Ils ne comptent donc pas dans la maîtrise
 
 - **Perspective cavalière** (#215) : aucun solide n'est dessiné en perspective, faute de traits
   pointillés pour les arêtes cachées. Les règles sont décrites en texte. Les patrons (cube,
-  cylindre) sont dessinés, avec un point noir à chaque sommet.
-- **Diagrammes** (#216) : le diagramme en barres est fait de rectangles (points aux coins,
-  catégories sur deux hauteurs pour ne pas se chevaucher). Aucun diagramme circulaire.
+  cylindre) sont dessinés, sans point aux sommets.
+- **Diagrammes** (#216) : le diagramme en barres est fait de rectangles (catégories sur
+  deux hauteurs pour ne pas se chevaucher, axe vertical sans graduations). Aucun diagramme circulaire.
 - **Programmes par blocs** (#217) : texte dans un bloc `code`. Le signe × remplace le `*` de
   Scratch, car un `*` isolé ouvre un italique dans le texte riche.
 - Placer un point dans un repère, tracer ou construire à la règle : impossible à évaluer en ligne.

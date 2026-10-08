@@ -44,12 +44,15 @@
                 "y": 5,
                 "label": {
                   "placement": "above"
-                }
+                },
+                "dot": false
               },
               {
-                "name": " ",
+                "name": "dbas",
                 "x": 0,
-                "y": -1
+                "y": -1,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "M",
@@ -78,7 +81,7 @@
             ],
             "segments": [
               {
-                "from": " ",
+                "from": "dbas",
                 "to": "(d)"
               },
               {
@@ -269,12 +272,15 @@
                 "y": 5,
                 "label": {
                   "placement": "above"
-                }
+                },
+                "dot": false
               },
               {
-                "name": " ",
+                "name": "dbas",
                 "x": 0,
-                "y": -1
+                "y": -1,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "A",
@@ -327,7 +333,7 @@
             ],
             "segments": [
               {
-                "from": " ",
+                "from": "dbas",
                 "to": "(d)"
               }
             ],

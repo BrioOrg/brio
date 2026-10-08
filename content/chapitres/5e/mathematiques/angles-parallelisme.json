@@ -65,9 +65,11 @@
           "spec": {
             "points": [
               {
-                "name": " ",
+                "name": "d1g",
                 "x": -1,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "(d₁)",
@@ -75,12 +77,15 @@
                 "y": 3,
                 "label": {
                   "placement": "right"
-                }
+                },
+                "dot": false
               },
               {
-                "name": "  ",
+                "name": "d2g",
                 "x": -1,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "(d₂)",
@@ -88,12 +93,15 @@
                 "y": 0,
                 "label": {
                   "placement": "right"
-                }
+                },
+                "dot": false
               },
               {
-                "name": "   ",
+                "name": "tb",
                 "x": -0.5,
-                "y": -1.5
+                "y": -1.5,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "(t)",
@@ -101,7 +109,8 @@
                 "y": 4.5,
                 "label": {
                   "placement": "above"
-                }
+                },
+                "dot": false
               },
               {
                 "name": "N",
@@ -122,23 +131,23 @@
             ],
             "segments": [
               {
-                "from": " ",
+                "from": "d1g",
                 "to": "(d₁)"
               },
               {
-                "from": "  ",
+                "from": "d2g",
                 "to": "(d₂)"
               },
               {
-                "from": "   ",
+                "from": "tb",
                 "to": "(t)"
               }
             ],
             "angleMarks": [
               {
                 "vertex": "N",
-                "from": " ",
-                "to": "   "
+                "from": "d1g",
+                "to": "tb"
               },
               {
                 "vertex": "M",
@@ -163,9 +172,11 @@
           "spec": {
             "points": [
               {
-                "name": " ",
+                "name": "d1g",
                 "x": -1,
-                "y": 3
+                "y": 3,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "(d₁)",
@@ -173,12 +184,15 @@
                 "y": 3,
                 "label": {
                   "placement": "right"
-                }
+                },
+                "dot": false
               },
               {
-                "name": "  ",
+                "name": "d2g",
                 "x": -1,
-                "y": 0
+                "y": 0,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "(d₂)",
@@ -186,12 +200,15 @@
                 "y": 0,
                 "label": {
                   "placement": "right"
-                }
+                },
+                "dot": false
               },
               {
-                "name": "   ",
+                "name": "tb",
                 "x": -0.5,
-                "y": -1.5
+                "y": -1.5,
+                "dot": false,
+                "showName": false
               },
               {
                 "name": "(t)",
@@ -199,7 +216,8 @@
                 "y": 4.5,
                 "label": {
                   "placement": "above"
-                }
+                },
+                "dot": false
               },
               {
                 "name": "N",
@@ -220,15 +238,15 @@
             ],
             "segments": [
               {
-                "from": " ",
+                "from": "d1g",
                 "to": "(d₁)"
               },
               {
-                "from": "  ",
+                "from": "d2g",
                 "to": "(d₂)"
               },
               {
-                "from": "   ",
+                "from": "tb",
                 "to": "(t)"
               }
             ],
