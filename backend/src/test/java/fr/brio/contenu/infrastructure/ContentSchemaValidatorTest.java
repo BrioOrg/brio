@@ -219,6 +219,69 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptABarAPieAndALineChart() {
+        String bar =
+                """
+                { "id": "c1", "type": "chart", "kind": "bar", "title": "Sport préféré",
+                  "xLabel": "Sport", "yLabel": "Effectif", "yMax": 10, "yStep": 2, "showValues": true,
+                  "alt": "Football 8, Basket 5",
+                  "series": [ { "label": "Effectif",
+                                "data": [ { "label": "Football", "value": 8 }, { "label": "Basket", "value": 5 } ] } ] }
+                """;
+        String pie =
+                """
+                { "id": "c2", "type": "chart", "kind": "pie", "alt": "Football 8, Basket 5",
+                  "series": [ { "label": "Effectif",
+                                "data": [ { "label": "Football", "value": 8 }, { "label": "Basket", "value": 5 } ] } ] }
+                """;
+        String line =
+                """
+                { "id": "c3", "type": "chart", "kind": "line", "alt": "6 h : −2 °C, 12 h : 9 °C",
+                  "series": [ { "label": "Température (°C)",
+                                "data": [ { "label": "6 h", "value": -2 }, { "label": "12 h", "value": 9 } ] } ] }
+                """;
+        for (String block : List.of(bar, pie, line)) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectAxisFieldsOnAPieChart() {
+        String block =
+                """
+                { "id": "c1", "type": "chart", "kind": "pie", "yLabel": "Effectif", "alt": "A 1, B 2",
+                  "series": [ { "label": "Effectif",
+                                "data": [ { "label": "A", "value": 1 }, { "label": "B", "value": 2 } ] } ] }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectASecondSeries() {
+        String block =
+                """
+                { "id": "c1", "type": "chart", "kind": "bar", "alt": "Deux séries",
+                  "series": [
+                    { "label": "Filles", "data": [ { "label": "A", "value": 1 }, { "label": "B", "value": 2 } ] },
+                    { "label": "Garçons", "data": [ { "label": "A", "value": 3 }, { "label": "B", "value": 4 } ] } ] }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectAChartWithoutAlt() {
+        String block =
+                """
+                { "id": "c1", "type": "chart", "kind": "bar",
+                  "series": [ { "label": "n", "data": [ { "label": "A", "value": 1 }, { "label": "B", "value": 2 } ] } ] }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldLocateAMissingExerciseFieldByItsName() {
         String block = """
                 { "id": "ex1", "type": "exercise", "exerciseType": "numeric", "prompt": "Combien ?" }
