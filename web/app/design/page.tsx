@@ -151,6 +151,37 @@ export default function DesignPage() {
           </div>
         </Section>
 
+        {/* ── Cube assemblages ──────────────────────────────────────────────── */}
+        <Section title="Assemblages de cubes">
+          <Label>Une teinte par face, du dessus (clair) au côté (foncé) — arêtes en ink</Label>
+          <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-4">
+            <svg viewBox="-2 -2 58 58" role="img" className="h-16 w-16 text-ink">
+              <title>Un cube vu en perspective cavalière</title>
+              <polygon
+                points="0,14 40,14 54,0 14,0"
+                className="fill-cube-top"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              />
+              <polygon
+                points="40,14 54,0 54,40 40,54"
+                className="fill-cube-side"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              />
+              <polygon
+                points="0,14 40,14 40,54 0,54"
+                className="fill-cube-front"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              />
+            </svg>
+            <Swatch token="cube-top" label="Dessus" />
+            <Swatch token="cube-front" label="Face" />
+            <Swatch token="cube-side" label="Côté" />
+          </div>
+        </Section>
+
         {/* ── Typography ────────────────────────────────────────────────────── */}
         <Section title="Typographie">
           <div className="flex flex-col gap-4">

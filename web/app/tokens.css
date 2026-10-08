@@ -262,6 +262,16 @@
   --color-scratch-operators-edge: #389438;
   --color-scratch-variables: #ff8c1a;
   --color-scratch-variables-edge: #db6e00;
+
+  /* -- Cube assemblages ---------------------------------------------------- */
+  /* Faces of the unit cubes in a figure's assemblage (#226) — not in the
+     mockups. Shaded as in textbooks: top lightest, front, side darkest, so the
+     volume reads without hidden edges. Edges are drawn in ink, ≥ 3 : 1 on every
+     face (graphics, verified by check-contrast.mjs), so the values flip with
+     the theme: dark green-greys here, light ones in the light theme. */
+  --color-cube-top: #4f7562;
+  --color-cube-front: #33503f;
+  --color-cube-side: #1f3329;
 }
 
 /* --------------------------------------------------------------------------
@@ -332,6 +342,11 @@
   --color-chart-4: #6b40cc;
   --color-chart-5: #c2185b;
   --color-chart-6: #6b7a72;
+
+  /* Cube faces: light, so the dark ink edges clear 3 : 1. */
+  --color-cube-top: #f4fbf7;
+  --color-cube-front: #bddbc9;
+  --color-cube-side: #8bb39d;
 }
 
 /* System preference fallback — applies when no data-theme attribute is set */
@@ -375,6 +390,10 @@
     --color-chart-4: #6b40cc;
     --color-chart-5: #c2185b;
     --color-chart-6: #6b7a72;
+
+    --color-cube-top: #f4fbf7;
+    --color-cube-front: #bddbc9;
+    --color-cube-side: #8bb39d;
   }
 }
 
