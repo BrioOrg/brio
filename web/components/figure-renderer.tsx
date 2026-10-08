@@ -5,6 +5,9 @@ import {
   type FigureSpec,
 } from '@brio/content'
 
+// Hidden edges and construction lines, in viewBox units like the stroke widths (ADR 0013, #215).
+const DASH = '5 4'
+
 export function FigureRenderer({
   spec,
   alt,
@@ -58,6 +61,7 @@ export function FigureRenderer({
               fill="none"
               stroke="currentColor"
               strokeWidth={1.5}
+              strokeDasharray={poly.dashed ? DASH : undefined}
             />
           ))}
 
@@ -71,6 +75,19 @@ export function FigureRenderer({
               y2={seg.y2}
               stroke="currentColor"
               strokeWidth={1.5}
+              strokeDasharray={seg.dashed ? DASH : undefined}
+            />
+          ))}
+
+          {/* Half-ellipses of cylinder bases */}
+          {model.curves.map((curve, i) => (
+            <path
+              key={i}
+              d={curve.d}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeDasharray={curve.dashed ? DASH : undefined}
             />
           ))}
 
@@ -83,6 +100,7 @@ export function FigureRenderer({
               stroke="currentColor"
               strokeWidth={1.5}
               strokeLinejoin="round"
+              strokeDasharray={pl.dashed ? DASH : undefined}
             />
           ))}
 
