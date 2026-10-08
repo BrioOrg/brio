@@ -302,6 +302,17 @@ describe('buildDrawingModel — repère (axes)', () => {
     expect(a.cx - o.cx).toBeCloseTo(o.cy - b.cy, 6)
   })
 
+  it('throws a readable error for an axis that cannot be drawn', () => {
+    const flat = { axes: { x: { from: 0, to: 0, step: 1 }, y: { from: 0, to: 5, step: 1 } } }
+    expect(() => buildDrawingModel(flat)).toThrow('Axe des abscisses')
+    const noOrigin = { axes: { x: { from: 0, to: 5, step: 1 }, y: { from: 2, to: 5, step: 1 } } }
+    expect(() => buildDrawingModel(noOrigin)).toThrow('0 doit être entre')
+    const tooDense = {
+      axes: { x: { from: 0, to: 5, step: 0.001 }, y: { from: 0, to: 5, step: 1 } },
+    }
+    expect(() => buildDrawingModel(tooDense)).toThrow('trop de graduations')
+  })
+
   it('titles each axis at its arrow', () => {
     const axes = buildDrawingModel(repere).axes!
     expect(axes.x.title?.text).toBe('Heure (h)')
@@ -345,4 +356,3 @@ describe('buildDrawingModel — hidden points and polylines', () => {
     ).toThrow('Point "Z" not found')
   })
 })
-

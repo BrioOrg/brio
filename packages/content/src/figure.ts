@@ -321,6 +321,10 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     (spec.points ?? []).map((p) => [p.name, { x: p.x, y: p.y }])
   )
 
+  if (spec.axes) {
+    assertDrawableAxis(spec.axes.x, 'des abscisses')
+    assertDrawableAxis(spec.axes.y, 'des ordonnées')
+  }
   const viewport = computeViewport(spec)
   const toSvg = spec.axes ? makeAxesTransform(viewport) : makeTransform(viewport)
 
@@ -533,6 +537,20 @@ function axisValues(axis: FigureAxis): number[] {
 function isMultiple(value: number, of: number): boolean {
   const q = value / of
   return Math.abs(q - Math.round(q)) < 1e-9
+}
+
+// An axis being typed in the editor can be momentarily impossible (to = from, step = 0): fail with
+// a readable message rather than draw NaN, or loop over millions of ticks.
+const MAX_TICKS_PER_AXIS = 200
+
+function assertDrawableAxis(axis: FigureAxis, name: string): void {
+  if (!(axis.from < axis.to)) throw new Error(`Axe ${name} : le début doit être inférieur à la fin`)
+  if (axis.from > 0 || axis.to < 0)
+    throw new Error(`Axe ${name} : 0 doit être entre le début et la fin`)
+  if (!(axis.step > 0)) throw new Error(`Axe ${name} : le pas doit être positif`)
+  if ((axis.to - axis.from) / axis.step > MAX_TICKS_PER_AXIS) {
+    throw new Error(`Axe ${name} : trop de graduations, augmente le pas`)
+  }
 }
 
 function buildAxes(spec: FigureAxes, toSvg: (lx: number, ly: number) => Pt2): DrawingAxes {

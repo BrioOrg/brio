@@ -173,6 +173,54 @@ describe('BlocEditeur — figure', () => {
   })
 })
 
+describe('BlocEditeur — figure en repère', () => {
+  it('trace un repère avec quadrillage et règle un axe', async () => {
+    render(<HarnaisBloc type="figure" />)
+
+    await userEvent.click(screen.getByLabelText('Tracer un repère'))
+    const fin = screen.getByLabelText('Axe des ordonnées — fin')
+    await userEvent.clear(fin)
+    await userEvent.type(fin, '20')
+    await userEvent.type(screen.getByLabelText('Axe des ordonnées — titre'), 'Prix (€)')
+
+    const axes = (etat().spec as { axes: Record<string, unknown> }).axes
+    expect(axes).toMatchObject({
+      x: { from: 0, to: 10, step: 1 },
+      y: { from: 0, to: 20, step: 1, title: 'Prix (€)' },
+      grid: true,
+    })
+    // Les axes fixent la zone : le réglage manuel disparaît.
+    expect(screen.queryByText(/Fixer la zone affichée/)).not.toBeInTheDocument()
+  })
+
+  it('masque le point noir et le nom d’un point de construction', async () => {
+    render(<HarnaisBloc type="figure" />)
+
+    await userEvent.click(screen.getByRole('button', { name: '＋ Point' }))
+    await userEvent.click(screen.getByLabelText('Afficher le point A'))
+    await userEvent.click(screen.getByLabelText('Afficher le nom du point A'))
+
+    const [a] = (etat().spec as { points: Record<string, unknown>[] }).points
+    expect(a).toMatchObject({ name: 'A', dot: false, showName: false })
+  })
+
+  it('relie trois points par une ligne brisée', async () => {
+    render(<HarnaisBloc type="figure" />)
+
+    for (let i = 0; i < 3; i++) {
+      await userEvent.click(screen.getByRole('button', { name: '＋ Point' }))
+    }
+    await userEvent.click(screen.getByRole('button', { name: '＋ Ligne brisée' }))
+    await userEvent.click(screen.getByRole('button', { name: '＋ point' }))
+    for (const [k, nom] of ['A', 'B', 'C'].entries()) {
+      await userEvent.selectOptions(screen.getByLabelText(`Ligne brisée 1 — point ${k + 1}`), nom)
+    }
+
+    const pl = (etat().spec as { polylines: { points: string[] }[] }).polylines
+    expect(pl).toEqual([{ points: ['A', 'B', 'C'] }])
+  })
+})
+
 describe('BlocEditeur — texte à trous', () => {
   it('ajoute une réponse attendue par trou et la met dans la banque', async () => {
     render(<Harnais exerciseType="fill-blank" />)
