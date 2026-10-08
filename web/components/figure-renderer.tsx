@@ -154,7 +154,7 @@ export function FigureRenderer({
                       x={tick.labelX}
                       y={tick.labelY}
                       textAnchor="middle"
-                      dominantBaseline="hanging"
+                      dominantBaseline={tick.labelBaseline}
                       fontSize={11}
                       fill="currentColor"
                     >

@@ -25,4 +25,10 @@ export type {
   DrawingNumberLine,
   DrawingModel,
 } from './figure'
-export { buildDrawingModel, angleDegrees, euclideanLength, isCollinear } from './figure'
+export {
+  buildDrawingModel,
+  formatNumber,
+  angleDegrees,
+  euclideanLength,
+  isCollinear,
+} from './figure'

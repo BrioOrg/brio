@@ -103,6 +103,8 @@ export type DrawingNumberLine = {
     label?: string
     labelX: number
     labelY: number
+    // Numbers sit below the line ('hanging'); a mark's own label sits above it ('auto').
+    labelBaseline: 'auto' | 'hanging'
   }>
 }
 
@@ -237,6 +239,16 @@ function findSegment(name: string, segments: FigureSegment[]): FigureSegment | u
 
 function fmt(n: number): string {
   return n.toFixed(2)
+}
+
+/**
+ * Formats a number the way a French maths page writes it: a true minus sign (−, U+2212) and a
+ * decimal comma. Rounds away floating-point noise first, so 0.1 + 0.2 prints as "0,3".
+ */
+export function formatNumber(n: number): string {
+  const rounded = Number(n.toFixed(10))
+  const text = String(Math.abs(rounded)).replace('.', ',')
+  return rounded < 0 ? `\u2212${text}` : text
 }
 
 export function buildDrawingModel(spec: FigureSpec): DrawingModel {
@@ -388,9 +400,10 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
         y1: sv.y - 6,
         x2: sv.x,
         y2: sv.y + 6,
-        label: isLabelTick ? String(value) : undefined,
+        label: isLabelTick ? formatNumber(value) : undefined,
         labelX: sv.x,
         labelY: sv.y + 18,
+        labelBaseline: 'hanging',
       })
       value = nl.from + Math.round((value - nl.from) / nl.step + 1) * nl.step
     }
@@ -404,7 +417,8 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
         y2: sv.y + 8,
         label: mark.label,
         labelX: sv.x,
-        labelY: sv.y + 20,
+        labelY: sv.y - 12,
+        labelBaseline: 'auto',
       })
     }
 

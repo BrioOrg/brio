@@ -3,6 +3,7 @@ import {
   angleDegrees,
   buildDrawingModel,
   euclideanLength,
+  formatNumber,
   isCollinear,
   type FigureSpec,
 } from '../figure'
@@ -66,6 +67,25 @@ describe('isCollinear', () => {
 describe('euclideanLength', () => {
   it('computes the length of a 3-4-5 hypotenuse', () => {
     expect(euclideanLength({ x: 0, y: 0 }, { x: 4, y: 3 })).toBeCloseTo(5, 10)
+  })
+})
+
+describe('formatNumber', () => {
+  it('writes a negative number with a true minus sign', () => {
+    expect(formatNumber(-3)).toBe('\u22123')
+  })
+
+  it('writes a decimal with a comma', () => {
+    expect(formatNumber(0.5)).toBe('0,5')
+    expect(formatNumber(-1.5)).toBe('\u22121,5')
+  })
+
+  it('rounds away floating-point noise', () => {
+    expect(formatNumber(0.1 + 0.2)).toBe('0,3')
+  })
+
+  it('writes zero without a sign', () => {
+    expect(formatNumber(-0)).toBe('0')
   })
 })
 
@@ -195,5 +215,23 @@ describe('buildDrawingModel', () => {
     expect(model.numberLines).toHaveLength(1)
     // 0, 1, 2, 3, 4, 5 → 6 ticks
     expect(model.numberLines[0].ticks.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it('labels number-line ticks in French notation', () => {
+    const model = buildDrawingModel({ numberLines: [{ from: -1, to: 1, step: 0.5 }] })
+    const labels = model.numberLines[0].ticks.map((t) => t.label)
+    expect(labels).toEqual(['\u22121', '\u22120,5', '0', '0,5', '1'])
+  })
+
+  it('puts a mark label above the line and the numbers below it', () => {
+    const model = buildDrawingModel({
+      numberLines: [{ from: 0, to: 4, step: 1, marks: [{ value: 2, label: 'A' }] }],
+    })
+    const ticks = model.numberLines[0].ticks
+    const number = ticks.find((t) => t.label === '2')
+    const mark = ticks.find((t) => t.label === 'A')
+    expect(number?.labelBaseline).toBe('hanging')
+    expect(mark?.labelBaseline).toBe('auto')
+    expect(mark!.labelY).toBeLessThan(number!.labelY)
   })
 })
