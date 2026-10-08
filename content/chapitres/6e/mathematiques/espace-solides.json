@@ -55,6 +55,33 @@
           "caption": "Plan coté de l'assemblage A : on le regarde de dessus, la rangée « devant » est du côté de l'observateur."
         },
         {
+          "id": "figure-assemblage-a",
+          "type": "figure",
+          "alt": "L'assemblage A en perspective : devant, une colonne de 3 cubes à gauche puis un cube au milieu et un cube à droite ; au fond, une colonne de 2 cubes à gauche et un cube au milieu, rien à droite.",
+          "caption": "L'assemblage A, dessiné à partir de son plan coté.",
+          "spec": {
+            "solids": [
+              {
+                "kind": "assemblage",
+                "x": 0,
+                "y": 0,
+                "heights": [
+                  [
+                    2,
+                    1,
+                    0
+                  ],
+                  [
+                    3,
+                    1,
+                    1
+                  ]
+                ]
+              }
+            ]
+          }
+        },
+        {
           "id": "exemple-lecture",
           "type": "callout",
           "variant": "example",
@@ -246,6 +273,33 @@
             ]
           ],
           "caption": "Plan coté de l'assemblage C."
+        },
+        {
+          "id": "figure-assemblage-c",
+          "type": "figure",
+          "alt": "L'assemblage C en perspective : au fond, des colonnes de 3, 3 et 2 cubes ; devant, une colonne de 1 cube à gauche, de 2 cubes au milieu, et rien à droite.",
+          "caption": "L'assemblage C : certains cubes sont cachés derrière d'autres.",
+          "spec": {
+            "solids": [
+              {
+                "kind": "assemblage",
+                "x": 0,
+                "y": 0,
+                "heights": [
+                  [
+                    3,
+                    3,
+                    2
+                  ],
+                  [
+                    1,
+                    2,
+                    0
+                  ]
+                ]
+              }
+            ]
+          }
         },
         {
           "id": "ex-final-compter-c",
