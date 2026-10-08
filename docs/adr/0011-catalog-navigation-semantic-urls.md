@@ -3,6 +3,8 @@
 - **Status**: Accepted
 - **Date**: 2026-08-20
 - **Deciders**: Pierce
+- **Amended**: 2026-10-08 (#218) — §1: the slug is unique across the whole catalogue; the
+  planned `UNIQUE(niveau_code, matiere_code, id)` never replaced the `id` primary key
 
 ## Context
 
@@ -16,8 +18,11 @@ semantic, self-describing URLs that encode their own location.
 
 1. **Triplet URL scheme**: chapters are canonically addressed as
    `GET /api/chapitres/{niveau}/{matiere}/{slug}`. The `slug` is the chapter's existing `id`
-   field value; no separate column is added. The unique constraint becomes
-   `UNIQUE(niveau_code, matiere_code, id)` on `contenu.chapitres`.
+   field value; no separate column is added. The slug is **unique across the whole catalogue**
+   (every niveau and matière, annales included): `id` stays the primary key of
+   `contenu.chapitres`, and the triplet locates a chapter, it does not identify it.
+   `scripts/check-content.mjs` rejects two content files with the same `id`, and ingestion
+   rejects (FAILED) a chapter whose `id` already belongs to another niveau or matière.
 
 2. **Reference tables**: `contenu.niveaux` and `contenu.matieres` are static reference tables
    seeded in the V5 Flyway migration (not populated by ingestion). Ingestion validates that a
@@ -51,6 +56,10 @@ semantic, self-describing URLs that encode their own location.
 - Ingestion validated against reference tables prevents phantom grade levels from entering the DB.
 
 ### Negative / trade-offs
+- Two niveaux cannot share a slug: a 5e chapter on a topic already covered in 6e needs a slug
+  naming what is specific to it (`probabilites-equiprobabilite`, not `probabilites`). Before the
+  #218 amendment, a duplicate silently overwrote the other niveau's chapter and retired its
+  exercises.
 - Renaming a chapter requires a content-file rename, a new slug, and a new 308 — same cost as
   competency code retirement (accepted: rare, deliberate editorial action).
 - Adding a new subject requires a new migration to extend `contenu.matieres` (acceptable at
@@ -64,5 +73,9 @@ semantic, self-describing URLs that encode their own location.
   entry; a migration-seeded table is the authoritative single source for valid values.
 - **No 308 redirect** — rejected: existing integration tests and any client that cached the old
   URL would break silently.
+- **Composite key `UNIQUE(niveau_code, matiere_code, id)`** (this ADR's original wording) —
+  rejected in #218: `exercices.chapitre_id`, `annales.chapitre_id`, progression and social all
+  reference a chapter by `id` alone, and the §4 redirect maps one `id` to one triplet. Migrating
+  every reference costs far more than asking authors for distinct slugs.
 - **Separate `slug` column alongside `id`** — rejected: `id` IS the slug; a duplicate column
   adds no information and risks divergence.

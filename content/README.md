@@ -10,7 +10,7 @@ content/
     <niveau>/
       <matiere>/
         _index.json              # ordered list of slugs for this subject/level
-        <slug>.json              # one chapter file
+        <slug>.json              # one chapter file — slug unique across all of content/ (ADR 0011)
   referentiel/
     mathematiques-college.json   # competency referential (loaded at startup)
 ```
