@@ -59,9 +59,9 @@ Add a `chart` block to the content schema, separate from `figure`. Additive chan
    maps that model to SVG. Mobile reuses the function.
 9. **CI and publication.** `check-content` rejects: a series count other than one; blank or
    duplicated category labels; fewer than 2 or more than 12 categories (6 for a pie); a non-finite
-   value; a negative value in a `bar`; a value ≤ 0 in a `pie`; `yMax` below the largest value;
-   a non-positive `yStep`; `xLabel`, `yLabel`, `yMax`, `yStep` or `showValues` on a pie. The
-   publication validator requires `alt`, as for figures.
+   value; a negative value in a `bar`; a value ≤ 0 in a `pie`; `yMax` below the largest value; a
+   non-positive `yStep` or one giving more than 20 graduations; `xLabel`, `yLabel`, `yMax`, `yStep`
+   or `showValues` on a pie. The publication validator requires `alt`, as for figures.
 
 ## Consequences
 

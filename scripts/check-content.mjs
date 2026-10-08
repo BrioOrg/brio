@@ -25,7 +25,12 @@
  *      the right number (front face then back face), unique, not blank and not shared with a
  *      point; no solid in a repère or next to a number line.
  *
- * 3. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
+ * 3. Chart blocks (ADR 0030): exactly one series; 2 to 12 categories (6 for a pie), labels not
+ *    blank and not duplicated; finite values, none negative in a bar, all positive in a pie;
+ *    yMax not below the largest value; yStep positive and at most 20 graduations; no axis
+ *    field (xLabel, yLabel, yMax, yStep, showValues) on a pie.
+ *
+ * 4. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
  *    on `id` alone.
  *
@@ -394,13 +399,71 @@ function checkAxes(spec, file, path) {
   }
 }
 
+const MAX_CHART_GRADUATIONS = 20
+
+function checkChartBlock(block, file, path) {
+  const series = Array.isArray(block.series) ? block.series : []
+  if (series.length !== 1) {
+    fail(file, path + '.series', `a chart has exactly one series for now, found ${series.length}`)
+    return
+  }
+  const data = Array.isArray(series[0].data) ? series[0].data : []
+  const isPie = block.kind === 'pie'
+  const maxCategories = isPie ? 6 : 12
+  if (data.length < 2 || data.length > maxCategories) {
+    fail(file, path + '.series[0].data', `a ${block.kind} chart needs 2 to ${maxCategories} categories, found ${data.length}`)
+  }
+
+  const seen = new Set()
+  data.forEach((d, i) => {
+    const at = `${path}.series[0].data[${i}]`
+    const label = typeof d.label === 'string' ? d.label.trim() : ''
+    if (label === '') fail(file, at + '.label', 'blank category label')
+    else if (seen.has(label)) fail(file, at + '.label', `duplicate category "${label}"`)
+    seen.add(label)
+    if (typeof d.value !== 'number' || !Number.isFinite(d.value)) {
+      fail(file, at + '.value', 'value is not a finite number')
+    } else if (isPie && d.value <= 0) {
+      fail(file, at + '.value', 'a pie sector must have a positive value')
+    } else if (block.kind === 'bar' && d.value < 0) {
+      fail(file, at + '.value', 'a bar cannot be negative (use a line for values below 0)')
+    }
+  })
+
+  if (isPie) {
+    for (const field of ['xLabel', 'yLabel', 'yMax', 'yStep', 'showValues']) {
+      if (field in block) fail(file, `${path}.${field}`, 'a pie has no axis')
+    }
+    return
+  }
+
+  const values = data.map((d) => d.value).filter((v) => Number.isFinite(v))
+  const largest = Math.max(0, ...values)
+  const smallest = Math.min(0, ...values)
+  if (block.yMax !== undefined && block.yMax < largest) {
+    fail(file, path + '.yMax', `yMax ${block.yMax} is below the largest value ${largest}`)
+  }
+  if (block.yStep !== undefined) {
+    if (!(block.yStep > 0)) {
+      fail(file, path + '.yStep', 'yStep must be positive')
+    } else {
+      const top = block.yMax ?? largest
+      const bottom = smallest < 0 ? Math.floor(smallest / block.yStep) * block.yStep : 0
+      const graduations = (top - bottom) / block.yStep
+      if (graduations > MAX_CHART_GRADUATIONS) {
+        fail(file, path + '.yStep', `${Math.ceil(graduations)} graduations; at most ${MAX_CHART_GRADUATIONS}`)
+      }
+    }
+  }
+}
+
 function checkFigures(doc, file) {
   for (const section of doc.sections ?? []) {
     for (let i = 0; i < (section.blocks ?? []).length; i++) {
       const block = section.blocks[i]
-      if (block.type === 'figure') {
-        checkFigureBlock(block, file, `sections[id=${section.id}].blocks[${i}]`)
-      }
+      const path = `sections[id=${section.id}].blocks[${i}]`
+      if (block.type === 'figure') checkFigureBlock(block, file, path)
+      else if (block.type === 'chart') checkChartBlock(block, file, path)
     }
   }
 }
@@ -464,4 +527,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + unique chapter ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + unique chapter ids).`)
