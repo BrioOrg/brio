@@ -362,7 +362,7 @@ qui ne s'analyse pas, ligne par ligne.
   hauteur de `répéter`. Une boucle vide est refusée.
 - Pas de ligne vide. Les noms de variables n'ont pas d'espace (`résultat`, `nb_pas`).
 - **Hors catalogue** (conditions, comparaisons, « répéter jusqu'à », stylo) : garder un bloc `code`
-  en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute.
+  en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute (#234).
 - Un énoncé ou une option de QCM est du texte riche : un programme y reste écrit en texte, avec ×.
   Un exercice sur un programme suit le bloc `code`.
 

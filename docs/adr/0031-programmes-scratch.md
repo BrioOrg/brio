@@ -86,9 +86,9 @@ renderer, and the teacher editor, show the text as before.
 
 ### Follow-ups
 
-- An evaluator for "prévoir la valeur" exercises.
-- Choosing "Scratch" as the language of a code block in the teacher editor.
-- Conditions, comparisons and the pen for 4e.
+- An evaluator for "prévoir la valeur" exercises (#232).
+- Choosing "Scratch" as the language of a code block in the teacher editor (#233).
+- Conditions, comparisons and the pen for 4e (#234).
 
 ## Alternatives considered
 
