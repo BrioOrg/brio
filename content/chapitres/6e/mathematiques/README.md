@@ -107,5 +107,8 @@ par les fractions), mais si l'ordre devient gênant en classe, c'est ce fichier 
 - **Graphiques** : réglé par #216. `donnees-tableaux` représente des mesures dans un repère
   (partie de `c3.ogd.donnees.planifier-recueillir`) avec une courbe `chart` ; tracer soi-même le
   graphique reste un travail sur papier.
+- **Programmes par blocs** : réglé par #217. Les deux programmes du lutin
+  d'`instructions-programmes` sont des blocs Scratch (ADR 0031). Le programme de calcul reste en
+  texte : c'est un algorithme en langage naturel, pas un programme Scratch.
 - Les exercices `paper` (auto-évalués) ne sont pas comptés comme réussis : chaque chapitre en a au
   plus 2, pour rester au-dessus du seuil de complétion de 80 %.

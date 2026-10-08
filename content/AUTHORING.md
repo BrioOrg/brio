@@ -331,6 +331,41 @@ Recette — un diagramme en barres :
   « quel diagramme correspond à ce tableau ? », un `table`, puis des `chart` titrés
   « Diagramme A », « Diagramme B »…, puis un QCM sur ces titres.
 
+### Programmes Scratch
+
+Un programme Scratch est un bloc `code` en `"language": "scratch"` (ADR 0031). Il s'écrit en
+texte ; le renderer le dessine en blocs colorés, et `pnpm check:content` refuse un programme
+qui ne s'analyse pas, ligne par ligne.
+
+```json
+{ "id": "code-programme-calcul", "type": "code", "language": "scratch",
+  "code": "quand le drapeau vert est cliqué\ndemander « Choisis un nombre » et attendre\nmettre x à (réponse)\nmettre résultat à ((x * 3) + 4)\ndire (résultat)" }
+```
+
+- **Une instruction par ligne**, dans la formulation française de Scratch :
+
+  | Ligne | Bloc |
+  |---|---|
+  | `quand le drapeau vert est cliqué` | chapeau, première ligne seulement |
+  | `demander « … » et attendre` | capteurs |
+  | `mettre x à …` / `ajouter … à x` | variables |
+  | `dire …` | apparence |
+  | `avancer de … pas` / `tourner à droite de … degrés` (ou `à gauche`) | mouvement |
+  | `répéter … fois` … `fin` | contrôle |
+
+- **Une valeur** est un nombre (`3`, `2,5`, `-1`), un texte entre « », une variable (`x`, ou
+  `(x)`), `réponse`, ou une opération **entre parenthèses** : `(x * 3)`. Une parenthèse par
+  opération, comme les blocs emboîtés : `((x * 3) + 4)`, jamais `(x * 3 + 4)`.
+- **Le vrai signe de Scratch** : `*` et `/`, pas × ni ÷ (refusés). Le `code` n'est pas du texte
+  riche, l'étoile n'y ouvre pas d'italique.
+- **La boucle** : le corps est décalé de **4 espaces** (pas de tabulation), et `fin` revient à la
+  hauteur de `répéter`. Une boucle vide est refusée.
+- Pas de ligne vide. Les noms de variables n'ont pas d'espace (`résultat`, `nb_pas`).
+- **Hors catalogue** (conditions, comparaisons, « répéter jusqu'à », stylo) : garder un bloc `code`
+  en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute.
+- Un énoncé ou une option de QCM est du texte riche : un programme y reste écrit en texte, avec ×.
+  Un exercice sur un programme suit le bloc `code`.
+
 ### Formules
 
 **Bloc `formula`** pour les formules posées sur leur propre ligne (théorème, définition,
