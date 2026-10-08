@@ -513,3 +513,103 @@ describe('buildDrawingModel with solids', () => {
     expect(model.segments).toHaveLength(2)
   })
 })
+
+describe('expandSolid — assemblage', () => {
+  const shades = (drawing: ReturnType<typeof expandSolid>) => drawing.faces.map((f) => f.shade)
+  const xs = (face: { points: { x: number }[] }) => face.points.map((p) => p.x)
+
+  it('draws the top, the right side and the front of a single cube, and no edge', () => {
+    const one = expandSolid({ kind: 'assemblage', x: 0, y: 0, heights: [[1]] })
+    expect(shades(one)).toEqual(['top', 'side', 'front'])
+    expect(one.edges).toEqual([])
+    expect(Math.min(...xs(one.faces[1]))).toBeCloseTo(1, 9)
+  })
+
+  it('leaves out the faces two neighbouring cubes press together', () => {
+    const row = expandSolid({ kind: 'assemblage', x: 0, y: 0, heights: [[1, 1]] })
+    expect(shades(row)).toEqual(['top', 'front', 'top', 'side', 'front'])
+
+    const stack = expandSolid({ kind: 'assemblage', x: 0, y: 0, heights: [[2]] })
+    expect(shades(stack)).toEqual(['side', 'front', 'top', 'side', 'front'])
+
+    const deep = expandSolid({ kind: 'assemblage', x: 0, y: 0, heights: [[1], [1]] })
+    expect(shades(deep)).toEqual(['top', 'side', 'top', 'side', 'front'])
+  })
+
+  it('draws the back row first, then bottom to top, so the front covers what is behind', () => {
+    // Back row: a stack of 3 on the left; front row: two single cubes.
+    const a = expandSolid({
+      kind: 'assemblage',
+      x: 0,
+      y: 0,
+      heights: [
+        [3, 0],
+        [1, 1],
+      ],
+    })
+    expect(shades(a)).toEqual([
+      'side', // back, level 0: its front is against the front-left cube
+      'side',
+      'front', // back, level 1
+      'top',
+      'side',
+      'front', // back, level 2
+      'top',
+      'front', // front-left: its side is against the front-right cube
+      'top',
+      'side',
+      'front', // front-right
+    ])
+  })
+
+  it('shows the left side and works right to left when the receding edges go up-left', () => {
+    const row = expandSolid({ kind: 'assemblage', x: 0, y: 0, heights: [[1, 1]], angle: 135 })
+    expect(shades(row)).toEqual(['top', 'front', 'top', 'side', 'front'])
+    // The right cube comes first; the side face is the left one of the left cube, at x = 0.
+    expect(Math.max(...xs(row.faces[3]))).toBeCloseTo(0, 9)
+    expect(Math.min(...xs(row.faces[0]))).toBeGreaterThan(Math.min(...xs(row.faces[2])))
+  })
+
+  it('skips empty cells and reaches every drawn point in its extent', () => {
+    const a = expandSolid({
+      kind: 'assemblage',
+      x: 2,
+      y: 1,
+      heights: [
+        [0, 2],
+        [0, 0],
+      ],
+    })
+    expect(shades(a)).toEqual(['side', 'front', 'top', 'side', 'front'])
+    expect(Math.min(...a.extent.map((p) => p.x))).toBeCloseTo(3 + 0.5 * Math.cos(Math.PI / 4), 9)
+    expect(a.extent).toHaveLength(a.faces.length * 4)
+  })
+})
+
+describe('buildDrawingModel with an assemblage', () => {
+  it('turns the faces into filled polygons in drawing order, and nothing else', () => {
+    const model = buildDrawingModel({
+      solids: [
+        {
+          kind: 'assemblage',
+          x: 0,
+          y: 0,
+          heights: [
+            [2, 1, 0],
+            [3, 1, 1],
+          ],
+        },
+      ],
+    })
+    expect(model.cubeFaces.map((f) => f.shade)).toContain('top')
+    expect(model.cubeFaces.every((f) => f.points.split(' ').length === 4)).toBe(true)
+    expect(model.segments).toEqual([])
+    expect(model.pointLabels).toEqual([])
+  })
+
+  it('has no cube faces in a figure without an assemblage', () => {
+    expect(
+      buildDrawingModel({ solids: [{ kind: 'cube', x: 0, y: 0, edge: 1 }] }).cubeFaces
+    ).toEqual([])
+  })
+})

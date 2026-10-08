@@ -72,7 +72,10 @@ export type FigurePolyline = {
 }
 
 type SolidPlacement = {
-  /** Front bottom-left vertex (pavé, cube), first base vertex (prisme), lower base centre (cylindre). */
+  /**
+   * Front bottom-left vertex (pavé, cube), first base vertex (prisme), lower base centre (cylindre),
+   * front bottom-left corner of the front row's left cell (assemblage).
+   */
   x: number
   y: number
   /** Angle of the receding edges in degrees, default 45. */
@@ -99,6 +102,13 @@ export type FigureSolid =
       names?: string[]
     })
   | (SolidPlacement & { kind: 'cylindre'; radius: number; height: number })
+  | (SolidPlacement & {
+      kind: 'assemblage'
+      /** Plan coté: cubes stacked in each cell, back row first, left to right. Cubes of side 1. */
+      heights: number[][]
+    })
+
+type PrismLike = Exclude<FigureSolid, { kind: 'cylindre' } | { kind: 'assemblage' }>
 
 export type FigureAxis = {
   from: number
@@ -173,6 +183,9 @@ export type DrawingNumberLine = {
 }
 
 export type DrawingPolyline = { points: string; dashed: boolean }
+export type CubeShade = 'top' | 'front' | 'side'
+/** A visible face of a cube in an assemblage, filled with its shade; in drawing order. */
+export type DrawingCubeFace = { points: string; shade: CubeShade }
 /** A positioned text with its own anchor and baseline (axis numbers, titles, the origin). */
 export type DrawingText = DrawingPointLabel
 export type DrawingAxis = {
@@ -203,6 +216,7 @@ export type DrawingModel = {
   freeLabels: DrawingFreeLabel[]
   numberLines: DrawingNumberLine[]
   polylines: DrawingPolyline[]
+  cubeFaces: DrawingCubeFace[]
   axes: DrawingAxes | null
 }
 
@@ -555,10 +569,23 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     dashed: pl.style === 'dashed',
   }))
 
-  // Solids: their edges join the segments, their half-ellipses the curves, their names the labels.
+  // Solids: their edges join the segments, their half-ellipses the curves, their names the labels;
+  // the faces of an assemblage are filled, in drawing order.
   const curves: DrawingCurve[] = []
+  const cubeFaces: DrawingCubeFace[] = []
   for (const solid of spec.solids ?? []) {
     const drawing = expandSolid(solid)
+    for (const face of drawing.faces) {
+      cubeFaces.push({
+        points: face.points
+          .map((p) => {
+            const s = toSvg(p.x, p.y)
+            return `${fmt(s.x)},${fmt(s.y)}`
+          })
+          .join(' '),
+        shade: face.shade,
+      })
+    }
     for (const edge of drawing.edges) {
       const a = drawing.vertices[edge.from]
       const b = drawing.vertices[edge.to]
@@ -590,6 +617,7 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     freeLabels,
     numberLines,
     polylines,
+    cubeFaces,
     axes,
   }
 }
@@ -760,11 +788,14 @@ export type SolidArc = {
   half: 'lower' | 'upper'
   hidden: boolean
 }
+export type SolidFace = { points: Pt2[]; shade: CubeShade }
 export type SolidDrawing = {
   /** Projected vertices, in `names` order: front face, then the back face in the same order. */
   vertices: Pt2[]
   edges: SolidEdge[]
   arcs: SolidArc[]
+  /** Filled faces of an assemblage's cubes, back to front: each covers what is behind it. */
+  faces: SolidFace[]
   /** Every point the drawing reaches, for the bounding box. */
   extent: Pt2[]
 }
@@ -773,7 +804,7 @@ const DEFAULT_SOLID_ANGLE = 45
 const DEFAULT_SOLID_REDUCTION = 0.5
 
 /** Front face of a prism-like solid, as absolute coordinates. */
-function frontFace(solid: Exclude<FigureSolid, { kind: 'cylindre' }>): Pt2[] {
+function frontFace(solid: PrismLike): Pt2[] {
   const { x, y } = solid
   switch (solid.kind) {
     case 'pave':
@@ -795,7 +826,7 @@ function frontFace(solid: Exclude<FigureSolid, { kind: 'cylindre' }>): Pt2[] {
   }
 }
 
-function solidDepth(solid: Exclude<FigureSolid, { kind: 'cylindre' }>): number {
+function solidDepth(solid: PrismLike): number {
   return solid.kind === 'cube' ? solid.edge : solid.depth
 }
 
@@ -803,11 +834,14 @@ function solidDepth(solid: Exclude<FigureSolid, { kind: 'cylindre' }>): number {
  * Projects a solid in perspective cavalière: a point at depth z is drawn at
  * (x + z·k·cos α, y + z·k·sin α). A lateral face is visible when its outward normal points along
  * the receding direction; the front face always is, the back face never is. An edge is hidden
- * when none of its faces is visible. A cylinder is drawn upright with elliptical bases.
+ * when none of its faces is visible. A cylinder is drawn upright with elliptical bases. An
+ * assemblage is drawn as filled faces, without hidden edges (see expandAssemblage).
  */
 export function expandSolid(solid: FigureSolid): SolidDrawing {
   const angle = ((solid.angle ?? DEFAULT_SOLID_ANGLE) * Math.PI) / 180
   const k = solid.reduction ?? DEFAULT_SOLID_REDUCTION
+
+  if (solid.kind === 'assemblage') return expandAssemblage(solid, angle, k)
 
   if (solid.kind === 'cylindre') {
     const { x, y, radius: r, height: h } = solid
@@ -831,6 +865,7 @@ export function expandSolid(solid: FigureSolid): SolidDrawing {
         { cx: x, cy: top, rx: r, ry, half: 'lower', hidden: false },
         { cx: x, cy: top, rx: r, ry, half: 'upper', hidden: false },
       ],
+      faces: [],
       extent: [
         { x: x - r, y: y - ry },
         { x: x + r, y: top + ry },
@@ -868,7 +903,67 @@ export function expandSolid(solid: FigureSolid): SolidDrawing {
   }
 
   const vertices = [...front, ...back]
-  return { vertices, edges, arcs: [], extent: vertices }
+  return { vertices, edges, arcs: [], faces: [], extent: vertices }
+}
+
+/**
+ * An assemblage of unit cubes, from its plan coté (ADR 0013, amendment #226). Only the faces the
+ * viewer can see are drawn: the front, the top, and the side the receding edges point to (right
+ * when the angle is under 90°). A face against a neighbouring cube is left out. The rest is the
+ * painter's algorithm: back rows first, then bottom to top, then away from the visible side, so
+ * every filled face covers what lies behind it. Nothing is dashed: hidden cubes are not drawn.
+ */
+function expandAssemblage(
+  solid: Extract<FigureSolid, { kind: 'assemblage' }>,
+  angle: number,
+  k: number
+): SolidDrawing {
+  const { heights } = solid
+  const rows = heights.length
+  const recede = { x: k * Math.cos(angle), y: k * Math.sin(angle) }
+  const rightVisible = recede.x > 0
+  // A cell's depth: 0 for the front row, rows − 1 for the back one.
+  const height = (row: number, col: number): number => heights[row]?.[col] ?? 0
+  const at = (cx: number, cy: number, z: number): Pt2 => ({
+    x: solid.x + cx + z * recede.x,
+    y: solid.y + cy + z * recede.y,
+  })
+
+  const faces: SolidFace[] = []
+  for (let row = 0; row < rows; row++) {
+    const z = rows - 1 - row
+    const cols = heights[row].length
+    for (let level = 0; ; level++) {
+      if (heights[row].every((h) => h <= level)) break
+      for (let i = 0; i < cols; i++) {
+        const col = rightVisible ? i : cols - 1 - i
+        if (height(row, col) <= level) continue
+        const [x0, x1, y0, y1] = [col, col + 1, level, level + 1]
+        if (height(row, col) <= level + 1) {
+          faces.push({
+            shade: 'top',
+            points: [at(x0, y1, z), at(x1, y1, z), at(x1, y1, z + 1), at(x0, y1, z + 1)],
+          })
+        }
+        const sideCol = rightVisible ? col + 1 : col - 1
+        if (height(row, sideCol) <= level) {
+          const sx = rightVisible ? x1 : x0
+          faces.push({
+            shade: 'side',
+            points: [at(sx, y0, z), at(sx, y0, z + 1), at(sx, y1, z + 1), at(sx, y1, z)],
+          })
+        }
+        if (height(row + 1, col) <= level) {
+          faces.push({
+            shade: 'front',
+            points: [at(x0, y0, z), at(x1, y0, z), at(x1, y1, z), at(x0, y1, z)],
+          })
+        }
+      }
+    }
+  }
+
+  return { vertices: [], edges: [], arcs: [], faces, extent: faces.flatMap((f) => f.points) }
 }
 
 function ellipseArcPath(arc: SolidArc, toSvg: (lx: number, ly: number) => Pt2): DrawingCurve {
@@ -896,7 +991,7 @@ function solidNameLabels(
   drawing: SolidDrawing,
   toSvg: (lx: number, ly: number) => Pt2
 ): DrawingPointLabel[] {
-  if (solid.kind === 'cylindre' || !solid.names) return []
+  if (solid.kind === 'cylindre' || solid.kind === 'assemblage' || !solid.names) return []
   const svg = drawing.vertices.map((v) => toSvg(v.x, v.y))
   const centre = {
     x: svg.reduce((sum, v) => sum + v.x, 0) / svg.length,
