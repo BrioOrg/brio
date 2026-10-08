@@ -97,6 +97,8 @@ public class Exercice implements Persistable<UUID> {
         this.evaluation = evaluation;
         this.competencies = competencies != null ? competencies : List.of();
         this.difficulte = difficulte;
+        // Back in the file: an exercise removed then restored (revert, fixed mistake) is live again.
+        this.retiredAt = null;
     }
 
     public void retire() {
