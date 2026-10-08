@@ -7,7 +7,8 @@
  *
  * 2. Figure spec correctness — structural and geometric:
  *    - All segment/polygon/angleMark/lengthMark references name a defined point.
- *    - No duplicate point names within a figure.
+ *    - No duplicate point names within a figure, and no blank one: hide a construction point
+ *      with dot: false / showName: false instead (#214).
  *    - Every polygon has ≥ 3 non-collinear vertices.
  *    - Every angleMark with right:true measures 90° ± 0.5° at the given coordinates.
  *    - Every lengthMark references a segment that exists.
@@ -145,6 +146,13 @@ function checkFigureBlock(block, file, blockPath) {
   const seenNames = new Set()
   for (let i = 0; i < points.length; i++) {
     const p = points[i]
+    if (p.name.trim() === '') {
+      fail(
+        file,
+        `${blockPath}.spec.points[${i}]`,
+        'blank point name: give it a real name and hide it with "dot": false, "showName": false',
+      )
+    }
     if (seenNames.has(p.name)) {
       fail(file, `${blockPath}.spec.points[${i}]`, `duplicate point name "${p.name}"`)
     }
