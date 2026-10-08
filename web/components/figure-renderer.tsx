@@ -1,4 +1,9 @@
-import { buildDrawingModel, type FigureSpec } from '@brio/content'
+import {
+  buildDrawingModel,
+  type DrawingAxis,
+  type DrawingText,
+  type FigureSpec,
+} from '@brio/content'
 
 export function FigureRenderer({
   spec,
@@ -24,6 +29,27 @@ export function FigureRenderer({
           <title>{alt}</title>
           {caption && <desc>{caption}</desc>}
 
+          {/* Repère grid: behind everything, in the muted line colour */}
+          {model.axes?.grid.map((g, i) => (
+            <line
+              key={`grid-${i}`}
+              x1={g.x1}
+              y1={g.y1}
+              x2={g.x2}
+              y2={g.y2}
+              className="stroke-line"
+              strokeWidth={1}
+            />
+          ))}
+
+          {model.axes && (
+            <g>
+              <Axis axis={model.axes.x} />
+              <Axis axis={model.axes.y} />
+              <AxisText text={model.axes.origin} fontSize={11} />
+            </g>
+          )}
+
           {/* Polygons */}
           {model.polygons.map((poly, i) => (
             <polygon
@@ -45,6 +71,18 @@ export function FigureRenderer({
               y2={seg.y2}
               stroke="currentColor"
               strokeWidth={1.5}
+            />
+          ))}
+
+          {/* Polylines */}
+          {model.polylines.map((pl, i) => (
+            <polyline
+              key={i}
+              points={pl.points}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinejoin="round"
             />
           ))}
 
@@ -174,5 +212,50 @@ export function FigureRenderer({
         </figcaption>
       )}
     </figure>
+  )
+}
+
+function AxisText({ text, fontSize }: { text: DrawingText; fontSize: number }) {
+  return (
+    <text
+      x={text.x}
+      y={text.y}
+      textAnchor={text.anchor}
+      dominantBaseline={text.baseline}
+      fontSize={fontSize}
+      fill="currentColor"
+    >
+      {text.text}
+    </text>
+  )
+}
+
+function Axis({ axis }: { axis: DrawingAxis }) {
+  return (
+    <g>
+      <line
+        x1={axis.line.x1}
+        y1={axis.line.y1}
+        x2={axis.line.x2}
+        y2={axis.line.y2}
+        stroke="currentColor"
+        strokeWidth={1.5}
+      />
+      <polygon points={axis.arrow.points} fill="currentColor" />
+      {axis.ticks.map((tick, i) => (
+        <g key={i}>
+          <line
+            x1={tick.x1}
+            y1={tick.y1}
+            x2={tick.x2}
+            y2={tick.y2}
+            stroke="currentColor"
+            strokeWidth={1.5}
+          />
+          {tick.label && <AxisText text={tick.label} fontSize={11} />}
+        </g>
+      ))}
+      {axis.title && <AxisText text={axis.title} fontSize={12} />}
+    </g>
   )
 }
