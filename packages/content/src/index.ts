@@ -61,3 +61,15 @@ export type {
   ChartModel,
 } from './chart'
 export { buildChartModel, niceStep, valueScale, wrapLabel } from './chart'
+
+export type {
+  ScratchOperator,
+  ScratchValue,
+  ScratchStatement,
+  ScratchError,
+  ScratchParseResult,
+  ScratchCategory,
+  ScratchPart,
+  ScratchBlock,
+} from './scratch'
+export { parseScratch, buildScratchModel } from './scratch'

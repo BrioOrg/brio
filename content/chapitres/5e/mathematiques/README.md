@@ -64,7 +64,7 @@ catalogue, même d'un niveau à l'autre (#218).
 
 | Slug | Titre | Statut |
 |---|---|---|
-| `programmes-blocs` | Programmer : instructions, formules et boucles | 🚧 programmes en texte, pas en blocs (#217) |
+| `programmes-blocs` | Programmer : instructions, formules et boucles | ✅ |
 
 ---
 
@@ -92,7 +92,8 @@ les exercices ont `competencies: []`. Ils ne comptent donc pas dans la maîtrise
   sont dessinés par `solids` ; les patrons restent des `polygons`.
 - **Diagrammes** : réglé par #216. Barres, circulaire et courbe sont des blocs `chart`
   (ADR 0030) ; `statistiques` fait lire des diagrammes en barres et un diagramme circulaire.
-- **Programmes par blocs** (#217) : texte dans un bloc `code`. Le signe × remplace le `*` de
-  Scratch, car un `*` isolé ouvre un italique dans le texte riche.
+- **Programmes par blocs** : réglé par #217. Les programmes sont des blocs `code` en
+  `language: "scratch"` dessinés comme dans Scratch (ADR 0031), avec le vrai `*`. Les programmes
+  cités dans un énoncé ou une option de QCM restent du texte (signe ×).
 - Placer un point dans un repère, tracer ou construire à la règle : impossible à évaluer en ligne.
   Les constructions passent par des exercices `paper` (au plus deux par chapitre).

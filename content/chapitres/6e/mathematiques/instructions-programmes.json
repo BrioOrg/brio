@@ -119,13 +119,13 @@
         {
           "id": "intro-lutin",
           "type": "prose",
-          "text": "Un lutin se déplace sur l'écran et trace un trait derrière lui. Il comprend les instructions « avancer de … pas » et « tourner à droite de …° »."
+          "text": "Un lutin se déplace sur l'écran et trace un trait derrière lui. Il comprend les instructions « avancer de … pas » et « tourner à droite de … degrés »."
         },
         {
           "id": "code-carre-long",
           "type": "code",
-          "language": "text",
-          "code": "avancer de 100 pas\ntourner à droite de 90°\navancer de 100 pas\ntourner à droite de 90°\navancer de 100 pas\ntourner à droite de 90°\navancer de 100 pas\ntourner à droite de 90°"
+          "language": "scratch",
+          "code": "avancer de 100 pas\ntourner à droite de 90 degrés\navancer de 100 pas\ntourner à droite de 90 degrés\navancer de 100 pas\ntourner à droite de 90 degrés\navancer de 100 pas\ntourner à droite de 90 degrés"
         },
         {
           "id": "def-boucle",
@@ -137,8 +137,8 @@
         {
           "id": "code-carre-boucle",
           "type": "code",
-          "language": "text",
-          "code": "répéter 4 fois :\n    avancer de 100 pas\n    tourner à droite de 90°"
+          "language": "scratch",
+          "code": "répéter 4 fois\n    avancer de 100 pas\n    tourner à droite de 90 degrés\nfin"
         },
         {
           "id": "ex-figure-carre",

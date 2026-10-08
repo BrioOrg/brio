@@ -233,7 +233,7 @@ LaTeX (e.g. `$a * b$`) is never consumed by the emphasis parser.
 
 **`scripts/check-content.mjs`** validates that all `*`, `**`, and `$` delimiters
 are balanced in content files. It runs in the `content` CI job and should be run
-locally before committing: `node scripts/check-content.mjs`.
+locally before committing: `pnpm check:content`.
 
 **`display: "inline"` on a standalone formula block** is a valid schema value but
 a candidate for deprecation. Its only meaningful use case — a formula embedded in

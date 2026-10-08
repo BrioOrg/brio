@@ -28,13 +28,13 @@
         {
           "id": "intro-blocs",
           "type": "prose",
-          "text": "Dans un langage par blocs comme Scratch, un programme est une suite d'instructions exécutées **dans l'ordre**, de haut en bas. Ici, les blocs sont écrits en texte, un bloc par ligne."
+          "text": "Dans un langage par blocs comme Scratch, un programme est une suite d'instructions exécutées **dans l'ordre**, de haut en bas. Les programmes de ce chapitre sont dessinés avec les blocs de Scratch, chacun de la couleur de sa catégorie."
         },
         {
           "id": "code-programme-calcul",
           "type": "code",
-          "language": "text",
-          "code": "quand le drapeau vert est cliqué\ndemander « Choisis un nombre » et attendre\nmettre x à (réponse)\nmettre résultat à ((x × 3) + 4)\ndire (résultat)"
+          "language": "scratch",
+          "code": "quand le drapeau vert est cliqué\ndemander « Choisis un nombre » et attendre\nmettre x à (réponse)\nmettre résultat à ((x * 3) + 4)\ndire (résultat)"
         },
         {
           "id": "def-entree-sortie",
@@ -169,7 +169,7 @@
           "type": "callout",
           "variant": "definition",
           "title": "Écrire une formule en blocs",
-          "text": "Les opérations sont des blocs que l'on emboîte : (x × 3) + 4 calcule d'abord x × 3, puis ajoute 4. Les blocs emboîtés jouent le rôle des parenthèses."
+          "text": "Les opérations sont des blocs que l'on emboîte : (x × 3) + 4 calcule d'abord x × 3, puis ajoute 4. Les blocs emboîtés jouent le rôle des parenthèses. Dans Scratch, le signe de la multiplication est une étoile."
         },
         {
           "id": "ex-prevoir-cinq",
@@ -294,8 +294,8 @@
         {
           "id": "code-variable-a",
           "type": "code",
-          "language": "text",
-          "code": "mettre a à 7\nmettre a à (a + 3)\nmettre a à (a × 2)\ndire (a)"
+          "language": "scratch",
+          "code": "mettre a à 7\nmettre a à (a + 3)\nmettre a à (a * 2)\ndire (a)"
         },
         {
           "id": "ex-prevoir-a",
@@ -314,8 +314,8 @@
         {
           "id": "code-deux-variables",
           "type": "code",
-          "language": "text",
-          "code": "mettre a à 4\nmettre b à (a + 1)\nmettre a à (b × 2)\ndire (a)"
+          "language": "scratch",
+          "code": "mettre a à 4\nmettre b à (a + 1)\nmettre a à (b * 2)\ndire (a)"
         },
         {
           "id": "ex-prevoir-ab",
@@ -379,7 +379,7 @@
         {
           "id": "code-carre-boucle",
           "type": "code",
-          "language": "text",
+          "language": "scratch",
           "code": "répéter 4 fois\n    avancer de 50 pas\n    tourner à droite de 90 degrés\nfin"
         },
         {
@@ -429,7 +429,7 @@
         {
           "id": "code-compteur",
           "type": "code",
-          "language": "text",
+          "language": "scratch",
           "code": "mettre n à 0\nrépéter 5 fois\n    ajouter 3 à n\nfin\ndire (n)"
         },
         {
