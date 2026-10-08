@@ -252,6 +252,51 @@ Pour lire ou placer des points, tracer une courbe ou un graphique de proportionn
   **Jamais de nom blanc** (`" "`) : `check-content.mjs` le refuse.
 - `"polylines": [{ "points": ["A", "B", "C"] }]` trace une ligne brisée sans déclarer chaque
   segment (une courbe point par point, un contour ouvert).
+- `"style": "dashed"` sur un segment, une ligne brisée ou un polygone le trace en pointillés
+  (trait de construction, axe de symétrie). Un seul côté d'un polygone en pointillés : un
+  segment à part.
+
+#### Solides en perspective cavalière
+
+Un solide se décrit par ses **dimensions**, jamais arête par arête (ADR 0013, amendement #215).
+Le renderer calcule les fuyantes et décide seul quelles arêtes sont cachées : n'écris pas de
+pointillés à la main pour un solide.
+
+Recette — dessiner un pavé en perspective cavalière :
+
+```json
+"spec": {
+  "solids": [
+    { "kind": "pave", "x": 0, "y": 0, "width": 4, "height": 3, "depth": 2,
+      "names": ["A", "B", "C", "D", "E", "F", "G", "H"] }
+  ]
+}
+```
+
+1. `x`, `y` : le sommet avant en bas à gauche (A).
+2. `width` × `height` : la face avant, dessinée **en vraie grandeur**. `depth` : la vraie
+   profondeur ; le dessin la multiplie par `reduction` (0,5 par défaut).
+3. Les fuyantes partent avec l'angle `angle` (45° par défaut, vers le haut et la droite) :
+   les arêtes qui partent du sommet arrière en bas à gauche (E) sont cachées.
+4. `names` (facultatif) : la face avant dans le sens A en bas à gauche, B, C, D, puis la face
+   arrière dans le même ordre (E derrière A). Les noms des sommets cachés sont écrits aussi.
+   Ces noms ne sont pas des `points` : les autres éléments ne peuvent pas y faire référence.
+
+Les autres solides :
+
+| `kind` | Dimensions | Position (`x`, `y`) | `names` |
+|---|---|---|---|
+| `cube` | `edge` | sommet avant en bas à gauche | 8 |
+| `prisme` | `base` (polygone **convexe**, face avant en vraie grandeur, en décalages depuis `x`, `y`) et `depth` | premier sommet de la base | 2 × nombre de sommets de la base |
+| `cylindre` | `radius`, `height` | centre de la base du bas | aucun |
+
+- Le cylindre est dessiné debout, comme dans les manuels : bases en ellipses, moitié arrière
+  de la base du bas en pointillés.
+- `angle` dans ]0°, 180°[ sauf 90° ; `reduction` dans ]0, 1].
+- Pas de solide dans un repère (`axes`) ni avec une droite graduée : ils ont leur propre
+  échelle.
+- Un **patron** se dessine avec des `polygons` (points masqués) ; un solide et son patron
+  peuvent partager la même figure, à la même échelle.
 
 ### Formules
 
