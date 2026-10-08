@@ -1,6 +1,14 @@
 'use client'
 
-import { buildDrawingModel, type FigureSpec, type LabelPlacement } from '@brio/content'
+import { useState } from 'react'
+
+import {
+  buildDrawingModel,
+  type FigureLineStyle,
+  type FigureSolid,
+  type FigureSpec,
+  type LabelPlacement,
+} from '@brio/content'
 
 import { FigureRenderer } from '@/components/figure-renderer'
 import { marqueChamp, useChamp } from '@/components/prof/problemes-du-bloc'
@@ -9,7 +17,8 @@ import type { Bloc } from '@/lib/cours-editeur'
 // Constructeur de `spec` d'une figure déclarative (ADR 0013). On saisit des points nommés avec
 // leurs coordonnées mathématiques, puis les primitives (segments, lignes brisées, polygones,
 // cercles, marques d'angle et de longueur, étiquettes, droites graduées, repère) qui référencent
-// ces points par leur nom.
+// ces points par leur nom, et des solides en perspective cavalière, décrits par leurs dimensions :
+// le moteur décide seul quelles arêtes sont cachées (ADR 0013, amendement #215).
 // Un aperçu en direct (le même <FigureRenderer/> que l'élève) montre le résultat ; une spec
 // incomplète (un segment vers un point non encore défini) affiche un message au lieu de planter.
 // `alt` est obligatoire (requis par le schéma) : une figure sans équivalent textuel est invalide.
@@ -28,11 +37,11 @@ type Point = {
   showName?: boolean
   label?: { placement?: LabelPlacement }
 }
-type Segment = { from: string; to: string }
-type Polyline = { points: string[] }
+type Segment = { from: string; to: string; style?: FigureLineStyle }
+type Polyline = { points: string[]; style?: FigureLineStyle }
 type Axis = { from: number; to: number; step: number; labelEvery?: number; title?: string }
 type Axes = { x: Axis; y: Axis; grid?: boolean }
-type Polygon = { vertices: string[] }
+type Polygon = { vertices: string[]; style?: FigureLineStyle }
 type Circle = { center: string; through?: string; radius?: number }
 type AngleMark = { vertex: string; from: string; to: string; right?: boolean }
 type LengthMark = { segment: string; ticks: 1 | 2 | 3 }
@@ -63,6 +72,66 @@ const champ =
 const selectClass = `${champ} font-display font-bold`
 const titreSection = 'font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted'
 const boutonAjouter = 'font-display text-sm font-bold text-accent-ink hover:underline'
+
+const SOLIDES: { kind: FigureSolid['kind']; nom: string }[] = [
+  { kind: 'pave', nom: 'pavé droit' },
+  { kind: 'cube', nom: 'cube' },
+  { kind: 'prisme', nom: 'prisme droit' },
+  { kind: 'cylindre', nom: 'cylindre' },
+]
+
+/** Un solide neuf du type demandé, au même endroit et avec la même perspective que l'ancien. */
+function solideParDefaut(kind: FigureSolid['kind'], depuis?: FigureSolid): FigureSolid {
+  const place = {
+    x: depuis?.x ?? 0,
+    y: depuis?.y ?? 0,
+    angle: depuis?.angle,
+    reduction: depuis?.reduction,
+  }
+  switch (kind) {
+    case 'pave':
+      return { ...place, kind, width: 4, height: 3, depth: 2 }
+    case 'cube':
+      return { ...place, kind, edge: 2 }
+    case 'prisme':
+      return {
+        ...place,
+        kind,
+        base: [
+          { x: 0, y: 0 },
+          { x: 3, y: 0 },
+          { x: 0, y: 2 },
+        ],
+        depth: 4,
+      }
+    case 'cylindre':
+      return { ...place, kind, radius: 2, height: 4 }
+  }
+}
+
+/** Case « pointillés » d'un segment, d'une ligne brisée ou d'un polygone. */
+function Pointilles({
+  style,
+  onChange,
+  ariaLabel,
+}: {
+  style?: FigureLineStyle
+  onChange: (style: FigureLineStyle | undefined) => void
+  ariaLabel: string
+}) {
+  return (
+    <label className="flex items-center gap-1 font-prose text-xs text-ink-muted">
+      <input
+        type="checkbox"
+        className="accent-accent"
+        aria-label={ariaLabel}
+        checked={style === 'dashed'}
+        onChange={(e) => onChange(e.target.checked ? 'dashed' : undefined)}
+      />
+      pointillés
+    </label>
+  )
+}
 
 /** Petit bouton « supprimer » d'une ligne de primitive. */
 function Supprimer({ onClick, label }: { onClick: () => void; label: string }) {
@@ -149,6 +218,7 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
   const coordinateSpace = spec.coordinateSpace as CoordinateSpace | undefined
   const polylines = (spec.polylines ?? []) as Polyline[]
   const axes = spec.axes as Axes | undefined
+  const solids = spec.solids ?? []
 
   const patchSpec = (patch: Partial<FigureSpec>) => onModifier({ spec: { ...spec, ...patch } })
 
@@ -305,6 +375,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                     onChange={(to) => maj({ to })}
                     ariaLabel={`Segment ${i + 1} — arrivée`}
                   />
+                  <Pointilles
+                    style={seg.style}
+                    onChange={(style) => maj({ style })}
+                    ariaLabel={`Segment ${i + 1} en pointillés`}
+                  />
                 </>
               )
             }}
@@ -315,8 +390,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
             <p className={`${titreSection} mb-1.5`}>Lignes brisées</p>
             <ul className="flex flex-col gap-1.5">
               {polylines.map((pl, i) => {
-                const majP = (pts: string[]) =>
-                  patchSpec({ polylines: polylines.map((x, j) => (j === i ? { points: pts } : x)) })
+                const majL = (patch: Partial<Polyline>) =>
+                  patchSpec({
+                    polylines: polylines.map((x, j) => (j === i ? { ...x, ...patch } : x)),
+                  })
+                const majP = (pts: string[]) => majL({ points: pts })
                 return (
                   <li key={i} className="flex flex-wrap items-center gap-1.5">
                     {pl.points.map((v, k) => (
@@ -344,6 +422,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                         − point
                       </button>
                     )}
+                    <Pointilles
+                      style={pl.style}
+                      onChange={(style) => majL({ style })}
+                      ariaLabel={`Ligne brisée ${i + 1} en pointillés`}
+                    />
                     <Supprimer
                       label={`Supprimer la ligne brisée ${i + 1}`}
                       onClick={() => patchSpec({ polylines: polylines.filter((_, j) => j !== i) })}
@@ -366,8 +449,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
             <p className={`${titreSection} mb-1.5`}>Polygones</p>
             <ul className="flex flex-col gap-1.5">
               {polygons.map((poly, i) => {
-                const majV = (vertices: string[]) =>
-                  patchSpec({ polygons: polygons.map((x, j) => (j === i ? { vertices } : x)) })
+                const majPoly = (patch: Partial<Polygon>) =>
+                  patchSpec({
+                    polygons: polygons.map((x, j) => (j === i ? { ...x, ...patch } : x)),
+                  })
+                const majV = (vertices: string[]) => majPoly({ vertices })
                 return (
                   <li key={i} className="flex flex-wrap items-center gap-1.5">
                     {poly.vertices.map((v, k) => (
@@ -395,6 +481,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                         − sommet
                       </button>
                     )}
+                    <Pointilles
+                      style={poly.style}
+                      onChange={(style) => majPoly({ style })}
+                      ariaLabel={`Polygone ${i + 1} en pointillés`}
+                    />
                     <Supprimer
                       label={`Supprimer le polygone ${i + 1}`}
                       onClick={() => patchSpec({ polygons: polygons.filter((_, j) => j !== i) })}
@@ -700,6 +791,35 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
             </button>
           </section>
 
+          {/* Solides en perspective cavalière (pas dans un repère) */}
+          {!axes && (
+            <section>
+              <p className={`${titreSection} mb-1.5`}>Solides en perspective</p>
+              <ul className="flex flex-col gap-3">
+                {solids.map((solide, i) => (
+                  <li key={i}>
+                    <ChampsSolide
+                      numero={i + 1}
+                      solide={solide}
+                      onChange={(next) =>
+                        patchSpec({ solids: solids.map((x, j) => (j === i ? next : x)) })
+                      }
+                      onSupprimer={() => patchSpec({ solids: solids.filter((_, j) => j !== i) })}
+                      onFocus={onFocusBloc}
+                    />
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                className={`mt-1.5 ${boutonAjouter}`}
+                onClick={() => patchSpec({ solids: [...solids, solideParDefaut('pave')] })}
+              >
+                ＋ Solide
+              </button>
+            </section>
+          )}
+
           {/* Repère : deux axes gradués qui se coupent à l'origine, une échelle par axe */}
           <section>
             <label className="flex items-center gap-1.5 font-prose text-xs text-ink-muted">
@@ -707,6 +827,8 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                 type="checkbox"
                 className="accent-accent"
                 checked={axes !== undefined}
+                // Un solide garde une seule échelle : il ne se dessine pas dans un repère.
+                disabled={axes === undefined && solids.length > 0}
                 onChange={(e) =>
                   patchSpec(
                     e.target.checked
@@ -724,6 +846,7 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                 }
               />
               Tracer un repère
+              {axes === undefined && solids.length > 0 && ' (impossible avec un solide)'}
             </label>
             {axes && (
               <div className="mt-1.5 flex flex-col gap-1.5">
@@ -861,6 +984,193 @@ function ChampsAxe({
         placeholder="Titre (facultatif)"
       />
     </div>
+  )
+}
+
+/** Un solide : type, position, dimensions, perspective et noms des sommets. */
+function ChampsSolide({
+  numero,
+  solide,
+  onChange,
+  onSupprimer,
+  onFocus,
+}: {
+  numero: number
+  solide: FigureSolid
+  onChange: (solide: FigureSolid) => void
+  onSupprimer: () => void
+  onFocus?: () => void
+}) {
+  const petit = 'font-prose text-xs text-ink-muted'
+  const nom = `Solide ${numero}`
+  // Chaque type a ses propres dimensions : on recolle au type strict à l'écriture.
+  const maj = (patch: Record<string, unknown>) => onChange({ ...solide, ...patch } as FigureSolid)
+  const dimension = (cle: string, libelle: string, valeur: number) => (
+    <>
+      <span className={petit}>{libelle}</span>
+      <ChampNombre
+        value={valeur}
+        onChange={(v) => maj({ [cle]: v })}
+        onFocus={onFocus}
+        ariaLabel={`${nom} — ${libelle}`}
+      />
+    </>
+  )
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <select
+          aria-label={`${nom} — type`}
+          className={`${selectClass} w-32`}
+          value={solide.kind}
+          onChange={(e) => onChange(solideParDefaut(e.target.value as FigureSolid['kind'], solide))}
+        >
+          {SOLIDES.map((s) => (
+            <option key={s.kind} value={s.kind}>
+              {s.nom}
+            </option>
+          ))}
+        </select>
+        <span className={petit}>en (</span>
+        <ChampNombre
+          value={solide.x}
+          onChange={(x) => maj({ x })}
+          onFocus={onFocus}
+          ariaLabel={`${nom} — abscisse`}
+        />
+        <ChampNombre
+          value={solide.y}
+          onChange={(y) => maj({ y })}
+          onFocus={onFocus}
+          ariaLabel={`${nom} — ordonnée`}
+        />
+        <span className={petit}>)</span>
+        <Supprimer label={`Supprimer le solide ${numero}`} onClick={onSupprimer} />
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {solide.kind === 'pave' && (
+          <>
+            {dimension('width', 'largeur', solide.width)}
+            {dimension('height', 'hauteur', solide.height)}
+            {dimension('depth', 'profondeur', solide.depth)}
+          </>
+        )}
+        {solide.kind === 'cube' && dimension('edge', 'arête', solide.edge)}
+        {solide.kind === 'prisme' && dimension('depth', 'profondeur', solide.depth)}
+        {solide.kind === 'cylindre' && (
+          <>
+            {dimension('radius', 'rayon', solide.radius)}
+            {dimension('height', 'hauteur', solide.height)}
+          </>
+        )}
+        <span className={petit}>fuyantes</span>
+        <ChampNombre
+          value={solide.angle ?? 45}
+          onChange={(angle) => maj({ angle: angle === 45 ? undefined : angle })}
+          onFocus={onFocus}
+          ariaLabel={`${nom} — angle des fuyantes (degrés)`}
+        />
+        <span className={petit}>° ×</span>
+        <ChampNombre
+          value={solide.reduction ?? 0.5}
+          onChange={(reduction) => maj({ reduction: reduction === 0.5 ? undefined : reduction })}
+          onFocus={onFocus}
+          ariaLabel={`${nom} — coefficient de réduction`}
+        />
+      </div>
+      {solide.kind === 'prisme' && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className={`${petit} w-full`}>
+            Base (face avant, en vraie grandeur, depuis la position du solide)
+          </span>
+          {solide.base.map((p, k) => (
+            <span key={k} className="flex items-center gap-1">
+              <span className={petit}>(</span>
+              <ChampNombre
+                value={p.x}
+                onChange={(x) =>
+                  maj({ base: solide.base.map((q, j) => (j === k ? { ...q, x } : q)) })
+                }
+                onFocus={onFocus}
+                ariaLabel={`${nom} — base, sommet ${k + 1}, abscisse`}
+              />
+              <ChampNombre
+                value={p.y}
+                onChange={(y) =>
+                  maj({ base: solide.base.map((q, j) => (j === k ? { ...q, y } : q)) })
+                }
+                onFocus={onFocus}
+                ariaLabel={`${nom} — base, sommet ${k + 1}, ordonnée`}
+              />
+              <span className={petit}>)</span>
+            </span>
+          ))}
+          <button
+            type="button"
+            className={boutonAjouter}
+            onClick={() => maj({ base: [...solide.base, { x: 0, y: 0 }], names: undefined })}
+          >
+            ＋ sommet
+          </button>
+          {solide.base.length > 3 && (
+            <button
+              type="button"
+              className="font-display text-sm font-bold text-ink-muted hover:text-danger"
+              onClick={() => maj({ base: solide.base.slice(0, -1), names: undefined })}
+            >
+              − sommet
+            </button>
+          )}
+        </div>
+      )}
+      {solide.kind !== 'cylindre' && (
+        <ChampNoms
+          // Un nouveau nombre de sommets repart d'un champ vide.
+          key={`${solide.kind}-${solide.kind === 'prisme' ? solide.base.length : 4}`}
+          noms={solide.names}
+          attendus={solide.kind === 'prisme' ? 2 * solide.base.length : 8}
+          onChange={(names) => maj({ names })}
+          onFocus={onFocus}
+          ariaLabel={`${nom} — noms des sommets`}
+        />
+      )}
+    </div>
+  )
+}
+
+// Saisie libre « A B C D E F G H » : l'état local garde les espaces en cours de frappe, que la
+// liste de noms, elle, ne peut pas représenter.
+function ChampNoms({
+  noms,
+  attendus,
+  onChange,
+  onFocus,
+  ariaLabel,
+}: {
+  noms?: string[]
+  attendus: number
+  onChange: (noms: string[] | undefined) => void
+  onFocus?: () => void
+  ariaLabel: string
+}) {
+  const [texte, setTexte] = useState((noms ?? []).join(' '))
+  return (
+    <label className="flex flex-wrap items-center gap-1.5 font-prose text-xs text-ink-muted">
+      Noms des sommets (face avant puis face arrière, {attendus} noms, facultatif)
+      <input
+        aria-label={ariaLabel}
+        className={`${champ} w-48`}
+        value={texte}
+        placeholder={attendus === 8 ? 'A B C D E F G H' : undefined}
+        onChange={(e) => {
+          setTexte(e.target.value)
+          const liste = e.target.value.split(/\s+/).filter((n) => n !== '')
+          onChange(liste.length > 0 ? liste : undefined)
+        }}
+        onFocus={onFocus}
+      />
+    </label>
   )
 }
 
