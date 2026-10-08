@@ -221,7 +221,7 @@
         "id": { "$ref": "#/$defs/nodeId" },
         "type": { "const": "code" },
         "language": {
-          "description": "Highlighting hint, e.g. 'python'. Optional and free-text.",
+          "description": "Highlighting hint, e.g. 'python'. Optional and free-text, except 'scratch': the code is then a Scratch programme drawn as blocks, and check-content rejects one that does not parse (ADR 0031).",
           "$ref": "#/$defs/plainText"
         },
         "code": {
