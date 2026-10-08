@@ -70,6 +70,9 @@ const dark = {
   'scratch-sensing': '#5cb1d6',
   'scratch-operators': '#59c059',
   'scratch-variables': '#ff8c1a',
+  'cube-top': '#4f7562',
+  'cube-front': '#33503f',
+  'cube-side': '#1f3329',
 }
 
 const light = {
@@ -107,6 +110,9 @@ const light = {
   'scratch-sensing': '#5cb1d6',
   'scratch-operators': '#59c059',
   'scratch-variables': '#ff8c1a',
+  'cube-top': '#f4fbf7',
+  'cube-front': '#bddbc9',
+  'cube-side': '#8bb39d',
 }
 
 // ── Pairs to check ───────────────────────────────────────────────────────────
@@ -114,6 +120,7 @@ const light = {
 // Format: [foreground-token, background-token, level]
 //   level "AA"       → 4.5 : 1 (body text)
 //   level "AA-large" → 3.0 : 1 (large text / graphical elements)
+//   level "step"     → 1.3 : 1 (two adjacent fills that must read apart; not a WCAG level)
 
 // Chart fills are graphics, never text: 3 : 1 against both grounds a chart can sit on (#216).
 function chartPairs(theme) {
@@ -134,6 +141,16 @@ function scratchPairs(theme) {
   }))
 }
 
+// Cube assemblages are graphics: their edges (ink) clear 3 : 1 on every face (#226). Two faces
+// that meet must also read apart, or the volume flattens: a step of at least 1.3 : 1.
+function cubePairs(theme) {
+  return [
+    ...['top', 'front', 'side'].map((face) => ({ theme, fg: 'ink', bg: `cube-${face}`, level: 'AA-large' })),
+    { theme, fg: 'cube-top', bg: 'cube-front', level: 'step' },
+    { theme, fg: 'cube-front', bg: 'cube-side', level: 'step' },
+  ]
+}
+
 const pairs = [
   // Dark theme
   { theme: 'dark', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -151,6 +168,7 @@ const pairs = [
   { theme: 'dark', fg: 'streak', bg: 'surface-panel', level: 'AA-large' },
   ...chartPairs('dark'),
   ...scratchPairs('dark'),
+  ...cubePairs('dark'),
 
   // Light theme
   { theme: 'light', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -171,11 +189,12 @@ const pairs = [
   { theme: 'light', fg: 'streak', bg: 'surface-panel', level: 'AA-large' },
   ...chartPairs('light'),
   ...scratchPairs('light'),
+  ...cubePairs('light'),
 ]
 
 // ── Run checks ───────────────────────────────────────────────────────────────
 
-const THRESHOLD = { AA: 4.5, 'AA-large': 3.0 }
+const THRESHOLD = { AA: 4.5, 'AA-large': 3.0, step: 1.3 }
 
 let failures = 0
 
