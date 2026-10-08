@@ -20,6 +20,10 @@
  *      step > 0, labelEvery a multiple of step; no coordinateSpace or numberLines alongside.
  *      Each axis has its own scale, so angleMarks, lengthMarks and circles are only allowed
  *      when both spans are equal: otherwise the drawing would not show what CI measured.
+ *    - solids (perspective cavalière, ADR 0013 amendment #215): positive dimensions, reduction
+ *      in ]0, 1], angle in ]0°, 180°[ and not 90°, a convex non-degenerate prism base, names in
+ *      the right number (front face then back face), unique, not blank and not shared with a
+ *      point; no solid in a repère or next to a number line.
  *
  * 3. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
@@ -275,6 +279,14 @@ function checkFigureBlock(block, file, blockPath) {
 
   if (spec.axes) checkAxes(spec, file, `${blockPath}.spec.axes`)
 
+  const solidNames = new Set()
+  for (let i = 0; i < (spec.solids ?? []).length; i++) {
+    checkSolid(spec.solids[i], seenNames, solidNames, file, `${blockPath}.spec.solids[${i}]`)
+  }
+  if ((spec.solids ?? []).length > 0 && (spec.axes || (spec.numberLines ?? []).length > 0)) {
+    fail(file, `${blockPath}.spec.solids`, 'a solid cannot share a figure with axes or numberLines')
+  }
+
   // Number lines
   for (let i = 0; i < (spec.numberLines ?? []).length; i++) {
     const nl = spec.numberLines[i]
@@ -291,6 +303,57 @@ function checkFigureBlock(block, file, blockPath) {
         }
       }
     }
+  }
+}
+
+// A convex polygon turns the same way at every vertex; collinear neighbours are degenerate.
+function isStrictlyConvex(pts) {
+  let sign = 0
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i]
+    const b = pts[(i + 1) % pts.length]
+    const c = pts[(i + 2) % pts.length]
+    const cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)
+    if (Math.abs(cross) < 1e-9) return false
+    if (sign === 0) sign = Math.sign(cross)
+    else if (Math.sign(cross) !== sign) return false
+  }
+  return true
+}
+
+function checkSolid(solid, pointNames, solidNames, file, path) {
+  const dims = { pave: ['width', 'height', 'depth'], cube: ['edge'], prisme: ['depth'], cylindre: ['radius', 'height'] }
+  for (const key of dims[solid.kind] ?? []) {
+    if (!(solid[key] > 0)) fail(file, path, `solid ${solid.kind}: ${key} must be > 0, got ${solid[key]}`)
+  }
+  if (solid.reduction !== undefined && !(solid.reduction > 0 && solid.reduction <= 1)) {
+    fail(file, path, `solid: reduction must be in ]0, 1], got ${solid.reduction}`)
+  }
+  if (solid.angle !== undefined && !(solid.angle > 0 && solid.angle < 180 && solid.angle !== 90)) {
+    fail(file, path, `solid: angle must be in ]0, 180[ and not 90 (receding edges would be vertical), got ${solid.angle}`)
+  }
+  let vertexCount = 0
+  if (solid.kind === 'pave' || solid.kind === 'cube') vertexCount = 8
+  if (solid.kind === 'prisme') {
+    const base = solid.base ?? []
+    vertexCount = 2 * base.length
+    if (base.length < 3 || !isStrictlyConvex(base)) {
+      fail(file, path + '.base', 'prism base must be a convex polygon with no three consecutive collinear vertices')
+    }
+  }
+  if (solid.names === undefined) return
+  if (solid.kind === 'cylindre') {
+    fail(file, path + '.names', 'a cylinder has no vertices to name')
+    return
+  }
+  if (solid.names.length !== vertexCount) {
+    fail(file, path + '.names', `solid ${solid.kind} has ${vertexCount} vertices (front face then back face), got ${solid.names.length} names`)
+  }
+  for (const name of solid.names) {
+    if (name.trim() === '') fail(file, path + '.names', 'blank vertex name: omit names to draw none')
+    if (solidNames.has(name)) fail(file, path + '.names', `duplicate vertex name "${name}" in this figure`)
+    if (pointNames.has(name)) fail(file, path + '.names', `vertex name "${name}" is also a point name`)
+    solidNames.add(name)
   }
 }
 
