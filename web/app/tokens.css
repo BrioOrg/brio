@@ -93,6 +93,12 @@
   --p-danger: #e86060;
   --p-danger-edge: #a83030;
 
+  /* Chart categories (#216) — not in the mockups. Slots 1-4 reuse the green,
+     info, amber and violet hues; pink and neutral are new. Graphical contrast
+     only (WCAG 1.4.11): no text is ever written on a chart fill. */
+  --p-chart-pink: #ff7aa8;
+  --p-chart-neutral: #c9d4ce;
+
   /* Light theme — sourced from screen 1 (connexion) + screen 2 .phone.day */
   --p-light-page: #eaf7ef;
   --p-light-panel: #ffffff;
@@ -107,6 +113,8 @@
   --p-light-accent-txt: #0a7a45;
   --p-light-danger: #c93535;
   --p-light-danger-edge: #8f1f1f;
+  --p-light-chart-pink: #c2185b;
+  --p-light-chart-neutral: #6b7a72;
 }
 
 /* --------------------------------------------------------------------------
@@ -217,6 +225,18 @@
   /* -- Gamification -------------------------------------------------------- */
   --color-xp: #ffcf3f;
   --color-streak: #ff9600;
+
+  /* -- Chart categories ---------------------------------------------------- */
+  /* One colour per category of a statistical chart (#216), in this order. They
+     carry no meaning — never use them for state. A category is always named in
+     text too, so colour is never the only way to read a chart.
+     Contrast on panel and page: ≥ 3 : 1 (verified by check-contrast.mjs). */
+  --color-chart-1: #17c26b;
+  --color-chart-2: #4bb4ff;
+  --color-chart-3: #f0a83a;
+  --color-chart-4: #b99bff;
+  --color-chart-5: #ff7aa8;
+  --color-chart-6: #c9d4ce;
 }
 
 /* --------------------------------------------------------------------------
@@ -279,6 +299,14 @@
   /* Result sheet — light theme values from mockup */
   --color-surface-result-correct: #d7f7e4;
   --color-surface-result-incorrect: #fdeccc;
+
+  /* Chart categories, darkened to clear 3 : 1 on white and on the page. */
+  --color-chart-1: #0d9a5a;
+  --color-chart-2: #1a80d4;
+  --color-chart-3: #b87a00;
+  --color-chart-4: #6b40cc;
+  --color-chart-5: #c2185b;
+  --color-chart-6: #6b7a72;
 }
 
 /* System preference fallback — applies when no data-theme attribute is set */
@@ -315,6 +343,13 @@
 
     --color-surface-result-correct: #d7f7e4;
     --color-surface-result-incorrect: #fdeccc;
+
+    --color-chart-1: #0d9a5a;
+    --color-chart-2: #1a80d4;
+    --color-chart-3: #b87a00;
+    --color-chart-4: #6b40cc;
+    --color-chart-5: #c2185b;
+    --color-chart-6: #6b7a72;
   }
 }
 

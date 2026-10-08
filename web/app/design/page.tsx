@@ -120,6 +120,16 @@ export default function DesignPage() {
           </div>
         </Section>
 
+        {/* ── Chart palette ─────────────────────────────────────────────────── */}
+        <Section title="Diagrammes">
+          <Label>Une couleur par catégorie, dans cet ordre — jamais pour un état</Label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <Swatch key={n} token={`chart-${n}`} label={`chart-${n}`} />
+            ))}
+          </div>
+        </Section>
+
         {/* ── Typography ────────────────────────────────────────────────────── */}
         <Section title="Typographie">
           <div className="flex flex-col gap-4">
