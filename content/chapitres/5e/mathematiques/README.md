@@ -52,7 +52,7 @@ les garde dans le domaine `gm` (décision de #213 : pas de nouveau domaine).
 
 | Slug | Titre | Statut |
 |---|---|---|
-| `statistiques` | Statistiques : effectifs, fréquences, représentations, moyenne | 🚧 diagrammes approchés, pas de circulaire (#216) |
+| `statistiques` | Statistiques : effectifs, fréquences, représentations, moyenne | ✅ |
 | `probabilites-equiprobabilite` | Probabilités : vocabulaire et équiprobabilité | ✅ |
 | `proportionnalite-pourcentages` | Proportionnalité et pourcentages | ✅ |
 | `fonctions-dependance` | Une grandeur en fonction d'une autre | ✅ |
@@ -90,8 +90,8 @@ les exercices ont `competencies: []`. Ils ne comptent donc pas dans la maîtrise
 
 - **Perspective cavalière** : réglé par #215. Le pavé, le cube, le prisme droit et le cylindre
   sont dessinés par `solids` ; les patrons restent des `polygons`.
-- **Diagrammes** (#216) : le diagramme en barres est fait de rectangles (catégories sur
-  deux hauteurs pour ne pas se chevaucher, axe vertical sans graduations). Aucun diagramme circulaire.
+- **Diagrammes** : réglé par #216. Barres, circulaire et courbe sont des blocs `chart`
+  (ADR 0030) ; `statistiques` fait lire des diagrammes en barres et un diagramme circulaire.
 - **Programmes par blocs** (#217) : texte dans un bloc `code`. Le signe × remplace le `*` de
   Scratch, car un `*` isolé ouvre un italique dans le texte riche.
 - Placer un point dans un repère, tracer ou construire à la règle : impossible à évaluer en ligne.

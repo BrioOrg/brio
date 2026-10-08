@@ -1,7 +1,8 @@
 import katex from 'katex'
-import { parseRichText, type RichTextToken, type FigureSpec } from '@brio/content'
+import { parseRichText, type RichTextToken, type FigureSpec, type ChartSpec } from '@brio/content'
 
 import { ExerciceWidget, PaperExercise } from '@/components/exercice-widget'
+import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
@@ -161,6 +162,18 @@ function BlockRenderer({ block, apercu }: { block: Block; apercu: boolean }) {
           <FigureRenderer
             spec={block.spec as FigureSpec}
             alt={block.alt as string}
+            caption={block.caption as string | undefined}
+          />
+        </div>
+      )
+
+    case 'chart':
+      return (
+        <div id={block.id}>
+          <ChartRenderer
+            spec={block as unknown as ChartSpec}
+            alt={block.alt as string}
+            title={block.title as string | undefined}
             caption={block.caption as string | undefined}
           />
         </div>

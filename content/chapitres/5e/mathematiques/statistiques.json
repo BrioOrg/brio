@@ -5,7 +5,7 @@
   "subject": "mathematiques",
   "level": "5e",
   "difficulty": "standard",
-  "estimatedDurationMinutes": 66,
+  "estimatedDurationMinutes": 71,
   "status": "published",
   "sections": [
     {
@@ -230,287 +230,43 @@
       "id": "representations",
       "title": "Lire et choisir une représentation",
       "kind": "lesson",
-      "estimatedDurationMinutes": 14,
+      "estimatedDurationMinutes": 19,
       "blocks": [
         {
-          "id": "fig-barres-sports",
-          "type": "figure",
-          "alt": "Diagramme en barres du sport préféré. Hauteurs des barres : Football 8, Basket 5, Natation 7, Danse 3, Autre 2. L'axe vertical est gradué de 2 en 2 jusqu'à 8.",
-          "caption": "Diagramme en barres : le sport préféré de 25 élèves.",
-          "spec": {
-            "points": [
-              {
-                "name": "b1a",
-                "x": 1,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b1b",
-                "x": 2.5,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b1c",
-                "x": 2.5,
-                "y": 8,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b1d",
-                "x": 1,
-                "y": 8,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b2a",
-                "x": 4,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b2b",
-                "x": 5.5,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b2c",
-                "x": 5.5,
-                "y": 5,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b2d",
-                "x": 4,
-                "y": 5,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b3a",
-                "x": 7,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b3b",
-                "x": 8.5,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b3c",
-                "x": 8.5,
-                "y": 7,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b3d",
-                "x": 7,
-                "y": 7,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b4a",
-                "x": 10,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b4b",
-                "x": 11.5,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b4c",
-                "x": 11.5,
-                "y": 3,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b4d",
-                "x": 10,
-                "y": 3,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b5a",
-                "x": 13,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b5b",
-                "x": 14.5,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b5c",
-                "x": 14.5,
-                "y": 2,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "b5d",
-                "x": 13,
-                "y": 2,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "o",
-                "x": 0,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "xfin",
-                "x": 15.5,
-                "y": 0,
-                "dot": false,
-                "showName": false
-              },
-              {
-                "name": "yfin",
-                "x": 0,
-                "y": 9,
-                "dot": false,
-                "showName": false
-              }
-            ],
-            "polygons": [
-              {
-                "vertices": [
-                  "b1a",
-                  "b1b",
-                  "b1c",
-                  "b1d"
-                ]
-              },
-              {
-                "vertices": [
-                  "b2a",
-                  "b2b",
-                  "b2c",
-                  "b2d"
-                ]
-              },
-              {
-                "vertices": [
-                  "b3a",
-                  "b3b",
-                  "b3c",
-                  "b3d"
-                ]
-              },
-              {
-                "vertices": [
-                  "b4a",
-                  "b4b",
-                  "b4c",
-                  "b4d"
-                ]
-              },
-              {
-                "vertices": [
-                  "b5a",
-                  "b5b",
-                  "b5c",
-                  "b5d"
-                ]
-              }
-            ],
-            "segments": [
-              {
-                "from": "o",
-                "to": "xfin"
-              },
-              {
-                "from": "o",
-                "to": "yfin"
-              }
-            ],
-            "labels": [
-              {
-                "text": "Football",
-                "x": 1.75,
-                "y": -0.7
-              },
-              {
-                "text": "Basket",
-                "x": 4.75,
-                "y": -1.6
-              },
-              {
-                "text": "Natation",
-                "x": 7.75,
-                "y": -0.7
-              },
-              {
-                "text": "Danse",
-                "x": 10.75,
-                "y": -1.6
-              },
-              {
-                "text": "Autre",
-                "x": 13.75,
-                "y": -0.7
-              },
-              {
-                "text": "0",
-                "x": -0.8,
-                "y": 0
-              },
-              {
-                "text": "2",
-                "x": -0.8,
-                "y": 2
-              },
-              {
-                "text": "4",
-                "x": -0.8,
-                "y": 4
-              },
-              {
-                "text": "6",
-                "x": -0.8,
-                "y": 6
-              },
-              {
-                "text": "8",
-                "x": -0.8,
-                "y": 8
-              },
-              {
-                "text": "Effectif",
-                "x": 0.6,
-                "y": 9.6
-              }
-            ]
-          }
+          "id": "chart-barres-sports",
+          "type": "chart",
+          "kind": "bar",
+          "title": "Le sport préféré de 25 élèves",
+          "xLabel": "Sport",
+          "yLabel": "Effectif",
+          "series": [
+            {
+              "label": "Effectif",
+              "data": [
+                {
+                  "label": "Football",
+                  "value": 8
+                },
+                {
+                  "label": "Basket",
+                  "value": 5
+                },
+                {
+                  "label": "Natation",
+                  "value": 7
+                },
+                {
+                  "label": "Danse",
+                  "value": 3
+                },
+                {
+                  "label": "Autre",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "alt": "Diagramme en barres du sport préféré. Hauteurs des barres : Football 8, Basket 5, Natation 7, Danse 3, Autre 2. L'axe vertical est gradué de 2 en 2 jusqu'à 8."
         },
         {
           "id": "ex-lire-natation",
@@ -569,6 +325,85 @@
           "variant": "definition",
           "title": "Diagramme circulaire",
           "text": "Dans un diagramme circulaire, l'angle de chaque secteur est proportionnel à l'effectif : angle = fréquence × 360°. Le disque entier représente l'effectif total."
+        },
+        {
+          "id": "prose-circulaire-transport",
+          "type": "prose",
+          "text": "Voici comment viennent au collège les 24 élèves d'une classe. Le disque entier représente les 24 élèves : plus un secteur est grand, plus il y a d'élèves."
+        },
+        {
+          "id": "chart-circulaire-transport",
+          "type": "chart",
+          "kind": "pie",
+          "title": "Moyen de transport de 24 élèves",
+          "series": [
+            {
+              "label": "Effectif",
+              "data": [
+                {
+                  "label": "À pied",
+                  "value": 12
+                },
+                {
+                  "label": "Bus",
+                  "value": 6
+                },
+                {
+                  "label": "Vélo",
+                  "value": 4
+                },
+                {
+                  "label": "Voiture",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "alt": "Diagramme circulaire du moyen de transport de 24 élèves. À pied : la moitié du disque. Bus : un quart du disque, un angle droit. Vélo : un secteur de 60°. Voiture : un secteur de 30°."
+        },
+        {
+          "id": "ex-lire-circulaire-moitie",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "D'après le diagramme circulaire, quel moyen de transport utilise la moitié des élèves ?",
+          "competencies": [
+            "c4.ogd.statistiques.lire-representations"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-a-pied",
+              "text": "À pied",
+              "correct": true
+            },
+            {
+              "id": "choix-le-bus",
+              "text": "Le bus",
+              "correct": false
+            },
+            {
+              "id": "choix-le-velo",
+              "text": "Le vélo",
+              "correct": false
+            }
+          ],
+          "explanation": "Le secteur « À pied » occupe un demi-disque : c'est la moitié des élèves, soit 12 sur 24."
+        },
+        {
+          "id": "ex-lire-circulaire-bus",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "Dans le diagramme circulaire, le secteur du bus forme un angle droit. Combien d'élèves, sur les 24, viennent en bus ?",
+          "competencies": [
+            "c4.ogd.statistiques.lire-representations"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 6,
+          "tolerance": 0,
+          "explanation": "Un angle droit mesure 90°, c'est un quart du disque (90 ÷ 360 = $\\frac{1}{4}$). Un quart de 24 élèves : 24 ÷ 4 = 6 élèves."
         },
         {
           "id": "ex-choisir-circulaire",
@@ -644,6 +479,153 @@
           "tolerance": 0.1,
           "unit": "°",
           "explanation": "Fréquence : 8 ÷ 25 = 0,32. Angle : 0,32 × 360 = 115,2°."
+        },
+        {
+          "id": "table-associer",
+          "type": "table",
+          "headers": [
+            "Nombre de frères et sœurs",
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "rows": [
+            [
+              "Effectif",
+              "5",
+              "9",
+              "6",
+              "2"
+            ]
+          ],
+          "caption": "Le nombre de frères et sœurs des 22 élèves d'une classe."
+        },
+        {
+          "id": "chart-associer-a",
+          "type": "chart",
+          "kind": "bar",
+          "title": "Diagramme A",
+          "xLabel": "Frères et sœurs",
+          "yLabel": "Effectif",
+          "series": [
+            {
+              "label": "Effectif",
+              "data": [
+                {
+                  "label": "0",
+                  "value": 9
+                },
+                {
+                  "label": "1",
+                  "value": 5
+                },
+                {
+                  "label": "2",
+                  "value": 6
+                },
+                {
+                  "label": "3",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "alt": "Diagramme A, en barres. Hauteurs : 0 frère et sœur, 9 ; 1, 5 ; 2, 6 ; 3, 2."
+        },
+        {
+          "id": "chart-associer-b",
+          "type": "chart",
+          "kind": "bar",
+          "title": "Diagramme B",
+          "xLabel": "Frères et sœurs",
+          "yLabel": "Effectif",
+          "series": [
+            {
+              "label": "Effectif",
+              "data": [
+                {
+                  "label": "0",
+                  "value": 5
+                },
+                {
+                  "label": "1",
+                  "value": 9
+                },
+                {
+                  "label": "2",
+                  "value": 6
+                },
+                {
+                  "label": "3",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "alt": "Diagramme B, en barres. Hauteurs : 0 frère et sœur, 5 ; 1, 9 ; 2, 6 ; 3, 2."
+        },
+        {
+          "id": "chart-associer-c",
+          "type": "chart",
+          "kind": "bar",
+          "title": "Diagramme C",
+          "xLabel": "Frères et sœurs",
+          "yLabel": "Effectif",
+          "series": [
+            {
+              "label": "Effectif",
+              "data": [
+                {
+                  "label": "0",
+                  "value": 5
+                },
+                {
+                  "label": "1",
+                  "value": 9
+                },
+                {
+                  "label": "2",
+                  "value": 2
+                },
+                {
+                  "label": "3",
+                  "value": 6
+                }
+              ]
+            }
+          ],
+          "alt": "Diagramme C, en barres. Hauteurs : 0 frère et sœur, 5 ; 1, 9 ; 2, 2 ; 3, 6."
+        },
+        {
+          "id": "ex-associer-diagramme",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Quel diagramme représente les données du tableau sur les frères et sœurs ?",
+          "competencies": [
+            "c4.ogd.statistiques.lire-representations"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-diagramme-a",
+              "text": "Diagramme A",
+              "correct": false
+            },
+            {
+              "id": "choix-diagramme-b",
+              "text": "Diagramme B",
+              "correct": true
+            },
+            {
+              "id": "choix-diagramme-c",
+              "text": "Diagramme C",
+              "correct": false
+            }
+          ],
+          "explanation": "On compare chaque barre au tableau. Diagramme B : 5, 9, 6 et 2, comme le tableau. Le diagramme A échange les barres de 0 et de 1, le diagramme C celles de 2 et de 3."
         }
       ]
     },

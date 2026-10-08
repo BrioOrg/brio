@@ -298,6 +298,39 @@ Les autres solides :
 - Un **patron** se dessine avec des `polygons` (points masqués) ; un solide et son patron
   peuvent partager la même figure, à la même échelle.
 
+### Diagrammes statistiques
+
+Un diagramme en barres, circulaire ou une courbe à abscisses catégorielles est un bloc `chart`,
+pas une `figure` (ADR 0030). On donne les catégories et leurs valeurs ; le renderer calcule les
+barres, les secteurs et les graduations.
+
+Recette — un diagramme en barres :
+
+```json
+{ "id": "chart-sports", "type": "chart", "kind": "bar",
+  "title": "Le sport préféré de 25 élèves", "xLabel": "Sport", "yLabel": "Effectif",
+  "series": [ { "label": "Effectif",
+                "data": [ { "label": "Football", "value": 8 }, { "label": "Basket", "value": 5 } ] } ],
+  "alt": "Diagramme en barres du sport préféré. Football 8, Basket 5." }
+```
+
+- `kind` : `bar`, `pie` ou `line`. Une courbe dont l'abscisse est un **nombre** (fonction,
+  proportionnalité) reste une `figure` avec `axes`.
+- **Une seule série**, de 2 à 12 catégories (6 pour un circulaire), sans doublon. Barres :
+  valeurs positives ou nulles ; circulaire : strictement positives ; courbe : négatives
+  permises (températures).
+- L'axe vertical part **toujours de 0**. Graduation automatique (pas de 1, 2 ou 5 × 10ⁿ) ;
+  `yStep` et `yMax` la fixent quand l'exercice demande une lecture précise (une valeur impaire
+  sur un axe gradué de 2 en 2 se lit mal).
+- **Aucune valeur écrite** sur le diagramme par défaut : elle donnerait la réponse aux
+  exercices de lecture. `showValues: true` les écrit (barres, courbe). Un secteur ne porte que
+  le nom de sa catégorie.
+- Un circulaire n'a ni `xLabel`, ni `yLabel`, ni `yMax`, ni `yStep`, ni `showValues`.
+- `alt` décrit les données (un lecteur d'écran reçoit aussi un tableau masqué des valeurs).
+- Un exercice ne contient pas de blocs : un exercice sur un diagramme suit le bloc `chart`. Pour
+  « quel diagramme correspond à ce tableau ? », un `table`, puis des `chart` titrés
+  « Diagramme A », « Diagramme B »…, puis un QCM sur ces titres.
+
 ### Formules
 
 **Bloc `formula`** pour les formules posées sur leur propre ligne (théorème, définition,

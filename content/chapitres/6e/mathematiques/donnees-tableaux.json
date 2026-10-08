@@ -5,7 +5,7 @@
   "subject": "mathematiques",
   "level": "6e",
   "difficulty": "standard",
-  "estimatedDurationMinutes": 55,
+  "estimatedDurationMinutes": 62,
   "status": "published",
   "sections": [
     {
@@ -21,7 +21,8 @@
           "items": [
             "préparer une enquête et recueillir des données ;",
             "présenter des données dans un tableau ;",
-            "utiliser un tableau pour faire un choix selon un critère."
+            "utiliser un tableau pour faire un choix selon un critère ;",
+            "représenter des mesures dans un repère et lire un graphique."
           ]
         },
         {
@@ -361,6 +362,112 @@
             }
           ],
           "explanation": "Premier critère, 4 h ou moins : musée (3 h), planétarium (2 h), ferme (4 h). Second critère parmi eux, moins de 10 € : musée (8 €) et ferme (6 €). Le planétarium coûte 12 €. La forêt est gratuite mais dure 5 h. Oublier la ferme, c'est lire « moins de 4 h » au lieu de « 4 h ou moins »."
+        }
+      ]
+    },
+    {
+      "id": "representer-mesures",
+      "title": "Représenter des mesures dans un repère",
+      "kind": "lesson",
+      "estimatedDurationMinutes": 7,
+      "blocks": [
+        {
+          "id": "intro-mesures",
+          "type": "prose",
+          "text": "Chaque lundi pendant six semaines, Inès mesure la hauteur de son plant de haricot. Pour voir comment il grandit, elle **représente ses mesures dans un repère** : les semaines sur l'axe horizontal, la hauteur en centimètres sur l'axe vertical. Elle place un point par mesure, puis relie les points."
+        },
+        {
+          "id": "chart-haricot",
+          "type": "chart",
+          "kind": "line",
+          "title": "Hauteur du plant de haricot",
+          "xLabel": "Semaine",
+          "yLabel": "Hauteur (cm)",
+          "yStep": 2,
+          "series": [
+            {
+              "label": "Hauteur (cm)",
+              "data": [
+                {
+                  "label": "1",
+                  "value": 2
+                },
+                {
+                  "label": "2",
+                  "value": 5
+                },
+                {
+                  "label": "3",
+                  "value": 9
+                },
+                {
+                  "label": "4",
+                  "value": 14
+                },
+                {
+                  "label": "5",
+                  "value": 18
+                },
+                {
+                  "label": "6",
+                  "value": 20
+                }
+              ]
+            }
+          ],
+          "alt": "Graphique de la hauteur du plant de haricot, semaine par semaine. Semaine 1 : 2 cm ; semaine 2 : 5 cm ; semaine 3 : 9 cm ; semaine 4 : 14 cm ; semaine 5 : 18 cm ; semaine 6 : 20 cm. L'axe vertical est gradué de 2 en 2 jusqu'à 20."
+        },
+        {
+          "id": "methode-lire-graphique",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Lire un graphique",
+          "text": "On part de la valeur sur l'axe horizontal, on monte jusqu'au point, puis on se déplace horizontalement jusqu'à l'axe vertical pour lire la valeur."
+        },
+        {
+          "id": "ex-lire-haricot",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "D'après le graphique, quelle est la hauteur du plant à la semaine 4 ?",
+          "competencies": [
+            "c3.ogd.donnees.planifier-recueillir"
+          ],
+          "difficulty": "introduction",
+          "estimatedDurationMinutes": 2,
+          "answer": 14,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "On part de 4 sur l'axe horizontal et on monte jusqu'au point. À sa hauteur, on lit 14 sur l'axe vertical : le plant mesure 14 cm."
+        },
+        {
+          "id": "ex-croissance-haricot",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "D'après le graphique, entre quelles semaines le plant a-t-il le plus grandi ?",
+          "competencies": [
+            "c3.ogd.donnees.planifier-recueillir"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 3,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-entre-la-semaine-3-et-la-semai",
+              "text": "Entre la semaine 3 et la semaine 4",
+              "correct": true
+            },
+            {
+              "id": "choix-entre-la-semaine-5-et-la-semai",
+              "text": "Entre la semaine 5 et la semaine 6",
+              "correct": false
+            },
+            {
+              "id": "choix-entre-la-semaine-1-et-la-semai",
+              "text": "Entre la semaine 1 et la semaine 2",
+              "correct": false
+            }
+          ],
+          "explanation": "On calcule ce que le plant gagne chaque semaine : 3 cm, 4 cm, 5 cm, 4 cm, puis 2 cm. Le plus grand écart, 5 cm, est entre la semaine 3 (9 cm) et la semaine 4 (14 cm) : c'est là que le segment monte le plus."
         }
       ]
     },

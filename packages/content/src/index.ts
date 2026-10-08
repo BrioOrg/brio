@@ -48,3 +48,16 @@ export {
   euclideanLength,
   isCollinear,
 } from './figure'
+
+export type {
+  ChartKind,
+  ChartDatum,
+  ChartSeries,
+  ChartSpec,
+  ChartText,
+  ChartValueAxis,
+  ChartBar,
+  ChartSector,
+  ChartModel,
+} from './chart'
+export { buildChartModel, niceStep, valueScale, wrapLabel } from './chart'

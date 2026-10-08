@@ -116,6 +116,7 @@
         { "$ref": "#/$defs/formulaBlock" },
         { "$ref": "#/$defs/imageBlock" },
         { "$ref": "#/$defs/figureBlock" },
+        { "$ref": "#/$defs/chartBlock" },
         { "$ref": "#/$defs/calloutBlock" },
         { "$ref": "#/$defs/codeBlock" },
         { "$ref": "#/$defs/exerciseBlock" },
@@ -450,6 +451,93 @@
         },
         "caption": { "$ref": "#/$defs/richText" },
         "spec": { "$ref": "#/$defs/figureSpec" }
+      }
+    },
+
+    "chartBlock": {
+      "description": "A statistical chart (bar, pie or line) drawn from categories and values; the renderer computes bars, sectors and graduations. One series for now. See ADR 0030.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "kind", "series", "alt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "chart" },
+        "kind": {
+          "description": "bar and line: categories along a horizontal axis, values against a graduated vertical axis starting at 0. line is for categorical abscissas only; a numerical one is a figure with axes. pie: one sector per category, proportional to its value.",
+          "enum": ["bar", "pie", "line"]
+        },
+        "title": { "$ref": "#/$defs/plainText" },
+        "xLabel": {
+          "description": "Title of the category axis (bar and line only).",
+          "$ref": "#/$defs/plainText"
+        },
+        "yLabel": {
+          "description": "Title of the value axis (bar and line only).",
+          "$ref": "#/$defs/plainText"
+        },
+        "yMax": {
+          "description": "Top of the value axis (bar and line only). Defaults to the largest value rounded up to the step.",
+          "type": "number"
+        },
+        "yStep": {
+          "description": "Graduation step of the value axis (bar and line only). Defaults to 1, 2 or 5 × 10ⁿ, at most about six intervals.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "showValues": {
+          "description": "Writes each value at the top of its bar or above its point (bar and line only). Off by default: a written value gives away a reading exercise.",
+          "type": "boolean",
+          "default": false
+        },
+        "series": {
+          "description": "Exactly one series for now; several series (grouped bars, legend) would be a later, additive relaxation.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/chartSeries" }
+        },
+        "alt": {
+          "description": "Accessibility text. Required — a chart without a textual equivalent is invalid. The renderer also emits the data as a visually hidden table.",
+          "$ref": "#/$defs/plainText"
+        },
+        "caption": { "$ref": "#/$defs/richText" }
+      },
+      "if": { "properties": { "kind": { "const": "pie" } } },
+      "then": {
+        "properties": {
+          "xLabel": false,
+          "yLabel": false,
+          "yMax": false,
+          "yStep": false,
+          "showValues": false
+        }
+      }
+    },
+
+    "chartSeries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "data"],
+      "properties": {
+        "label": {
+          "description": "What the values measure (\"Effectif\", \"Température (°C)\"); heads the value column of the hidden data table.",
+          "$ref": "#/$defs/plainText"
+        },
+        "data": {
+          "description": "Categories in display order. check-content bounds their number (2-12, 6 for a pie) and rejects duplicates.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "value"],
+            "properties": {
+              "label": { "$ref": "#/$defs/plainText" },
+              "value": { "type": "number" }
+            }
+          }
+        }
       }
     },
 
@@ -847,6 +935,7 @@
               "formula",
               "image",
               "figure",
+              "chart",
               "callout",
               "code",
               "exercise",

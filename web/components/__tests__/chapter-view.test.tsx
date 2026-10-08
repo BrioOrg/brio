@@ -141,6 +141,31 @@ describe('ChapterView — table block', () => {
     expect(container.querySelector('.katex')).not.toBeNull()
   })
 
+  it('renders a chart block as an image named by its alt text', () => {
+    const { getByRole } = render(
+      <ChapterView
+        chapitre={makeChapter([
+          {
+            id: 'ch1',
+            type: 'chart',
+            kind: 'pie',
+            alt: 'Sport préféré : Football 8, Basket 5',
+            series: [
+              {
+                label: 'Effectif',
+                data: [
+                  { label: 'Football', value: 8 },
+                  { label: 'Basket', value: 5 },
+                ],
+              },
+            ],
+          },
+        ])}
+      />
+    )
+    expect(getByRole('img', { name: 'Sport préféré : Football 8, Basket 5' })).toBeDefined()
+  })
+
   it('renders a headerless table (no thead)', () => {
     const { container } = render(
       <ChapterView chapitre={makeChapter([{ id: 't2', type: 'table', rows: [['a', 'b']] }])} />

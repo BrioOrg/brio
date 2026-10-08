@@ -205,4 +205,19 @@ class PublicationValidatorTest {
                 .extracting(e -> ((InvalidContentException) e).violations())
                 .isEqualTo(List.of(new ContentViolation(ContentViolation.EMPTY, "s1", "fig1", "alt")));
     }
+
+    @Test
+    void shouldBlockPublicationWhenAChartHasABlankAltText() throws Exception {
+        // A blank alt passes the schema's minLength; a chart needs a real textual equivalent
+        // like a figure (ADR 0030 §7).
+        String chart = """
+                { "id": "chart1", "type": "chart", "kind": "pie", "alt": "   ",
+                  "series": [ { "label": "Effectif",
+                                "data": [ { "label": "A", "value": 1 }, { "label": "B", "value": 2 } ] } ] }
+                """;
+        assertThatThrownBy(() -> validator.validate(doc(chart)))
+                .isInstanceOf(InvalidContentException.class)
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(ContentViolation.MISSING_ALT, "s1", "chart1", "alt")));
+    }
 }
