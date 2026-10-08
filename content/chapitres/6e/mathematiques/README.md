@@ -105,7 +105,8 @@ par les fractions), mais si l'ordre devient gênant en classe, c'est ce fichier 
   laisse un point visible sans étiquette.
 - **Demi-cercles** : seuls les cercles complets se dessinent ; les figures composées de
   `perimetres` sont décrites en texte.
-- **Graphiques** : aucun bloc ne trace de repère ni de diagramme ; `donnees-tableaux` ne couvre pas
-  la représentation de mesures dans un repère (partie de `c3.ogd.donnees.planifier-recueillir`).
+- **Graphiques** : aucun bloc ne trace de diagramme (#216). Le repère existe depuis #214, mais
+  `donnees-tableaux` ne couvre pas encore la représentation de mesures dans un repère (partie de
+  `c3.ogd.donnees.planifier-recueillir`).
 - Les exercices `paper` (auto-évalués) ne sont pas comptés comme réussis : chaque chapitre en a au
   plus 2, pour rester au-dessus du seuil de complétion de 80 %.

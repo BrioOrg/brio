@@ -415,21 +415,26 @@
           "alt": "Repère orthogonal d'origine O, graduations de −3 à 3 sur chaque axe. A est à 3 unités à droite et 2 unités en haut. B est à 2 unités à gauche et 1 unité en haut. C est à 1 unité à droite et 3 unités en bas.",
           "caption": "Les points A, B et C dans un repère.",
           "spec": {
+            "axes": {
+              "x": {
+                "from": -3.5,
+                "to": 3.5,
+                "step": 1
+              },
+              "y": {
+                "from": -3.5,
+                "to": 3.5,
+                "step": 1
+              },
+              "grid": true
+            },
             "points": [
               {
-                "name": "y",
+                "name": "O",
                 "x": 0,
-                "y": 4,
+                "y": 0,
                 "label": {
-                  "placement": "right"
-                }
-              },
-              {
-                "name": "y'",
-                "x": 0,
-                "y": -4,
-                "label": {
-                  "placement": "right"
+                  "placement": "below-left"
                 }
               },
               {
@@ -455,51 +460,6 @@
                 "label": {
                   "placement": "right"
                 }
-              }
-            ],
-            "segments": [
-              {
-                "from": "y'",
-                "to": "y"
-              }
-            ],
-            "labels": [
-              {
-                "text": "-3",
-                "x": -0.4,
-                "y": -3
-              },
-              {
-                "text": "-2",
-                "x": -0.4,
-                "y": -2
-              },
-              {
-                "text": "1",
-                "x": -0.4,
-                "y": 1
-              },
-              {
-                "text": "2",
-                "x": -0.4,
-                "y": 2
-              },
-              {
-                "text": "3",
-                "x": -0.4,
-                "y": 3
-              },
-              {
-                "text": "x",
-                "x": 4.4,
-                "y": -0.4
-              }
-            ],
-            "numberLines": [
-              {
-                "from": -4,
-                "to": 4,
-                "step": 1
               }
             ]
           }

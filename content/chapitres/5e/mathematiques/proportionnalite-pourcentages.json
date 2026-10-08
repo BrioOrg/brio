@@ -386,6 +386,19 @@
           "alt": "Graphique 1 : repère avec les points A(1 ; 1,5), B(2 ; 3), C(3 ; 4,5) et D(4 ; 6). Ils sont alignés sur une droite qui passe par l'origine O.",
           "caption": "Graphique 1.",
           "spec": {
+            "axes": {
+              "x": {
+                "from": 0,
+                "to": 5,
+                "step": 1
+              },
+              "y": {
+                "from": 0,
+                "to": 10,
+                "step": 1
+              },
+              "grid": true
+            },
             "points": [
               {
                 "name": "O",
@@ -393,14 +406,6 @@
                 "y": 0,
                 "label": {
                   "placement": "below-left"
-                }
-              },
-              {
-                "name": "y",
-                "x": 0,
-                "y": 10,
-                "label": {
-                  "placement": "right"
                 }
               },
               {
@@ -435,71 +440,6 @@
                   "placement": "right"
                 }
               }
-            ],
-            "segments": [
-              {
-                "from": "O",
-                "to": "y"
-              }
-            ],
-            "labels": [
-              {
-                "text": "1",
-                "x": -0.35,
-                "y": 1
-              },
-              {
-                "text": "2",
-                "x": -0.35,
-                "y": 2
-              },
-              {
-                "text": "3",
-                "x": -0.35,
-                "y": 3
-              },
-              {
-                "text": "4",
-                "x": -0.35,
-                "y": 4
-              },
-              {
-                "text": "5",
-                "x": -0.35,
-                "y": 5
-              },
-              {
-                "text": "6",
-                "x": -0.35,
-                "y": 6
-              },
-              {
-                "text": "7",
-                "x": -0.35,
-                "y": 7
-              },
-              {
-                "text": "8",
-                "x": -0.35,
-                "y": 8
-              },
-              {
-                "text": "9",
-                "x": -0.35,
-                "y": 9
-              },
-              {
-                "text": "x",
-                "x": 5.4,
-                "y": -0.5
-              }
-            ],
-            "numberLines": [
-              {
-                "from": 0,
-                "to": 5,
-                "step": 1
-              }
             ]
           }
         },
@@ -509,6 +449,19 @@
           "alt": "Graphique 2 : repère avec les points E(1 ; 4,5), F(2 ; 6), G(3 ; 7,5) et H(4 ; 9). Ils sont alignés, mais sur une droite qui coupe l'axe vertical en 3, pas à l'origine.",
           "caption": "Graphique 2 : le prix du taxi.",
           "spec": {
+            "axes": {
+              "x": {
+                "from": 0,
+                "to": 5,
+                "step": 1
+              },
+              "y": {
+                "from": 0,
+                "to": 10,
+                "step": 1
+              },
+              "grid": true
+            },
             "points": [
               {
                 "name": "O",
@@ -516,14 +469,6 @@
                 "y": 0,
                 "label": {
                   "placement": "below-left"
-                }
-              },
-              {
-                "name": "y",
-                "x": 0,
-                "y": 10,
-                "label": {
-                  "placement": "right"
                 }
               },
               {
@@ -557,71 +502,6 @@
                 "label": {
                   "placement": "right"
                 }
-              }
-            ],
-            "segments": [
-              {
-                "from": "O",
-                "to": "y"
-              }
-            ],
-            "labels": [
-              {
-                "text": "1",
-                "x": -0.35,
-                "y": 1
-              },
-              {
-                "text": "2",
-                "x": -0.35,
-                "y": 2
-              },
-              {
-                "text": "3",
-                "x": -0.35,
-                "y": 3
-              },
-              {
-                "text": "4",
-                "x": -0.35,
-                "y": 4
-              },
-              {
-                "text": "5",
-                "x": -0.35,
-                "y": 5
-              },
-              {
-                "text": "6",
-                "x": -0.35,
-                "y": 6
-              },
-              {
-                "text": "7",
-                "x": -0.35,
-                "y": 7
-              },
-              {
-                "text": "8",
-                "x": -0.35,
-                "y": 8
-              },
-              {
-                "text": "9",
-                "x": -0.35,
-                "y": 9
-              },
-              {
-                "text": "x",
-                "x": 5.4,
-                "y": -0.5
-              }
-            ],
-            "numberLines": [
-              {
-                "from": 0,
-                "to": 5,
-                "step": 1
               }
             ]
           }
