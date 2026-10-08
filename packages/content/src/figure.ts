@@ -15,6 +15,10 @@ export type FigurePoint = {
   name: string
   x: number
   y: number
+  /** false hides the dot (a point that only builds a curve or an axis end). */
+  dot?: boolean
+  /** false hides the name; the name still identifies the point in the spec. */
+  showName?: boolean
   label?: { placement?: LabelPlacement }
 }
 
@@ -57,6 +61,24 @@ export type FigureNumberLine = {
   marks?: Array<{ value: number; label?: string }>
 }
 
+export type FigurePolyline = {
+  points: string[]
+}
+
+export type FigureAxis = {
+  from: number
+  to: number
+  step: number
+  labelEvery?: number
+  title?: string
+}
+
+export type FigureAxes = {
+  x: FigureAxis
+  y: FigureAxis
+  grid?: boolean
+}
+
 export type CoordinateSpace = {
   xMin: number
   xMax: number
@@ -74,6 +96,8 @@ export type FigureSpec = {
   lengthMarks?: FigureLengthMark[]
   labels?: FigureLabel[]
   numberLines?: FigureNumberLine[]
+  polylines?: FigurePolyline[]
+  axes?: FigureAxes
 }
 
 // --- Drawing model (SVG-ready, all coordinates in SVG pixels) ---
@@ -108,6 +132,22 @@ export type DrawingNumberLine = {
   }>
 }
 
+export type DrawingPolyline = { points: string }
+/** A positioned text with its own anchor and baseline (axis numbers, titles, the origin). */
+export type DrawingText = DrawingPointLabel
+export type DrawingAxis = {
+  line: DrawingSegment
+  arrow: DrawingPolygon
+  ticks: Array<DrawingSegment & { label?: DrawingText }>
+  title?: DrawingText
+}
+export type DrawingAxes = {
+  x: DrawingAxis
+  y: DrawingAxis
+  grid: DrawingSegment[]
+  origin: DrawingText
+}
+
 export type DrawingModel = {
   viewBox: string
   segments: DrawingSegment[]
@@ -120,6 +160,8 @@ export type DrawingModel = {
   pointLabels: DrawingPointLabel[]
   freeLabels: DrawingFreeLabel[]
   numberLines: DrawingNumberLine[]
+  polylines: DrawingPolyline[]
+  axes: DrawingAxes | null
 }
 
 // SVG canvas constants (pixels)
@@ -131,6 +173,13 @@ const TICK_HALF_LEN_PX = 6
 const TICK_SPACING_PX = 5
 const LABEL_OFFSET_PX = 14
 const MARGIN_RATIO = 0.15
+// Repère: the same margin on all four sides, so two axes with equal spans get equal scales.
+const AXES_PADDING = 44
+const AXIS_OVERSHOOT_PX = 14
+const ARROW_LEN_PX = 8
+const ARROW_HALF_WIDTH_PX = 4
+const AXIS_TICK_HALF_LEN_PX = 4
+const AXIS_LABEL_GAP_PX = 6
 
 type Pt2 = { x: number; y: number }
 
@@ -145,6 +194,10 @@ function normalize(v: Pt2): Pt2 {
 }
 
 function computeViewport(spec: FigureSpec): CoordinateSpace {
+  if (spec.axes) {
+    const { x, y } = spec.axes
+    return { xMin: x.from, xMax: x.to, yMin: y.from, yMax: y.to }
+  }
   if (spec.coordinateSpace) return spec.coordinateSpace
 
   const xs: number[] = []
@@ -175,6 +228,18 @@ function computeViewport(spec: FigureSpec): CoordinateSpace {
   const m = Math.max(dx, dy) * MARGIN_RATIO
 
   return { xMin: xMin - m, xMax: xMax + m, yMin: yMin - m, yMax: yMax + m }
+}
+
+// A repère gives each axis its own scale and fills the frame; any other figure keeps one scale
+// for both axes (ADR 0013, amended by #214).
+function makeAxesTransform(vp: CoordinateSpace): (lx: number, ly: number) => Pt2 {
+  const available = CANVAS_SIZE - 2 * AXES_PADDING
+  const scaleX = available / (vp.xMax - vp.xMin)
+  const scaleY = available / (vp.yMax - vp.yMin)
+  return (lx, ly) => ({
+    x: AXES_PADDING + (lx - vp.xMin) * scaleX,
+    y: AXES_PADDING + (vp.yMax - ly) * scaleY,
+  })
 }
 
 function makeTransform(vp: CoordinateSpace): (lx: number, ly: number) => Pt2 {
@@ -257,7 +322,7 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
   )
 
   const viewport = computeViewport(spec)
-  const toSvg = makeTransform(viewport)
+  const toSvg = spec.axes ? makeAxesTransform(viewport) : makeTransform(viewport)
 
   // Segments
   const segments: DrawingSegment[] = (spec.segments ?? []).map((seg) => {
@@ -368,7 +433,8 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
   const pointLabels: DrawingPointLabel[] = []
   for (const p of spec.points ?? []) {
     const sv = toSvg(p.x, p.y)
-    dots.push({ cx: sv.x, cy: sv.y })
+    if (p.dot !== false) dots.push({ cx: sv.x, cy: sv.y })
+    if (p.showName === false) continue
     const placement = p.label?.placement ?? 'auto'
     const pos = computeLabelPosition(sv, placement)
     pointLabels.push({ text: p.name, ...pos })
@@ -425,6 +491,19 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     return { axis, ticks }
   })
 
+  // Polylines
+  const polylines: DrawingPolyline[] = (spec.polylines ?? []).map((pl) => ({
+    points: pl.points
+      .map((name) => {
+        const p = requirePoint(pointMap, name)
+        const s = toSvg(p.x, p.y)
+        return `${fmt(s.x)},${fmt(s.y)}`
+      })
+      .join(' '),
+  }))
+
+  const axes = spec.axes ? buildAxes(spec.axes, toSvg) : null
+
   return {
     viewBox: `0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`,
     segments,
@@ -437,7 +516,143 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     pointLabels,
     freeLabels,
     numberLines,
+    polylines,
+    axes,
   }
+}
+
+/** Values k × step (k integer) inside [from, to]: ticks are aligned on the origin. */
+function axisValues(axis: FigureAxis): number[] {
+  const first = Math.ceil(axis.from / axis.step - 1e-9)
+  const last = Math.floor(axis.to / axis.step + 1e-9)
+  const values: number[] = []
+  for (let k = first; k <= last; k++) values.push(k * axis.step)
+  return values
+}
+
+function isMultiple(value: number, of: number): boolean {
+  const q = value / of
+  return Math.abs(q - Math.round(q)) < 1e-9
+}
+
+function buildAxes(spec: FigureAxes, toSvg: (lx: number, ly: number) => Pt2): DrawingAxes {
+  const { x, y } = spec
+  const origin = toSvg(0, 0)
+  const xValues = axisValues(x)
+  const yValues = axisValues(y)
+
+  const xStart = toSvg(x.from, 0)
+  const xEnd = toSvg(x.to, 0)
+  const xTip = { x: xEnd.x + AXIS_OVERSHOOT_PX, y: origin.y }
+  const xAxis: DrawingAxis = {
+    line: { x1: xStart.x, y1: origin.y, x2: xTip.x, y2: xTip.y },
+    arrow: {
+      points: [
+        [xTip.x, xTip.y],
+        [xTip.x - ARROW_LEN_PX, xTip.y - ARROW_HALF_WIDTH_PX],
+        [xTip.x - ARROW_LEN_PX, xTip.y + ARROW_HALF_WIDTH_PX],
+      ]
+        .map(([a, b]) => `${fmt(a)},${fmt(b)}`)
+        .join(' '),
+    },
+    ticks: xValues.map((v) => {
+      const sv = toSvg(v, 0)
+      const labelled = v !== 0 && isMultiple(v, x.labelEvery ?? x.step)
+      return {
+        x1: sv.x,
+        y1: sv.y - AXIS_TICK_HALF_LEN_PX,
+        x2: sv.x,
+        y2: sv.y + AXIS_TICK_HALF_LEN_PX,
+        label: labelled
+          ? {
+              text: formatNumber(v),
+              x: sv.x,
+              y: sv.y + AXIS_TICK_HALF_LEN_PX + AXIS_LABEL_GAP_PX,
+              anchor: 'middle',
+              baseline: 'hanging',
+            }
+          : undefined,
+      }
+    }),
+    title: x.title
+      ? {
+          text: x.title,
+          x: xTip.x,
+          y: xTip.y - AXIS_LABEL_GAP_PX - ARROW_HALF_WIDTH_PX,
+          anchor: 'end',
+          baseline: 'auto',
+        }
+      : undefined,
+  }
+
+  const yStart = toSvg(0, y.from)
+  const yEnd = toSvg(0, y.to)
+  const yTip = { x: origin.x, y: yEnd.y - AXIS_OVERSHOOT_PX }
+  const yAxis: DrawingAxis = {
+    line: { x1: origin.x, y1: yStart.y, x2: yTip.x, y2: yTip.y },
+    arrow: {
+      points: [
+        [yTip.x, yTip.y],
+        [yTip.x - ARROW_HALF_WIDTH_PX, yTip.y + ARROW_LEN_PX],
+        [yTip.x + ARROW_HALF_WIDTH_PX, yTip.y + ARROW_LEN_PX],
+      ]
+        .map(([a, b]) => `${fmt(a)},${fmt(b)}`)
+        .join(' '),
+    },
+    ticks: yValues.map((v) => {
+      const sv = toSvg(0, v)
+      const labelled = v !== 0 && isMultiple(v, y.labelEvery ?? y.step)
+      return {
+        x1: sv.x - AXIS_TICK_HALF_LEN_PX,
+        y1: sv.y,
+        x2: sv.x + AXIS_TICK_HALF_LEN_PX,
+        y2: sv.y,
+        label: labelled
+          ? {
+              text: formatNumber(v),
+              x: sv.x - AXIS_TICK_HALF_LEN_PX - AXIS_LABEL_GAP_PX,
+              y: sv.y,
+              anchor: 'end',
+              baseline: 'middle',
+            }
+          : undefined,
+      }
+    }),
+    title: y.title
+      ? {
+          text: y.title,
+          x: yTip.x + AXIS_LABEL_GAP_PX + ARROW_HALF_WIDTH_PX,
+          y: yTip.y,
+          anchor: 'start',
+          baseline: 'middle',
+        }
+      : undefined,
+  }
+
+  const grid: DrawingSegment[] = []
+  if (spec.grid) {
+    for (const v of xValues) {
+      const bottom = toSvg(v, y.from)
+      const top = toSvg(v, y.to)
+      grid.push({ x1: bottom.x, y1: bottom.y, x2: top.x, y2: top.y })
+    }
+    for (const v of yValues) {
+      const left = toSvg(x.from, v)
+      const right = toSvg(x.to, v)
+      grid.push({ x1: left.x, y1: left.y, x2: right.x, y2: right.y })
+    }
+  }
+
+  // A single "0" below-left of the crossing, instead of one on each axis.
+  const originLabel: DrawingText = {
+    text: '0',
+    x: origin.x - AXIS_LABEL_GAP_PX,
+    y: origin.y + AXIS_LABEL_GAP_PX,
+    anchor: 'end',
+    baseline: 'hanging',
+  }
+
+  return { x: xAxis, y: yAxis, grid, origin: originLabel }
 }
 
 // --- Geometry validation helpers (used by check-content.mjs and tests) ---

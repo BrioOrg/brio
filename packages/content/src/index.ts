@@ -11,6 +11,9 @@ export type {
   FigureLengthMark,
   FigureLabel,
   FigureNumberLine,
+  FigurePolyline,
+  FigureAxis,
+  FigureAxes,
   CoordinateSpace,
   FigureSpec,
   DrawingSegment,
@@ -23,6 +26,10 @@ export type {
   DrawingPointLabel,
   DrawingFreeLabel,
   DrawingNumberLine,
+  DrawingPolyline,
+  DrawingText,
+  DrawingAxis,
+  DrawingAxes,
   DrawingModel,
 } from './figure'
 export {

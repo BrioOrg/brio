@@ -235,3 +235,114 @@ describe('buildDrawingModel', () => {
     expect(mark!.labelY).toBeLessThan(number!.labelY)
   })
 })
+
+describe('buildDrawingModel — repère (axes)', () => {
+  const repere: FigureSpec = {
+    axes: {
+      x: { from: 0, to: 24, step: 2, labelEvery: 4, title: 'Heure (h)' },
+      y: { from: -4, to: 20, step: 2, labelEvery: 4, title: 'Température (°C)' },
+      grid: true,
+    },
+  }
+
+  it('returns no axes for a figure without a repère', () => {
+    expect(buildDrawingModel(pythagorean).axes).toBeNull()
+  })
+
+  it('puts a tick on every multiple of step, aligned on the origin', () => {
+    const axes = buildDrawingModel(repere).axes!
+    expect(axes.x.ticks).toHaveLength(13) // 0, 2, …, 24
+    expect(axes.y.ticks).toHaveLength(13) // −4, −2, …, 20
+  })
+
+  it('labels every labelEvery in French notation, never 0 on an axis', () => {
+    const axes = buildDrawingModel(repere).axes!
+    const yLabels = axes.y.ticks.flatMap((t) => (t.label ? [t.label.text] : []))
+    expect(yLabels).toEqual(['\u22124', '4', '8', '12', '16', '20'])
+    const xLabels = axes.x.ticks.flatMap((t) => (t.label ? [t.label.text] : []))
+    expect(xLabels).not.toContain('0')
+    expect(axes.origin.text).toBe('0')
+  })
+
+  it('places the single 0 below-left of the origin', () => {
+    const axes = buildDrawingModel(repere).axes!
+    expect(axes.origin.x).toBeLessThan(axes.y.line.x1)
+    expect(axes.origin.y).toBeGreaterThan(axes.x.line.y1)
+  })
+
+  it('draws one grid line per step of each axis', () => {
+    expect(buildDrawingModel(repere).axes!.grid).toHaveLength(13 + 13)
+    const noGrid = { ...repere, axes: { ...repere.axes!, grid: false } }
+    expect(buildDrawingModel(noGrid).axes!.grid).toHaveLength(0)
+  })
+
+  it('gives each axis its own scale and fills the frame', () => {
+    const model = buildDrawingModel({
+      axes: { x: { from: 0, to: 5, step: 1 }, y: { from: 0, to: 200, step: 50 } },
+      points: [
+        { name: 'O', x: 0, y: 0 },
+        { name: 'M', x: 5, y: 200 },
+      ],
+    })
+    const [o, m] = model.dots
+    // Same pixel extent on both axes although the spans differ by 40×
+    expect(m.cx - o.cx).toBeCloseTo(o.cy - m.cy, 6)
+  })
+
+  it('keeps one scale when both spans are equal', () => {
+    const model = buildDrawingModel({
+      axes: { x: { from: -3, to: 3, step: 1 }, y: { from: -3, to: 3, step: 1 } },
+      points: [
+        { name: 'A', x: 1, y: 0 },
+        { name: 'B', x: 0, y: 1 },
+        { name: 'O', x: 0, y: 0 },
+      ],
+    })
+    const [a, b, o] = model.dots
+    expect(a.cx - o.cx).toBeCloseTo(o.cy - b.cy, 6)
+  })
+
+  it('titles each axis at its arrow', () => {
+    const axes = buildDrawingModel(repere).axes!
+    expect(axes.x.title?.text).toBe('Heure (h)')
+    expect(axes.y.title?.text).toBe('Température (°C)')
+    expect(axes.x.title?.x).toBeCloseTo(axes.x.line.x2, 6)
+  })
+})
+
+describe('buildDrawingModel — hidden points and polylines', () => {
+  it('hides the dot and the name on request', () => {
+    const model = buildDrawingModel({
+      points: [
+        { name: 'A', x: 0, y: 0 },
+        { name: 'c1', x: 1, y: 1, dot: false, showName: false },
+        { name: 'B', x: 2, y: 0, dot: false },
+      ],
+    })
+    expect(model.dots).toHaveLength(1) // only A keeps its dot
+    expect(model.pointLabels.map((l) => l.text)).toEqual(['A', 'B'])
+  })
+
+  it('draws a polyline through its points in order', () => {
+    const model = buildDrawingModel({
+      points: [
+        { name: 'P', x: 0, y: 0 },
+        { name: 'Q', x: 1, y: 1 },
+        { name: 'R', x: 2, y: 0 },
+      ],
+      polylines: [{ points: ['P', 'Q', 'R'] }],
+    })
+    expect(model.polylines).toHaveLength(1)
+    expect(model.polylines[0].points.split(' ')).toHaveLength(3)
+  })
+
+  it('throws when a polyline names an unknown point', () => {
+    expect(() =>
+      buildDrawingModel({
+        points: [{ name: 'P', x: 0, y: 0 }],
+        polylines: [{ points: ['P', 'Z'] }],
+      })
+    ).toThrow('Point "Z" not found')
+  })
+})
+
