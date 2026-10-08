@@ -567,7 +567,7 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
       segments.push({ x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y, dashed: edge.hidden })
     }
     for (const arc of drawing.arcs) curves.push(ellipseArcPath(arc, toSvg))
-    pointLabels.push(...solidNameLabels(solid, drawing.vertices, toSvg))
+    pointLabels.push(...solidNameLabels(solid, drawing, toSvg))
   }
 
   // A visible point named at (0, 0), usually O, labels the origin itself: no "0" on top of it.
@@ -885,34 +885,55 @@ function ellipseArcPath(arc: SolidArc, toSvg: (lx: number, ly: number) => Pt2): 
   }
 }
 
-const PLACEMENTS_BY_OCTANT: LabelPlacement[] = [
-  'right',
-  'above-right',
-  'above',
-  'above-left',
-  'left',
-  'below-left',
-  'below',
-  'below-right',
-]
+const SOLID_NAME_OFFSET_PX = 9
 
-/** A vertex name sits on the side away from the solid's centre, so it never overlaps an edge. */
+/**
+ * A vertex name sits in the widest free angle between the edges that meet at the vertex, so it
+ * never lies on an edge; between two equal angles, the one facing away from the solid wins.
+ */
 function solidNameLabels(
   solid: FigureSolid,
-  vertices: Pt2[],
+  drawing: SolidDrawing,
   toSvg: (lx: number, ly: number) => Pt2
 ): DrawingPointLabel[] {
   if (solid.kind === 'cylindre' || !solid.names) return []
+  const svg = drawing.vertices.map((v) => toSvg(v.x, v.y))
   const centre = {
-    x: vertices.reduce((sum, v) => sum + v.x, 0) / vertices.length,
-    y: vertices.reduce((sum, v) => sum + v.y, 0) / vertices.length,
+    x: svg.reduce((sum, v) => sum + v.x, 0) / svg.length,
+    y: svg.reduce((sum, v) => sum + v.y, 0) / svg.length,
   }
-  return solid.names.slice(0, vertices.length).map((name, i) => {
-    const v = vertices[i]
-    const direction = Math.atan2(v.y - centre.y, v.x - centre.x)
-    const octant = (Math.round(direction / (Math.PI / 4)) + 8) % 8
-    return { text: name, ...computeLabelPosition(toSvg(v.x, v.y), PLACEMENTS_BY_OCTANT[octant]) }
+  return solid.names.slice(0, svg.length).map((name, i) => {
+    const v = svg[i]
+    const directions = drawing.edges
+      .filter((e) => e.from === i || e.to === i)
+      .map((e) => svg[e.from === i ? e.to : e.from])
+      .map((w) => Math.atan2(w.y - v.y, w.x - v.x))
+      .sort((a, b) => a - b)
+    const away = Math.atan2(v.y - centre.y, v.x - centre.x)
+    let best = { gap: -1, mid: away }
+    directions.forEach((a, k) => {
+      const b = k + 1 < directions.length ? directions[k + 1] : directions[0] + 2 * Math.PI
+      const gap = b - a
+      const mid = a + gap / 2
+      const closer = angularDistance(mid, away) < angularDistance(best.mid, away)
+      if (gap > best.gap + 1e-6 || (Math.abs(gap - best.gap) <= 1e-6 && closer)) {
+        best = { gap, mid }
+      }
+    })
+    const u = { x: Math.cos(best.mid), y: Math.sin(best.mid) }
+    return {
+      text: name,
+      x: v.x + u.x * SOLID_NAME_OFFSET_PX,
+      y: v.y + u.y * SOLID_NAME_OFFSET_PX,
+      anchor: u.x > 0.38 ? 'start' : u.x < -0.38 ? 'end' : 'middle',
+      baseline: u.y > 0.38 ? 'hanging' : u.y < -0.38 ? 'auto' : 'middle',
+    }
   })
+}
+
+function angularDistance(a: number, b: number): number {
+  const d = Math.abs(a - b) % (2 * Math.PI)
+  return d > Math.PI ? 2 * Math.PI - d : d
 }
 
 // --- Geometry validation helpers (used by check-content.mjs and tests) ---
