@@ -78,6 +78,7 @@ const SOLIDES: { kind: FigureSolid['kind']; nom: string }[] = [
   { kind: 'cube', nom: 'cube' },
   { kind: 'prisme', nom: 'prisme droit' },
   { kind: 'cylindre', nom: 'cylindre' },
+  { kind: 'assemblage', nom: 'assemblage de cubes' },
 ]
 
 /** Un solide neuf du type demandé, au même endroit et avec la même perspective que l'ancien. */
@@ -106,6 +107,15 @@ function solideParDefaut(kind: FigureSolid['kind'], depuis?: FigureSolid): Figur
       }
     case 'cylindre':
       return { ...place, kind, radius: 2, height: 4 }
+    case 'assemblage':
+      return {
+        ...place,
+        kind,
+        heights: [
+          [2, 1],
+          [1, 1],
+        ],
+      }
   }
 }
 
@@ -987,6 +997,93 @@ function ChampsAxe({
   )
 }
 
+/**
+ * Le plan coté d'un assemblage : une rangée par ligne, du fond vers l'avant, et dans chaque case
+ * le nombre de cubes empilés. La grille reste rectangulaire : on ajoute ou retire une rangée ou
+ * une colonne entière.
+ */
+function PlanCote({
+  nom,
+  heights,
+  onChange,
+  onFocus,
+}: {
+  nom: string
+  heights: number[][]
+  onChange: (heights: number[][]) => void
+  onFocus?: () => void
+}) {
+  const petit = 'font-prose text-xs text-ink-muted'
+  const retirer = 'font-display text-sm font-bold text-ink-muted hover:text-danger'
+  const colonnes = heights[0]?.length ?? 0
+  const rangee = (r: number) =>
+    heights.length === 1
+      ? 'rangée'
+      : r === 0
+        ? 'fond'
+        : r === heights.length - 1
+          ? 'devant'
+          : `rangée ${r + 1}`
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className={petit}>
+        Plan coté : nombre de cubes par case, vu de dessus (rangée du fond en haut)
+      </span>
+      {heights.map((ligne, r) => (
+        <div key={r} className="flex flex-wrap items-center gap-1.5">
+          <span className={`${petit} w-14`}>{rangee(r)}</span>
+          {ligne.map((h, c) => (
+            <ChampNombre
+              key={c}
+              value={h}
+              onChange={(v) =>
+                onChange(
+                  heights.map((l, i) =>
+                    i === r ? l.map((x, j) => (j === c ? Math.max(0, Math.round(v)) : x)) : l
+                  )
+                )
+              }
+              onFocus={onFocus}
+              ariaLabel={`${nom} — ${rangee(r)}, colonne ${c + 1}`}
+            />
+          ))}
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          className={boutonAjouter}
+          onClick={() => onChange([...heights, Array<number>(colonnes).fill(1)])}
+        >
+          ＋ rangée devant
+        </button>
+        {heights.length > 1 && (
+          <button type="button" className={retirer} onClick={() => onChange(heights.slice(0, -1))}>
+            − rangée
+          </button>
+        )}
+        <button
+          type="button"
+          className={boutonAjouter}
+          onClick={() => onChange(heights.map((l) => [...l, 1]))}
+        >
+          ＋ colonne
+        </button>
+        {colonnes > 1 && (
+          <button
+            type="button"
+            className={retirer}
+            onClick={() => onChange(heights.map((l) => l.slice(0, -1)))}
+          >
+            − colonne
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /** Un solide : type, position, dimensions, perspective et noms des sommets. */
 function ChampsSolide({
   numero,
@@ -1064,6 +1161,7 @@ function ChampsSolide({
             {dimension('height', 'hauteur', solide.height)}
           </>
         )}
+        {solide.kind === 'assemblage' && <span className={petit}>cubes d’arête 1</span>}
         <span className={petit}>fuyantes</span>
         <ChampNombre
           value={solide.angle ?? 45}
@@ -1124,7 +1222,15 @@ function ChampsSolide({
           )}
         </div>
       )}
-      {solide.kind !== 'cylindre' && (
+      {solide.kind === 'assemblage' && (
+        <PlanCote
+          nom={nom}
+          heights={solide.heights}
+          onChange={(heights) => maj({ heights })}
+          onFocus={onFocus}
+        />
+      )}
+      {solide.kind !== 'cylindre' && solide.kind !== 'assemblage' && (
         <ChampNoms
           // Un nouveau nombre de sommets repart d'un champ vide.
           key={`${solide.kind}-${solide.kind === 'prisme' ? solide.base.length : 4}`}
