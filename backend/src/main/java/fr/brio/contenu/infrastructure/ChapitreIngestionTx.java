@@ -72,6 +72,9 @@ class ChapitreIngestionTx {
         String hash = computeHash(doc);
 
         Optional<Chapitre> existing = chapitreRepository.findById(chapitreId);
+        // Before the hash check: an identical file under another niveau would otherwise be
+        // SKIPPED silently. Chapter ids are unique across the catalogue (ADR 0011, #218).
+        existing.ifPresent(chapitre -> assertSameNiveauAndMatiere(chapitre, niveau, matiere));
         if (existing.isPresent() && hash.equals(existing.get().getContentHash())) {
             // Content unchanged, but ordre comes from _index.json (not the hash) and
             // progression's projection may not exist yet: re-announce the structure so
@@ -165,6 +168,14 @@ class ChapitreIngestionTx {
                 existingEx.retire();
                 exerciceRepository.save(existingEx);
             }
+        }
+    }
+
+    private void assertSameNiveauAndMatiere(Chapitre existing, String niveau, String matiere) {
+        if (!existing.getNiveauCode().equals(niveau) || !existing.getMatiereCode().equals(matiere)) {
+            throw new InvalidContentException("Chapter id '" + existing.getId() + "' already belongs to "
+                    + existing.getNiveauCode() + "/" + existing.getMatiereCode()
+                    + " — chapter ids are unique across the catalogue (ADR 0011)");
         }
     }
 

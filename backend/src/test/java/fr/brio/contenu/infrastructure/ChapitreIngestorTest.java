@@ -158,6 +158,29 @@ class ChapitreIngestorTest {
     }
 
     @Test
+    void shouldReactivateRetiredExerciseWhenItReappearsInFile() throws Exception {
+        JsonNode doc = loadFixture();
+        Exercice retired = Exercice.pourChapitre(UUID.randomUUID(), "theoreme-de-pythagore",
+                "ex-reconnaitre-hypotenuse", "multiple-choice", "{}", List.of(), null);
+        retired.retire();
+
+        Chapitre existingChapter = new Chapitre("theoreme-de-pythagore", "{}", "3e", "mathematiques", 0, "published", "T", 0, "stale");
+        doReturn(Optional.of(existingChapter)).when(chapitreRepository).findById("theoreme-de-pythagore");
+        doReturn(List.of(retired)).when(exerciceRepository).findByChapitreId("theoreme-de-pythagore");
+
+        tx.ingestDocument(doc, "3e", "mathematiques", 0);
+
+        ArgumentCaptor<Exercice> captor = ArgumentCaptor.forClass(Exercice.class);
+        verify(exerciceRepository, org.mockito.Mockito.atLeastOnce()).save(captor.capture());
+        Exercice restored = captor.getAllValues().stream()
+                .filter(e -> "ex-reconnaitre-hypotenuse".equals(e.getSlug()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Restored exercise not saved"));
+        assertThat(restored.getId()).isEqualTo(retired.getId());
+        assertThat(restored.getRetiredAt()).isNull();
+    }
+
+    @Test
     void shouldStripSensitiveEvalFieldsFromChapterContent() throws Exception {
         JsonNode doc = loadFixture();
         tx.ingestDocument(doc, "3e", "mathematiques", 0);

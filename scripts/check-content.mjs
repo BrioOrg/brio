@@ -15,6 +15,10 @@
  *    - Every circle's center and through point (if given) are defined.
  *    - numberLines: from < to, step > 0, labelEvery > 0 and a multiple of step.
  *
+ * 3. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
+ *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
+ *    on `id` alone.
+ *
  * Scanned: content/ (excluding referentiel) + docs/schema/examples/.
  * Zero dependencies; exits non-zero on any problem.
  */
@@ -297,15 +301,39 @@ const contentFiles = [
   ...jsonFilesUnder(join(repoRoot, 'docs/schema/examples')),
 ]
 
+// Chapter files only: _index.json manifests and annale *.meta.json carry no chapter id.
+function isChapterFile(file) {
+  const rel = relative(repoRoot, file)
+  return (
+    (rel.startsWith('content/chapitres/') || rel.startsWith('content/annales/')) &&
+    !file.endsWith('/_index.json') &&
+    !file.endsWith('.meta.json')
+  )
+}
+
+const filesById = new Map()
+
 let fileCount = 0
 for (const file of contentFiles) {
   try {
     const doc = JSON.parse(readFileSync(file, 'utf8'))
     walkStrings(doc, file, '')
     checkFigures(doc, file)
+    if (isChapterFile(file) && typeof doc.id === 'string') {
+      filesById.set(doc.id, [...(filesById.get(doc.id) ?? []), file])
+    }
     fileCount++
   } catch (e) {
     errors.push(`${relative(repoRoot, file)}: invalid JSON: ${e.message}`)
+  }
+}
+
+for (const [id, files] of filesById) {
+  if (files.length > 1) {
+    errors.push(
+      `chapter id "${id}" is used by ${files.length} files (ids are unique across the catalogue): ` +
+        files.map((f) => relative(repoRoot, f)).join(', '),
+    )
   }
 }
 
@@ -315,4 +343,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + unique chapter ids).`)
