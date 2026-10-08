@@ -22,6 +22,16 @@ export const metadata = { title: 'Design — Brio' }
 
 /* ── helpers ──────────────────────────────────────────────────────────────── */
 
+const SCRATCH_CATEGORIES = [
+  ['events', 'Événements'],
+  ['control', 'Contrôle'],
+  ['motion', 'Mouvement'],
+  ['looks', 'Apparence'],
+  ['sensing', 'Capteurs'],
+  ['operators', 'Opérateurs'],
+  ['variables', 'Variables'],
+] as const
+
 function Swatch({ token, label }: { token: string; label: string }) {
   return (
     <div className="flex items-center gap-3">
@@ -127,6 +137,17 @@ export default function DesignPage() {
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <Swatch key={n} token={`chart-${n}`} label={`chart-${n}`} />
             ))}
+          </div>
+        </Section>
+
+        {/* ── Scratch palette ───────────────────────────────────────────────── */}
+        <Section title="Blocs Scratch">
+          <Label>Une couleur par catégorie de bloc, identique dans les deux thèmes</Label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {SCRATCH_CATEGORIES.map(([category, label]) => (
+              <Swatch key={category} token={`scratch-${category}`} label={label} />
+            ))}
+            <Swatch token="scratch-slot" label="Case à remplir" />
           </div>
         </Section>
 

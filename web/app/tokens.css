@@ -160,6 +160,7 @@
      a custom CSS class. clamp ensures it works at every breakpoint. */
 
   /* -- Radii --------------------------------------------------------------- */
+  --radius-xs: 0.25rem; /* 4px — Scratch blocks (#217) */
   --radius-sm: 0.625rem; /* 10px — small controls, icon badges */
   --radius-md: 0.875rem; /* 14px — cards, option rows */
   --radius-lg: 1.125rem; /* 18px — panels, sheets */
@@ -237,6 +238,30 @@
   --color-chart-4: #b99bff;
   --color-chart-5: #ff7aa8;
   --color-chart-6: #c9d4ce;
+
+  /* -- Scratch block categories -------------------------------------------- */
+  /* Programmes drawn as Scratch blocks (#217) — not in the mockups. Scratch 3's
+     category colours, the same in both themes, as in Scratch. The block label
+     is dark (scratch-ink), not white: ≥ 4.5 : 1 on every fill (verified by
+     check-contrast.mjs). Only looks is lightened (#9966ff was 4.42 : 1). Each
+     block is outlined by its -edge colour, which carries its outline on the
+     light page. Input ovals are scratch-slot with scratch-ink text. */
+  --color-scratch-ink: #10241a;
+  --color-scratch-slot: #ffffff;
+  --color-scratch-events: #ffbf00;
+  --color-scratch-events-edge: #cc9900;
+  --color-scratch-control: #ffab19;
+  --color-scratch-control-edge: #cf8b17;
+  --color-scratch-motion: #4c97ff;
+  --color-scratch-motion-edge: #3373cc;
+  --color-scratch-looks: #a375ff;
+  --color-scratch-looks-edge: #774dcb;
+  --color-scratch-sensing: #5cb1d6;
+  --color-scratch-sensing-edge: #2e8eb8;
+  --color-scratch-operators: #59c059;
+  --color-scratch-operators-edge: #389438;
+  --color-scratch-variables: #ff8c1a;
+  --color-scratch-variables-edge: #db6e00;
 }
 
 /* --------------------------------------------------------------------------

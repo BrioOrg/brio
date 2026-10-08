@@ -61,6 +61,15 @@ const dark = {
   'chart-4': '#b99bff',
   'chart-5': '#ff7aa8',
   'chart-6': '#c9d4ce',
+  'scratch-ink': '#10241a',
+  'scratch-slot': '#ffffff',
+  'scratch-events': '#ffbf00',
+  'scratch-control': '#ffab19',
+  'scratch-motion': '#4c97ff',
+  'scratch-looks': '#a375ff',
+  'scratch-sensing': '#5cb1d6',
+  'scratch-operators': '#59c059',
+  'scratch-variables': '#ff8c1a',
 }
 
 const light = {
@@ -89,6 +98,15 @@ const light = {
   'chart-4': '#6b40cc',
   'chart-5': '#c2185b',
   'chart-6': '#6b7a72',
+  'scratch-ink': '#10241a',
+  'scratch-slot': '#ffffff',
+  'scratch-events': '#ffbf00',
+  'scratch-control': '#ffab19',
+  'scratch-motion': '#4c97ff',
+  'scratch-looks': '#a375ff',
+  'scratch-sensing': '#5cb1d6',
+  'scratch-operators': '#59c059',
+  'scratch-variables': '#ff8c1a',
 }
 
 // ── Pairs to check ───────────────────────────────────────────────────────────
@@ -102,6 +120,18 @@ function chartPairs(theme) {
   return [1, 2, 3, 4, 5, 6].flatMap((n) =>
     ['surface-panel', 'surface-page'].map((bg) => ({ theme, fg: `chart-${n}`, bg, level: 'AA-large' }))
   )
+}
+
+// Scratch blocks carry text: their label (scratch-ink) is body text on every category fill and
+// on the input ovals (#217). The values are the same in both themes.
+const SCRATCH_CATEGORIES = ['events', 'control', 'motion', 'looks', 'sensing', 'operators', 'variables']
+function scratchPairs(theme) {
+  return [...SCRATCH_CATEGORIES.map((c) => `scratch-${c}`), 'scratch-slot'].map((bg) => ({
+    theme,
+    fg: 'scratch-ink',
+    bg,
+    level: 'AA',
+  }))
 }
 
 const pairs = [
@@ -120,6 +150,7 @@ const pairs = [
   { theme: 'dark', fg: 'xp', bg: 'surface-panel', level: 'AA-large' },
   { theme: 'dark', fg: 'streak', bg: 'surface-panel', level: 'AA-large' },
   ...chartPairs('dark'),
+  ...scratchPairs('dark'),
 
   // Light theme
   { theme: 'light', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -139,6 +170,7 @@ const pairs = [
   { theme: 'light', fg: 'xp', bg: 'surface-panel', level: 'AA-large' },
   { theme: 'light', fg: 'streak', bg: 'surface-panel', level: 'AA-large' },
   ...chartPairs('light'),
+  ...scratchPairs('light'),
 ]
 
 // ── Run checks ───────────────────────────────────────────────────────────────
