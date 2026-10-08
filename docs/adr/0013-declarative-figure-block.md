@@ -7,6 +7,8 @@
   French number formatting; a repère gives each axis its own scale (see "Amendment (#214)")
 - **Amended**: 2026-10-08 (#215) — dashed lines and solids in perspective cavalière (`solids`);
   the renderer, not the author, decides which edges are hidden (see "Amendment (#215)")
+- **Amended**: 2026-10-08 (#226) — cube assemblages described by their plan coté, drawn as shaded
+  visible faces (see "Amendment (#226)")
 
 ## Context
 
@@ -151,7 +153,45 @@ reduction coefficient) is error-prone, and CI cannot tell which edges should be 
 
 **Consequences.** Solids are authored as data, checked by CI and rendered the same way on web and
 mobile. A patron is still drawn with polygons. Out of scope: arcs and half-disks, cube assemblages
-(6e `espace-solides`), pyramids and cones (4e), length marks on a solid's edges.
+(6e `espace-solides`), pyramids and cones (4e), length marks on a solid's edges. *Cube assemblages:
+amended by #226.*
+
+## Amendment (#226) — cube assemblages
+
+**Context.** The 6e chapter `espace-solides` is about assemblages of unit cubes
+(`c3.geo.espace.visualiser-assemblages`): reading a plan coté, counting cubes, finding the views
+from above, the front and the side. It described each assemblage by a table and sentences; none
+was drawn. `solids` draws one solid with its hidden edges dashed, but an assemblage follows another
+convention: hidden cubes are not drawn at all, the cubes in front simply cover those behind.
+
+**Decision.** Additive schema changes, `schemaVersion` unchanged (ADR 0004):
+
+1. **`kind: "assemblage"`** in `solids`, described by **`heights`**, its plan coté: one row per
+   row of cubes, back row first, cells from left to right, each the number of unit cubes stacked
+   there. Cubes have side 1; `x`, `y` place the front bottom-left corner of the front row. `angle`
+   and `reduction` work as for the other solids; there are no `names`.
+2. **Visible faces only, painted back to front.** The drawing model keeps the faces the viewer can
+   see (front, top, and the side the receding edges point to), drops a face pressed against a
+   neighbouring cube, and orders the rest back row first, then bottom to top, then away from the
+   visible side. Each face is filled, so it covers whatever lies behind it. In a cavalier
+   projection this order is exact for unit cubes on a grid: two faces that overlap are always in
+   it from far to near. Nothing is dashed.
+3. **Shaded faces**, as in textbooks: one shade for the tops, the fronts and the sides, from three
+   semantic tokens (`--color-cube-top`, `-front`, `-side`, added on their own beforehand). The fill
+   does not depend on what lies behind the figure, and the volume reads at a glance. Edges stay in
+   the ink colour; the shades change with the theme so they clear 3 : 1 against it.
+4. **The views are not drawn.** Drawing the top, front or side view of an assemblage would answer
+   the "what do you see from the front?" exercises the chapter is built on; an author who needs a
+   view draws it with polygons.
+5. `check-content` rejects a plan coté that is empty, not rectangular, has a height that is not a
+   whole number ≥ 0, or holds no cube, and `names` on an assemblage. The rule that a solid cannot
+   sit in a repère or next to a number line covers assemblages.
+
+**Consequences.** Assemblages are authored as data, checked by CI and drawn the same way on web
+and mobile, next to their plan coté. An assemblage in perspective shows most of its front view, so
+authors keep it out of exercises that ask for that view (recipe in `content/AUTHORING.md`). Out of
+scope: computed views, length marks on an assemblage, cubes that are not resting on a cell below
+(every stack starts on the table).
 
 ## Consequences
 
@@ -185,7 +225,7 @@ mobile. A patron is still drawn with polygons. Out of scope: arcs and half-disks
   positions-relatives chapter.
 - 3D solids and nets: chapter `espace-solides` remains blocked and is noted
   as such in the 6e README. *Amended by #215: prisms and cylinders are drawn by `solids`; cube
-  assemblages remain out of scope.*
+  assemblages remain out of scope.* *Amended by #226: cube assemblages are drawn too.*
 
 ## Alternatives considered
 
