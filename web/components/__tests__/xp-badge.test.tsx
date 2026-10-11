@@ -14,7 +14,7 @@ beforeEach(() => {
 
 describe('XpBadge', () => {
   it('renders nothing when the student is not logged in (no fabricated zero)', () => {
-    mock.mockReturnValue({ info: null, serie: null, gain: null, refresh: vi.fn() })
+    mock.mockReturnValue({ info: null, serie: null, gain: null, serieChange: null, refresh: vi.fn() })
     render(<XpBadge />)
     expect(screen.queryByTestId('xp-badge')).toBeNull()
   })
@@ -24,6 +24,7 @@ describe('XpBadge', () => {
       info: { xpTotal: 1250, niveau: 3 },
       serie: null,
       gain: null,
+      serieChange: null,
       refresh: vi.fn(),
     })
     render(<XpBadge />)
@@ -36,6 +37,7 @@ describe('XpBadge', () => {
       serie: null,
       info: { xpTotal: 110, niveau: 1 },
       gain: { amount: 10, id: 1 },
+      serieChange: null,
       refresh: vi.fn(),
     })
     render(<XpBadge />)
