@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import katex from 'katex'
 import {
   parseRichText,
@@ -16,6 +17,7 @@ import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
 import { DiapoFrame } from '@/components/chapitre-interactif/diapo-frame'
 import { FinDeChapitre } from '@/components/chapitre-interactif/scene'
+import { Etapes } from '@/components/chapitre-interactif/etapes'
 
 type Choice = { id: string; text: string }
 
@@ -446,21 +448,17 @@ function StepsBlock({ id, block }: { id: string; block: Block }) {
       <p className="mb-3 font-display text-xs font-extrabold uppercase tracking-widest text-accent-ink">
         {title && title.trim() ? <RichTextRenderer text={title} /> : 'Exemple'}
       </p>
-      <ol className="flex flex-col gap-3">
-        {steps.map((step, i) => (
-          <li key={i} className="flex gap-3">
-            <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft font-display text-xs font-extrabold text-accent-ink">
-              {i + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-prose text-base leading-relaxed text-ink">
-                <RichTextRenderer text={step.text} />
-              </p>
-              {step.formula && <StepFormula latex={step.formula} />}
-            </div>
-          </li>
+      <Etapes
+        blockId={id}
+        etapes={steps.map((step, i) => (
+          <Fragment key={i}>
+            <p className="font-prose text-base leading-relaxed text-ink">
+              <RichTextRenderer text={step.text} />
+            </p>
+            {step.formula && <StepFormula latex={step.formula} />}
+          </Fragment>
         ))}
-      </ol>
+      />
     </div>
   )
 }
@@ -486,6 +484,17 @@ const CORRIGES_AUTOMATIQUEMENT = new Set([
   'short-answer',
   'fill-blank',
 ])
+
+/** The number of steps of each `steps` block, by block id: what the interactive mode reveals. */
+export function etapesParBloc(chapitre: ChapitreResponse): Record<string, number> {
+  return Object.fromEntries(
+    chapitre.sections.flatMap((section) =>
+      section.blocks
+        .filter((b) => b.type === 'steps' && Array.isArray(b.steps))
+        .map((b) => [b.id, (b.steps as unknown[]).length])
+    )
+  )
+}
 
 /**
  * The blocks a student can check (#246): the interactive mode offers « Vérifier » and « Passer »
