@@ -19,8 +19,9 @@ let chargement: Promise<Motion> | null = null
 let motion: Motion | null = null
 
 /** Starts loading `motion`; slides swap instantly until it is there. */
-export function chargerMotion(): void {
+export function chargerMotion(): Promise<unknown> {
   chargement ??= import('./motion-animate').then((m) => (motion = m))
+  return chargement
 }
 
 const enCours = new Set<Controls>()

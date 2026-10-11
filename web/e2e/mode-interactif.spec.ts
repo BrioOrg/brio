@@ -162,3 +162,45 @@ test('the slides open from a drawer below the desktop breakpoint', async ({ page
   await expect(tiroir).toBeHidden()
   await expectDiapo(page, 7, 'ex-calcul-hypotenuse')
 })
+
+test.describe('slide transitions (MOTION.md)', () => {
+  /** The frames on screen right after a key press: the leaving slide stays during its exit. */
+  async function framesApresTouche(page: Page) {
+    return page.evaluate(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+      return new Promise<string[]>((resolve) =>
+        requestAnimationFrame(() =>
+          resolve(
+            Array.from(document.querySelectorAll<HTMLElement>('[data-diapo]:not([hidden])')).map(
+              (el) => el.dataset.diapo ?? ''
+            )
+          )
+        )
+      )
+    })
+  }
+
+  test('the leaving slide exits while the next one enters', async ({ page }) => {
+    await ouvrir(page, `${CHAPITRE}?diapo=enonce-prose`)
+    // motion is loaded once the interactive mode opens.
+    await expect(page.locator('[data-transitions="pretes"]')).toBeAttached()
+
+    expect(await framesApresTouche(page)).toEqual(['enonce-prose', 'ex-reconnaitre-hypotenuse'])
+    await expect(page.locator('[data-diapo="enonce-prose"]')).toBeHidden()
+  })
+
+  test.describe('with reduced motion', () => {
+    test.use({ reducedMotion: 'reduce' })
+
+    test('slides swap at once, without any transition', async ({ page }) => {
+      await ouvrir(page, `${CHAPITRE}?diapo=enonce-prose`)
+      await expect(page.locator('[data-transitions="pretes"]')).toBeAttached()
+
+      expect(await framesApresTouche(page)).toEqual(['ex-reconnaitre-hypotenuse'])
+      const style = await page
+        .locator('[data-diapo="ex-reconnaitre-hypotenuse"]')
+        .evaluate((el) => (el as HTMLElement).style.cssText)
+      expect(style).toBe('')
+    })
+  })
+})

@@ -158,6 +158,7 @@ export function ModeChapitreProvider({
   const [sortante, setSortante] = useState<string | null>(null)
   const [bandeRepliee, setBandeRepliee] = useState(false)
   const [tiroirOuvert, setTiroirOuvert] = useState(false)
+  const [transitionsPretes, setTransitionsPretes] = useState(false)
   const reducedMotion = useReducedMotion()
   const racine = useRef<HTMLDivElement>(null)
 
@@ -173,9 +174,7 @@ export function ModeChapitreProvider({
 
   const frames = useCallback(
     (id: string) =>
-      Array.from(
-        racine.current?.querySelectorAll<HTMLElement>(`[data-diapo="${attr(id)}"]`) ?? []
-      ),
+      Array.from(racine.current?.querySelectorAll<HTMLElement>(`[data-diapo="${attr(id)}"]`) ?? []),
     []
   )
 
@@ -318,7 +317,11 @@ export function ModeChapitreProvider({
 
   useEffect(() => {
     if (mode !== 'interactif') return
-    chargerMotion()
+    let actif = true
+    void chargerMotion()
+      .then(() => actif && setTransitionsPretes(true))
+      .catch(() => {}) // a failed chunk load only costs the transitions
+
     // `?diapo` absent (first visit) or naming a block that moved: replace, never push.
     const actuel = new URLSearchParams(window.location.search).get('diapo')
     if (actuel !== deck[etat.current.index].id) {
@@ -327,6 +330,9 @@ export function ModeChapitreProvider({
         '',
         urlAvecDiapo(window.location.href, deck[etat.current.index].id)
       )
+    }
+    return () => {
+      actif = false
     }
   }, [mode, deck])
 
@@ -521,6 +527,8 @@ export function ModeChapitreProvider({
       <div
         ref={racine}
         data-chapitre-mode={mode}
+        // Slides animate once `motion` has loaded; e2e tests wait for it.
+        data-transitions={transitionsPretes ? 'pretes' : undefined}
         className="group/mode min-h-screen bg-surface-page font-prose text-ink"
         onClickCapture={onClickCapture}
       >
