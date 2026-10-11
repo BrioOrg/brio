@@ -11,6 +11,10 @@ throwaway prototype of the real chapter `3e/mathematiques/theoreme-de-pythagore`
 They become the motion tokens of #243. Until then, nothing in this file is a
 token: no component may copy a value from here.
 
+How the chapter is split into slides, the URL, the mode cookie and the choice of
+`motion` as the animation library are recorded in
+[ADR 0032](../adr/0032-mode-interactif-chapitre.md).
+
 ## The budget
 
 Four rules hold for every animation in interactive mode. A proposal that breaks
@@ -146,5 +150,5 @@ When `prefers-reduced-motion: reduce` is set, motion is **off**, not softened:
 `tokens.css` already resets CSS transitions and animations to 1 ms under this
 query. That override does **not** reach animations started from JavaScript
 (`element.animate()` or a library): their code must read the media query itself
-and skip the animation. A component that only relies on the CSS override is a
+(with `motion`, `useReducedMotion()`, ADR 0032) and skip the animation. A component that only relies on the CSS override is a
 bug.
