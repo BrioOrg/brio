@@ -12,7 +12,7 @@ import { distance, ease, motionS, type Bezier } from '@/lib/motion-tokens'
  * running ones to their end state before the next action (budget rule 4).
  */
 
-type Motion = typeof import('motion')
+type Motion = typeof import('./motion-animate')
 type Controls = ReturnType<Motion['animate']>
 
 let chargement: Promise<Motion> | null = null
@@ -20,7 +20,7 @@ let motion: Motion | null = null
 
 /** Starts loading `motion`; slides swap instantly until it is there. */
 export function chargerMotion(): void {
-  chargement ??= import('motion').then((m) => (motion = m))
+  chargement ??= import('./motion-animate').then((m) => (motion = m))
 }
 
 const enCours = new Set<Controls>()
