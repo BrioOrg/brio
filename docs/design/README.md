@@ -91,6 +91,11 @@ down here.
 ## Deferred by dependency
 
 Elements of the direction that are deliberately not built yet are listed in
-`BACKLOG.md`, each with the dependency blocking it — the atlas path and its
-locks, XP and levels, the streak flame, photo correction, the mascot. Keeping
-that list explicit is what prevents them from reappearing inside a styling PR.
+`BACKLOG.md`, each with the dependency blocking it — the mascot's moods, photo
+transcription, the social and profile tabs. Keeping that list explicit is what
+prevents them from reappearing inside a styling PR.
+
+## Motion
+
+What moves in the chapter's interactive mode, what never does, and the named
+durations and curves behind it are in `MOTION.md`.
