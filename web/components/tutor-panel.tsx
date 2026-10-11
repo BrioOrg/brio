@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { controleActif, examenActif } from '@brio/api-client'
-import { askTuteurForTarget, type TutorTarget, type TuteurReponse } from '@/lib/api'
+import { askTuteurForTarget, type TutorTarget } from '@/lib/api'
 import { apiBaseUrl } from '@/lib/api-base-url'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { Button } from '@/components/ui/button'
@@ -11,19 +11,26 @@ import { Icon } from '@/components/ui/icon'
 const CAP_MESSAGE =
   'Tu as atteint la limite de questions pour cette session. Demande à ton professeur si tu as besoin d’aide supplémentaire.'
 
-type Message = { question: string; response: TuteurReponse }
-
 type TuteurPanelProps = {
   target: TutorTarget
+  /**
+   * The exercise the question is about. Left out, the panel sends the last exercise the student
+   * touched; the interactive mode's drawer passes the current slide's (or null) instead (#250).
+   */
+  exerciceId?: string | null
+  /** Shown above the field: what the tutor will be told the question is about. */
+  contexte?: string
+  /** Replaces scrolling to a cited block, for a mode where that block may be on another slide. */
+  onCitation?: (blockId: string) => void
 }
 
-export function TuteurPanel({ target }: TuteurPanelProps) {
-  const { activeExerciceId, tutorRequestCap } = useChapterInteraction()
+export function TuteurPanel({ target, exerciceId, contexte, onCitation }: TuteurPanelProps) {
+  const { activeExerciceId, tutorRequestCap, echangesTuteur, ajouterEchangeTuteur } =
+    useChapterInteraction()
+  const champId = useId()
   const [question, setQuestion] = useState('')
-  const [history, setHistory] = useState<Message[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [requestCount, setRequestCount] = useState(0)
   const [enControle, setEnControle] = useState(false)
   const [enExamen, setEnExamen] = useState(false)
   const answerRegionRef = useRef<HTMLDivElement>(null)
@@ -48,6 +55,7 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
   }, [])
 
   const verrouille = enControle || enExamen
+  const requestCount = echangesTuteur.length
   const capped = requestCount >= tutorRequestCap
   const sendDisabled = question.trim() === '' || loading || capped
 
@@ -57,9 +65,12 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
     setError(null)
     setLoading(true)
     try {
-      const response = await askTuteurForTarget(target, question, activeExerciceId)
-      setHistory((prev) => [...prev, { question, response }])
-      setRequestCount((prev) => prev + 1)
+      const response = await askTuteurForTarget(
+        target,
+        question,
+        exerciceId === undefined ? activeExerciceId : exerciceId
+      )
+      ajouterEchangeTuteur({ question, response })
       setQuestion('')
     } catch {
       setError('Erreur réseau. Réessaie dans un moment.')
@@ -78,6 +89,10 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
   function scrollToBlock(citation: string) {
     const blockId = citation.split('/').pop()
     if (!blockId) return
+    if (onCitation) {
+      onCitation(blockId)
+      return
+    }
     const el = document.getElementById(blockId)
     if (!el) return
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -93,14 +108,14 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
         Ton tuteur
       </p>
 
-      {history.length > 0 && (
+      {echangesTuteur.length > 0 && (
         <div
           ref={answerRegionRef}
           aria-live="polite"
           aria-label="Réponses du tuteur"
           className="mb-4 flex flex-col gap-3"
         >
-          {history.map((msg, i) => (
+          {echangesTuteur.map((msg, i) => (
             <div key={i} className="rounded-lg border border-line bg-surface-raised p-3">
               <p className="mb-2 font-prose text-xs text-ink-muted">{msg.question}</p>
               <p className="font-prose text-sm leading-relaxed text-ink">{msg.response.reponse}</p>
@@ -157,11 +172,12 @@ export function TuteurPanel({ target }: TuteurPanelProps) {
 
       {!verrouille && !capped && (
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-          <label htmlFor="tutor-question" className="sr-only">
+          <label htmlFor={champId} className="sr-only">
             Ta question au tuteur
           </label>
+          {contexte && <p className="font-prose text-xs text-ink-muted">{contexte}</p>}
           <textarea
-            id="tutor-question"
+            id={champId}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
