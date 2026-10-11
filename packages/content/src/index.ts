@@ -76,3 +76,6 @@ export type {
   ScratchBlock,
 } from './scratch'
 export { parseScratch, buildScratchModel } from './scratch'
+
+export type { DeckBlock, DeckSection, DeckInput, Diapo } from './deck'
+export { buildDeck, RESERVED_DIAPO_IDS } from './deck'
