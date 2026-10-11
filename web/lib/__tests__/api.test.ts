@@ -246,3 +246,51 @@ describe('getCoursVisibles', () => {
     await expect(getCoursVisibles('')).rejects.toThrow()
   })
 })
+
+describe('marquerSectionLue', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    clearCookies()
+    document.cookie = 'XSRF-TOKEN=tok-lu'
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('posts to the section endpoint with the CSRF token', async () => {
+    const seen: Array<{ url: string; method: string; xsrf: string | null }> = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        seen.push({
+          url: input instanceof Request ? input.url : String(input),
+          method: input instanceof Request ? input.method : (init?.method ?? 'GET'),
+          xsrf: headerOf(input, init, 'X-XSRF-TOKEN'),
+        })
+        return new Response(null, { status: 204 })
+      })
+    )
+
+    const { marquerSectionLue } = await import('@/lib/api')
+    await marquerSectionLue('theoreme-de-pythagore', 'enonce-du-theoreme')
+
+    expect(seen).toEqual([
+      {
+        url: expect.stringMatching(
+          /\/api\/chapitres\/theoreme-de-pythagore\/sections\/enonce-du-theoreme\/lu$/
+        ),
+        method: 'POST',
+        xsrf: 'tok-lu',
+      },
+    ])
+  })
+
+  it('throws when the backend refuses it', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 401 }))
+    )
+    const { marquerSectionLue } = await import('@/lib/api')
+    await expect(marquerSectionLue('c', 's')).rejects.toThrow()
+  })
+})

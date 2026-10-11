@@ -217,6 +217,20 @@ async function postTuteur(
   return TuteurResponseSchema.parse(await res.json())
 }
 
+/**
+ * Records that the logged-in student read a section (`progression` awards its XP and counts it
+ * toward the chapter's completion). Like soumettre(), it rides the session and echoes the CSRF
+ * token. `chapitreId` is the chapter document's `id` (the catalogue slug).
+ */
+export async function marquerSectionLue(chapitreId: string, sectionId: string): Promise<void> {
+  const token = await ensureCsrfToken(apiBaseUrl())
+  const { response } = await createApiClient(apiBaseUrl()).POST(
+    '/api/chapitres/{id}/sections/{sectionId}/lu',
+    { params: { path: { id: chapitreId, sectionId } }, headers: csrfHeaders(token) }
+  )
+  if (!response.ok) throw new Error('Section non enregistrée')
+}
+
 export async function soumettre(
   exerciceId: string,
   answer: Record<string, unknown>
