@@ -181,13 +181,7 @@ export function ExerciceWidget({
     id !== undefined &&
     (ctx.deck[ctx.index]?.blockIds as readonly string[] | undefined)?.includes(id) === true
   const feuille = courant && result !== null && ctx.feuilleOuverte === id
-  const enregistrerExercice = ctx?.enregistrerExercice
   const [refocus, setRefocus] = useState(false)
-
-  useEffect(() => {
-    if (!enregistrerExercice || !id || !exerciceId) return
-    return enregistrerExercice(id)
-  }, [enregistrerExercice, id, exerciceId])
 
   // After « Réessayer », the answer field once the form is enabled; without one (options, tiles),
   // the prompt: focus on an option would make Entrée toggle it instead of checking.

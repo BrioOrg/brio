@@ -55,8 +55,6 @@ type ModeChapitreContext = {
   exercices: Readonly<Record<string, EtatExercice>>
   /** The slides opened in this session, so a skipped exercise can be told apart. */
   vues: ReadonlySet<string>
-  /** An auto-graded exercise announces itself; returns its unregistration. */
-  enregistrerExercice: (blockId: string) => () => void
   signalerExercice: (blockId: string, etat: 'tente' | 'resolu') => void
   /** Where the current exercise draws « Vérifier », in the bottom bar (#246). */
   piedExercice: HTMLElement | null
@@ -155,6 +153,8 @@ type Props = {
   children: React.ReactNode
   chapitreId: string
   deck: readonly Diapo[]
+  /** The block ids of the exercises a student can check (`exercicesCorriges`). */
+  exercices?: readonly string[]
   sectionTitles: Readonly<Record<string, string>>
   chemin: string
   parcoursHref: string
@@ -166,6 +166,7 @@ export function ModeChapitreProvider({
   children,
   chapitreId,
   deck,
+  exercices: corriges = [],
   sectionTitles,
   chemin,
   parcoursHref,
@@ -178,7 +179,9 @@ export function ModeChapitreProvider({
   const [bandeRepliee, setBandeRepliee] = useState(false)
   const [tiroirOuvert, setTiroirOuvert] = useState(false)
   const [transitionsPretes, setTransitionsPretes] = useState(false)
-  const [exercices, setExercices] = useState<Readonly<Record<string, EtatExercice>>>({})
+  const [exercices, setExercices] = useState<Readonly<Record<string, EtatExercice>>>(() =>
+    Object.fromEntries(corriges.map((id) => [id, 'a-faire' as const]))
+  )
   const [vues, setVues] = useState<ReadonlySet<string>>(() => new Set())
   const [piedExercice, setPiedExercice] = useState<HTMLElement | null>(null)
   const [feuilleExercice, setFeuilleExercice] = useState<HTMLElement | null>(null)
@@ -227,16 +230,6 @@ export function ModeChapitreProvider({
   )
 
   // --- Exercises of the session (#246): what the strip marks, what the bar offers. ---
-
-  const enregistrerExercice = useCallback((blockId: string) => {
-    setExercices((prev) => (blockId in prev ? prev : { ...prev, [blockId]: 'a-faire' }))
-    return () =>
-      setExercices((prev) => {
-        const reste = { ...prev }
-        delete reste[blockId]
-        return reste
-      })
-  }, [])
 
   const signalerExercice = useCallback((blockId: string, etat: 'tente' | 'resolu') => {
     // Solved once stays solved for the session, even after « Réessayer ».
@@ -561,7 +554,6 @@ export function ModeChapitreProvider({
       setTiroirOuvert,
       exercices,
       vues,
-      enregistrerExercice,
       signalerExercice,
       piedExercice,
       setPiedExercice,
@@ -586,7 +578,6 @@ export function ModeChapitreProvider({
       tiroirOuvert,
       exercices,
       vues,
-      enregistrerExercice,
       signalerExercice,
       piedExercice,
       feuilleExercice,
@@ -601,7 +592,7 @@ export function ModeChapitreProvider({
         data-chapitre-mode={mode}
         // Slides animate once `motion` has loaded; e2e tests wait for it.
         data-transitions={transitionsPretes ? 'pretes' : undefined}
-        className="group/mode min-h-screen bg-surface-page font-prose text-ink"
+        className="group/mode min-h-screen bg-surface-page font-prose text-ink data-[chapitre-mode=interactif]:flex data-[chapitre-mode=interactif]:flex-col"
         onClickCapture={onClickCapture}
       >
         {children}

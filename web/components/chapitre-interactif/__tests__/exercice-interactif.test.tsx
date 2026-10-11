@@ -8,7 +8,7 @@ vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
 
 import { marquerSectionLue, soumettre } from '@/lib/api'
 import { getMoi } from '@/lib/session'
-import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
+import { ChapterView, exercicesCorriges, type ChapitreResponse } from '@/components/chapter-view'
 import { ModeChapitreProvider } from '../mode-context'
 import { BandeDiapos, BasculeInteractif, CommandesScene } from '../scene'
 import type { ModeChapitre } from '@/lib/diapos'
@@ -83,6 +83,7 @@ function renderChapitre(diapo: string, mode: ModeChapitre = 'interactif') {
     <ModeChapitreProvider
       chapitreId={CHAPITRE.id}
       deck={DECK}
+      exercices={exercicesCorriges(CHAPITRE)}
       sectionTitles={{ lecon: 'Énoncé' }}
       chemin={CHEMIN}
       parcoursHref="/3e/mathematiques"
@@ -125,6 +126,10 @@ afterEach(() => {
 })
 
 describe('interactive mode — a full-screen exercise', () => {
+  it('lists the exercises a student can check: not the paper one', () => {
+    expect(exercicesCorriges(CHAPITRE)).toEqual(['qcm', 'num'])
+  })
+
   it('puts « Vérifier » in the bottom bar, once, and offers to skip', async () => {
     renderChapitre('qcm')
 

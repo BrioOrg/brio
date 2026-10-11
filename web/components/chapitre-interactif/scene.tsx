@@ -278,7 +278,7 @@ export function CommandesScene() {
   const exercice = blocs.find((id) => id in exercices)
   const feuille = exercice !== undefined && feuilleOuverte === exercice
   return (
-    <div className="sticky bottom-0 z-20 mt-10 border-t border-line bg-surface-page py-3">
+    <div className="sticky bottom-0 z-20 mt-auto border-t border-line bg-surface-page py-3">
       <div
         className={`flex items-center justify-between gap-3${feuille ? ' invisible' : ''}`}
         inert={feuille || undefined}

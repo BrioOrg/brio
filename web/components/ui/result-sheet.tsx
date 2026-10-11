@@ -109,7 +109,9 @@ export function ResultSheet({
             className="fixed bottom-0 left-0 right-0 z-50 data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)] focus-visible:outline-none"
             heading={
               <>
-                <Dialog.Title className={['font-display text-xl font-extrabold', c.title].join(' ')}>
+                <Dialog.Title
+                  className={['font-display text-xl font-extrabold', c.title].join(' ')}
+                >
                   {title}
                 </Dialog.Title>
                 {subtitle && (

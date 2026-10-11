@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { buildDeck } from '@brio/content'
-import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
+import { ChapterView, exercicesCorriges, type ChapitreResponse } from '@/components/chapter-view'
 import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
 import { SiteHeader, type Crumb } from '@/components/site-header'
 import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sidebar'
@@ -123,6 +123,7 @@ export default async function ChapterPage({
     <ModeChapitreProvider
       chapitreId={chapitre.id}
       deck={deck}
+      exercices={exercicesCorriges(chapitre)}
       sectionTitles={sectionTitles}
       chemin={`/${niveau}/${matiere}/${slug}`}
       parcoursHref={`/${niveau}/${matiere}`}
@@ -135,7 +136,7 @@ export default async function ChapterPage({
       <BarreScene />
 
       <ChapterInteractionProvider tutorRequestCap={tutorRequestCap()}>
-        <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12 group-data-[chapitre-mode=interactif]/mode:pb-0 group-data-[chapitre-mode=interactif]/mode:lg:grid-cols-[auto_minmax(0,1fr)]">
+        <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12 group-data-[chapitre-mode=interactif]/mode:w-full group-data-[chapitre-mode=interactif]/mode:flex-1 group-data-[chapitre-mode=interactif]/mode:pb-0 group-data-[chapitre-mode=interactif]/mode:max-lg:flex group-data-[chapitre-mode=interactif]/mode:max-lg:flex-col group-data-[chapitre-mode=interactif]/mode:lg:grid-cols-[auto_minmax(0,1fr)]">
           <SeulementEnLecture>
             <ChapterSidebar
               niveau={niveau}
@@ -147,7 +148,8 @@ export default async function ChapterPage({
           </SeulementEnLecture>
           <BandeDiapos />
 
-          <main className="min-w-0">
+          {/* Interactive mode: the slide fills the screen, so its bar sits at the bottom (#246). */}
+          <main className="min-w-0 group-data-[chapitre-mode=interactif]/mode:flex group-data-[chapitre-mode=interactif]/mode:flex-1 group-data-[chapitre-mode=interactif]/mode:flex-col">
             <SeulementEnLecture>
               <ChapterSidebarMobile
                 niveau={niveau}
@@ -158,7 +160,7 @@ export default async function ChapterPage({
               />
             </SeulementEnLecture>
 
-            <div className="mx-auto max-w-[68ch]">
+            <div className="mx-auto max-w-[68ch] group-data-[chapitre-mode=interactif]/mode:flex group-data-[chapitre-mode=interactif]/mode:w-full group-data-[chapitre-mode=interactif]/mode:flex-1 group-data-[chapitre-mode=interactif]/mode:flex-col">
               <BasculeInteractif />
               <ChapterProgress niveau={niveau} matiere={matiere} slug={slug} />
               <EntraideProvider>
