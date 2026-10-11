@@ -1,6 +1,7 @@
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { OptionRowDemo, ButtonLoadingDemo, ResultSheetDemo } from './kit-interactive'
 import { MotionDemo } from './motion-demo'
+import { SoundDemo } from './sound-demo'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
 import { OptionRow } from '@/components/ui/option-row'
@@ -264,6 +265,19 @@ export default function DesignPage() {
               <code>motionMs()</code>, qui renvoie 0.
             </p>
             <MotionDemo />
+          </div>
+        </Section>
+
+        {/* ── Sounds ────────────────────────────────────────────────────────── */}
+        <Section title="Sons">
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-ink-muted">
+              Mode interactif seulement, coupés par défaut : l&rsquo;élève les active dans la barre
+              du haut (ou touche <code>M</code>). Synthétisés avec la Web Audio API depuis{' '}
+              <code>web/lib/sound-tokens.ts</code>, sans fichier audio. Aucun son d&rsquo;échec.
+              Ce qui joue quand est décrit dans <code>docs/design/MOTION.md</code>.
+            </p>
+            <SoundDemo />
           </div>
         </Section>
 

@@ -47,6 +47,8 @@ const ICONS = [
   'slideshow',
   'smiley',
   'sparkle',
+  'speaker-high',
+  'speaker-slash',
   'star',
   'trash',
   'trophy',

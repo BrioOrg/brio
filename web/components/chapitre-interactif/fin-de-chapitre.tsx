@@ -9,6 +9,7 @@ import { bilan, type NiveauCelebration } from '@/lib/bilan'
 import { peutAnimer, surTerminer } from './animation'
 import { compter, eclater } from './celebration'
 import { useModeChapitre } from './mode-context'
+import { jouer } from './sons'
 
 /**
  * The end slide (#249): a summary made only of real data. Exercises solved in this session, the
@@ -117,6 +118,31 @@ export function FinDeChapitre() {
       effacer()
     }
     // Once per opening: a value read later does not burst again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ouverte])
+
+  // The sound (#251), as proportionate: none for a chapter only read through, the arpeggio when
+  // some exercises were solved, the long one when all were. It lands with the burst, at the end
+  // of the count; without animation, at once. A press plays it then. Once per opening.
+  const niveau = b?.niveau
+  useEffect(() => {
+    if (!ouverte || niveau === undefined || niveau === 'sobre') return
+    const son = niveau === 'complet' ? 'fin-complet' : 'fin-partiel'
+    const delai = !peutAnimer(reduit) ? 0 : avecXp ? debutCompte + duration.finale : debutCompte
+    let joue = false
+    const jouerFin = () => {
+      if (joue) return
+      joue = true
+      clearTimeout(minuteur)
+      jouer(son)
+    }
+    const minuteur = setTimeout(jouerFin, delai)
+    const desinscrire = surTerminer(jouerFin)
+    return () => {
+      desinscrire()
+      clearTimeout(minuteur)
+    }
+    // Once per opening, like the burst.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ouverte])
 

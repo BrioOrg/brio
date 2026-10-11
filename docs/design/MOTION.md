@@ -139,6 +139,32 @@ The celebration is in proportion to what the student did, and never a reproach.
   answer (the strip's amber dot), never the ones tried.
 - Under reduced motion every value is simply there. Any press ends it all.
 
+## Sound (#251)
+
+Optional, and **off by default**. The student turns it on in the top bar (speaker
+icon, or `M`); the choice is remembered on the device (`localStorage`). It is
+synthesised with the Web Audio API from `web/lib/sound-tokens.ts`: no audio
+file, nothing to download, no licence. Each sound can be heard on `/design`.
+
+| Sound | When |
+|---|---|
+| `appui` | An arcade key pressed (an enabled primary button), a slide change by any means, a step revealed. The same sound twice within 90 ms is one: « Suivant » is one tick, not two. |
+| `selection` | An option picked (never unpicked), a word placed in a blank. |
+| `juste` | A correct answer, with the check mark. |
+| `xp` | The real XP gain landing on the counter. No gain, no sound. Without the flight (reduced motion, a press), as soon as the gain is known. |
+| `fin-partiel` / `fin-complet` | The end slide, with the burst at the end of the count, once per opening. Nothing when nothing was solved. |
+
+- **No failure sound.** A wrong answer is silent, like it is still (see below).
+- **Nothing before a gesture**, as the browsers' autoplay policy requires: no
+  audio exists while sound is off, and the audio context is created by the
+  student's own gesture, never at load.
+- **A hidden tab is silent**: notes playing stop, and nothing missed is played
+  on return.
+- **Reading mode is silent**, and has no switch.
+- **Reduced motion does not mute sound.** It is its own preference: without the
+  animations, each sound comes with the state it accompanies.
+- Volume is moderate and fixed (`VOLUME`); there is no slider.
+
 ## What never moves
 
 - **The reading mode.** It keeps today's micro-interactions (hover, press) and

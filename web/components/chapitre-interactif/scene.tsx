@@ -10,6 +10,7 @@ import { CompteursScene } from './compteurs-scene'
 import { BoutonAide } from './aide-scene'
 import { useModeChapitre } from './mode-context'
 import { basculerPleinEcran, usePleinEcran } from './plein-ecran'
+import { basculerSons, useSons } from './sons'
 
 /**
  * The interactive mode's frame (#245): top bar with the position track, side strip of slides,
@@ -81,6 +82,8 @@ export function BarreScene() {
 
           <CompteursScene />
 
+          <BoutonSons />
+
           <BoutonPleinEcran />
 
           <Infobulle
@@ -129,6 +132,25 @@ function BoutonPleinEcran() {
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-muted hover:bg-surface-raised hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <Icon name={actif ? 'corners-in' : 'corners-out'} size={20} aria-hidden="true" />
+      </button>
+    </Infobulle>
+  )
+}
+
+/** Sound, `M` too (#251). Off until the student turns it on; remembered on the device. */
+function BoutonSons() {
+  const actifs = useSons()
+  const label = actifs ? 'Couper les sons' : 'Activer les sons'
+  return (
+    <Infobulle label={`${label} (M)`} side="bottom">
+      <button
+        type="button"
+        onClick={basculerSons}
+        aria-label="Sons"
+        aria-pressed={actifs}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-muted hover:bg-surface-raised hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        <Icon name={actifs ? 'speaker-high' : 'speaker-slash'} size={20} aria-hidden="true" />
       </button>
     </Infobulle>
   )

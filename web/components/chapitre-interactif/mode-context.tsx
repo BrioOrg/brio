@@ -33,6 +33,7 @@ import {
 } from './animation'
 import { useBilanSession, type BilanSession } from './bilan-session'
 import { basculerPleinEcran, estPleinEcran, quitterPleinEcran } from './plein-ecran'
+import { basculerSons, jouer } from './sons'
 
 /**
  * The chapter's two modes (ADR 0032): reading, today's long page, and interactive, one slide at a
@@ -332,6 +333,7 @@ export function ModeChapitreProvider({
         return
       }
       terminer()
+      jouer('appui')
       const direction = cible > depart ? 1 : -1
       // Steps come one at a time only on the next slide, moved to by the student; reached any
       // other way (back, a jump, the history), the slide shows them all.
@@ -381,7 +383,8 @@ export function ModeChapitreProvider({
 
   const aller = useCallback((cible: number) => naviguer(cible, { historique: 'push' }), [naviguer])
   const suivante = useCallback(() => {
-    if (!revelerEtape()) aller(etat.current.index + 1)
+    if (revelerEtape()) jouer('appui')
+    else aller(etat.current.index + 1)
   }, [aller, revelerEtape])
   const precedente = useCallback(() => aller(etat.current.index - 1), [aller])
 
@@ -527,7 +530,19 @@ export function ModeChapitreProvider({
     }
   }, [mode])
 
-  // --- Keyboard: ← → space, F full screen, T the tutor, Escape back to reading. ---
+  // --- Sound (#251): an arcade key (an enabled primary button) clicks as its face drops. ---
+
+  useEffect(() => {
+    if (mode !== 'interactif') return
+    const onClick = (e: MouseEvent) => {
+      const bouton = e.target instanceof Element ? e.target.closest('button') : null
+      if (bouton?.querySelector(':scope > [data-bouton-bord]')) jouer('appui')
+    }
+    window.addEventListener('click', onClick, true)
+    return () => window.removeEventListener('click', onClick, true)
+  }, [mode])
+
+  // --- Keyboard: ← → space, F full screen, M sound, T the tutor, Escape back to reading. ---
 
   useEffect(() => {
     if (mode !== 'interactif') return
@@ -553,6 +568,11 @@ export function ModeChapitreProvider({
         case 'F':
           e.preventDefault()
           basculerPleinEcran()
+          return
+        case 'm':
+        case 'M':
+          e.preventDefault()
+          basculerSons()
           return
         case 't':
         case 'T':

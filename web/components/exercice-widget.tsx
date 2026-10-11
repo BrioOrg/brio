@@ -14,6 +14,7 @@ import { Icon } from '@/components/ui/icon'
 import { ResultSheetSurface, resultSheetText } from '@/components/ui/result-sheet'
 import { useModeChapitre } from '@/components/chapitre-interactif/mode-context'
 import { popPastille } from '@/components/chapitre-interactif/celebration'
+import { jouer } from '@/components/chapitre-interactif/sons'
 import { useCelebrate, type AvantReponse } from '@/components/chapitre-interactif/use-celebrate'
 
 type Choice = { id: string; text: string }
@@ -243,6 +244,10 @@ export function ExerciceWidget({
     if (result) return
     markActive()
     setValidationError(null)
+    // Interactive mode: a word that finds a blank pops (#251).
+    if (courant && !filledBlanks.includes(tileIndex) && filledBlanks.includes(null)) {
+      jouer('selection')
+    }
     setFilledBlanks((prev) => {
       if (prev.includes(tileIndex)) return prev // already placed
       const firstEmpty = prev.indexOf(null)
@@ -266,10 +271,12 @@ export function ExerciceWidget({
 
   function toggleChoice(choiceId: string) {
     markActive()
-    // Interactive mode: the badge of an option being picked pops; the colours switch at once.
+    // Interactive mode: the badge of an option being picked pops, with its sound (#251); the
+    // colours switch at once.
     if (courant && !selectedIds.includes(choiceId) && choices) {
       const i = choices.findIndex((c) => c.id === choiceId)
       popPastille(formRef.current?.querySelectorAll('[data-pastille]')[i], ctx.reducedMotion)
+      jouer('selection')
     }
     if (multiple) {
       setSelectedIds((prev) =>
