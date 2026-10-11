@@ -115,6 +115,18 @@ function option(marker: string) {
 }
 
 beforeEach(() => {
+  // Slides swap at once under reduced motion. Otherwise, once `motion` has loaded (a race with
+  // the awaited submissions here), the leaving slide stays visible during its exit. Transitions
+  // have their own tests (mode-interactif.spec.ts).
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+  )
   window.scrollTo = vi.fn()
   window.history.replaceState(null, '', CHEMIN)
   vi.mocked(getMoi).mockResolvedValue(null)
@@ -123,6 +135,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('interactive mode — a full-screen exercise', () => {
