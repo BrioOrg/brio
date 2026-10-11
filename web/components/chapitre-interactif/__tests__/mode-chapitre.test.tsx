@@ -5,6 +5,12 @@ import { buildDeck } from '@brio/content'
 vi.mock('@brio/api-client', () => ({ createApiClient: vi.fn() }))
 vi.mock('@/lib/api', () => ({ soumettre: vi.fn(), marquerSectionLue: vi.fn() }))
 vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
+// The end slide reads the student's path (#249): nothing to read here.
+vi.mock('@/lib/progression', () => ({
+  getProgression: vi.fn(async () => null),
+  getSerie: vi.fn(async () => null),
+  getParcours: vi.fn(async () => null),
+}))
 
 import { marquerSectionLue } from '@/lib/api'
 import { getMoi } from '@/lib/session'
