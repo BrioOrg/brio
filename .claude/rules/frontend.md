@@ -57,3 +57,14 @@ Once they appear in the spec, replace the manual wrapper with a generated typed 
 - Tests must not require a running backend. Mock `fetch` with `vi.stubGlobal`.
 - Async Server Components can be called directly as functions: `render(await Page())`.
 - Use `vi.resetModules()` in `beforeEach` so module-level env reads are re-evaluated per test.
+
+## E2E (Playwright)
+
+- Specs live in `web/e2e/` and run with `pnpm test:e2e` (also in CI). Chromium only: a desktop
+  project and a `mobile` one (Pixel 7, touch).
+- They run against `web/e2e/fake-backend.mjs`, not the real backend. It serves chapters straight
+  from `content/`, stripped the way ingestion strips them, so fixtures never drift.
+- Playwright starts the fake backend (port 8099) and `next dev` (port 3100) itself. It must be
+  `next dev`: the `/api` rewrite the browser relies on exists only in development.
+- A test that needs another endpoint adds a route to the fake backend, returning only what the
+  real backend would return.

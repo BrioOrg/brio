@@ -49,7 +49,7 @@ docs/adr/   Architecture Decision Records
 - `pnpm build` — build all
 - `pnpm lint` — lint all
 - `pnpm test` — unit tests (Vitest)
-- `pnpm test:e2e` — Playwright e2e
+- `pnpm test:e2e` — Playwright e2e (Chromium, fake backend: no Docker or backend needed; first run `pnpm --filter web e2e:install`)
 
 ### Deployed environment (ADR 0024)
 - Config: copy `deploy/.env.example` to `deploy/.env` (gitignored); `BRIO_DOMAIN=localhost` to try it locally.
