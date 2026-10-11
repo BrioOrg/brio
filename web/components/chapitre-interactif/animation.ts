@@ -46,10 +46,17 @@ export function peutAnimer(reducedMotion: boolean): boolean {
 /**
  * Takes the frames of the slide being left out of the flow, where they are, so the next slide
  * enters in their place while they leave on top of it. Call it before the new slide renders.
- * `decalageX` is how far a swipe has moved them.
+ * `decalageX` is how far a swipe has moved them. The container keeps its height meanwhile, so
+ * what follows the slide (the previous / next controls) does not jump over the leaving slide.
+ * Returns what puts everything back.
  */
-export function detacher(frames: HTMLElement[], conteneur: HTMLElement, decalageX: number): void {
+export function detacher(
+  frames: HTMLElement[],
+  conteneur: HTMLElement,
+  decalageX: number
+): () => void {
   const origine = conteneur.getBoundingClientRect()
+  conteneur.style.minHeight = `${origine.height}px`
   for (const frame of frames) {
     const r = frame.getBoundingClientRect()
     Object.assign(frame.style, {
@@ -61,12 +68,20 @@ export function detacher(frames: HTMLElement[], conteneur: HTMLElement, decalage
       pointerEvents: 'none',
     })
   }
-}
-
-function rattacher(frames: HTMLElement[]): void {
-  for (const frame of frames) {
-    for (const p of ['position', 'top', 'left', 'width', 'pointerEvents', 'transform', 'opacity']) {
-      frame.style.removeProperty(p.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`))
+  return () => {
+    conteneur.style.removeProperty('min-height')
+    for (const frame of frames) {
+      for (const p of [
+        'position',
+        'top',
+        'left',
+        'width',
+        'pointer-events',
+        'transform',
+        'opacity',
+      ]) {
+        frame.style.removeProperty(p)
+      }
     }
   }
 }
@@ -80,10 +95,12 @@ function suivre(controls: Controls): Controls {
 /**
  * Slide exit and entry, run together: the old slide fades out and slides `shift` px against the
  * direction of travel, the new one fades in and slides `shift` px in that direction. `depuisX` is
- * where a swipe left the old slide. `fin` runs once the old slide is gone, animated or skipped.
+ * where a swipe left the old slide. `rattacher` (from `detacher`) and then `fin` run once the old
+ * slide is gone, animated or skipped.
  */
 export function transition(
   sortants: HTMLElement[],
+  rattacher: () => void,
   entrants: HTMLElement[],
   direction: 1 | -1,
   depuisX: number,
@@ -95,7 +112,7 @@ export function transition(
     if (fini) return
     fini = true
     finirSortie = null
-    rattacher(sortants)
+    rattacher()
     fin()
   }
   if (motion === null) {

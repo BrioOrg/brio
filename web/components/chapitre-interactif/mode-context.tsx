@@ -169,7 +169,12 @@ export function ModeChapitreProvider({
   /** What the next render must do once the new slide is in the DOM. */
   const apres = useRef<{
     focus: boolean
-    transition: { sortants: HTMLElement[]; direction: 1 | -1; depuisX: number } | null
+    transition: {
+      sortants: HTMLElement[]
+      rattacher: () => void
+      direction: 1 | -1
+      depuisX: number
+    } | null
   }>({ focus: false, transition: null })
 
   const frames = useCallback(
@@ -218,10 +223,10 @@ export function ModeChapitreProvider({
       const article = racine.current?.querySelector<HTMLElement>('[data-chapitre-article]')
       const sortants = frames(deck[depart].id)
       if (peutAnimer(reduit) && article) {
-        detacher(sortants, article, options.depuisX ?? 0)
+        const rattacher = detacher(sortants, article, options.depuisX ?? 0)
         apres.current = {
           focus: true,
-          transition: { sortants, direction, depuisX: options.depuisX ?? 0 },
+          transition: { sortants, rattacher, direction, depuisX: options.depuisX ?? 0 },
         }
         setSortante(deck[depart].id)
       } else {
@@ -244,7 +249,7 @@ export function ModeChapitreProvider({
     const { transition: t, focus } = apres.current
     apres.current = { focus: false, transition: null }
     if (t) {
-      transition(t.sortants, frames(deck[index].id), t.direction, t.depuisX, () =>
+      transition(t.sortants, t.rattacher, frames(deck[index].id), t.direction, t.depuisX, () =>
         setSortante(null)
       )
     }
