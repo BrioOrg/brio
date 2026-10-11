@@ -9,99 +9,72 @@ Referenced by `docs/design/README.md`.
 
 ---
 
-## Atlas path and chapter locks
+## Still blocked
 
-**What**: the hexagonal node map showing completed, active, and locked
-chapters with their progression state, banner, and the dashed route line.
+### Mascot moods and reactions (caméléon Brio)
 
-**Blocked by**: the `progression` module. Locked chapters require knowing
-which chapters a student has completed; the active node requires the
-current chapter. Neither is available until `progression` ships and exposes
-a published API to `contenu`.
+**What**: the chameleon reacting to correct and incorrect answers in the
+lesson flow (interactive mode included, #240), and its idle, celebrate,
+thinking and "on regarde ensemble" states.
 
-**Mockup reference**: `2-parcours-atlas.html`.
+**Exists**: the character itself (`web/components/ui/mascot.tsx`, #83) with
+two simple moods, `calm` and `happy`, drawn from the mockup. It appears on the
+atlas.
 
----
+**Blocked by**: illustration assets. The other moods have not been drawn, and
+their animation spec must be derived from the drawings, not the other way
+round. Until then the mascot stays out of the exercise feedback, in reading
+mode and in interactive mode (MOTION.md).
 
-## XP display and level badge
-
-**What**: the XP counter in the top bar, the level badge on the student's
-profile, and the "+15 XP" animation on correct answers.
-
-**Blocked by**: the `progression` module (XP accumulation and level
-thresholds). Showing a fabricated value is not acceptable: the product is
-used by minors and falsifying progress data is a trust issue, not an
-aesthetic one.
-
-**Mockup reference**: `1-connexion-matiere-parcours.html` (top-bar stat),
-`3-lecon-qcm.html` (XP win badge).
+**Mockup reference**: `3-lecon-qcm.html` (reaction states),
+`6-tuteur-ia.html` (avatar).
 
 ---
 
-## Streak flame
+### Photo correction: transcription and AI
 
-**What**: the flame icon and day-count in the top bar (e.g. "7 jours").
+**What**: editable transcription of handwritten work with a maths keypad,
+maths rendering preview, AI correction, self-assessment fallback after three
+failed transcription attempts.
 
-**Blocked by**: the `progression` module (streak tracking). Until streak
-data exists, the element must not appear — not even at zero.
+**Exists**: the student photographs or scans their work and attaches it to a
+homework submission; the teacher grades it (F5, ADR 0028).
 
-**Mockup reference**: `1-connexion-matiere-parcours.html`,
-`2-parcours-atlas.html`.
-
----
-
-## Photo correction UI
-
-**What**: camera capture of handwritten work, editable transcription panel
-with maths keypad, maths rendering preview, self-assessment fallback after
-three failed transcription attempts.
-
-**Blocked by**: the photo-correction feature of the `exercices` module
-(OCR + transcription pipeline, server-side maths normalisation). Also
-blocked on camera permissions handling across iOS Safari, Android Chrome,
-and desktop browsers.
+**Blocked by**: step 2 of F5 (OCR, transcription, server-side maths
+normalisation), which ADR 0028 explicitly leaves out.
 
 **Mockup reference**: `5-correction-photo.html`.
 
 ---
 
-## Mascot (caméléon Brio)
+### Social and profile tabs
 
-**What**: the animated chameleon that reacts to correct/incorrect answers
-in the lesson flow, and appears as the tutor avatar.
+**What**: the "social" and "profil" tabs of the bottom navigation bar.
 
-**Blocked by**: illustration assets (the SVG character set has not been
-commissioned). Also blocked on the animation spec (idle, celebrate, sad,
-thinking states) which must be derived from the illustration before being
-implemented.
+**Exists**: the bar itself, with parcours, devoirs and annales wired
+(`web/components/bottom-nav.tsx`).
 
-The tutor avatar currently uses a placeholder icon; the lesson flow has no
-mascot reactions.
-
-**Mockup reference**: `2-parcours-atlas.html` (path mascot),
-`3-lecon-qcm.html` (reaction states), `6-tuteur-ia.html` (avatar).
-
----
-
-## Bottom navigation bar (app shell)
-
-**What**: the four-tab bar (parcours, social, exercices, profil) at the
-bottom of the phone shell.
-
-**Blocked by**: the social and profil modules, which do not exist yet. A
-navigation bar with disabled or fake tabs would misrepresent the product's
-scope.
+**Blocked by**: the social and profile modules. The two tabs are rendered
+disabled rather than linking nowhere.
 
 **Mockup reference**: `2-parcours-atlas.html`.
 
 ---
 
-## Completion percentage on chapter cards
+## Delivered (no longer blocked)
 
-**What**: the "Chapitre 4 · 45%" sub-label on subject cards and chapter
-rows.
+These entries were blocked by the `progression` module. It exists now
+(ADR 0022), so they are unblocked, and they have shipped. The rule that
+blocked them still holds: they show **only real values** from `progression`,
+and nothing to a logged-out visitor or a teacher.
 
-**Blocked by**: the `progression` module. `contenu` knows which chapters
-exist; it does not know how far a student has progressed through them.
+| Element | Where | Issue |
+|---|---|---|
+| Atlas path and chapter locks | `chapter-atlas.tsx` | #79 |
+| XP display, level and the "+N XP" on a correct answer | `xp-badge.tsx`, exercise result | #80 |
+| Streak flame | `streak-badge.tsx` | #81 |
+| Completion percentage on chapter cards | subject page | #82 |
+| Completion gauge at the top of a chapter | `chapter-progress.tsx` | #222 |
 
-**Mockup reference**: `1-connexion-matiere-parcours.html`.
+Interactive mode (#240) animates these values (XP flight, counters, end
+slide); how they move is set by `MOTION.md`.
