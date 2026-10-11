@@ -530,7 +530,12 @@ function ExerciseBlock({
     bank,
   } = block
 
-  if (prompt && CORRIGES_AUTOMATIQUEMENT.has(exerciseType ?? '') && (exerciceId || apercu)) {
+  if (
+    prompt &&
+    exerciseType &&
+    CORRIGES_AUTOMATIQUEMENT.has(exerciseType) &&
+    (exerciceId || apercu)
+  ) {
     return (
       <ExerciceWidget
         id={id}
