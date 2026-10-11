@@ -81,7 +81,9 @@ Rules, applied section by section:
    before it already has a support**: it is then the exercise's data, not the lesson's
    illustration. `callout → figure → exercise` keeps the figure with the callout;
    `callout → figure → table → exercise` moves the table onto the exercise slide. 5 slides in the
-   catalogue are affected.
+   catalogue are affected. A slide opened by a support or an aside (rule 4) has no lead, so its
+   supports stay with it: `exercise → table → chart → exercise` keeps the table and the chart
+   together (#244).
 7. **Never across a section.** The section title is the kicker of each of its slides. There is no
    divider slide: the side strip draws the divider.
 8. **A slide is never cut.** When a slide is taller than the screen, its inside scrolls.
