@@ -21,7 +21,15 @@ import {
   urlAvecDiapo,
   type ModeChapitre,
 } from '@/lib/diapos'
-import { chargerMotion, detacher, peutAnimer, revenir, terminer, transition } from './animation'
+import {
+  chargerMotion,
+  detacher,
+  peutAnimer,
+  revenir,
+  temps,
+  terminer,
+  transition,
+} from './animation'
 
 /**
  * The chapter's two modes (ADR 0032): reading, today's long page, and interactive, one slide at a
@@ -142,6 +150,11 @@ function defileEnLargeur(target: EventTarget | null): boolean {
   return false
 }
 
+/** The section a slide belongs to; the opening and the end are each their own. */
+function sectionDe(diapo: Diapo): string {
+  return 'sectionId' in diapo ? diapo.sectionId : diapo.id
+}
+
 /** Below the sticky site header: what counts as the top of the page. */
 const HAUT_DE_PAGE = 88
 
@@ -201,6 +214,7 @@ export function ModeChapitreProvider({
       rattacher: () => void
       direction: 1 | -1
       depuisX: number
+      entreeSection: boolean
     } | null
   }>({ focus: false, transition: null })
 
@@ -269,7 +283,13 @@ export function ModeChapitreProvider({
         const rattacher = detacher(sortants, article, options.depuisX ?? 0)
         apres.current = {
           focus: true,
-          transition: { sortants, rattacher, direction, depuisX: options.depuisX ?? 0 },
+          transition: {
+            sortants,
+            rattacher,
+            direction,
+            depuisX: options.depuisX ?? 0,
+            entreeSection: sectionDe(deck[cible]) !== sectionDe(deck[depart]),
+          },
         }
         setSortante(deck[depart].id)
       } else {
@@ -287,14 +307,16 @@ export function ModeChapitreProvider({
   const suivante = useCallback(() => aller(etat.current.index + 1), [aller])
   const precedente = useCallback(() => aller(etat.current.index - 1), [aller])
 
-  // Once the new slide is in the DOM: run the transition, then move focus to its title.
+  // Once the new slide is in the DOM: run the transition and its beats, then move focus to its
+  // title. Beats run only on a slide change: never at first paint or on a mode switch, where they
+  // would hide text already on screen.
   useLayoutEffect(() => {
     const { transition: t, focus } = apres.current
     apres.current = { focus: false, transition: null }
     if (t) {
-      transition(t.sortants, t.rattacher, frames(deck[index].id), t.direction, t.depuisX, () =>
-        setSortante(null)
-      )
+      const entrants = frames(deck[index].id)
+      transition(t.sortants, t.rattacher, entrants, t.direction, t.depuisX, () => setSortante(null))
+      temps(entrants, t.entreeSection)
     }
     if (focus) {
       const titre = frames(deck[index].id)
@@ -408,6 +430,19 @@ export function ModeChapitreProvider({
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [deck, naviguer])
+
+  // --- Every animation can be skipped (budget rule 4): any press finishes them all first. ---
+
+  useEffect(() => {
+    if (mode !== 'interactif') return
+    const finir = () => terminer()
+    window.addEventListener('pointerdown', finir, true)
+    window.addEventListener('keydown', finir, true)
+    return () => {
+      window.removeEventListener('pointerdown', finir, true)
+      window.removeEventListener('keydown', finir, true)
+    }
+  }, [mode])
 
   // --- Keyboard: ← → space, Escape back to reading. ---
 
