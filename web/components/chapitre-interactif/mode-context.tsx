@@ -42,7 +42,7 @@ import { basculerSons, jouer } from './sons'
  * remounted when switching, so an answered exercise stays answered.
  *
  * Holds the current slide and keeps it in the URL (`?diapo=<id>`, one history entry per slide),
- * the keyboard, the swipe, and the "section read" signal.
+ * the keyboard, the swipe, and the "section read" signal of both modes (ADR 0032 §6 bis).
  */
 
 type ModeChapitreContext = {
@@ -89,6 +89,8 @@ type ModeChapitreContext = {
   /** The current slide has a step still to reveal: « Suivant » reveals it first. */
   etapeEnAttente: boolean
   reducedMotion: boolean
+  /** Bumped once `progression` has had time to count a section read: the gauge reloads (#252). */
+  revisionProgression: number
 }
 
 /** `a-faire`: never checked; `tente`: checked, not right yet; `resolu`: right once. */
@@ -173,6 +175,12 @@ function sectionDe(diapo: Diapo): string {
   return 'sectionId' in diapo ? diapo.sectionId : diapo.id
 }
 
+/**
+ * How long after a 204 the gauge reloads. `progression` records the read after the request's
+ * commit, asynchronously: reloading at once could read the old value. A network wait, not a motion.
+ */
+const DELAI_PROGRESSION = 1500
+
 /** Below the sticky site header: what counts as the top of the page. */
 const HAUT_DE_PAGE = 88
 
@@ -231,6 +239,7 @@ export function ModeChapitreProvider({
   const [feuilleExercice, setFeuilleExercice] = useState<HTMLElement | null>(null)
   const [feuilleOuverte, setFeuilleOuverte] = useState<string | null>(null)
   const [etapesVisibles, setEtapesVisibles] = useState<Readonly<Record<string, number>>>({})
+  const [revisionProgression, setRevisionProgression] = useState(0)
   const reducedMotion = useReducedMotion()
   const bilanSession = useBilanSession({
     niveau,
@@ -289,10 +298,13 @@ export function ModeChapitreProvider({
     []
   )
 
-  // --- Sections read (#252): leaving a section's last slide forward, for a student only. ---
+  // --- Sections read (#252, ADR 0032 §6 bis), for a student only, once per section whatever the
+  // mode: leaving a section's last slide forward, or a section's end coming on screen. ---
 
   const marquees = useRef(new Set<string>())
   const eleve = useRef<Promise<boolean> | null>(null)
+  const rechargement = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(rechargement.current), [])
   const signalerSection = useCallback(
     (sectionId: string) => {
       if (marquees.current.has(sectionId)) return
@@ -301,12 +313,40 @@ export function ModeChapitreProvider({
         .then((moi) => moi?.role === 'eleve')
         .catch(() => false)
       void eleve.current.then((estEleve) => {
-        // A lost signal costs a section of the gauge, never the slide: it fails silently.
-        if (estEleve) marquerSectionLue(chapitreId, sectionId).catch(() => {})
+        if (!estEleve) return
+        marquerSectionLue(chapitreId, sectionId).then(
+          () => {
+            // Several sections read in a row reload the gauge once.
+            clearTimeout(rechargement.current)
+            rechargement.current = setTimeout(
+              () => setRevisionProgression((r) => r + 1),
+              DELAI_PROGRESSION
+            )
+          },
+          // A lost signal costs a section of the gauge, never the reading: it fails silently.
+          () => {}
+        )
       })
     },
     [chapitreId]
   )
+
+  // Reading mode: a marker closes each section (`data-fin-section`); on screen, it is read.
+  useEffect(() => {
+    if (mode !== 'lecture' || typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting || !(entry.target instanceof HTMLElement)) continue
+        observer.unobserve(entry.target)
+        const sectionId = entry.target.dataset.finSection
+        if (sectionId) signalerSection(sectionId)
+      }
+    })
+    racine.current
+      ?.querySelectorAll<HTMLElement>('[data-fin-section]')
+      .forEach((repere) => observer.observe(repere))
+    return () => observer.disconnect()
+  }, [mode, signalerSection])
 
   // --- Exercises of the session (#246): what the strip marks, what the bar offers. ---
 
@@ -722,6 +762,7 @@ export function ModeChapitreProvider({
       etapesVisibles,
       etapeEnAttente: mode === 'interactif' && etapeCachee(index, etapesVisibles) !== null,
       reducedMotion,
+      revisionProgression,
     }),
     [
       mode,
@@ -749,6 +790,7 @@ export function ModeChapitreProvider({
       etapesVisibles,
       etapeCachee,
       reducedMotion,
+      revisionProgression,
     ]
   )
 
