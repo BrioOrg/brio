@@ -180,30 +180,6 @@
      overshoots: it was tried on the rewards and turned down (MOTION.md). */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* -- Motion — interactive mode (#243) ------------------------------------- */
-  /* Tuned by eye on the #241 prototype; what each one animates is in
-     docs/design/MOTION.md. One token per moment, so the interactive mode can
-     be retuned without touching the reading mode. Mirrored for JavaScript in
-     web/lib/motion-tokens.ts — a test fails if the two drift. */
-  --duration-slide-out: 160ms;
-  --duration-slide-in: 280ms;
-  --duration-stagger: 50ms; /* delay between two beats of a slide */
-  --duration-beat: 240ms;
-  --duration-press: 90ms;
-  --duration-select: 160ms;
-  --duration-sheet: 290ms;
-  --duration-check: 300ms;
-  --duration-particles: 1030ms;
-  --duration-xp-delay: 500ms; /* pause between the sheet and the XP flight */
-  --duration-xp-flight: 470ms;
-  --duration-count: 180ms;
-  --duration-finale: 900ms;
-  /* Same value as Tailwind's default ease-in, declared so the token is ours.
-     Slide entry and exit, result sheet, XP flight. */
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* staggered beats, labels */
-  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1); /* rewards, no overshoot */
-
   /* -- Surfaces ------------------------------------------------------------ */
   --color-surface-page: #0a1310;
   --color-surface-panel: #0e1a16;
@@ -298,6 +274,37 @@
   --color-cube-top: #4f7562;
   --color-cube-front: #33503f;
   --color-cube-side: #1f3329;
+}
+
+/* --------------------------------------------------------------------------
+   Motion — interactive mode (#243). `static`: Tailwind emits every variable
+   even when no utility class uses it, because these are read through var()
+   in inline styles and mirrored for JavaScript, where Tailwind cannot see them.
+   -------------------------------------------------------------------------- */
+
+@theme static {
+  /* Tuned by eye on the #241 prototype; what each one animates is in
+     docs/design/MOTION.md. One token per moment, so the interactive mode can
+     be retuned without touching the reading mode. Mirrored for JavaScript in
+     web/lib/motion-tokens.ts — a test fails if the two drift. */
+  --duration-slide-out: 160ms;
+  --duration-slide-in: 280ms;
+  --duration-stagger: 50ms; /* delay between two beats of a slide */
+  --duration-beat: 240ms;
+  --duration-press: 90ms;
+  --duration-select: 160ms;
+  --duration-sheet: 290ms;
+  --duration-check: 300ms;
+  --duration-particles: 1030ms;
+  --duration-xp-delay: 500ms; /* pause between the sheet and the XP flight */
+  --duration-xp-flight: 470ms;
+  --duration-count: 180ms;
+  --duration-finale: 900ms;
+  /* Same value as Tailwind's default ease-in, declared so the token is ours.
+     Slide entry and exit, result sheet, XP flight. */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* staggered beats, labels */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1); /* rewards, no overshoot */
 }
 
 /* --------------------------------------------------------------------------
