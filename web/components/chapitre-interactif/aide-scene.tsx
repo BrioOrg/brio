@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { TuteurEtEntraide } from '@/components/chapter-rail'
 import { Icon } from '@/components/ui/icon'
@@ -19,10 +20,22 @@ type AideSceneProps = {
  * tutor is told which exercise and the entraide shows that exercise's threads; elsewhere both are
  * about the chapter. Closing it leaves the student on the slide they were on.
  */
-export function AideScene({ target, exercices }: AideSceneProps) {
+export function AideScene(props: AideSceneProps) {
   const ctx = useModeChapitre()
   if (!ctx || ctx.mode !== 'interactif') return null
-  const { deck, index, aller, aideOuverte, setAideOuverte } = ctx
+  return <TiroirAide {...props} scene={ctx} />
+}
+
+function TiroirAide({
+  target,
+  exercices,
+  scene,
+}: AideSceneProps & { scene: NonNullable<ReturnType<typeof useModeChapitre>> }) {
+  const { deck, index, aller, aideOuverte, setAideOuverte } = scene
+  // Radix gives focus back to a `Dialog.Trigger` only; this drawer opens from a button outside it
+  // or from `T`. Closing gives focus back to what had it, unless a citation moved to another slide,
+  // whose title then takes it.
+  const retour = useRef<HTMLElement | null>(null)
   const blocs = deck[index].blockIds as readonly string[]
   const exerciceId = blocs.map((id) => exercices[id]).find(Boolean) ?? null
 
@@ -30,7 +43,17 @@ export function AideScene({ target, exercices }: AideSceneProps) {
     <Dialog.Root open={aideOuverte} onOpenChange={setAideOuverte}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 motion-safe:data-[state=open]:animate-[fadeIn_var(--duration-slow)_var(--ease-out)]" />
-        <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border-t border-line bg-surface-panel px-5 pb-8 pt-4 focus-visible:outline-none motion-safe:data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)] lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-full lg:max-w-sm lg:rounded-none lg:border-l lg:border-t-0 lg:motion-safe:data-[state=open]:animate-[slideInRight_var(--duration-slow)_var(--ease-out)]">
+        <Dialog.Content
+          onOpenAutoFocus={() => {
+            retour.current =
+              document.activeElement instanceof HTMLElement ? document.activeElement : null
+          }}
+          onCloseAutoFocus={(e) => {
+            e.preventDefault()
+            if (retour.current?.isConnected) retour.current.focus()
+            retour.current = null
+          }}
+          className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border-t border-line bg-surface-panel px-5 pb-8 pt-4 focus-visible:outline-none motion-safe:data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)] lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-full lg:max-w-sm lg:rounded-none lg:border-l lg:border-t-0 lg:motion-safe:data-[state=open]:animate-[slideInRight_var(--duration-slow)_var(--ease-out)]">
           <div className="mb-4 flex items-center justify-between">
             <Dialog.Title className="font-display text-base font-extrabold text-ink">
               Besoin d’aide ?
@@ -54,6 +77,7 @@ export function AideScene({ target, exercices }: AideSceneProps) {
                 ? 'Ta question porte sur cet exercice.'
                 : 'Ta question porte sur tout le chapitre.',
               onCitation: (blockId) => {
+                retour.current = null
                 setAideOuverte(false)
                 aller(indexDiapo(deck, blockId))
               },

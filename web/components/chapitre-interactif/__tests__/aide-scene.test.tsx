@@ -186,3 +186,18 @@ describe('interactive mode — help drawer (#250)', () => {
     expect(window.location.search).toBe('?diapo=p1')
   })
 })
+
+describe('interactive mode — help drawer focus (#250)', () => {
+  it('gives focus back to the button that opened it', async () => {
+    const user = userEvent.setup()
+    renderChapitre(1)
+    const bouton = screen.getByRole('button', { name: 'Aide' })
+
+    await user.click(bouton)
+    await screen.findByRole('dialog')
+    await user.click(screen.getByRole('button', { name: 'Fermer' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(bouton).toHaveFocus()
+  })
+})
