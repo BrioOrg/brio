@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test'
 
-test('should render a catalogue chapter served by the backend', async ({ page }) => {
+test('should render a catalogue chapter served by the backend', async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  // The reading mode: the whole chapter on one page.
+  await context.addCookies([{ name: 'brio_mode_chapitre', value: 'lecture', url: baseURL! }])
   await page.goto('/3e/mathematiques/theoreme-de-pythagore')
 
   await expect(
