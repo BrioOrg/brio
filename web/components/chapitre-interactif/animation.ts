@@ -13,7 +13,7 @@ import { distance, ease, motionS, type Bezier } from '@/lib/motion-tokens'
  */
 
 type Motion = typeof import('./motion-animate')
-type Controls = ReturnType<Motion['animate']>
+export type Controls = ReturnType<Motion['animate']>
 
 let chargement: Promise<Motion> | null = null
 let motion: Motion | null = null
@@ -24,17 +24,35 @@ export function chargerMotion(): Promise<unknown> {
   return chargement
 }
 
+/** `motion`, once loaded; null until then (and in the reading mode, which never loads it). */
+export function moteur(): Motion | null {
+  return motion
+}
+
 const enCours = new Set<Controls>()
+const aTerminer = new Set<() => void>()
 let finirSortie: (() => void) | null = null
 
-/** Ends every running slide animation at once, at its end state. */
+/** Ends every running animation of the interactive mode at once, at its end state. */
 export function terminer(): void {
   for (const controls of enCours) controls.complete()
   enCours.clear()
   finirSortie?.()
+  for (const fin of Array.from(aTerminer)) fin()
 }
 
-function bezier(curve: Bezier): [number, number, number, number] {
+/**
+ * Something that is not a `motion` animation but must end with them (a pending timer, the
+ * exercise rewards of #248). Returns what unregisters it.
+ */
+export function surTerminer(fin: () => void): () => void {
+  aTerminer.add(fin)
+  return () => {
+    aTerminer.delete(fin)
+  }
+}
+
+export function bezier(curve: Bezier): [number, number, number, number] {
   return [...curve]
 }
 
@@ -86,7 +104,8 @@ export function detacher(
   }
 }
 
-function suivre(controls: Controls): Controls {
+/** Tracks an animation so that `terminer()` can end it. */
+export function suivre(controls: Controls): Controls {
   enCours.add(controls)
   void controls.finished.then(() => enCours.delete(controls))
   return controls

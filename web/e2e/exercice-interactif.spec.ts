@@ -81,3 +81,50 @@ test('skipping an exercise is allowed, and the strip says so', async ({ page, is
   await expect(page).toHaveURL(`${CHAPITRE}?diapo=methode-prose`)
   await expect(page.getByRole('link', { name: /^Diapo 4 sur 10 .* Sans réponse$/ })).toBeVisible()
 })
+
+// The rewards of #248. The fake backend never awards XP, so a right answer here is one that earns
+// nothing: the check mark and the particles, but no flight. Real gains are covered by the unit
+// tests (celebration.test.tsx) and recorded on the real backend for the PR.
+test.describe('rewards (MOTION.md)', () => {
+  /** What moves in the sheet, sampled for a while: particles in place, running animations. */
+  async function mouvements(page: Page) {
+    return page.evaluate(async () => {
+      const vus = { particules: 0, animations: 0, envols: 0 }
+      const fin = performance.now() + 1200
+      while (performance.now() < fin) {
+        const feuille = document.querySelector('[data-feuille-resultat]')
+        vus.particules = Math.max(vus.particules, document.querySelectorAll('[data-eclats] > *').length)
+        vus.animations = Math.max(
+          vus.animations,
+          (feuille?.getAnimations({ subtree: true }) ?? []).filter(
+            (a) => !(a instanceof CSSTransition)
+          ).length
+        )
+        vus.envols = Math.max(vus.envols, document.querySelectorAll('[data-envol-xp]').length)
+        await new Promise((r) => requestAnimationFrame(r))
+      }
+      return vus
+    })
+  }
+
+  test('a right answer bursts, and nothing flies when nothing was earned', async ({ page }) => {
+    await ouvrir(page, 'ex-reconnaitre-hypotenuse')
+    await page.keyboard.press('C')
+    await page.keyboard.press('Enter')
+    await expect(page.getByText('Bien vu !')).toBeVisible()
+
+    const vus = await mouvements(page)
+    expect(vus.particules).toBe(21)
+    expect(vus.envols).toBe(0)
+    await expect(page.getByText(/\+\d+\s*XP/)).toHaveCount(0)
+  })
+
+  test('a wrong answer moves nothing', async ({ page }) => {
+    await ouvrir(page, 'ex-reconnaitre-hypotenuse')
+    await page.keyboard.press('A')
+    await page.keyboard.press('Enter')
+    await expect(page.getByText('Pas tout à fait…')).toBeVisible()
+
+    expect(await mouvements(page)).toEqual({ particules: 0, animations: 0, envols: 0 })
+  })
+})

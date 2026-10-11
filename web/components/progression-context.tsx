@@ -16,6 +16,10 @@ import { getMoi } from '@/lib/session'
  * exercise was already rewarded (idempotence) — the delta is 0 and no gain is
  * shown. There is no path that displays a fabricated number.
  *
+ * After a correct answer `refresh()` re-reads the day streak too: a first activity of the day can
+ * extend it. `serieChange` reports a real change of the streak, never a re-read that found the same
+ * value (#248).
+ *
  * XP and streaks are student rewards: for any other account (teacher, admin) the
  * provider never reads progression, so both badges stay hidden and refresh() is a
  * no-op.
@@ -26,6 +30,9 @@ const POLL_DELAY_MS = 200
 
 type Gain = { amount: number; id: number }
 
+/** The day streak moved after an action: from `avant` to `apres` days. */
+type SerieChange = { avant: number; apres: number; id: number }
+
 type ProgressionValue = {
   /** Current XP + level, or null while unknown / logged out. */
   info: ProgressionInfo | null
@@ -33,6 +40,8 @@ type ProgressionValue = {
   serie: SerieInfo | null
   /** The last positive XP gain observed, for reward animations. */
   gain: Gain | null
+  /** The last real change of the day streak observed by `refresh()`, for reward animations. */
+  serieChange: SerieChange | null
   /**
    * Re-read progression after an action that may have awarded XP.
    * Returns the real delta (0 when nothing was awarded).
@@ -44,6 +53,7 @@ const ProgressionContext = createContext<ProgressionValue>({
   info: null,
   serie: null,
   gain: null,
+  serieChange: null,
   refresh: async () => 0,
 })
 
@@ -53,9 +63,12 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
   const [info, setInfo] = useState<ProgressionInfo | null>(null)
   const [serie, setSerie] = useState<SerieInfo | null>(null)
   const [gain, setGain] = useState<Gain | null>(null)
+  const [serieChange, setSerieChange] = useState<SerieChange | null>(null)
   // Latest known info, read inside refresh() without re-creating the callback.
   const infoRef = useRef<ProgressionInfo | null>(null)
+  const serieRef = useRef<SerieInfo | null>(null)
   const gainId = useRef(0)
+  const serieChangeId = useRef(0)
   // Only a confirmed student account gets XP; false until getMoi() says so.
   const estEleve = useRef(false)
 
@@ -79,7 +92,9 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
           })
         getSerie()
           .then((s) => {
-            if (alive) setSerie(s)
+            if (!alive) return
+            serieRef.current = s
+            setSerie(s)
           })
           .catch(() => {
             // Leave hidden rather than showing a fabricated streak.
@@ -108,6 +123,32 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
       }
       if (attempt < POLL_ATTEMPTS - 1) await wait(POLL_DELAY_MS)
     }
+    // Read once the award has landed (or polling gave up): the streak moves with it.
+    const serieAvant = serieRef.current
+    let serieApres = serieAvant
+    try {
+      serieApres = (await getSerie()) ?? serieAvant
+    } catch {
+      // Keep the last known streak rather than showing a fabricated one.
+    }
+    // Every state change below lands in one render: the top bar never shows the new total
+    // before the reward layer has seen the gain.
+    if (serieApres !== serieAvant) {
+      serieRef.current = serieApres
+      setSerie(serieApres)
+      if (
+        serieAvant &&
+        serieApres &&
+        serieApres.joursConsecutifs !== serieAvant.joursConsecutifs
+      ) {
+        serieChangeId.current += 1
+        setSerieChange({
+          avant: serieAvant.joursConsecutifs,
+          apres: serieApres.joursConsecutifs,
+          id: serieChangeId.current,
+        })
+      }
+    }
     if (!latest) return 0
     applyInfo(latest)
     const delta = before === null ? 0 : latest.xpTotal - before
@@ -120,7 +161,7 @@ export function ProgressionProvider({ children }: { children: React.ReactNode })
   }, [applyInfo])
 
   return (
-    <ProgressionContext.Provider value={{ info, serie, gain, refresh }}>
+    <ProgressionContext.Provider value={{ info, serie, gain, serieChange, refresh }}>
       {children}
     </ProgressionContext.Provider>
   )

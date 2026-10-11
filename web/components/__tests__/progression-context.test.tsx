@@ -1,26 +1,31 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/progression', () => ({ getProgression: vi.fn() }))
+vi.mock('@/lib/progression', () => ({ getProgression: vi.fn(), getSerie: vi.fn() }))
 vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
 
-import { getProgression } from '@/lib/progression'
+import { getProgression, getSerie } from '@/lib/progression'
 import { getMoi } from '@/lib/session'
 import { ProgressionProvider, useProgression } from '../progression-context'
 
 const mock = vi.mocked(getProgression)
 const moi = vi.mocked(getMoi)
+const serie = vi.mocked(getSerie)
 
 const compte = (role: string) => ({ id: '1', role, statut: 'actif', nom: null, email: null })
 
 // Small harness exposing the context so tests drive refresh() and read state.
 function Harness() {
-  const { info, gain, refresh } = useProgression()
+  const { info, gain, serie: jours, serieChange, refresh } = useProgression()
   return (
     <div>
       <span data-testid="xp">{info ? info.xpTotal : 'none'}</span>
       <span data-testid="lvl">{info ? info.niveau : 'none'}</span>
       <span data-testid="gain">{gain ? gain.amount : 'none'}</span>
+      <span data-testid="serie">{jours ? jours.joursConsecutifs : 'none'}</span>
+      <span data-testid="serie-change">
+        {serieChange ? `${serieChange.avant}->${serieChange.apres}` : 'none'}
+      </span>
       <span data-testid="delta" />
       <button
         onClick={async () => {
@@ -46,6 +51,8 @@ beforeEach(() => {
   mock.mockReset()
   moi.mockReset()
   moi.mockResolvedValue(compte('eleve'))
+  serie.mockReset()
+  serie.mockResolvedValue({ joursConsecutifs: 3 } as never)
 })
 
 describe('ProgressionProvider', () => {
@@ -125,5 +132,46 @@ describe('ProgressionProvider', () => {
       timeout: 2000,
     })
     expect(screen.getByTestId('xp').textContent).toBe('60')
+  })
+
+  it('refresh() re-reads the streak and reports a real change (#248)', async () => {
+    mock.mockResolvedValueOnce({ xpTotal: 100, niveau: 1 })
+    serie.mockResolvedValueOnce({ joursConsecutifs: 0 } as never) // mount: no streak yet
+    renderProvider()
+    await waitFor(() => expect(screen.getByTestId('serie').textContent).toBe('0'))
+
+    mock.mockResolvedValueOnce({ xpTotal: 110, niveau: 1 })
+    serie.mockResolvedValueOnce({ joursConsecutifs: 1 } as never) // first activity of the day
+    fireEvent.click(screen.getByText('refresh'))
+
+    await waitFor(() => expect(screen.getByTestId('serie-change').textContent).toBe('0->1'))
+    expect(screen.getByTestId('serie').textContent).toBe('1')
+  })
+
+  it('reports no streak change when the re-read finds the same value', async () => {
+    mock.mockResolvedValueOnce({ xpTotal: 100, niveau: 1 })
+    renderProvider()
+    await waitFor(() => expect(screen.getByTestId('serie').textContent).toBe('3'))
+
+    mock.mockResolvedValueOnce({ xpTotal: 110, niveau: 1 })
+    fireEvent.click(screen.getByText('refresh'))
+
+    await waitFor(() => expect(screen.getByTestId('delta').textContent).toBe('10'))
+    expect(serie).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('serie-change').textContent).toBe('none')
+  })
+
+  it('keeps the last known streak when its re-read fails', async () => {
+    mock.mockResolvedValueOnce({ xpTotal: 100, niveau: 1 })
+    renderProvider()
+    await waitFor(() => expect(screen.getByTestId('serie').textContent).toBe('3'))
+
+    mock.mockResolvedValueOnce({ xpTotal: 110, niveau: 1 })
+    serie.mockRejectedValueOnce(new Error('réseau'))
+    fireEvent.click(screen.getByText('refresh'))
+
+    await waitFor(() => expect(screen.getByTestId('delta').textContent).toBe('10'))
+    expect(screen.getByTestId('serie').textContent).toBe('3')
+    expect(screen.getByTestId('serie-change').textContent).toBe('none')
   })
 })
