@@ -14,6 +14,8 @@ vi.mock('@/lib/progression', () => ({
 
 import { marquerSectionLue } from '@/lib/api'
 import { getMoi } from '@/lib/session'
+import { getParcours } from '@/lib/progression'
+import { ChapterProgress } from '@/components/chapter-progress'
 import { ChapterView, etapesParBloc, type ChapitreResponse } from '@/components/chapter-view'
 import { ModeChapitreProvider } from '../mode-context'
 import { BandeDiapos, BarreScene, BasculeInteractif, CommandesScene } from '../scene'
@@ -305,6 +307,124 @@ describe('sections read (#252)', () => {
   })
 })
 
+describe('sections read in reading mode (#252)', () => {
+  /** jsdom has no IntersectionObserver: this one is driven by the test. */
+  class FauxObserver {
+    static instances: FauxObserver[] = []
+    readonly observes = new Set<Element>()
+    constructor(readonly callback: IntersectionObserverCallback) {
+      FauxObserver.instances.push(this)
+    }
+    observe(el: Element) {
+      this.observes.add(el)
+    }
+    unobserve(el: Element) {
+      this.observes.delete(el)
+    }
+    disconnect() {
+      this.observes.clear()
+    }
+  }
+
+  /** The end of a section comes on screen. */
+  async function finALEcran(sectionId: string) {
+    await act(async () => {
+      for (const observer of FauxObserver.instances) {
+        for (const el of observer.observes) {
+          if (el instanceof HTMLElement && el.dataset.finSection === sectionId) {
+            const entry = {
+              isIntersecting: true,
+              target: el,
+            } as unknown as IntersectionObserverEntry
+            observer.callback([entry], observer as unknown as IntersectionObserver)
+          }
+        }
+      }
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+  }
+
+  beforeEach(() => {
+    FauxObserver.instances = []
+    vi.stubGlobal('IntersectionObserver', FauxObserver)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
+  it('marks a section read when its end comes on screen, once, exercises sections included', async () => {
+    renderChapitre('lecture')
+    await finALEcran('lecon')
+    await finALEcran('lecon')
+    await finALEcran('exercices')
+
+    expect(marquerSectionLue).toHaveBeenCalledTimes(2)
+    expect(marquerSectionLue).toHaveBeenCalledWith('pythagore', 'lecon')
+    expect(marquerSectionLue).toHaveBeenCalledWith('pythagore', 'exercices')
+  })
+
+  it('marks nothing for a visitor who is not a student', async () => {
+    vi.mocked(getMoi).mockResolvedValue(null)
+    renderChapitre('lecture')
+    await finALEcran('lecon')
+    expect(marquerSectionLue).not.toHaveBeenCalled()
+  })
+
+  it('watches nothing in interactive mode', () => {
+    renderChapitre('interactif')
+    expect(FauxObserver.instances.flatMap((o) => [...o.observes])).toEqual([])
+  })
+
+  it('never marks a section twice across a mode switch', async () => {
+    renderChapitre('interactif', 2)
+    touche('ArrowRight')
+    touche('Escape')
+    await finALEcran('lecon')
+
+    expect(marquerSectionLue).toHaveBeenCalledTimes(1)
+    expect(marquerSectionLue).toHaveBeenCalledWith('pythagore', 'lecon')
+  })
+
+  it('reloads the gauge once the read has been counted', async () => {
+    vi.useFakeTimers()
+    // What progression answers: 33 % once the read is counted. The end slide reads it too.
+    let pourcentage = 0
+    vi.mocked(getParcours).mockImplementation(async () => [
+      { chapitreId: 'pythagore', ordre: 1, etat: 'EN_COURS', pourcentage },
+    ])
+    render(
+      <ModeChapitreProvider
+        chapitreId={CHAPITRE.id}
+        deck={DECK}
+        sectionTitles={{ lecon: 'Énoncé', exercices: 'Exercices' }}
+        chemin={CHEMIN}
+        parcoursHref="/3e/mathematiques"
+        niveau="3e"
+        matiere="mathematiques"
+        slug="pythagore"
+        initialMode="lecture"
+        initialIndex={0}
+      >
+        <ChapterProgress niveau="3e" matiere="mathematiques" slug="pythagore" />
+        <ChapterView chapitre={CHAPITRE} deck={DECK} />
+      </ModeChapitreProvider>
+    )
+    await act(() => vi.advanceTimersByTimeAsync(0))
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+
+    pourcentage = 33
+    await finALEcran('lecon')
+    await act(() => vi.advanceTimersByTimeAsync(1499))
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+    await act(() => vi.advanceTimersByTimeAsync(1))
+
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '33')
+  })
+})
+
 describe('steps revealed one at a time (MOTION.md "Step reveal")', () => {
   const AVEC_ETAPES: ChapitreResponse = {
     id: 'substituer',
@@ -435,7 +555,9 @@ describe('full screen (#250)', () => {
       configurable: true,
       get: () => element,
     })
-    document.documentElement.requestFullscreen = vi.fn(async () => changer(document.documentElement))
+    document.documentElement.requestFullscreen = vi.fn(async () =>
+      changer(document.documentElement)
+    )
     document.exitFullscreen = vi.fn(async () => changer(null))
   }
 

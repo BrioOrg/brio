@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useModeChapitre } from '@/components/chapitre-interactif/mode-context'
 import { getParcours } from '@/lib/progression'
 import { getMoi } from '@/lib/session'
 
@@ -16,9 +17,11 @@ type Props = {
  * to a logged-in student whose path includes this chapter: a teacher or a logged-out
  * visitor sees nothing. Never a fabricated value (CLAUDE.md "Never display data the
  * backend does not have"). No lives/hearts — progress encourages, it doesn't punish.
+ * Reloads when a section read has been counted (#252), so the gauge moves while reading.
  */
 export function ChapterProgress({ niveau, matiere, slug }: Props) {
   const [pourcentage, setPourcentage] = useState<number | null>(null)
+  const revision = useModeChapitre()?.revisionProgression ?? 0
 
   useEffect(() => {
     let alive = true
@@ -39,7 +42,7 @@ export function ChapterProgress({ niveau, matiere, slug }: Props) {
     return () => {
       alive = false
     }
-  }, [niveau, matiere, slug])
+  }, [niveau, matiere, slug, revision])
 
   if (pourcentage === null) return null
 

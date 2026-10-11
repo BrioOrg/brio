@@ -145,6 +145,10 @@ export function ChapterView({
                     />
                   ))}
             </div>
+            {/* Reading mode marks the section read when its end comes on screen (#252). */}
+            {deck && (
+              <div data-fin-section={section.id} aria-hidden="true" className={INTERACTIF_HIDDEN} />
+            )}
           </section>
         ))}
       </div>

@@ -159,6 +159,21 @@ is often wrong.
 - **Interactive → reading** removes `?diapo` and scrolls to the first block of the current slide.
   From `debut` the page starts at the top. From `fin` it scrolls to the end of the chapter.
 
+### 6 bis. Sections read (added by #252)
+
+The chapter gauge counts sections read plus exercises solved (ADR 0022). Both modes send the same
+signal, `POST /api/chapitres/{id}/sections/{sectionId}/lu`:
+
+- **Interactive**: leaving a section's last slide **forward**.
+- **Reading**: a marker closing each section (`data-fin-section`) **comes on screen**. No minimum
+  time: it is a light signal, as fast as the arrows are in interactive mode.
+- **Every section counts, exercises-only ones included**: `totalSections` counts them all, so a
+  chapter could never be completed without them.
+- **A logged-in student only, once per section per page**, whatever the mode switches. A failed
+  signal is silent; the backend is idempotent anyway.
+- **The gauge reloads** after a successful signal, with a short delay: `progression` records the
+  read after commit, asynchronously. It shows only what `progression` returns, never a guess.
+
 ### 7. Animation library: `motion`
 
 `motion` (motion.dev, formerly framer-motion) animates the interactive mode. It provides exit
