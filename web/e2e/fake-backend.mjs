@@ -14,6 +14,10 @@
  *   GET /api/moi, /api/progression/*              401: an anonymous visitor; with the test
  *                                                 student's session (E2E_SESSION), that student,
  *                                                 who has not earned any XP yet
+ *   GET /api/progression/parcours/{niveau}/{matiere}  that student's path, as ProgressionService
+ *                                                 returns it before anything is recorded: every
+ *                                                 chapter at 0 %, the first `en_cours`, the
+ *                                                 others `verrouille`
  *   POST /api/exercices/{id}/soumissions          graded from content/ like the backend's
  *                                                 evaluators (#246); 401 without a session
  *   POST /api/chapitres/{id}/sections/{s}/lu      204 with a session, 401 without
@@ -97,6 +101,23 @@ async function chapitres() {
     }
   }
   return out
+}
+
+/** A track in its catalogue order (`_index.json`), for a student with nothing recorded. */
+async function parcours(niveau, matiere) {
+  if (![niveau, matiere].every((s) => SEGMENT.test(s))) return []
+  let ordre = []
+  try {
+    ordre = JSON.parse(await readFile(join(CONTENT_DIR, niveau, matiere, '_index.json'), 'utf8'))
+  } catch {
+    return []
+  }
+  return ordre.map((chapitreId, i) => ({
+    chapitreId,
+    ordre: i + 1,
+    etat: i === 0 ? 'en_cours' : 'verrouille',
+    pourcentage: 0,
+  }))
 }
 
 /** The exercise block an `exerciceId` names, with its evaluation fields (not stripped). */
@@ -193,6 +214,8 @@ const server = createServer(async (req, res) => {
       // A student who has not earned anything yet, as ProgressionService returns them.
       if (pathname === '/api/moi') return send(res, 200, ELEVE)
       if (pathname === '/api/progression/moi') return send(res, 200, { xpTotal: 0, niveau: 0 })
+      const track = pathname.match(/^\/api\/progression\/parcours\/([^/]+)\/([^/]+)$/)
+      if (track) return send(res, 200, await parcours(track[1], track[2]))
       if (pathname === '/api/progression/serie') {
         return send(res, 200, {
           joursConsecutifs: 0,

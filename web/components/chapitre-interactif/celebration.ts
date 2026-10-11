@@ -1,4 +1,11 @@
-import { distance, duration, ease, motionS, particles } from '@/lib/motion-tokens'
+import {
+  distance,
+  duration,
+  ease,
+  motionS,
+  particles,
+  type DurationName,
+} from '@/lib/motion-tokens'
 import { bezier, moteur, peutAnimer, suivre, type Controls } from './animation'
 
 /**
@@ -58,14 +65,20 @@ export function poserCoche(el: Element | null | undefined, delaiMs: number): voi
 /**
  * Particles burst around `origine` (an empty, positioned element at the check mark's centre),
  * then fall and fade. They are created here and removed once they are gone. Returns what removes
- * them at once (the sheet closing mid-burst).
+ * them at once (the sheet closing mid-burst). `finale`: the end slide's burst, with more particles
+ * spread wider (#249).
  */
-export function eclater(origine: HTMLElement | null | undefined, delaiMs: number): () => void {
+export function eclater(
+  origine: HTMLElement | null | undefined,
+  delaiMs: number,
+  finale = false
+): () => void {
   const m = moteur()
   if (!m || !origine) return () => {}
   const crees: HTMLElement[] = []
-  const spread = distance['particle-spread']
-  for (let k = 0; k < particles.count; k++) {
+  const nombre = particles.count * (finale ? particles.finaleCountFactor : 1)
+  const spread = distance['particle-spread'] * (finale ? particles.finaleSpreadFactor : 1)
+  for (let k = 0; k < nombre; k++) {
     const p = document.createElement('span')
     const etincelle = k % ECLAT.etincelleTous === 0
     p.className = [
@@ -80,7 +93,7 @@ export function eclater(origine: HTMLElement | null | undefined, delaiMs: number
     origine.appendChild(p)
     crees.push(p)
 
-    const angle = (k / particles.count) * Math.PI * 2 + Math.random() * 0.5
+    const angle = (k / nombre) * Math.PI * 2 + Math.random() * 0.5
     const portee = spread * (ECLAT.porteeMin + Math.random() * (1 - ECLAT.porteeMin))
     const dx = Math.cos(angle) * portee
     const dy = Math.sin(angle) * portee
@@ -174,14 +187,24 @@ export function rebondir(el: Element | null | undefined, delaiMs = 0): void {
   )
 }
 
-/** Counts from `de` up to `a` over `count`; `terminer()` jumps to `a`. */
-export function compter(de: number, a: number, surValeur: (v: number) => void): Controls | null {
+/**
+ * Counts from `de` up to `a` over `count` (`out-quint`), or over `finale` at a linear pace for the
+ * end slide; `terminer()` jumps to `a`.
+ */
+export function compter(
+  de: number,
+  a: number,
+  surValeur: (v: number) => void,
+  options: { duree?: DurationName; delaiMs?: number } = {}
+): Controls | null {
   const m = moteur()
   if (!m) return null
+  const duree = options.duree ?? 'count'
   return suivre(
     m.animate(de, a, {
-      duration: motionS('count', false),
-      ease: OUT_QUINT,
+      duration: motionS(duree, false),
+      delay: (options.delaiMs ?? 0) / 1000,
+      ease: duree === 'finale' ? 'linear' : OUT_QUINT,
       onUpdate: (v: number) => surValeur(Math.round(v)),
     })
   )

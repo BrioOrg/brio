@@ -5,6 +5,12 @@ import { buildDeck } from '@brio/content'
 vi.mock('@brio/api-client', () => ({ createApiClient: vi.fn() }))
 vi.mock('@/lib/api', () => ({ soumettre: vi.fn(), marquerSectionLue: vi.fn() }))
 vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
+// The end slide reads the student's path (#249): nothing to read here.
+vi.mock('@/lib/progression', () => ({
+  getProgression: vi.fn(async () => null),
+  getSerie: vi.fn(async () => null),
+  getParcours: vi.fn(async () => null),
+}))
 
 import { marquerSectionLue } from '@/lib/api'
 import { getMoi } from '@/lib/session'
@@ -68,6 +74,9 @@ function renderChapitre(mode: ModeChapitre = 'interactif', index = 0) {
       sectionTitles={{ lecon: 'Énoncé', exercices: 'Exercices' }}
       chemin={CHEMIN}
       parcoursHref="/3e/mathematiques"
+      niveau="3e"
+      matiere="mathematiques"
+      slug="pythagore"
       initialMode={mode}
       initialIndex={index}
     >
@@ -349,6 +358,9 @@ describe('steps revealed one at a time (MOTION.md "Step reveal")', () => {
         sectionTitles={{ methode: 'Méthode' }}
         chemin={CHEMIN}
         parcoursHref="/3e/mathematiques"
+        niveau="3e"
+        matiere="mathematiques"
+        slug="pythagore"
         initialMode={mode}
         initialIndex={index}
       >

@@ -14,6 +14,7 @@ import {
 import type { Diapo } from '@brio/content'
 import { marquerSectionLue } from '@/lib/api'
 import { getMoi } from '@/lib/session'
+import type { ChapitreSuivant } from '@/lib/bilan'
 import {
   MODE_COOKIE,
   indexDiapo,
@@ -30,6 +31,7 @@ import {
   terminer,
   transition,
 } from './animation'
+import { useBilanSession, type BilanSession } from './bilan-session'
 
 /**
  * The chapter's two modes (ADR 0032): reading, today's long page, and interactive, one slide at a
@@ -51,6 +53,10 @@ type ModeChapitreContext = {
   /** The chapter's path, without query: each slide's link is `<chemin>?diapo=<id>`. */
   chemin: string
   parcoursHref: string
+  /** The next chapter of the track, in catalogue order; null for the last one. */
+  suivant: ChapitreSuivant | null
+  /** What `progression` says for the end slide (#249). */
+  bilanSession: BilanSession
   aller: (index: number) => void
   suivante: () => void
   precedente: () => void
@@ -180,6 +186,11 @@ type Props = {
   sectionTitles: Readonly<Record<string, string>>
   chemin: string
   parcoursHref: string
+  /** The chapter's place in the catalogue, for its completion on the student's path. */
+  niveau: string
+  matiere: string
+  slug: string
+  suivant?: (ChapitreSuivant & { slug: string }) | null
   initialMode: ModeChapitre
   initialIndex: number
 }
@@ -193,6 +204,10 @@ export function ModeChapitreProvider({
   sectionTitles,
   chemin,
   parcoursHref,
+  niveau,
+  matiere,
+  slug,
+  suivant = null,
   initialMode,
   initialIndex,
 }: Props) {
@@ -211,6 +226,13 @@ export function ModeChapitreProvider({
   const [feuilleOuverte, setFeuilleOuverte] = useState<string | null>(null)
   const [etapesVisibles, setEtapesVisibles] = useState<Readonly<Record<string, number>>>({})
   const reducedMotion = useReducedMotion()
+  const bilanSession = useBilanSession({
+    niveau,
+    matiere,
+    slug,
+    suivantSlug: suivant?.slug ?? null,
+    finOuverte: mode === 'interactif' && deck[index]?.kind === 'fin',
+  })
   const racine = useRef<HTMLDivElement>(null)
 
   // Latest values for the window listeners, which are bound once per mode.
@@ -635,6 +657,8 @@ export function ModeChapitreProvider({
       sectionTitles,
       chemin,
       parcoursHref,
+      suivant,
+      bilanSession,
       aller,
       suivante,
       precedente,
@@ -664,6 +688,8 @@ export function ModeChapitreProvider({
       sectionTitles,
       chemin,
       parcoursHref,
+      suivant,
+      bilanSession,
       aller,
       suivante,
       precedente,

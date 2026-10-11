@@ -122,6 +122,12 @@ export default async function ChapterPage({
   const deck = buildDeck(chapitre)
   const diapoDemandee = typeof diapo === 'string' ? diapo : undefined
   const mode = modeInitial(diapoDemandee, (await cookies()).get(MODE_COOKIE)?.value)
+  // The end slide's main action (#249): the next chapter in catalogue order, if any.
+  const place = nav.chapters.findIndex((c) => c.slug === slug)
+  const prochain = place === -1 ? undefined : nav.chapters[place + 1]
+  const suivant = prochain
+    ? { slug: prochain.slug, titre: prochain.titre, href: `/${niveau}/${matiere}/${prochain.slug}` }
+    : null
   const sectionTitles = Object.fromEntries(chapitre.sections.map((s) => [s.id, s.title]))
 
   return (
@@ -133,6 +139,10 @@ export default async function ChapterPage({
       sectionTitles={sectionTitles}
       chemin={`/${niveau}/${matiere}/${slug}`}
       parcoursHref={`/${niveau}/${matiere}`}
+      niveau={niveau}
+      matiere={matiere}
+      slug={slug}
+      suivant={suivant}
       initialMode={mode}
       initialIndex={indexDiapo(deck, diapoDemandee)}
     >
