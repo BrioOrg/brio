@@ -1,10 +1,11 @@
 'use client'
 
+import { forwardRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Icon } from './icon'
 import { Button } from './button'
 
-type ResultSheetVariant = 'success' | 'failure'
+export type ResultSheetVariant = 'success' | 'failure'
 
 type ResultSheetProps = {
   open: boolean
@@ -41,6 +42,52 @@ const CONFIG = {
   },
 } as const
 
+type ResultSheetSurfaceProps = React.HTMLAttributes<HTMLDivElement> & {
+  variant: ResultSheetVariant
+  /** The heading, already in its element (a `Dialog.Title` in the modal sheet). */
+  heading: React.ReactNode
+}
+
+/** The heading's colours, for the element the caller wraps it in. */
+export function resultSheetText(variant: ResultSheetVariant) {
+  return { title: CONFIG[variant].title, subtitle: CONFIG[variant].subtitle }
+}
+
+/**
+ * The sheet's look without its behaviour: the surface, the icon and the heading, then whatever
+ * the caller puts under it. `ResultSheet` wraps it in a modal dialog; the interactive mode of a
+ * chapter shows it non-modal, over the slide's bottom bar (#246).
+ */
+export const ResultSheetSurface = forwardRef<HTMLDivElement, ResultSheetSurfaceProps>(
+  function ResultSheetSurface({ variant, heading, children, className = '', ...rest }, ref) {
+    const c = CONFIG[variant]
+    return (
+      <div
+        ref={ref}
+        className={['rounded-t-xl px-5 pb-8 pt-5', c.surface, className].join(' ')}
+        {...rest}
+      >
+        <div className="flex flex-col gap-4">
+          {/* Icon + heading row */}
+          <div className="flex items-center gap-3">
+            <span
+              className={[
+                'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
+                c.iconBg,
+              ].join(' ')}
+              aria-hidden="true"
+            >
+              <Icon name={c.icon} weight="bold" size={22} className={c.iconColor} />
+            </span>
+            <div className="flex min-w-0 flex-col gap-0.5">{heading}</div>
+          </div>
+          {children}
+        </div>
+      </div>
+    )
+  }
+)
+
 export function ResultSheet({
   open,
   onClose,
@@ -56,31 +103,13 @@ export function ResultSheet({
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 data-[state=open]:animate-[fadeIn_var(--duration-slow)_var(--ease-out)]" />
-        <Dialog.Content
-          aria-label={title}
-          className={[
-            'fixed bottom-0 left-0 right-0 z-50 rounded-t-xl px-5 pb-8 pt-5',
-            c.surface,
-            'data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)]',
-            'focus-visible:outline-none',
-          ].join(' ')}
-        >
-          <div className="flex flex-col gap-4">
-            {/* Icon + heading row */}
-            <div className="flex items-center gap-3">
-              <span
-                className={[
-                  'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
-                  c.iconBg,
-                ].join(' ')}
-                aria-hidden="true"
-              >
-                <Icon name={c.icon} weight="bold" size={22} className={c.iconColor} />
-              </span>
-              <div className="flex flex-col gap-0.5">
-                <Dialog.Title
-                  className={['font-display text-xl font-extrabold', c.title].join(' ')}
-                >
+        <Dialog.Content asChild aria-label={title}>
+          <ResultSheetSurface
+            variant={variant}
+            className="fixed bottom-0 left-0 right-0 z-50 data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)] focus-visible:outline-none"
+            heading={
+              <>
+                <Dialog.Title className={['font-display text-xl font-extrabold', c.title].join(' ')}>
                   {title}
                 </Dialog.Title>
                 {subtitle && (
@@ -88,9 +117,9 @@ export function ResultSheet({
                     {subtitle}
                   </Dialog.Description>
                 )}
-              </div>
-            </div>
-
+              </>
+            }
+          >
             {/* Optional XP badge */}
             {xpEarned !== undefined && (
               <span
@@ -123,7 +152,7 @@ export function ResultSheet({
             >
               {continueLabel}
             </Button>
-          </div>
+          </ResultSheetSurface>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
