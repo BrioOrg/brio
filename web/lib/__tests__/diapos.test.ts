@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { Diapo } from '@brio/content'
-import { indexDiapo, libelleDiapo, modeInitial, sectionTerminee, urlAvecDiapo } from '@/lib/diapos'
+import {
+  etatDiapo,
+  indexDiapo,
+  libelleDiapo,
+  modeInitial,
+  sectionTerminee,
+  urlAvecDiapo,
+} from '@/lib/diapos'
 
 const DECK: Diapo[] = [
   { id: 'debut', kind: 'debut', blockIds: ['objectifs'] },
@@ -68,6 +75,15 @@ describe('libelleDiapo', () => {
     expect(libelleDiapo(DECK[2], 2, 5, titles)).toBe('Diapo 3 sur 5 · Exercice · Le théorème')
   })
 
+  it('should say when an exercise is solved or was left without an answer', () => {
+    expect(libelleDiapo(DECK[2], 2, 5, titles, 'resolu')).toBe(
+      'Diapo 3 sur 5 · Exercice · Le théorème · Réussi'
+    )
+    expect(libelleDiapo(DECK[2], 2, 5, titles, 'sans-reponse')).toBe(
+      'Diapo 3 sur 5 · Exercice · Le théorème · Sans réponse'
+    )
+  })
+
   it('should leave out the section for the opening and the end', () => {
     expect(libelleDiapo(DECK[0], 0, 5, titles)).toBe('Diapo 1 sur 5 · Ouverture')
     expect(libelleDiapo(DECK[4], 4, 5, titles)).toBe('Diapo 5 sur 5 · Fin du chapitre')
@@ -79,5 +95,31 @@ describe('urlAvecDiapo', () => {
     expect(urlAvecDiapo('http://x/3e/m/s', 'ex1')).toBe('/3e/m/s?diapo=ex1')
     expect(urlAvecDiapo('http://x/3e/m/s?diapo=ex1&a=1', 'ex2')).toBe('/3e/m/s?diapo=ex2&a=1')
     expect(urlAvecDiapo('http://x/3e/m/s?a=1&diapo=ex1', null)).toBe('/3e/m/s?a=1')
+  })
+})
+
+describe('etatDiapo', () => {
+  const vues = new Set(['ex1'])
+
+  it('should say nothing about a slide without an auto-graded exercise', () => {
+    expect(etatDiapo(DECK[1], false, { ex1: 'a-faire' }, new Set(['intro']))).toBeNull()
+  })
+
+  it('should mark an exercise seen and left without an answer', () => {
+    expect(etatDiapo(DECK[2], false, { ex1: 'a-faire' }, vues)).toBe('sans-reponse')
+  })
+
+  it('should not mark it while it is the current slide, or before it is seen', () => {
+    expect(etatDiapo(DECK[2], true, { ex1: 'a-faire' }, vues)).toBeNull()
+    expect(etatDiapo(DECK[2], false, { ex1: 'a-faire' }, new Set())).toBeNull()
+  })
+
+  it('should not mark an exercise the student tried', () => {
+    expect(etatDiapo(DECK[2], false, { ex1: 'tente' }, vues)).toBeNull()
+  })
+
+  it('should mark a solved exercise, current or not', () => {
+    expect(etatDiapo(DECK[2], true, { ex1: 'resolu' }, vues)).toBe('resolu')
+    expect(etatDiapo(DECK[2], false, { ex1: 'resolu' }, vues)).toBe('resolu')
   })
 })

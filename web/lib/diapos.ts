@@ -46,17 +46,50 @@ const KIND_LABEL: Record<Diapo['kind'], string> = {
   fin: 'Fin du chapitre',
 }
 
-/** What a marker of the side strip leads to: position, kind and, inside a section, its title. */
+/**
+ * Where an exercise slide stands in this session (#246): solved, or seen and left with no answer.
+ * `null` says nothing: not an auto-graded exercise, not seen yet, current, or tried.
+ */
+export type EtatDiapo = 'resolu' | 'sans-reponse' | null
+
+/** Per-block exercise state, as the interactive shell keeps it for the session. */
+type EtatsExercices = Readonly<Record<string, 'a-faire' | 'tente' | 'resolu'>>
+
+export function etatDiapo(
+  diapo: Diapo,
+  courante: boolean,
+  exercices: EtatsExercices,
+  vues: ReadonlySet<string>
+): EtatDiapo {
+  const etats = (diapo.blockIds as readonly string[])
+    .map((id) => exercices[id])
+    .filter((e) => e !== undefined)
+  if (etats.length === 0) return null
+  if (etats.every((e) => e === 'resolu')) return 'resolu'
+  if (!courante && vues.has(diapo.id) && etats.every((e) => e === 'a-faire')) {
+    return 'sans-reponse'
+  }
+  return null
+}
+
+const ETAT_LABEL: Record<Exclude<EtatDiapo, null>, string> = {
+  resolu: 'Réussi',
+  'sans-reponse': 'Sans réponse',
+}
+
+/** What a marker of the side strip leads to: position, kind, its section's title, its state. */
 export function libelleDiapo(
   diapo: Diapo,
   index: number,
   total: number,
-  sectionTitles: Readonly<Record<string, string>>
+  sectionTitles: Readonly<Record<string, string>>,
+  etat: EtatDiapo = null
 ): string {
   const parts = [`Diapo ${index + 1} sur ${total}`, KIND_LABEL[diapo.kind]]
   if ('sectionId' in diapo && sectionTitles[diapo.sectionId]) {
     parts.push(sectionTitles[diapo.sectionId])
   }
+  if (etat) parts.push(ETAT_LABEL[etat])
   return parts.join(' · ')
 }
 

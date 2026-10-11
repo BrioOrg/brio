@@ -160,8 +160,10 @@ export function ChapterView({
 // out, and the section title moves into it as a kicker (ADR 0032 rule 7).
 const INTERACTIF_CONTENTS = 'group-data-[chapitre-mode=interactif]/mode:contents'
 const INTERACTIF_HIDDEN = 'group-data-[chapitre-mode=interactif]/mode:hidden'
-// A horizontal swipe changes slide; vertical panning still scrolls.
-const INTERACTIF_TACTILE = 'group-data-[chapitre-mode=interactif]/mode:touch-pan-y'
+// A horizontal swipe changes slide; vertical panning still scrolls. The padding keeps the slide
+// clear of the bottom bar, which sits at the bottom of the screen.
+const INTERACTIF_TACTILE =
+  'group-data-[chapitre-mode=interactif]/mode:touch-pan-y group-data-[chapitre-mode=interactif]/mode:pb-10'
 
 function diapoParBloc(deck: readonly Diapo[]): Map<string, string> {
   const map = new Map<string, string>()
@@ -478,6 +480,31 @@ function StepFormula({ latex }: { latex: string }) {
   )
 }
 
+const CORRIGES_AUTOMATIQUEMENT = new Set([
+  'multiple-choice',
+  'numeric',
+  'short-answer',
+  'fill-blank',
+])
+
+/**
+ * The blocks a student can check (#246): the interactive mode offers « Vérifier » and « Passer »
+ * on their slides and marks them in the strip. Known on the server, so the first paint is right.
+ */
+export function exercicesCorriges(chapitre: ChapitreResponse): string[] {
+  return chapitre.sections.flatMap((section) =>
+    section.blocks
+      .filter(
+        (b) =>
+          b.type === 'exercise' &&
+          b.prompt &&
+          b.exerciceId &&
+          CORRIGES_AUTOMATIQUEMENT.has(b.exerciseType ?? '')
+      )
+      .map((b) => b.id)
+  )
+}
+
 function ExerciseBlock({
   id,
   block,
@@ -503,13 +530,12 @@ function ExerciseBlock({
     bank,
   } = block
 
-  const corrigeAutomatiquement =
-    exerciseType === 'multiple-choice' ||
-    exerciseType === 'numeric' ||
-    exerciseType === 'short-answer' ||
-    exerciseType === 'fill-blank'
-
-  if (prompt && corrigeAutomatiquement && (exerciceId || apercu)) {
+  if (
+    prompt &&
+    exerciseType &&
+    CORRIGES_AUTOMATIQUEMENT.has(exerciseType) &&
+    (exerciceId || apercu)
+  ) {
     return (
       <ExerciceWidget
         id={id}

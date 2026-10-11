@@ -51,7 +51,24 @@ type ModeChapitreContext = {
   setBandeRepliee: (repliee: boolean) => void
   tiroirOuvert: boolean
   setTiroirOuvert: (ouvert: boolean) => void
+  /** This session's exercises, by block id. Never persisted (ADR 0032 §1). */
+  exercices: Readonly<Record<string, EtatExercice>>
+  /** The slides opened in this session, so a skipped exercise can be told apart. */
+  vues: ReadonlySet<string>
+  signalerExercice: (blockId: string, etat: 'tente' | 'resolu') => void
+  /** Where the current exercise draws « Vérifier », in the bottom bar (#246). */
+  piedExercice: HTMLElement | null
+  setPiedExercice: (el: HTMLElement | null) => void
+  /** Where it draws its result sheet, over the bottom bar. */
+  feuilleExercice: HTMLElement | null
+  setFeuilleExercice: (el: HTMLElement | null) => void
+  /** The exercise whose result sheet is open: the bar's own buttons step aside. */
+  feuilleOuverte: string | null
+  setFeuilleOuverte: (blockId: string | null) => void
 }
+
+/** `a-faire`: never checked; `tente`: checked, not right yet; `resolu`: right once. */
+export type EtatExercice = 'a-faire' | 'tente' | 'resolu'
 
 const Context = createContext<ModeChapitreContext | null>(null)
 
@@ -136,6 +153,8 @@ type Props = {
   children: React.ReactNode
   chapitreId: string
   deck: readonly Diapo[]
+  /** The block ids of the exercises a student can check (`exercicesCorriges`). */
+  exercices?: readonly string[]
   sectionTitles: Readonly<Record<string, string>>
   chemin: string
   parcoursHref: string
@@ -147,6 +166,7 @@ export function ModeChapitreProvider({
   children,
   chapitreId,
   deck,
+  exercices: corriges = [],
   sectionTitles,
   chemin,
   parcoursHref,
@@ -159,6 +179,13 @@ export function ModeChapitreProvider({
   const [bandeRepliee, setBandeRepliee] = useState(false)
   const [tiroirOuvert, setTiroirOuvert] = useState(false)
   const [transitionsPretes, setTransitionsPretes] = useState(false)
+  const [exercices, setExercices] = useState<Readonly<Record<string, EtatExercice>>>(() =>
+    Object.fromEntries(corriges.map((id) => [id, 'a-faire' as const]))
+  )
+  const [vues, setVues] = useState<ReadonlySet<string>>(() => new Set())
+  const [piedExercice, setPiedExercice] = useState<HTMLElement | null>(null)
+  const [feuilleExercice, setFeuilleExercice] = useState<HTMLElement | null>(null)
+  const [feuilleOuverte, setFeuilleOuverte] = useState<string | null>(null)
   const reducedMotion = useReducedMotion()
   const racine = useRef<HTMLDivElement>(null)
 
@@ -201,6 +228,22 @@ export function ModeChapitreProvider({
     },
     [chapitreId]
   )
+
+  // --- Exercises of the session (#246): what the strip marks, what the bar offers. ---
+
+  const signalerExercice = useCallback((blockId: string, etat: 'tente' | 'resolu') => {
+    // Solved once stays solved for the session, even after « Réessayer ».
+    setExercices((prev) => (prev[blockId] === 'resolu' ? prev : { ...prev, [blockId]: etat }))
+  }, [])
+
+  // A result sheet belongs to the moment after « Vérifier »: leaving the slide closes it, and a
+  // student coming back finds the answered exercise with its bar, not the sheet.
+  useEffect(() => {
+    setFeuilleOuverte(null)
+    if (mode !== 'interactif') return
+    const id = deck[index]?.id
+    if (id) setVues((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
+  }, [mode, index, deck])
 
   // --- Moving between slides. ---
 
@@ -509,6 +552,15 @@ export function ModeChapitreProvider({
       setBandeRepliee,
       tiroirOuvert,
       setTiroirOuvert,
+      exercices,
+      vues,
+      signalerExercice,
+      piedExercice,
+      setPiedExercice,
+      feuilleExercice,
+      setFeuilleExercice,
+      feuilleOuverte,
+      setFeuilleOuverte,
     }),
     [
       mode,
@@ -524,6 +576,12 @@ export function ModeChapitreProvider({
       basculer,
       bandeRepliee,
       tiroirOuvert,
+      exercices,
+      vues,
+      signalerExercice,
+      piedExercice,
+      feuilleExercice,
+      feuilleOuverte,
     ]
   )
 
@@ -534,7 +592,7 @@ export function ModeChapitreProvider({
         data-chapitre-mode={mode}
         // Slides animate once `motion` has loaded; e2e tests wait for it.
         data-transitions={transitionsPretes ? 'pretes' : undefined}
-        className="group/mode min-h-screen bg-surface-page font-prose text-ink"
+        className="group/mode min-h-screen bg-surface-page font-prose text-ink data-[chapitre-mode=interactif]:flex data-[chapitre-mode=interactif]:flex-col"
         onClickCapture={onClickCapture}
       >
         {children}

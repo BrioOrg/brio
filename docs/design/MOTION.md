@@ -108,7 +108,8 @@ not a typo.
 - **The reading mode.** It keeps today's micro-interactions (hover, press) and
   gains nothing from this file.
 - **A wrong answer.** No shake, no buzzer, no flash, no pulse. The amber sheet is
-  simply there, with a hint, « Revoir la diapo » and « Réessayer ». Moving on a
+  simply there, with a hint, « Revoir : <section> » when the exercise has a lesson,
+  « Réessayer » (focused, so Entrée retries) and « Continuer » (#246). Moving on a
   mistake is a sanction, and PRINCIPLES.md rules out sanctions.
 - **Text being read.** Beats appear once, when the slide enters, and never move
   again: no typewriter, no re-animation on scroll, no reflow after they land.
