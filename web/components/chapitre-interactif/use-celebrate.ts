@@ -54,7 +54,7 @@ export function useCelebrate(
     if (!juste || !peutAnimer(reduit)) return
     const el = feuille.current
     poserCoche(el?.querySelector('[data-icone-resultat]'), DELAI_COCHE_MS)
-    eclater(el?.querySelector<HTMLElement>('[data-eclats]'), DELAI_COCHE_MS)
+    const effacer = eclater(el?.querySelector<HTMLElement>('[data-eclats]'), DELAI_COCHE_MS)
 
     const couper = () => {
       fini.current = true
@@ -66,6 +66,7 @@ export function useCelebrate(
     return () => {
       desinscrire()
       couper()
+      effacer()
     }
     // Once per sheet: the sheet remounts for each answer.
     // eslint-disable-next-line react-hooks/exhaustive-deps

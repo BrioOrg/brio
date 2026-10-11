@@ -57,11 +57,13 @@ export function poserCoche(el: Element | null | undefined, delaiMs: number): voi
 
 /**
  * Particles burst around `origine` (an empty, positioned element at the check mark's centre),
- * then fall and fade. They are created here and removed once they are gone.
+ * then fall and fade. They are created here and removed once they are gone. Returns what removes
+ * them at once (the sheet closing mid-burst).
  */
-export function eclater(origine: HTMLElement | null | undefined, delaiMs: number): void {
+export function eclater(origine: HTMLElement | null | undefined, delaiMs: number): () => void {
   const m = moteur()
-  if (!m || !origine) return
+  if (!m || !origine) return () => {}
+  const crees: HTMLElement[] = []
   const spread = distance['particle-spread']
   for (let k = 0; k < particles.count; k++) {
     const p = document.createElement('span')
@@ -76,6 +78,7 @@ export function eclater(origine: HTMLElement | null | undefined, delaiMs: number
     if (etincelle) Object.assign(p.style, ETINCELLE)
     p.style.opacity = '0'
     origine.appendChild(p)
+    crees.push(p)
 
     const angle = (k / particles.count) * Math.PI * 2 + Math.random() * 0.5
     const portee = spread * (ECLAT.porteeMin + Math.random() * (1 - ECLAT.porteeMin))
@@ -102,6 +105,9 @@ export function eclater(origine: HTMLElement | null | undefined, delaiMs: number
     )
     void controls.finished.then(() => p.remove())
   }
+  return () => {
+    for (const p of crees) p.remove()
+  }
 }
 
 /**
@@ -117,6 +123,7 @@ export function envolerXp(source: HTMLElement, cible: HTMLElement): Promise<void
 
   const couche = document.createElement('div')
   couche.setAttribute('aria-hidden', 'true')
+  couche.setAttribute('data-envol-xp', '')
   couche.className = 'pointer-events-none fixed inset-0 z-50'
   const copie = source.cloneNode(true) as HTMLElement
   copie.removeAttribute('role')
