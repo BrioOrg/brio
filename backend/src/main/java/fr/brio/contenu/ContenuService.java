@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ContenuService {
@@ -145,6 +146,9 @@ public class ContenuService {
      * @return {@code false} if the chapter or section is unknown (→ 404); the read
      *     itself is trusted (light signal) and made idempotent downstream.
      */
+    // The transaction is what carries the event: progression listens after commit
+    // (@ApplicationModuleListener), so an event published outside one is dropped (#252).
+    @Transactional
     public boolean marquerSectionLue(String chapitreId, String sectionId, UUID eleveId) {
         Optional<JsonNode> chapitre = findChapitre(chapitreId);
         if (chapitre.isEmpty()) {
