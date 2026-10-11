@@ -3,6 +3,9 @@
 - **Status**: Accepted
 - **Date**: 2026-10-11
 - **Deciders**: Pierce Broudin
+- **Amended**: 2026-10-11 (#245) — §1, §6, §7: both modes render **one tree**, so exercise state
+  survives a switch without a store; `motion` drives the slides imperatively with `animate()`
+  instead of `LazyMotion` + `m.*`
 
 ## Context
 
@@ -46,13 +49,16 @@ function buildDeck(chapitre: DeckInput): Diapo[]
 - `DeckInput` is a **minimal structural type** declared in `packages/content`:
   `{ sections: { id, kind, blocks: { id, type, variant? }[] }[] }`. The web's `ChapitreResponse`
   satisfies it without any mapping; the function reads nothing else.
-- A `Diapo` holds **block ids**, not copies of blocks. Both modes render the blocks of the same
-  chapter with the same `BlockRenderer`. Nothing in the content JSON changes.
-- **Exercise state is shared by both modes.** Today each `ExerciceWidget` keeps its state
-  (selection, result, XP gained) in local `useState`, which a mode switch would lose. It moves up
-  into a chapter-level store, in memory, keyed by block id, next to `ChapterInteractionProvider`.
-  It is not persisted: on reload the student starts again, and `progression` stays the only source
-  of truth for XP and mastery (ADR 0022).
+- A `Diapo` holds **block ids**, not copies of blocks. Nothing in the content JSON changes.
+- **Both modes are one tree** (amended, #245). `ChapterView` renders the chapter once and wraps each
+  slide's blocks in a `DiapoFrame`. In reading mode a frame is `display: contents`, so the page lays
+  out as before; in interactive mode only the current slide's frames show, the others are `hidden`.
+  A frame never changes element type or child order between modes, so switching remounts nothing.
+- **Exercise state is shared by both modes** as a consequence: each `ExerciceWidget` keeps its
+  local `useState` (selection, answer being typed, result), and it survives a switch because the
+  widget stays mounted. No chapter-level store is needed for that. Nothing is persisted: on reload
+  the student starts again, and `progression` stays the only source of truth for XP and mastery
+  (ADR 0022).
 
 ### 2. Splitting rules
 
@@ -145,7 +151,10 @@ is often wrong.
 ### 6. Switching modes
 
 - The switch happens **client-side**, without a navigation: it writes the cookie and updates the
-  URL. The chapter-level store (§1) survives, so an answered exercise stays answered.
+  URL (`replaceState`: a switch is not a history entry). The tree is the same (§1), so an answered
+  exercise stays answered.
+- The reading-mode switch stays under the site header while the student scrolls, so switching
+  mid-chapter is possible from anywhere.
 - **Reading → interactive** opens the slide containing the block at the top of the viewport.
 - **Interactive → reading** removes `?diapo` and scrolls to the first block of the current slide.
   From `debut` the page starts at the top. From `fin` it scrolls to the end of the chapter.
@@ -164,15 +173,26 @@ Measured on `motion` 14.1.0, bundled with esbuild (minified, React external), 20
 | `LazyMotion` + `m` + `domMax` (animations, exit, drag, layout) | 131 kB | 43.5 kB |
 | `LazyMotion` + `m` + `domAnimation` (no drag, no layout) | 82 kB | 29.5 kB |
 | `motion/mini` `animate()` (Web Animations, no React) | 8.5 kB | 3.4 kB |
+| `animate()` from `motion` (imperative; measured for #245) | 55 kB | 20.4 kB |
 
-Rules:
+Rules (amended, #245):
 
-- Components use `LazyMotion` with `strict` and `m.*`. Features are `domMax`, because the swipe
-  follows the finger. If #245 drops the finger-following swipe, `domAnimation` saves 14 kB gzip.
-- **Only the interactive mode loads `motion`**, through a dynamic import of its shell. The reading
-  mode, which a student may have chosen precisely to avoid motion, pays 0 kB.
-- Every animation started by `motion` **reads `useReducedMotion()` and skips** itself. The CSS
-  override in `tokens.css` does not reach JavaScript animations (`MOTION.md`, "Reduced motion").
+- The slide frames stay mounted (§1), so they cannot be `m.*` components or children of
+  `AnimatePresence`: swapping a wrapper's type remounts its blocks. Slides are animated
+  **imperatively** with `animate()` on the frame elements. The leaving slide is taken out of the
+  flow (absolutely positioned where it was) while the next one enters, so exit and entry run
+  together and the next slide's controls are visible within the 300 ms budget.
+- The swipe is a small pointer-event handler (touch only, `touch-action: pan-y`): the slide follows
+  the finger, then `animate()` finishes the move or brings it back. No `drag` feature is needed.
+- Components that need `motion` later (#247, #248) may still use `LazyMotion` + `m.*` for elements
+  that are not slide frames.
+- **Only the interactive mode loads `motion`**, through a dynamic `import('motion')` when it opens.
+  The reading mode, which a student may have chosen precisely to avoid motion, pays 0 kB. Until the
+  module is there, slides swap instantly.
+- Every animation **skips itself under reduced motion**. The shell reads
+  `prefers-reduced-motion` with `matchMedia`, not `useReducedMotion()`, which would pull `motion`
+  into the reading mode's bundle. The CSS override in `tokens.css` does not reach JavaScript
+  animations (`MOTION.md`, "Reduced motion").
 - Durations and curves are read from the motion tokens (#243), never written as numbers in a
   component.
 - Only `transform` and `opacity` are animated (`MOTION.md`, budget rule 2).
@@ -196,8 +216,9 @@ with the same tokens and the same `buildDeck`.
   later hand-written breaks.
 - Pushing one history entry per slide makes "back to the course list" take many presses. The site
   navigation stays one tap away.
-- Lifting exercise state into a store touches `ExerciceWidget`, which every exercise type relies on.
-- About 43 kB gzip more for the interactive mode, the first time it opens.
+- In interactive mode every slide is in the DOM, hidden: the page weighs the same as the reading
+  page, and a hidden exercise keeps running its mount effects.
+- About 20 kB gzip more for the interactive mode, the first time it opens.
 - A cookie is a device preference: a student who changes device starts again in interactive mode.
 
 ### Follow-ups
@@ -206,7 +227,7 @@ with the same tokens and the same `buildDeck`.
 - #244: `buildDeck` and `DeckInput` in `packages/content`. In `check-content`, reject `debut`/`fin`
   as block ids and duplicate block ids within a chapter.
 - #245: shell, switch button, cookie, URL, keyboard, `motion` behind a dynamic import.
-- #246: full-screen exercise and lifting exercise state into the chapter store.
+- #246: full-screen exercise. (No store to lift any more: §1, amended.)
 - Teacher courses (`/cours/[coursId]`, F3) also render through `ChapterView`. They get the
   interactive mode in a later issue; this ADR covers catalogue chapters only.
 
