@@ -46,4 +46,27 @@ describe('Button', () => {
     render(<Button>Valider</Button>)
     expect(screen.getByRole('button')).not.toHaveAttribute('aria-busy')
   })
+
+  // MOTION.md budget rule 2: the face drops onto a fixed edge; no box-shadow to animate.
+  it('stands an enabled primary button on an edge, under its face', () => {
+    render(<Button>Valider</Button>)
+    const btn = screen.getByRole('button')
+    expect(btn.querySelector('[data-bouton-bord]')).not.toBeNull()
+    expect(btn.querySelector('[data-bouton-face]')).toHaveTextContent('Valider')
+  })
+
+  it('gives no edge to a disabled, loading or flat button', () => {
+    render(
+      <>
+        <Button disabled>A</Button>
+        <Button loading>B</Button>
+        <Button variant="secondary">C</Button>
+        <Button variant="ghost">D</Button>
+      </>
+    )
+    for (const btn of screen.getAllByRole('button')) {
+      expect(btn.querySelector('[data-bouton-bord]')).toBeNull()
+      expect(btn.querySelector('[data-bouton-face]')).not.toBeNull()
+    }
+  })
 })

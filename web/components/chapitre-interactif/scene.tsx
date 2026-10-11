@@ -260,6 +260,7 @@ export function TiroirDiapos() {
  * Previous and next, under the slide. On an auto-graded exercise the middle holds the slot where
  * that exercise draws « Vérifier » and, once checked, its result sheet, which covers the bar (#246).
  * « Passer » says the student may move on without answering; it is « Suivant » once checked.
+ * « Étape suivante » while a `steps` block still has a step to reveal.
  */
 export function CommandesScene() {
   const ctx = useModeChapitre()
@@ -273,6 +274,7 @@ export function CommandesScene() {
     setPiedExercice,
     setFeuilleExercice,
     feuilleOuverte,
+    etapeEnAttente,
   } = ctx
   const blocs = deck[index].blockIds as readonly string[]
   const exercice = blocs.find((id) => id in exercices)
@@ -294,7 +296,11 @@ export function CommandesScene() {
           onClick={suivante}
           disabled={index === deck.length - 1}
         >
-          {exercice !== undefined && exercices[exercice] === 'a-faire' ? 'Passer' : 'Suivant'}
+          {exercice !== undefined && exercices[exercice] === 'a-faire'
+            ? 'Passer'
+            : etapeEnAttente
+              ? 'Étape suivante'
+              : 'Suivant'}
           <Icon name="arrow-right" size={16} aria-hidden="true" />
         </Button>
       </div>

@@ -1,7 +1,12 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { buildDeck } from '@brio/content'
-import { ChapterView, exercicesCorriges, type ChapitreResponse } from '@/components/chapter-view'
+import {
+  ChapterView,
+  etapesParBloc,
+  exercicesCorriges,
+  type ChapitreResponse,
+} from '@/components/chapter-view'
 import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
 import { SiteHeader, type Crumb } from '@/components/site-header'
 import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sidebar'
@@ -124,6 +129,7 @@ export default async function ChapterPage({
       chapitreId={chapitre.id}
       deck={deck}
       exercices={exercicesCorriges(chapitre)}
+      etapes={etapesParBloc(chapitre)}
       sectionTitles={sectionTitles}
       chemin={`/${niveau}/${matiere}/${slug}`}
       parcoursHref={`/${niveau}/${matiere}`}

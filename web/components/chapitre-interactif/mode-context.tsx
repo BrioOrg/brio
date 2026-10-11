@@ -21,7 +21,15 @@ import {
   urlAvecDiapo,
   type ModeChapitre,
 } from '@/lib/diapos'
-import { chargerMotion, detacher, peutAnimer, revenir, terminer, transition } from './animation'
+import {
+  chargerMotion,
+  detacher,
+  peutAnimer,
+  revenir,
+  temps,
+  terminer,
+  transition,
+} from './animation'
 
 /**
  * The chapter's two modes (ADR 0032): reading, today's long page, and interactive, one slide at a
@@ -65,6 +73,11 @@ type ModeChapitreContext = {
   /** The exercise whose result sheet is open: the bar's own buttons step aside. */
   feuilleOuverte: string | null
   setFeuilleOuverte: (blockId: string | null) => void
+  /** Steps revealed so far, by `steps` block id; a block absent shows all its steps. */
+  etapesVisibles: Readonly<Record<string, number>>
+  /** The current slide has a step still to reveal: « Suivant » reveals it first. */
+  etapeEnAttente: boolean
+  reducedMotion: boolean
 }
 
 /** `a-faire`: never checked; `tente`: checked, not right yet; `resolu`: right once. */
@@ -82,6 +95,8 @@ const UN_AN = 60 * 60 * 24 * 365
 function ecrireCookie(mode: ModeChapitre) {
   document.cookie = `${MODE_COOKIE}=${mode}; path=/; max-age=${UN_AN}; samesite=lax`
 }
+
+const SANS_ETAPES: Readonly<Record<string, number>> = {}
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
 
@@ -142,6 +157,11 @@ function defileEnLargeur(target: EventTarget | null): boolean {
   return false
 }
 
+/** The section a slide belongs to; the opening and the end are each their own. */
+function sectionDe(diapo: Diapo): string {
+  return 'sectionId' in diapo ? diapo.sectionId : diapo.id
+}
+
 /** Below the sticky site header: what counts as the top of the page. */
 const HAUT_DE_PAGE = 88
 
@@ -155,6 +175,8 @@ type Props = {
   deck: readonly Diapo[]
   /** The block ids of the exercises a student can check (`exercicesCorriges`). */
   exercices?: readonly string[]
+  /** The number of steps of each `steps` block (`etapesParBloc`). */
+  etapes?: Readonly<Record<string, number>>
   sectionTitles: Readonly<Record<string, string>>
   chemin: string
   parcoursHref: string
@@ -167,6 +189,7 @@ export function ModeChapitreProvider({
   chapitreId,
   deck,
   exercices: corriges = [],
+  etapes = SANS_ETAPES,
   sectionTitles,
   chemin,
   parcoursHref,
@@ -186,12 +209,39 @@ export function ModeChapitreProvider({
   const [piedExercice, setPiedExercice] = useState<HTMLElement | null>(null)
   const [feuilleExercice, setFeuilleExercice] = useState<HTMLElement | null>(null)
   const [feuilleOuverte, setFeuilleOuverte] = useState<string | null>(null)
+  const [etapesVisibles, setEtapesVisibles] = useState<Readonly<Record<string, number>>>({})
   const reducedMotion = useReducedMotion()
   const racine = useRef<HTMLDivElement>(null)
 
   // Latest values for the window listeners, which are bound once per mode.
-  const etat = useRef({ mode, index, tiroirOuvert, reducedMotion })
-  etat.current = { mode, index, tiroirOuvert, reducedMotion }
+  const etat = useRef({ mode, index, tiroirOuvert, reducedMotion, etapesVisibles })
+  etat.current = { mode, index, tiroirOuvert, reducedMotion, etapesVisibles }
+
+  // --- Steps (MOTION.md "Step reveal"): one at a time on a slide entered forward. ---
+
+  /** The `steps` block of a slide with a step still hidden, if any. */
+  const etapeCachee = useCallback(
+    (i: number, visibles: Readonly<Record<string, number>>): string | null =>
+      (deck[i]?.blockIds as readonly string[] | undefined)?.find(
+        (id) => visibles[id] !== undefined && visibles[id] < (etapes[id] ?? 0)
+      ) ?? null,
+    [deck, etapes]
+  )
+
+  // Written to the ref at once, like the index: two quick presses reveal two steps.
+  const changerEtapes = useCallback((visibles: Readonly<Record<string, number>>) => {
+    etat.current = { ...etat.current, etapesVisibles: visibles }
+    setEtapesVisibles(visibles)
+  }, [])
+
+  /** Reveals the next step of the current slide; false when there is none to reveal. */
+  const revelerEtape = useCallback((): boolean => {
+    const { index: i, etapesVisibles: visibles } = etat.current
+    const id = etapeCachee(i, visibles)
+    if (id === null) return false
+    changerEtapes({ ...visibles, [id]: visibles[id] + 1 })
+    return true
+  }, [etapeCachee, changerEtapes])
 
   /** What the next render must do once the new slide is in the DOM. */
   const apres = useRef<{
@@ -201,6 +251,7 @@ export function ModeChapitreProvider({
       rattacher: () => void
       direction: 1 | -1
       depuisX: number
+      entreeSection: boolean
     } | null
   }>({ focus: false, transition: null })
 
@@ -255,6 +306,18 @@ export function ModeChapitreProvider({
       }
       terminer()
       const direction = cible > depart ? 1 : -1
+      // Steps come one at a time only on the next slide, moved to by the student; reached any
+      // other way (back, a jump, the history), the slide shows them all.
+      const pasAPas = options.historique === 'push' && cible === depart + 1
+      const blocsEtapes = (deck[cible].blockIds as readonly string[]).filter((id) => id in etapes)
+      if (blocsEtapes.length > 0) {
+        const visibles = { ...etat.current.etapesVisibles }
+        for (const id of blocsEtapes) {
+          if (pasAPas) visibles[id] = 1
+          else delete visibles[id]
+        }
+        changerEtapes(visibles)
+      }
       if (direction === 1) {
         const section = sectionTerminee(deck, depart)
         if (section) signalerSection(section)
@@ -269,7 +332,13 @@ export function ModeChapitreProvider({
         const rattacher = detacher(sortants, article, options.depuisX ?? 0)
         apres.current = {
           focus: true,
-          transition: { sortants, rattacher, direction, depuisX: options.depuisX ?? 0 },
+          transition: {
+            sortants,
+            rattacher,
+            direction,
+            depuisX: options.depuisX ?? 0,
+            entreeSection: sectionDe(deck[cible]) !== sectionDe(deck[depart]),
+          },
         }
         setSortante(deck[depart].id)
       } else {
@@ -280,21 +349,25 @@ export function ModeChapitreProvider({
       etat.current = { ...etat.current, index: cible }
       setIndex(cible)
     },
-    [deck, frames, signalerSection]
+    [deck, etapes, frames, signalerSection, changerEtapes]
   )
 
   const aller = useCallback((cible: number) => naviguer(cible, { historique: 'push' }), [naviguer])
-  const suivante = useCallback(() => aller(etat.current.index + 1), [aller])
+  const suivante = useCallback(() => {
+    if (!revelerEtape()) aller(etat.current.index + 1)
+  }, [aller, revelerEtape])
   const precedente = useCallback(() => aller(etat.current.index - 1), [aller])
 
-  // Once the new slide is in the DOM: run the transition, then move focus to its title.
+  // Once the new slide is in the DOM: run the transition and its beats, then move focus to its
+  // title. Beats run only on a slide change: never at first paint or on a mode switch, where they
+  // would hide text already on screen.
   useLayoutEffect(() => {
     const { transition: t, focus } = apres.current
     apres.current = { focus: false, transition: null }
     if (t) {
-      transition(t.sortants, t.rattacher, frames(deck[index].id), t.direction, t.depuisX, () =>
-        setSortante(null)
-      )
+      const entrants = frames(deck[index].id)
+      transition(t.sortants, t.rattacher, entrants, t.direction, t.depuisX, () => setSortante(null))
+      temps(entrants, t.entreeSection)
     }
     if (focus) {
       const titre = frames(deck[index].id)
@@ -331,10 +404,11 @@ export function ModeChapitreProvider({
     const cible = indexDiapo(deck, id instanceof HTMLElement ? id.dataset.diapo : null)
     ecrireCookie('interactif')
     window.history.replaceState(null, '', urlAvecDiapo(window.location.href, deck[cible].id))
+    changerEtapes({})
     apres.current = { focus: true, transition: null }
     setIndex(cible)
     setMode('interactif')
-  }, [deck])
+  }, [deck, changerEtapes])
 
   // Interactive → reading lands on the first block of the slide that was open.
   useLayoutEffect(() => {
@@ -398,6 +472,7 @@ export function ModeChapitreProvider({
       }
       const cible = indexDiapo(deck, id)
       if (etat.current.mode !== 'interactif') {
+        changerEtapes({})
         apres.current = { focus: true, transition: null }
         setIndex(cible)
         setMode('interactif')
@@ -407,7 +482,20 @@ export function ModeChapitreProvider({
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
-  }, [deck, naviguer])
+  }, [deck, naviguer, changerEtapes])
+
+  // --- Every animation can be skipped (budget rule 4): any press finishes them all first. ---
+
+  useEffect(() => {
+    if (mode !== 'interactif') return
+    const finir = () => terminer()
+    window.addEventListener('pointerdown', finir, true)
+    window.addEventListener('keydown', finir, true)
+    return () => {
+      window.removeEventListener('pointerdown', finir, true)
+      window.removeEventListener('keydown', finir, true)
+    }
+  }, [mode])
 
   // --- Keyboard: ← → space, Escape back to reading. ---
 
@@ -497,7 +585,10 @@ export function ModeChapitreProvider({
       const courant = etat.current.index
       const loin = Math.abs(dx) > largeur * SEUIL_DISTANCE || Math.abs(vitesse) > SEUIL_VITESSE
       const cible = dx < 0 ? courant + 1 : courant - 1
-      if (loin && cible >= 0 && cible < deck.length) {
+      // A swipe forward reveals a pending step, like →, and the slide comes back into place.
+      if (loin && dx < 0 && revelerEtape()) {
+        revenir(frames(deck[courant].id), dx, etat.current.reducedMotion)
+      } else if (loin && cible >= 0 && cible < deck.length) {
         naviguer(cible, { historique: 'push', depuisX: etat.current.reducedMotion ? 0 : dx })
       } else {
         revenir(frames(deck[courant].id), dx, etat.current.reducedMotion)
@@ -519,7 +610,7 @@ export function ModeChapitreProvider({
       el.removeEventListener('pointerup', onUp)
       el.removeEventListener('pointercancel', onCancel)
     }
-  }, [mode, deck, frames, naviguer])
+  }, [mode, deck, frames, naviguer, revelerEtape])
 
   // --- In-page links (« Revoir : <section> » after a wrong answer) open the slide they target. ---
 
@@ -561,6 +652,9 @@ export function ModeChapitreProvider({
       setFeuilleExercice,
       feuilleOuverte,
       setFeuilleOuverte,
+      etapesVisibles,
+      etapeEnAttente: mode === 'interactif' && etapeCachee(index, etapesVisibles) !== null,
+      reducedMotion,
     }),
     [
       mode,
@@ -582,6 +676,9 @@ export function ModeChapitreProvider({
       piedExercice,
       feuilleExercice,
       feuilleOuverte,
+      etapesVisibles,
+      etapeCachee,
+      reducedMotion,
     ]
   )
 

@@ -45,8 +45,10 @@ one of them is rejected, however good it looks.
 |---|---|---|---|
 | Slide exit | fades out, slides 32 px against the direction of travel | `slide-out` 160 ms | `ease-in` |
 | Slide entry | fades in, slides 32 px in the direction of travel; the track grows with it | `slide-in` 280 ms | `ease-in` |
-| Staggered beats | each block of the slide (kicker, title, text, figure, formula, callout, answers) rises 12 px and fades in, one after the other | `beat` 240 ms, `stagger` 50 ms | `standard` |
-| Button press | the face drops onto its edge | `press` 90 ms | `ease-out` |
+| Staggered beats | each block of the slide (kicker, title, text, figure, formula, callout, answers) rises 12 px and fades in, one after the other. A beat is one direct child of the slide: an exercise, question and answers together, is one beat | `beat` 240 ms, `stagger` 50 ms | `standard` |
+| Section entry | on a slide that opens a new section (or the chapter), the first beat, the section title, rises the full `slide-shift` (32 px) instead of 12 px. It delays nothing behind it (#247) | `slide-in` 280 ms | `standard` |
+| Step reveal | one more step of a `steps` block rises 12 px and fades in (see below) | `beat` 240 ms | `standard` |
+| Button press | the face drops onto its edge | `press` 90 ms (`fast` in reading mode) | `ease-out` |
 | Option selection | the letter badge scales from 0.7 to 1; the colours switch instantly | `select` 160 ms | `out-quint` |
 | Correct answer · sheet | the result sheet rises from below | `sheet` 290 ms | `ease-in` (slide curve) |
 | Correct answer · check | the check mark scales in, at 60 % of the sheet | `check` 300 ms | `out-quint` |
@@ -102,6 +104,21 @@ constants in `motion-tokens.ts`.
 on the rewards and turned down: too bouncy. Interactive mode uses no curve that
 overshoots. `ease-in` on slide **entry** is a deliberate choice from the tuning,
 not a typo.
+
+## Step reveal (#247)
+
+A `steps` block (a worked example) shows its steps one at a time, so the student
+follows the method rather than reading the answer first.
+
+- On a slide entered **forward, to the next slide**, only the first step shows.
+  → / espace / « Suivant » (and a swipe forward) reveal the next step before
+  changing slide; the button reads « Étape suivante » while a step is hidden.
+- Reached **any other way** (backward, a jump from the strip, the history, a
+  direct link, the reading mode), every step is already there.
+- A hidden step is `hidden`, so assistive technology skips it too; the list
+  announces each step as it appears.
+- Under reduced motion, steps still come one at a time: that is pacing, not
+  motion. Only the rise and fade are gone.
 
 ## What never moves
 

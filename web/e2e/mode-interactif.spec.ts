@@ -189,8 +189,98 @@ test.describe('slide transitions (MOTION.md)', () => {
     await expect(page.locator('[data-diapo="enonce-prose"]')).toBeHidden()
   })
 
+  /** Each block of a slide, right after a key press: its opacity and how many animations run. */
+  async function tempsApresTouche(page: Page, diapo: string, key = 'ArrowRight') {
+    return page.evaluate(
+      ({ diapo, key }) => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key }))
+        return new Promise<{ opacite: number; transform: string; animations: number }[]>(
+          (resolve) =>
+            requestAnimationFrame(() =>
+              resolve(
+                Array.from(
+                  document.querySelectorAll<HTMLElement>(`[data-diapo="${diapo}"] > *`)
+                ).map((el) => ({
+                  opacite: Number(getComputedStyle(el).opacity),
+                  transform: getComputedStyle(el).transform,
+                  // Script animations only: focusing the title runs a CSS outline transition.
+                  animations: el.getAnimations().filter((a) => !(a instanceof CSSTransition))
+                    .length,
+                }))
+              )
+            )
+        )
+      },
+      { diapo, key }
+    )
+  }
+
+  test('the blocks of the entering slide come in one after the other', async ({ page }) => {
+    await ouvrir(page, `${CHAPITRE}?diapo=debut`)
+    await expect(page.locator('[data-transitions="pretes"]')).toBeAttached()
+
+    // intro-prose: the section title, then prose, definition, figure, formula. A frame after
+    // the press, none of them has landed yet, and the last one has not even started.
+    const temps = await tempsApresTouche(page, 'intro-prose')
+    expect(temps).toHaveLength(5)
+    expect(temps.every((t) => t.opacite < 1)).toBe(true)
+    expect(temps[4].opacite).toBe(0)
+  })
+
+  test('a click during the beats ends them at once', async ({ page }) => {
+    await ouvrir(page, `${CHAPITRE}?diapo=debut`)
+    await expect(page.locator('[data-transitions="pretes"]')).toBeAttached()
+    await tempsApresTouche(page, 'intro-prose')
+
+    const opacites = await page.evaluate(() => {
+      window.dispatchEvent(new PointerEvent('pointerdown'))
+      return Array.from(
+        document.querySelectorAll<HTMLElement>('[data-diapo="intro-prose"] > *')
+      ).map((el) => Number(getComputedStyle(el).opacity))
+    })
+    expect(opacites).toEqual([1, 1, 1, 1, 1])
+  })
+
   test.describe('with reduced motion', () => {
     test.use({ reducedMotion: 'reduce' })
+
+    test('the blocks of a slide are there at once', async ({ page }) => {
+      await ouvrir(page, `${CHAPITRE}?diapo=debut`)
+      await expect(page.locator('[data-transitions="pretes"]')).toBeAttached()
+
+      const temps = await tempsApresTouche(page, 'intro-prose')
+      expect(temps).toHaveLength(5)
+      expect(temps).toEqual(temps.map(() => ({ opacite: 1, transform: 'none', animations: 0 })))
+    })
+
+    test('a step is revealed at once', async ({ page }) => {
+      await ouvrir(page, '/6e/mathematiques/angles-bissectrice?diapo=ex-erreur-rapporteur')
+      await expect(page.locator('[data-transitions="pretes"]')).toBeAttached()
+      await page.keyboard.press('ArrowRight')
+      await expect(page).toHaveURL(/diapo=methode-construire/)
+
+      const etape = await page.evaluate(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+        return new Promise<{ opacite: number; animations: number }>((resolve) =>
+          requestAnimationFrame(() => {
+            const el = document.querySelector<HTMLElement>('#methode-construire [data-etape="2"]')!
+            resolve({
+              opacite: Number(getComputedStyle(el).opacity),
+              // Script animations only: focusing the title runs a CSS outline transition.
+              animations: el.getAnimations().filter((a) => !(a instanceof CSSTransition)).length,
+            })
+          })
+        )
+      })
+      expect(etape).toEqual({ opacite: 1, animations: 0 })
+    })
+
+    test('a pressed button drops at once', async ({ page }) => {
+      await ouvrir(page, `${CHAPITRE}?diapo=intro-prose`)
+      const face = page.getByRole('button', { name: 'Suivant' }).locator('[data-bouton-face]')
+      const duree = await face.evaluate((el) => getComputedStyle(el).transitionDuration)
+      expect(parseFloat(duree)).toBeLessThanOrEqual(0.001)
+    })
 
     test('slides swap at once, without any transition', async ({ page }) => {
       await ouvrir(page, `${CHAPITRE}?diapo=enonce-prose`)

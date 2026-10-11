@@ -8,7 +8,7 @@ vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
 
 import { marquerSectionLue } from '@/lib/api'
 import { getMoi } from '@/lib/session'
-import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
+import { ChapterView, etapesParBloc, type ChapitreResponse } from '@/components/chapter-view'
 import { ModeChapitreProvider } from '../mode-context'
 import { BandeDiapos, BarreScene, BasculeInteractif, CommandesScene } from '../scene'
 import type { ModeChapitre } from '@/lib/diapos'
@@ -293,5 +293,118 @@ describe('sections read (#252)', () => {
     touche('ArrowRight')
     await flush()
     expect(marquerSectionLue).not.toHaveBeenCalled()
+  })
+})
+
+describe('steps revealed one at a time (MOTION.md "Step reveal")', () => {
+  const AVEC_ETAPES: ChapitreResponse = {
+    id: 'substituer',
+    title: 'Substituer',
+    sections: [
+      {
+        id: 'methode',
+        title: 'Méthode',
+        kind: 'lesson',
+        blocks: [
+          { id: 'def', type: 'callout', variant: 'definition', text: 'Une expression.' },
+          {
+            id: 'etapes',
+            type: 'steps',
+            title: 'Calculer 3x + 2 pour x = 4',
+            steps: [{ text: 'On remplace x.' }, { text: 'On multiplie.' }, { text: 'On ajoute.' }],
+          },
+          { id: 'p-fin', type: 'prose', text: 'Et voilà.' },
+        ],
+      },
+    ],
+  }
+  // debut · def · etapes · p-fin · fin
+  const deck = buildDeck(AVEC_ETAPES)
+
+  // Slides swap at once under reduced motion. Otherwise, once `motion` has loaded (a race with the
+  // awaited tests above), the leaving slide stays visible during its exit. Beats and transitions
+  // have their own tests (mode-interactif.spec.ts); steps come one at a time either way.
+  beforeEach(() => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query === '(prefers-reduced-motion: reduce)',
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }))
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function renderEtapes(index: number, mode: ModeChapitre = 'interactif') {
+    return render(
+      <ModeChapitreProvider
+        chapitreId={AVEC_ETAPES.id}
+        deck={deck}
+        etapes={etapesParBloc(AVEC_ETAPES)}
+        sectionTitles={{ methode: 'Méthode' }}
+        chemin={CHEMIN}
+        parcoursHref="/3e/mathematiques"
+        initialMode={mode}
+        initialIndex={index}
+      >
+        <BandeDiapos />
+        <BasculeInteractif />
+        <ChapterView chapitre={AVEC_ETAPES} deck={deck} />
+        <CommandesScene />
+      </ModeChapitreProvider>
+    )
+  }
+
+  function etapesVisibles(): string[] {
+    return screen
+      .getAllByRole('listitem')
+      .filter((li) => !li.hidden && li.hasAttribute('data-etape'))
+      .map((li) => li.textContent ?? '')
+  }
+
+  it('shows the first step on a slide entered forward; each press reveals one more', () => {
+    const { container } = renderEtapes(1)
+    touche('ArrowRight')
+    expect(visibles(container)).toEqual(['etapes'])
+    expect(etapesVisibles()).toEqual(['1On remplace x.'])
+    expect(screen.getByRole('button', { name: /Étape suivante/ })).toBeInTheDocument()
+
+    touche(' ')
+    expect(etapesVisibles()).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: /Étape suivante/ }))
+    expect(etapesVisibles()).toHaveLength(3)
+    expect(visibles(container)).toEqual(['etapes'])
+
+    // Every step is there: « Suivant » moves on again.
+    fireEvent.click(screen.getByRole('button', { name: /^Suivant/ }))
+    expect(visibles(container)).toEqual(['p-fin'])
+  })
+
+  it('shows every step on a slide reached backward', () => {
+    renderEtapes(3)
+    touche('ArrowLeft')
+    expect(etapesVisibles()).toHaveLength(3)
+    expect(screen.getByRole('button', { name: /^Suivant/ })).toBeInTheDocument()
+  })
+
+  it('shows every step from a direct link, and in reading mode', () => {
+    const { unmount } = renderEtapes(2)
+    expect(etapesVisibles()).toHaveLength(3)
+    unmount()
+    renderEtapes(0, 'lecture')
+    expect(etapesVisibles()).toHaveLength(3)
+  })
+
+  it('shows every step after a jump from the strip of slides', () => {
+    const { container } = renderEtapes(0)
+    const bande = screen.getByRole('navigation', { name: 'Diapos du chapitre' })
+    fireEvent.click(within(bande).getAllByRole('link')[2])
+    expect(visibles(container)).toEqual(['etapes'])
+    expect(etapesVisibles()).toHaveLength(3)
   })
 })

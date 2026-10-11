@@ -150,3 +150,65 @@ export function revenir(frames: HTMLElement[], depuisX: number, reducedMotion: b
     )
   )
 }
+
+/** Puts back what a beat leaves inline once it has landed: the end state is the element's own. */
+function nettoyer(controls: Controls, elements: HTMLElement[]): void {
+  // A frame later: `motion` writes the final values inline after `finished` settles.
+  void controls.finished.then(() =>
+    requestAnimationFrame(() => {
+      for (const el of elements) {
+        el.style.removeProperty('transform')
+        el.style.removeProperty('opacity')
+      }
+    })
+  )
+}
+
+/**
+ * The beats of a slide entering (MOTION.md "Staggered beats"): each block of its frames, the kicker
+ * first, rises `beat-rise` px and fades in, one `stagger` after the other. `entreeSection` (a new
+ * section, or the opening) gives the first beat, the section title, its own entry: it rises
+ * `slide-shift` px over `slide-in`. It adds no delay to the beats after it, so an exercise opening a
+ * section still has its answers in place at 290 ms (budget rule 3).
+ */
+export function temps(frames: HTMLElement[], entreeSection: boolean): void {
+  const m = motion
+  if (m === null) return
+  const beats = frames.flatMap((frame) =>
+    Array.from(frame.children).filter((el): el is HTMLElement => el instanceof HTMLElement)
+  )
+  beats.forEach((el, i) => {
+    const titre = i === 0 && entreeSection
+    // Hidden before the first frame: a delayed beat must not show, then vanish, then rise.
+    el.style.opacity = '0'
+    const controls = suivre(
+      m.animate(
+        el,
+        {
+          y: [titre ? distance['slide-shift'] : distance['beat-rise'], 0],
+          opacity: [0, 1],
+        },
+        {
+          duration: motionS(titre ? 'slide-in' : 'beat', false),
+          delay: motionS('stagger', false) * i,
+          ease: bezier(ease.standard.bezier),
+        }
+      )
+    )
+    nettoyer(controls, [el])
+  })
+}
+
+/** A step of a `steps` block revealed (MOTION.md "Step reveal"): it arrives as one more beat. */
+export function reveler(el: HTMLElement, reducedMotion: boolean): void {
+  const m = motion
+  if (m === null || reducedMotion) return
+  const controls = suivre(
+    m.animate(
+      el,
+      { y: [distance['beat-rise'], 0], opacity: [0, 1] },
+      { duration: motionS('beat', false), ease: bezier(ease.standard.bezier) }
+    )
+  )
+  nettoyer(controls, [el])
+}
