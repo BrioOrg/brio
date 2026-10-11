@@ -2,6 +2,7 @@ import katex from 'katex'
 import {
   parseRichText,
   parseScratch,
+  type Diapo,
   type RichTextToken,
   type FigureSpec,
   type ChartSpec,
@@ -13,6 +14,8 @@ import { FigureRenderer } from '@/components/figure-renderer'
 import { ScratchBlocks } from '@/components/scratch-blocks'
 import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
+import { DiapoFrame } from '@/components/chapitre-interactif/diapo-frame'
+import { FinDeChapitre } from '@/components/chapitre-interactif/scene'
 
 type Choice = { id: string; text: string }
 
@@ -58,53 +61,124 @@ type Block = {
 /**
  * `apercu`: the teacher's preview of an unpublished draft. Exercises have no `exerciceId` yet, so
  * they render as the student will see them, without grading.
+ *
+ * `deck`: the chapter's slides (ADR 0032), for a page offering the interactive mode. Each slide's
+ * blocks are wrapped in a `DiapoFrame`, which leaves the reading layout untouched. Without it the
+ * view renders as it always has (teacher courses, the editor's preview).
  */
 export function ChapterView({
   chapitre,
   apercu = false,
+  deck,
 }: {
   chapitre: ChapitreResponse
   apercu?: boolean
+  deck?: readonly Diapo[]
 }) {
-  return (
-    <article className="font-prose text-ink">
-      <header className="mb-8">
-        <h1 className="font-display text-3xl font-black leading-[1.1] tracking-tight text-ink text-balance">
-          {chapitre.title}
-        </h1>
-        {(chapitre.subject || chapitre.level || chapitre.estimatedDurationMinutes) && (
-          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-prose text-sm text-ink-muted">
-            {chapitre.estimatedDurationMinutes != null && (
-              <span className="inline-flex items-center gap-1.5">
-                <Icon name="book-open" size={14} aria-hidden="true" />
-                Lecture ≈ {chapitre.estimatedDurationMinutes} min
-              </span>
-            )}
-          </p>
-        )}
-      </header>
+  const diapoDe = deck ? diapoParBloc(deck) : null
+  const header = (
+    <header className="mb-8">
+      <h1
+        className="font-display text-3xl font-black leading-[1.1] tracking-tight text-ink text-balance focus:outline-none"
+        {...(deck ? { 'data-diapo-titre': true, tabIndex: -1 } : {})}
+      >
+        {chapitre.title}
+      </h1>
+      {(chapitre.subject || chapitre.level || chapitre.estimatedDurationMinutes) && (
+        <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-prose text-sm text-ink-muted">
+          {chapitre.estimatedDurationMinutes != null && (
+            <span className="inline-flex items-center gap-1.5">
+              <Icon name="book-open" size={14} aria-hidden="true" />
+              Lecture ≈ {chapitre.estimatedDurationMinutes} min
+            </span>
+          )}
+        </p>
+      )}
+    </header>
+  )
 
-      <div className="flex flex-col gap-12">
+  return (
+    <article
+      data-chapitre-article
+      className={`relative font-prose text-ink${deck ? ` ${INTERACTIF_TACTILE}` : ''}`}
+    >
+      {deck ? <DiapoFrame id="debut">{header}</DiapoFrame> : header}
+
+      <div className={`flex flex-col gap-12${deck ? ` ${INTERACTIF_CONTENTS}` : ''}`}>
         {chapitre.sections.map((section) => (
-          <section key={section.id} id={section.id} className="scroll-mt-20">
-            <h2 className="mb-4 border-b border-line pb-2 font-display text-xl font-extrabold tracking-tight text-ink">
+          <section
+            key={section.id}
+            id={section.id}
+            className={`scroll-mt-20${deck ? ` ${INTERACTIF_CONTENTS}` : ''}`}
+          >
+            <h2
+              className={`mb-4 border-b border-line pb-2 font-display text-xl font-extrabold tracking-tight text-ink${deck ? ` ${INTERACTIF_HIDDEN}` : ''}`}
+            >
               {section.title}
             </h2>
-            <div className="flex flex-col gap-5">
-              {section.blocks.map((block, i) => (
-                <BlockRenderer
-                  key={block.id ?? i}
-                  block={block}
-                  apercu={apercu}
-                  courseSection={courseSectionOf(section)}
-                />
-              ))}
+            <div className={`flex flex-col gap-5${deck ? ` ${INTERACTIF_CONTENTS}` : ''}`}>
+              {diapoDe
+                ? parDiapo(section.blocks, diapoDe).map(({ diapoId, blocks }) => (
+                    <DiapoFrame
+                      key={blocks[0].id}
+                      id={diapoId}
+                      kicker={diapoId === 'debut' ? undefined : section.title}
+                    >
+                      {blocks.map((block, i) => (
+                        <BlockRenderer
+                          key={block.id ?? i}
+                          block={block}
+                          apercu={apercu}
+                          courseSection={courseSectionOf(section)}
+                        />
+                      ))}
+                    </DiapoFrame>
+                  ))
+                : section.blocks.map((block, i) => (
+                    <BlockRenderer
+                      key={block.id ?? i}
+                      block={block}
+                      apercu={apercu}
+                      courseSection={courseSectionOf(section)}
+                    />
+                  ))}
             </div>
           </section>
         ))}
       </div>
+
+      {deck && (
+        <DiapoFrame id="fin" interactifSeulement>
+          <FinDeChapitre />
+        </DiapoFrame>
+      )}
     </article>
   )
+}
+
+// In interactive mode the section structure steps aside: only the current slide's frame lays
+// out, and the section title moves into it as a kicker (ADR 0032 rule 7).
+const INTERACTIF_CONTENTS = 'group-data-[chapitre-mode=interactif]/mode:contents'
+const INTERACTIF_HIDDEN = 'group-data-[chapitre-mode=interactif]/mode:hidden'
+// A horizontal swipe changes slide; vertical panning still scrolls.
+const INTERACTIF_TACTILE = 'group-data-[chapitre-mode=interactif]/mode:touch-pan-y'
+
+function diapoParBloc(deck: readonly Diapo[]): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const diapo of deck) for (const id of diapo.blockIds) map.set(id, diapo.id)
+  return map
+}
+
+/** A section's blocks in runs that belong to the same slide, in order. */
+function parDiapo(blocks: Block[], diapoDe: Map<string, string>) {
+  const runs: { diapoId: string; blocks: Block[] }[] = []
+  for (const block of blocks) {
+    const diapoId = diapoDe.get(block.id) ?? block.id
+    const last = runs[runs.length - 1]
+    if (last?.diapoId === diapoId) last.blocks.push(block)
+    else runs.push({ diapoId, blocks: [block] })
+  }
+  return runs
 }
 
 /**

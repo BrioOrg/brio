@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { buildDeck } from '@brio/content'
 import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
 import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
 import { SiteHeader, type Crumb } from '@/components/site-header'
@@ -11,6 +13,15 @@ import { EntraideProvider } from '@/components/entraide/entraide-context'
 import { tutorRequestCap } from '@/lib/tutor-config'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
+import { ModeChapitreProvider } from '@/components/chapitre-interactif/mode-context'
+import {
+  BandeDiapos,
+  BarreScene,
+  BasculeInteractif,
+  CommandesScene,
+  TiroirDiapos,
+} from '@/components/chapitre-interactif/scene'
+import { MODE_COOKIE, indexDiapo, modeInitial } from '@/lib/diapos'
 
 // Rendered per request: the catalogue changes on re-ingestion or reset, and a page
 // cached at first render would keep serving the old content (#154).
@@ -54,10 +65,13 @@ async function loadNavContext(niveau: string, matiere: string): Promise<NavConte
 
 export default async function ChapterPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ niveau: string; matiere: string; slug: string }>
+  searchParams: Promise<{ diapo?: string | string[] }>
 }) {
   const { niveau, matiere, slug } = await params
+  const { diapo } = await searchParams
   const nav = await loadNavContext(niveau, matiere)
 
   let chapitre: ChapitreResponse | null = null
@@ -98,42 +112,83 @@ export default async function ChapterPage({
   const railSections = chapitre.sections.map((s) => ({ id: s.id, title: s.title }))
   const tutorTarget = { kind: 'chapitre' as const, niveau, matiere, slug }
 
+  // Interactive mode (ADR 0032): the server picks the mode and the slide, so the first paint is
+  // the right one, with no flash.
+  const deck = buildDeck(chapitre)
+  const diapoDemandee = typeof diapo === 'string' ? diapo : undefined
+  const mode = modeInitial(diapoDemandee, (await cookies()).get(MODE_COOKIE)?.value)
+  const sectionTitles = Object.fromEntries(chapitre.sections.map((s) => [s.id, s.title]))
+
   return (
-    <div className="min-h-screen bg-surface-page font-prose text-ink">
-      <SiteHeader crumbs={crumbs} />
+    <ModeChapitreProvider
+      chapitreId={chapitre.id}
+      deck={deck}
+      sectionTitles={sectionTitles}
+      chemin={`/${niveau}/${matiere}/${slug}`}
+      parcoursHref={`/${niveau}/${matiere}`}
+      initialMode={mode}
+      initialIndex={indexDiapo(deck, diapoDemandee)}
+    >
+      <SeulementEnLecture>
+        <SiteHeader crumbs={crumbs} />
+      </SeulementEnLecture>
+      <BarreScene />
 
       <ChapterInteractionProvider tutorRequestCap={tutorRequestCap()}>
-        <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
-          <ChapterSidebar
-            niveau={niveau}
-            matiere={matiere}
-            matiereLibelle={nav.matiereLibelle}
-            chapters={nav.chapters}
-            currentSlug={slug}
-          />
-
-          <main className="min-w-0">
-            <ChapterSidebarMobile
+        <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[248px_minmax(0,1fr)_312px] lg:gap-8 lg:pb-12 group-data-[chapitre-mode=interactif]/mode:pb-0 group-data-[chapitre-mode=interactif]/mode:lg:grid-cols-[auto_minmax(0,1fr)]">
+          <SeulementEnLecture>
+            <ChapterSidebar
               niveau={niveau}
               matiere={matiere}
               matiereLibelle={nav.matiereLibelle}
               chapters={nav.chapters}
               currentSlug={slug}
             />
+          </SeulementEnLecture>
+          <BandeDiapos />
+
+          <main className="min-w-0">
+            <SeulementEnLecture>
+              <ChapterSidebarMobile
+                niveau={niveau}
+                matiere={matiere}
+                matiereLibelle={nav.matiereLibelle}
+                chapters={nav.chapters}
+                currentSlug={slug}
+              />
+            </SeulementEnLecture>
 
             <div className="mx-auto max-w-[68ch]">
+              <BasculeInteractif />
               <ChapterProgress niveau={niveau} matiere={matiere} slug={slug} />
               <EntraideProvider>
-                <ChapterView chapitre={chapitre} />
+                <ChapterView chapitre={chapitre} deck={deck} />
               </EntraideProvider>
+              <CommandesScene />
             </div>
           </main>
 
-          <ChapterRail sections={railSections} target={tutorTarget} />
+          <SeulementEnLecture>
+            <ChapterRail sections={railSections} target={tutorTarget} />
+          </SeulementEnLecture>
         </div>
 
-        <ChapterToolsSheet sections={railSections} target={tutorTarget} />
+        <SeulementEnLecture>
+          <ChapterToolsSheet sections={railSections} target={tutorTarget} />
+        </SeulementEnLecture>
       </ChapterInteractionProvider>
-    </div>
+      <TiroirDiapos />
+    </ModeChapitreProvider>
+  )
+}
+
+/**
+ * Reading-mode chrome: the site header, the chapter list, the tutor rail. Hidden by CSS in
+ * interactive mode (the "cinema" mode of #240), never unmounted, so the server renders the right
+ * mode and switching keeps their state. `display: contents` keeps the grid layout intact.
+ */
+function SeulementEnLecture({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="contents group-data-[chapitre-mode=interactif]/mode:hidden">{children}</div>
   )
 }

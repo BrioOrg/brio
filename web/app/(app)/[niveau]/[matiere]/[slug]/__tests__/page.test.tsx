@@ -20,6 +20,15 @@ vi.mock('@/lib/api', () => ({
   getChapitreByTriplet: vi.fn(),
 }))
 
+// The chapter mode cookie (ADR 0032 §5), set per test.
+let modeCookie: string | undefined
+vi.mock('next/headers', () => ({
+  cookies: async () => ({
+    get: (name: string) =>
+      name === 'brio_mode_chapitre' && modeCookie ? { value: modeCookie } : undefined,
+  }),
+}))
+
 const SEED_CHAPTER = {
   schemaVersion: 1,
   id: 'theoreme-de-pythagore',
@@ -50,26 +59,32 @@ const SEED_CHAPTER = {
   ],
 }
 
+async function renderPage({
+  slug = 'theoreme-de-pythagore',
+  diapo,
+}: { slug?: string; diapo?: string } = {}) {
+  const { default: Page } = await import('../page')
+  return render(
+    await Page({
+      params: Promise.resolve({ niveau: '3e', matiere: 'mathematiques', slug }),
+      searchParams: Promise.resolve(diapo === undefined ? {} : { diapo }),
+    })
+  )
+}
+
 describe('ChapterPage', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.resetAllMocks()
+    // The reading mode, unless a test says otherwise.
+    modeCookie = 'lecture'
   })
 
   it('affiche le titre et le contenu du chapitre', async () => {
     const { getChapitreByTriplet } = await import('@/lib/api')
     vi.mocked(getChapitreByTriplet).mockResolvedValue(SEED_CHAPTER as never)
 
-    const { default: Page } = await import('../page')
-    render(
-      await Page({
-        params: Promise.resolve({
-          niveau: '3e',
-          matiere: 'mathematiques',
-          slug: 'theoreme-de-pythagore',
-        }),
-      })
-    )
+    await renderPage()
 
     expect(screen.getByRole('heading', { name: 'Le théorème de Pythagore' })).toBeInTheDocument()
     expect(screen.getByText('Le théorème de Pythagore.')).toBeInTheDocument()
@@ -79,16 +94,7 @@ describe('ChapterPage', () => {
     const { getChapitreByTriplet } = await import('@/lib/api')
     vi.mocked(getChapitreByTriplet).mockResolvedValue(SEED_CHAPTER as never)
 
-    const { default: Page } = await import('../page')
-    render(
-      await Page({
-        params: Promise.resolve({
-          niveau: '3e',
-          matiere: 'mathematiques',
-          slug: 'theoreme-de-pythagore',
-        }),
-      })
-    )
+    await renderPage()
 
     expect(screen.getByText(/Quel côté est l'hypoténuse/)).toBeInTheDocument()
     // Choices are now hexagon OptionRow buttons, not radio inputs.
@@ -101,14 +107,57 @@ describe('ChapterPage', () => {
     const { getChapitreByTriplet } = await import('@/lib/api')
     vi.mocked(getChapitreByTriplet).mockRejectedValue(new Error('Chapitre introuvable'))
 
-    const { default: Page } = await import('../page')
-    render(
-      await Page({
-        params: Promise.resolve({ niveau: '3e', matiere: 'mathematiques', slug: 'inconnu' }),
-      })
-    )
+    await renderPage({ slug: 'inconnu' })
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.getByText('Chapitre introuvable')).toBeInTheDocument()
+  })
+
+  describe('mode (ADR 0032 §5)', () => {
+    async function seed() {
+      const { getChapitreByTriplet } = await import('@/lib/api')
+      vi.mocked(getChapitreByTriplet).mockResolvedValue(SEED_CHAPTER as never)
+    }
+
+    it('renders the reading mode when the cookie says so', async () => {
+      await seed()
+      const { container } = await renderPage()
+
+      expect(container.querySelector('[data-chapitre-mode]')).toHaveAttribute(
+        'data-chapitre-mode',
+        'lecture'
+      )
+      expect(screen.getByRole('button', { name: /Mode interactif/ })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Vérifier' })).toBeVisible()
+    })
+
+    it('opens the interactive mode on a first visit, on the opening slide', async () => {
+      await seed()
+      modeCookie = undefined
+      const { container } = await renderPage()
+
+      expect(container.querySelector('[data-chapitre-mode]')).toHaveAttribute(
+        'data-chapitre-mode',
+        'interactif'
+      )
+      expect(screen.getByText('1 / 4')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { level: 1 })).toBeVisible()
+      // The other slides are in the page, hidden: nothing is fetched or remounted to show them.
+      expect(screen.getByText('Le théorème de Pythagore.')).not.toBeVisible()
+    })
+
+    it('opens the slide named by ?diapo, whatever the cookie says', async () => {
+      await seed()
+      modeCookie = 'lecture'
+      const { container } = await renderPage({ diapo: 'e1' })
+
+      expect(container.querySelector('[data-chapitre-mode]')).toHaveAttribute(
+        'data-chapitre-mode',
+        'interactif'
+      )
+      expect(screen.getByText('3 / 4')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Vérifier' })).toBeVisible()
+      expect(screen.getByText('Le théorème de Pythagore.')).not.toBeVisible()
+    })
   })
 })
