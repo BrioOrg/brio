@@ -8,8 +8,10 @@ throwaway prototype of the real chapter `3e/mathematiques/theoreme-de-pythagore`
 (#241) and approved by Pierce on 2026-10-11:
 <https://claude.ai/artifact/JctGCM4WCc2Qu5H37oyxsv> (private link, tuning panel on `D`).
 
-They become the motion tokens of #243. Until then, nothing in this file is a
-token: no component may copy a value from here.
+They are now the motion tokens of `web/app/tokens.css` (#243): `--duration-<name>`,
+`--ease-<name>` and `--motion-<distance>`, mirrored for JavaScript in
+`web/lib/motion-tokens.ts`. Components read the tokens, never a number from this
+file.
 
 How the chapter is split into slides, the URL, the mode cookie and the choice of
 `motion` as the animation library are recorded in
@@ -65,7 +67,7 @@ Timeline of a correct answer, from the click on « Vérifier »:
 
 « Continuer » has focus from 0 ms. Pressing it ends the whole sequence at once.
 
-## Named durations and curves (input for #243)
+## Named durations and curves (tokens since #243)
 
 | Name | Value | Note |
 |---|---|---|
@@ -73,18 +75,21 @@ Timeline of a correct answer, from the click on « Vérifier »:
 | `slide-in` | 280 ms | |
 | `stagger` | 50 ms | delay between two beats |
 | `beat` | 240 ms | |
-| `press` | 90 ms | close to the existing `--duration-fast` (100 ms); #243 decides whether to reuse it |
+| `press` | 90 ms | its own token, not `--duration-fast` (100 ms): the interactive mode is retuned without touching the reading mode |
 | `select` | 160 ms | |
 | `sheet` | 290 ms | |
-| `check` | 300 ms | equals the existing `--duration-slow` |
+| `check` | 300 ms | its own token, though equal to `--duration-slow` today |
 | `particles` | 1030 ms | |
 | `xp-delay` | 500 ms | |
 | `xp-flight` | 470 ms | |
 | `count` | 180 ms | |
 | `finale` | 900 ms | |
 
-Distances and counts were tuned too: slide 32 px, beat rise 12 px, 21
-particles, 55 px spread. #243 decides which of them become tokens.
+Distances and counts were tuned too. The distances are tokens:
+`--motion-slide-shift` (32 px), `--motion-beat-rise` (12 px) and
+`--motion-particle-spread` (55 px). The counts (21 particles, twice as many and
+1.6× the spread on the end slide) are not design values: they are named
+constants in `motion-tokens.ts`.
 
 | Curve | Value | Used for |
 |---|---|---|
