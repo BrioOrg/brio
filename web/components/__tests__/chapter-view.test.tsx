@@ -1,9 +1,10 @@
-import { render } from '@testing-library/react'
+import { render, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@brio/api-client', () => ({ createApiClient: vi.fn() }))
 vi.mock('@/lib/api', () => ({ soumettre: vi.fn() }))
 
+import { soumettre } from '@/lib/api'
 import { ChapterView, type ChapitreResponse } from '../chapter-view'
 
 function makeChapter(blocks: object[]): ChapitreResponse {
@@ -302,5 +303,64 @@ describe('ChapterView — aperçu enseignant', () => {
     const { queryByRole } = render(<ChapterView chapitre={makeChapter([qcmBrouillon])} />)
     expect(queryByRole('button', { name: /Le côté \[RS\]/ })).not.toBeInTheDocument()
     expect(queryByRole('button', { name: 'Vérifier' })).not.toBeInTheDocument()
+  })
+})
+
+// T0 (#253): a wrong answer points back to the lesson section holding the exercise, never to
+// an exercises section, which has no lesson of its own.
+describe('ChapterView — renvoi vers le cours après une erreur', () => {
+  const qcm = (id: string) => ({
+    id,
+    type: 'exercise',
+    exerciceId: `uuid-${id}`,
+    exerciseType: 'multiple-choice',
+    prompt: `Question ${id}`,
+    multiple: false,
+    choices: [{ id: 'a', text: `Réponse ${id}` }],
+  })
+
+  const chapitre: ChapitreResponse = {
+    id: 'test',
+    title: 'Test',
+    sections: [
+      { id: 'enonce', title: 'Énoncé du théorème', kind: 'lesson', blocks: [qcm('q1')] as never },
+      { id: 'exercices', title: 'Exercices', kind: 'exercises', blocks: [qcm('q2')] as never },
+    ],
+  }
+
+  async function answerWrong(exerciseId: string, container: HTMLElement) {
+    const card = within(container.querySelector(`#${exerciseId}`) as HTMLElement)
+    fireEvent.click(card.getByRole('button', { name: new RegExp(`Réponse ${exerciseId}`) }))
+    fireEvent.click(card.getByRole('button', { name: 'Vérifier' }))
+    return card.findByRole('status')
+  }
+
+  it('renvoie vers la section de leçon qui contient l’exercice', async () => {
+    vi.mocked(soumettre).mockResolvedValue({
+      correct: false,
+      choiceFeedback: [{ choiceId: 'a', correct: false }],
+      expectedValue: null,
+      explanation: null,
+    })
+    const { container } = render(<ChapterView chapitre={chapitre} />)
+
+    const status = await answerWrong('q1', container)
+    expect(
+      within(status).getByRole('link', { name: /Revoir : Énoncé du théorème/ })
+    ).toHaveAttribute('href', '#enonce')
+  })
+
+  it('ne met aucun lien pour un exercice d’une section d’exercices', async () => {
+    vi.mocked(soumettre).mockResolvedValue({
+      correct: false,
+      choiceFeedback: [{ choiceId: 'a', correct: false }],
+      expectedValue: null,
+      explanation: null,
+    })
+    const { container } = render(<ChapterView chapitre={chapitre} />)
+
+    const status = await answerWrong('q2', container)
+    expect(within(status).queryByRole('link')).not.toBeInTheDocument()
+    expect(status).toHaveTextContent('Pas tout à fait')
   })
 })

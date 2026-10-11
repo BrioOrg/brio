@@ -7,7 +7,7 @@ import {
   type ChartSpec,
 } from '@brio/content'
 
-import { ExerciceWidget, PaperExercise } from '@/components/exercice-widget'
+import { ExerciceWidget, PaperExercise, type CourseSection } from '@/components/exercice-widget'
 import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { ScratchBlocks } from '@/components/scratch-blocks'
@@ -92,7 +92,12 @@ export function ChapterView({
             </h2>
             <div className="flex flex-col gap-5">
               {section.blocks.map((block, i) => (
-                <BlockRenderer key={block.id ?? i} block={block} apercu={apercu} />
+                <BlockRenderer
+                  key={block.id ?? i}
+                  block={block}
+                  apercu={apercu}
+                  courseSection={courseSectionOf(section)}
+                />
               ))}
             </div>
           </section>
@@ -102,7 +107,23 @@ export function ChapterView({
   )
 }
 
-function BlockRenderer({ block, apercu }: { block: Block; apercu: boolean }) {
+/**
+ * The part of the course a wrong answer points back to (#253): the lesson section holding the
+ * exercise. An exercise in an exercises section has no lesson of its own to point to.
+ */
+function courseSectionOf(section: Section): CourseSection | undefined {
+  return section.kind === 'exercises' ? undefined : { id: section.id, title: section.title }
+}
+
+function BlockRenderer({
+  block,
+  apercu,
+  courseSection,
+}: {
+  block: Block
+  apercu: boolean
+  courseSection?: CourseSection
+}) {
   switch (block.type) {
     case 'prose':
       return (
@@ -193,7 +214,9 @@ function BlockRenderer({ block, apercu }: { block: Block; apercu: boolean }) {
       )
 
     case 'exercise':
-      return <ExerciseBlock id={block.id} block={block} apercu={apercu} />
+      return (
+        <ExerciseBlock id={block.id} block={block} apercu={apercu} courseSection={courseSection} />
+      )
 
     case 'steps':
       return <StepsBlock id={block.id} block={block} />
@@ -381,7 +404,17 @@ function StepFormula({ latex }: { latex: string }) {
   )
 }
 
-function ExerciseBlock({ id, block, apercu }: { id: string; block: Block; apercu: boolean }) {
+function ExerciseBlock({
+  id,
+  block,
+  apercu,
+  courseSection,
+}: {
+  id: string
+  block: Block
+  apercu: boolean
+  courseSection?: CourseSection
+}) {
   const {
     exerciceId,
     exerciseType,
@@ -413,6 +446,7 @@ function ExerciseBlock({ id, block, apercu }: { id: string; block: Block; apercu
         multiple={multiple}
         unit={unit}
         explanation={explanation}
+        courseSection={courseSection}
         template={template}
         bank={bank}
       />
