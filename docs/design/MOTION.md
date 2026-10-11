@@ -139,6 +139,14 @@ follows the method rather than reading the answer first.
 - The "+N XP" that flies is the real `xpGain` returned by `progression`
   (ADR 0022: 10 at the first try, 6 after a mistake). Nothing flies when nothing
   was earned, and reading a slide earns no XP of its own.
+- Where it lands (#248): the site header is hidden in interactive mode, so the
+  top bar carries the student's real XP counter and streak flame. They keep the
+  values from before the answer until the flight lands. XP is awarded
+  asynchronously, so the flight leaves at `sheet + xp-delay` or as soon as the
+  gain is known, whichever is later. If the student has moved on by then,
+  nothing flies and the counter simply shows the new total.
+- The flame bumps once, like the XP counter (`check`, `out-quint`), **after**
+  the count when the streak moved with that answer, and never when it did not.
 - The end slide shows the XP earned **during the session**, the exercises solved
   and the streak. The streak does not animate unless it actually changed.
 - **T0.** On a wrong answer, only the student's own pick is marked (amber, with
