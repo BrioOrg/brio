@@ -7,7 +7,8 @@ import { APP_SECTIONS, type AppSection } from '@/lib/app-sections'
 
 /**
  * App shell bottom navigation (mobile only — hidden ≥ sm, where SiteHeader
- * carries the same sections through HeaderNav). Tabs: parcours · devoirs · annales · social · profil.
+ * carries the same sections through HeaderNav). Hidden while a chapter is in interactive mode,
+ * which takes the whole screen (#245). Tabs: parcours · devoirs · annales · social · profil.
  *
  * "parcours" (catalogue/app home), "devoirs" (homework, F4) and "annales" (exam
  * papers, F7) are wired. "social" and "profil" point at modules that do not exist
@@ -27,7 +28,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface-panel pb-[env(safe-area-inset-bottom)] sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface-panel pb-[env(safe-area-inset-bottom)] sm:hidden [body:has([data-chapitre-mode=interactif])_&]:hidden"
     >
       <ul className="flex items-center justify-around px-2 py-2">
         {TABS.map((tab) => {
