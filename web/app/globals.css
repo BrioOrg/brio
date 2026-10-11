@@ -10,6 +10,16 @@
   }
 }
 
+/* The interactive mode's help drawer, from the right on a wide screen (#250). */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

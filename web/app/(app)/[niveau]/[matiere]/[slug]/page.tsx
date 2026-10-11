@@ -5,6 +5,7 @@ import {
   ChapterView,
   etapesParBloc,
   exercicesCorriges,
+  exercicesParBloc,
   type ChapitreResponse,
 } from '@/components/chapter-view'
 import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
@@ -18,6 +19,7 @@ import { EntraideProvider } from '@/components/entraide/entraide-context'
 import { tutorRequestCap } from '@/lib/tutor-config'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
+import { AideScene } from '@/components/chapitre-interactif/aide-scene'
 import { ModeChapitreProvider } from '@/components/chapitre-interactif/mode-context'
 import {
   BandeDiapos,
@@ -194,6 +196,8 @@ export default async function ChapterPage({
         <SeulementEnLecture>
           <ChapterToolsSheet sections={railSections} target={tutorTarget} />
         </SeulementEnLecture>
+        {/* Interactive mode: the rail is hidden, the tutor and entraide open in a drawer (#250). */}
+        <AideScene target={tutorTarget} exercices={exercicesParBloc(chapitre)} />
       </ChapterInteractionProvider>
       <TiroirDiapos />
     </ModeChapitreProvider>

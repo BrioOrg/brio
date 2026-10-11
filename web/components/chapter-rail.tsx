@@ -1,8 +1,9 @@
 'use client'
 
 import * as Tabs from '@radix-ui/react-tabs'
+import type { PorteeEntraide } from '@brio/api-client'
 import { EntraidePanel } from '@/components/entraide/entraide-panel'
-import { TuteurPanel } from '@/components/tutor-panel'
+import { TuteurPanel, type TuteurPanelProps } from '@/components/tutor-panel'
 import type { TutorTarget } from '@/lib/api'
 
 export type RailSection = { id: string; title: string }
@@ -38,7 +39,10 @@ export function RailContent({ sections, target, onNavigate }: RailProps) {
       )}
 
       {target.kind === 'chapitre' ? (
-        <TuteurEtEntraide target={target} slug={target.slug} />
+        <TuteurEtEntraide
+          tuteur={{ target }}
+          entraide={{ portee: 'chapitre', porteeRef: target.slug }}
+        />
       ) : (
         <TuteurPanel target={target} />
       )}
@@ -49,11 +53,17 @@ export function RailContent({ sections, target, onNavigate }: RailProps) {
 const ONGLET =
   'flex-1 rounded-md px-3 py-1.5 font-display text-sm font-extrabold text-ink-muted transition-colors duration-[var(--duration-fast)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent data-[state=active]:bg-surface-raised data-[state=active]:text-ink'
 
+type TuteurEtEntraideProps = {
+  tuteur: TuteurPanelProps
+  entraide: { portee: PorteeEntraide; porteeRef: string }
+}
+
 /**
  * On a catalogue chapter the tutor shares the rail with the class entraide (ADR 0023). Both
- * panels stay mounted, so switching tabs keeps the tutor conversation and the open thread.
+ * panels stay mounted, so switching tabs keeps the draft question and the open thread. The
+ * interactive mode's drawer uses it too, scoped to the current slide (#250).
  */
-function TuteurEtEntraide({ target, slug }: { target: TutorTarget; slug: string }) {
+export function TuteurEtEntraide({ tuteur, entraide }: TuteurEtEntraideProps) {
   return (
     <Tabs.Root defaultValue="tuteur" className="flex flex-col gap-4">
       <Tabs.List
@@ -68,10 +78,11 @@ function TuteurEtEntraide({ target, slug }: { target: TutorTarget; slug: string 
         </Tabs.Trigger>
       </Tabs.List>
       <Tabs.Content value="tuteur" forceMount className="data-[state=inactive]:hidden">
-        <TuteurPanel target={target} />
+        <TuteurPanel {...tuteur} />
       </Tabs.Content>
       <Tabs.Content value="entraide" forceMount className="data-[state=inactive]:hidden">
-        <EntraidePanel portee="chapitre" porteeRef={slug} />
+        {/* Keyed by scope: a thread opened on one exercise never shows on the next. */}
+        <EntraidePanel key={`${entraide.portee}:${entraide.porteeRef}`} {...entraide} />
       </Tabs.Content>
     </Tabs.Root>
   )

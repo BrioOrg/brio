@@ -11,7 +11,7 @@ import { Icon } from '@/components/ui/icon'
 const CAP_MESSAGE =
   'Tu as atteint la limite de questions pour cette session. Demande à ton professeur si tu as besoin d’aide supplémentaire.'
 
-type TuteurPanelProps = {
+export type TuteurPanelProps = {
   target: TutorTarget
   /**
    * The exercise the question is about. Left out, the panel sends the last exercise the student

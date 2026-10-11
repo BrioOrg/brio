@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/icon'
 import { Infobulle, InfobulleProvider } from '@/components/ui/infobulle'
 import { etatDiapo, libelleDiapo } from '@/lib/diapos'
 import { CompteursScene } from './compteurs-scene'
+import { BoutonAide } from './aide-scene'
 import { useModeChapitre } from './mode-context'
 import { basculerPleinEcran, usePleinEcran } from './plein-ecran'
 
@@ -308,6 +309,12 @@ export function CommandesScene() {
   const feuille = exercice !== undefined && feuilleOuverte === exercice
   return (
     <div className="sticky bottom-0 z-20 mt-auto border-t border-line bg-surface-page py-3">
+      {/* The help floats just above the bar; a result sheet covering the bar hides it too. */}
+      {!feuille && (
+        <div className="absolute bottom-full right-0 mb-3">
+          <BoutonAide />
+        </div>
+      )}
       <div
         className={`flex items-center justify-between gap-3${feuille ? ' invisible' : ''}`}
         inert={feuille || undefined}
