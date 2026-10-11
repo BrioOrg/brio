@@ -56,6 +56,7 @@ one of them is rejected, however good it looks.
 | XP gain | after the sheet and a pause, the real "+N XP" badge flies to the XP counter, which bumps and counts up | `xp-delay` 500 ms, `xp-flight` 470 ms, `count` 180 ms | `ease-in`, then `out-quint` |
 | End slide | the stats appear as beats, then the session XP counts up from 0 and bursts (twice the particles, 1.6× the spread) | `finale` 900 ms | linear count, `out-quint` burst |
 | Side strip label | the label naming a slide fades in 6 px from the left on hover or focus | `select` 160 ms | `standard` |
+| Help drawer | the tutor and entraide drawer slides in from the right (wide screen) or rises from below, over a fading backdrop; the same movement as the reading mode's tools sheet, so it uses that sheet's existing tokens (#250) | `--duration-slow` | `--ease-out` |
 
 Timeline of a correct answer, from the click on « Vérifier »:
 

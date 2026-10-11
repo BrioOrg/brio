@@ -514,6 +514,20 @@ export function exercicesCorriges(chapitre: ChapitreResponse): string[] {
   )
 }
 
+/**
+ * Each exercise's `exerciceId`, by block id, paper exercises included: the interactive mode's
+ * tutor tells the backend which exercise the current slide is (#250).
+ */
+export function exercicesParBloc(chapitre: ChapitreResponse): Record<string, string> {
+  return Object.fromEntries(
+    chapitre.sections.flatMap((section) =>
+      section.blocks.flatMap((b) =>
+        b.type === 'exercise' && b.exerciceId ? [[b.id, b.exerciceId] as const] : []
+      )
+    )
+  )
+}
+
 function ExerciseBlock({
   id,
   block,

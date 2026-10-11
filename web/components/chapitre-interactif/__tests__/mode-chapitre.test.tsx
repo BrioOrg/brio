@@ -420,3 +420,79 @@ describe('steps revealed one at a time (MOTION.md "Step reveal")', () => {
     expect(etapesVisibles()).toHaveLength(3)
   })
 })
+
+describe('full screen (#250)', () => {
+  let element: Element | null = null
+
+  function changer(el: Element | null) {
+    element = el
+    document.dispatchEvent(new Event('fullscreenchange'))
+  }
+
+  function installer(enabled: boolean) {
+    Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: enabled })
+    Object.defineProperty(document, 'fullscreenElement', {
+      configurable: true,
+      get: () => element,
+    })
+    document.documentElement.requestFullscreen = vi.fn(async () => changer(document.documentElement))
+    document.exitFullscreen = vi.fn(async () => changer(null))
+  }
+
+  afterEach(() => {
+    element = null
+    Object.defineProperty(document, 'fullscreenEnabled', { configurable: true, value: undefined })
+  })
+
+  it('has no button where the API is missing', () => {
+    installer(false)
+    renderChapitre()
+    expect(screen.queryByRole('button', { name: 'Plein écran' })).toBeNull()
+  })
+
+  it('goes full screen with the button and comes back with F', async () => {
+    installer(true)
+    renderChapitre()
+
+    await act(async () => screen.getByRole('button', { name: 'Plein écran' }).click())
+    expect(document.documentElement.requestFullscreen).toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Quitter le plein écran' })).toBeInTheDocument()
+
+    await act(async () => touche('f'))
+    expect(document.exitFullscreen).toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Plein écran' })).toBeInTheDocument()
+  })
+
+  it('leaves F typed into an answer to the answer', () => {
+    installer(true)
+    renderChapitre('interactif', 2)
+    touche('f', screen.getByRole('textbox'))
+    expect(document.documentElement.requestFullscreen).not.toHaveBeenCalled()
+  })
+
+  it('leaves Escape to the browser in full screen: the mode stays interactive', async () => {
+    installer(true)
+    const { container } = renderChapitre()
+    await act(async () => touche('F'))
+
+    touche('Escape')
+    expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', 'interactif')
+  })
+
+  it('leaves full screen when going back to reading', async () => {
+    installer(true)
+    const { container } = renderChapitre()
+    await act(async () => touche('f'))
+
+    act(() => screen.getByRole('button', { name: 'Revenir au mode lecture' }).click())
+    expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', 'lecture')
+    expect(document.exitFullscreen).toHaveBeenCalled()
+  })
+
+  it('does nothing in reading mode', () => {
+    installer(true)
+    renderChapitre('lecture')
+    touche('f')
+    expect(document.documentElement.requestFullscreen).not.toHaveBeenCalled()
+  })
+})

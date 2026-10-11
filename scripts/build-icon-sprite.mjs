@@ -30,6 +30,8 @@ const ICONS = [
   'circle-notch',
   'compass',
   'copy',
+  'corners-in',
+  'corners-out',
   'eye',
   'eye-slash',
   'flag',

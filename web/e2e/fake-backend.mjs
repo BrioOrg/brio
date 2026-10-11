@@ -247,6 +247,28 @@ const server = createServer(async (req, res) => {
         explanation: resultat.correct ? (block.explanation ?? null) : null,
       })
     }
+    const tuteur = pathname.match(/^\/api\/chapitres\/([^/]+)\/([^/]+)\/([^/]+)\/tuteur$/)
+    if (tuteur) {
+      if (!connecte(req)) return send(res, 401)
+      const [, niveau, matiere, slug] = tuteur
+      if (![niveau, matiere, slug].every((s) => SEGMENT.test(s))) return send(res, 404)
+      const question = (await corps(req))?.question
+      if (typeof question !== 'string' || question.trim() === '') return send(res, 400)
+      let chapitre
+      try {
+        chapitre = JSON.parse(
+          await readFile(join(CONTENT_DIR, niveau, matiere, `${slug}.json`), 'utf8')
+        )
+      } catch {
+        return send(res, 404)
+      }
+      // No model here: a fixed answer citing a block that exists, as the server checks (ADR 0015).
+      const section = chapitre.sections[0]
+      return send(res, 200, {
+        reponse: 'Relis le début du chapitre : la réponse s’y trouve.',
+        citations: [`${section.id}/${section.blocks[0].id}`],
+      })
+    }
     if (/^\/api\/chapitres\/[^/]+\/sections\/[^/]+\/lu$/.test(pathname)) {
       res.writeHead(connecte(req) ? 204 : 401)
       return res.end()
