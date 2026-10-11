@@ -5,7 +5,11 @@ import { buildDeck } from '@brio/content'
 vi.mock('@brio/api-client', () => ({ createApiClient: vi.fn() }))
 vi.mock('@/lib/api', () => ({ soumettre: vi.fn(), marquerSectionLue: vi.fn() }))
 vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
-vi.mock('@/lib/progression', () => ({ getProgression: vi.fn(), getSerie: vi.fn() }))
+vi.mock('@/lib/progression', () => ({
+  getProgression: vi.fn(),
+  getSerie: vi.fn(),
+  getParcours: vi.fn(async () => null),
+}))
 // `motion` itself: every animation is recorded and lands at once.
 vi.mock('../motion-animate', () => ({
   animate: vi.fn(() => ({ complete: vi.fn(), stop: vi.fn(), finished: Promise.resolve() })),
@@ -103,6 +107,9 @@ async function ouvrir() {
         sectionTitles={{ lecon: 'Énoncé' }}
         chemin="/3e/mathematiques/pythagore"
         parcoursHref="/3e/mathematiques"
+        niveau="3e"
+        matiere="mathematiques"
+        slug="pythagore"
         initialMode="interactif"
         initialIndex={DECK.findIndex((d) => d.id === 'qcm')}
       >
@@ -165,7 +172,7 @@ describe('interactive mode — the rewards of an exercise (#248)', () => {
     expect(particules).toHaveLength(21)
 
     // The gain is known, but the counter keeps the old total until the flight lands.
-    await screen.findByText(/\+10/)
+    await screen.findByText(/\+10/, { selector: '[data-feuille-resultat] *' })
     expect(compteurXp()).toContain('100')
     expect(envols()).toHaveLength(0)
 
@@ -210,7 +217,7 @@ describe('interactive mode — the rewards of an exercise (#248)', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Option B:/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
-    await screen.findByText(/\+10/)
+    await screen.findByText(/\+10/, { selector: '[data-feuille-resultat] *' })
     expect(compteurXp()).toContain('110')
     await act(() => new Promise((r) => setTimeout(r, 900)))
     expect(cibles()).toEqual([])
@@ -222,7 +229,7 @@ describe('interactive mode — the rewards of an exercise (#248)', () => {
     vi.mocked(soumettre).mockResolvedValue(JUSTE)
     repondre('B')
 
-    await screen.findByText(/\+10/)
+    await screen.findByText(/\+10/, { selector: '[data-feuille-resultat] *' })
     expect(compteurXp()).toContain('100')
     act(() => {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift' }))
@@ -241,7 +248,7 @@ describe('interactive mode — the rewards of an exercise (#248)', () => {
     vi.mocked(soumettre).mockResolvedValue(JUSTE)
     repondre('B')
 
-    await screen.findByText(/\+10/)
+    await screen.findByText(/\+10/, { selector: '[data-feuille-resultat] *' })
     expect(document.querySelector('[data-compteur-serie]')).toBeNull()
 
     await waitFor(() => expect(document.querySelector('[data-compteur-serie]')).not.toBeNull(), {

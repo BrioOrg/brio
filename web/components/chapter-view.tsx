@@ -16,7 +16,7 @@ import { ScratchBlocks } from '@/components/scratch-blocks'
 import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
 import { DiapoFrame } from '@/components/chapitre-interactif/diapo-frame'
-import { FinDeChapitre } from '@/components/chapitre-interactif/scene'
+import { FinDeChapitre } from '@/components/chapitre-interactif/fin-de-chapitre'
 import { Etapes } from '@/components/chapitre-interactif/etapes'
 
 type Choice = { id: string; text: string }

@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import * as Dialog from '@radix-ui/react-dialog'
 import type { Diapo } from '@brio/content'
 import { Button } from '@/components/ui/button'
@@ -312,37 +311,6 @@ export function CommandesScene() {
       </div>
       {/* The sheet is drawn here by the exercise, over the bar. */}
       {exercice !== undefined && <div ref={setFeuilleExercice} className="contents" />}
-    </div>
-  )
-}
-
-/**
- * The end slide, until #249 brings its real summary. It says only what is true: the student
- * reached the end of the slides, not that the chapter is done.
- */
-export function FinDeChapitre() {
-  const ctx = useModeChapitre()
-  if (!ctx) return null
-  return (
-    <div className="flex flex-col items-start gap-4">
-      <h2
-        data-diapo-titre
-        tabIndex={-1}
-        className="font-display text-2xl font-black tracking-tight text-ink focus:outline-none"
-      >
-        Fin du chapitre
-      </h2>
-      <p className="font-prose text-base leading-relaxed text-ink">
-        Tu as parcouru toutes les diapos de ce chapitre.
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <Link href={ctx.parcoursHref}>
-          <Button size="sm">Revenir au parcours</Button>
-        </Link>
-        <Button variant="secondary" size="sm" onClick={ctx.basculer}>
-          Relire en mode lecture
-        </Button>
-      </div>
     </div>
   )
 }

@@ -87,6 +87,9 @@ function renderChapitre(diapo: string, mode: ModeChapitre = 'interactif') {
       sectionTitles={{ lecon: 'Énoncé' }}
       chemin={CHEMIN}
       parcoursHref="/3e/mathematiques"
+      niveau="3e"
+      matiere="mathematiques"
+      slug="pythagore"
       initialMode={mode}
       initialIndex={DECK.findIndex((d) => d.id === diapo)}
     >

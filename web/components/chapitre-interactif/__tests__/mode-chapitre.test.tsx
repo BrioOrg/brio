@@ -68,6 +68,9 @@ function renderChapitre(mode: ModeChapitre = 'interactif', index = 0) {
       sectionTitles={{ lecon: 'Énoncé', exercices: 'Exercices' }}
       chemin={CHEMIN}
       parcoursHref="/3e/mathematiques"
+      niveau="3e"
+      matiere="mathematiques"
+      slug="pythagore"
       initialMode={mode}
       initialIndex={index}
     >
@@ -349,6 +352,9 @@ describe('steps revealed one at a time (MOTION.md "Step reveal")', () => {
         sectionTitles={{ methode: 'Méthode' }}
         chemin={CHEMIN}
         parcoursHref="/3e/mathematiques"
+        niveau="3e"
+        matiere="mathematiques"
+        slug="pythagore"
         initialMode={mode}
         initialIndex={index}
       >
