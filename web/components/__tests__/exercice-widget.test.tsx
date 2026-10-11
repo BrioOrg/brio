@@ -171,7 +171,7 @@ describe('ExerciceWidget — choix multiple', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('Pas tout à fait — regarde cette partie du cours.')
+    expect(status).toHaveTextContent('Regarde cette partie du cours.')
     expect(
       within(status).getByRole('link', { name: /Revoir : Énoncé du théorème/ })
     ).toHaveAttribute('href', '#enonce-du-theoreme')

@@ -495,7 +495,7 @@ function ResultPanel({
   const nudge = isCorrect
     ? null
     : courseSection
-      ? 'Pas tout à fait — regarde cette partie du cours.'
+      ? 'Regarde cette partie du cours.'
       : exerciseType === 'short-answer'
         ? 'On regarde ensemble : relis la section précédente.'
         : 'On regarde ensemble : reprends le raisonnement pas à pas.'
