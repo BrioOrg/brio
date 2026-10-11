@@ -40,19 +40,25 @@
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
  *    on `id` alone.
  *
+ * 6. Block ids (ADR 0032 §3) — a slide of the interactive mode is addressed by the id of its
+ *    first block, so within one chapter block ids are unique, and none is `debut` or `fin`
+ *    (reserved for the opening and closing slides; read from packages/content/src/deck.ts).
+ *
  * Scanned: content/ (excluding referentiel) + docs/schema/examples/.
- * No dependencies; it imports the Scratch parser as TypeScript, so it runs with Node's type
- * stripping: `pnpm check:content` (node --experimental-strip-types). Exits non-zero on any problem.
+ * No dependencies; it imports the Scratch parser and the reserved slide ids as TypeScript, so it
+ * runs with Node's type stripping: `pnpm check:content` (node --experimental-strip-types). Exits non-zero on any problem.
  */
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 let parseScratch
+let RESERVED_DIAPO_IDS
 try {
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
+  ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
 } catch (e) {
   console.error(
-    '✗ check-content loads the Scratch parser as TypeScript: run `pnpm check:content`\n' +
+    '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
       '  (node --experimental-strip-types scripts/check-content.mjs).\n  ' +
       e.message,
   )
@@ -513,6 +519,23 @@ function checkFigures(doc, file) {
   }
 }
 
+// --- Block ids (ADR 0032 §3) ---
+
+function checkBlockIds(doc, file) {
+  const seen = new Set()
+  for (const section of doc.sections ?? []) {
+    for (let i = 0; i < (section.blocks ?? []).length; i++) {
+      const id = section.blocks[i].id
+      const path = `sections[id=${section.id}].blocks[${i}].id`
+      if (RESERVED_DIAPO_IDS.includes(id)) {
+        fail(file, path, `"${id}" is reserved for a slide of the interactive mode`)
+      }
+      if (seen.has(id)) fail(file, path, `block id "${id}" is used twice in this chapter`)
+      seen.add(id)
+    }
+  }
+}
+
 function jsonFilesUnder(dir) {
   let entries
   try {
@@ -548,6 +571,7 @@ for (const file of contentFiles) {
     const doc = JSON.parse(readFileSync(file, 'utf8'))
     walkStrings(doc, file, '')
     checkFigures(doc, file)
+    checkBlockIds(doc, file)
     if (isChapterFile(file) && typeof doc.id === 'string') {
       filesById.set(doc.id, [...(filesById.get(doc.id) ?? []), file])
     }
@@ -572,4 +596,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + Scratch programmes + unique chapter ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + Scratch programmes + unique chapter and block ids).`)

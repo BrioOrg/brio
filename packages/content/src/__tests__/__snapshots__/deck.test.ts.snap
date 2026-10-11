@@ -1,0 +1,89 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildDeck on the catalogue > should split content/chapitres/3e/mathematiques/theoreme-de-pythagore.json as recorded 1`] = `
+"
+debut                      debut
+intro-prose                lecon     intro-prose + definition-hypotenuse + schema-triangle + formule-pythagore
+enonce-prose               lecon     enonce-prose
+ex-reconnaitre-hypotenuse  exercice  ex-reconnaitre-hypotenuse
+methode-prose              lecon     methode-prose + exemple-callout + exemple-formule
+ex-longueur-cotes          exercice  ex-longueur-cotes
+ex-calcul-hypotenuse       exercice  ex-calcul-hypotenuse
+ex-etapes-demonstration    exercice  ex-etapes-demonstration
+ex-justifier-rectangle     exercice  ex-justifier-rectangle
+fin                        fin
+"
+`;
+
+exports[`buildDeck on the catalogue > should split content/chapitres/5e/mathematiques/statistiques.json as recorded 1`] = `
+"
+debut                       debut     objectifs
+intro-enquete               lecon     intro-enquete + table-sports
+def-effectif                lecon     def-effectif
+ex-compter                  exercice  ex-compter
+ex-tableau-pile-face        exercice  ex-tableau-pile-face
+ex-organiser                exercice  ex-organiser
+def-frequence               lecon     def-frequence
+exemple-frequence           lecon     exemple-frequence
+ex-effectif-total           exercice  ex-effectif-total
+ex-frequence-decimale       exercice  ex-frequence-decimale
+ex-frequence-pourcent       exercice  ex-frequence-pourcent
+ex-somme-frequences         exercice  ex-somme-frequences
+chart-barres-sports         lecon     chart-barres-sports
+ex-lire-natation            exercice  ex-lire-natation
+ex-lire-ecart               exercice  ex-lire-ecart
+table-choisir               lecon     table-choisir
+def-circulaire              lecon     def-circulaire
+prose-circulaire-transport  lecon     prose-circulaire-transport + chart-circulaire-transport
+ex-lire-circulaire-moitie   exercice  ex-lire-circulaire-moitie
+ex-lire-circulaire-bus      exercice  ex-lire-circulaire-bus
+ex-choisir-circulaire       exercice  ex-choisir-circulaire
+ex-choisir-courbe           exercice  ex-choisir-courbe
+ex-angle-secteur            exercice  ex-angle-secteur
+table-associer              lecon     table-associer + chart-associer-a + chart-associer-b + chart-associer-c
+ex-associer-diagramme       exercice  ex-associer-diagramme
+def-moyenne                 lecon     def-moyenne
+ex-moyenne-notes            exercice  ex-moyenne-notes
+ex-moyenne-temperatures     exercice  ex-moyenne-temperatures
+ex-moyenne-valeur           exercice  ex-moyenne-valeur
+ex-frequence-danse          exercice  ex-frequence-danse
+ex-plus-choisi              exercice  ex-plus-choisi
+ex-axe-tronque              exercice  ex-axe-tronque
+ex-echelle-barres           exercice  ex-echelle-barres
+ex-moyenne-somme            exercice  ex-moyenne-somme
+fin                         fin
+"
+`;
+
+exports[`buildDeck on the catalogue > should split content/chapitres/6e/mathematiques/angles-bissectrice.json as recorded 1`] = `
+"
+debut                          debut     objectifs
+def-angle                      lecon     def-angle + fig-angle-aob
+table-types-angles             exercice  table-types-angles + ex-classer-130
+ex-nom-90                      exercice  ex-nom-90
+ex-sommet                      exercice  ex-sommet
+methode-mesurer                lecon     methode-mesurer + piege-graduations
+ex-erreur-rapporteur           exercice  ex-erreur-rapporteur
+methode-construire             lecon     methode-construire
+ex-construire-angle            exercice  ex-construire-angle
+def-adjacents                  lecon     def-adjacents + fig-adjacents
+def-opposes                    lecon     def-opposes + fig-opposes
+def-supplementaires            lecon     def-supplementaires
+ex-opposes                     exercice  ex-opposes
+ex-supplementaire              exercice  ex-supplementaire
+ex-adjacents                   exercice  ex-adjacents
+def-bissectrice                lecon     def-bissectrice
+exemple-bissectrice            lecon     exemple-bissectrice
+ex-moitie-angle                exercice  ex-moitie-angle
+ex-def-bissectrice             exercice  ex-def-bissectrice
+methode-bissectrice            lecon     methode-bissectrice
+ex-construire-bissectrice      exercice  ex-construire-bissectrice
+ex-final-trois-adjacents       exercice  ex-final-trois-adjacents
+ex-final-angle-plein           exercice  ex-final-angle-plein
+ex-final-entier-depuis-moitie  exercice  ex-final-entier-depuis-moitie
+ex-final-droit                 exercice  ex-final-droit
+ex-final-bissectrice-double    exercice  ex-final-bissectrice-double
+ex-final-autre-moitie          exercice  ex-final-autre-moitie
+fin                            fin
+"
+`;
