@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { soumettre, type SoumissionResult } from '@/lib/api'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { useProgression } from '@/components/progression-context'
@@ -10,6 +11,8 @@ import { OptionRow, type OptionState } from '@/components/ui/option-row'
 import { TextInput } from '@/components/ui/text-input'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
+import { ResultSheetSurface, resultSheetText } from '@/components/ui/result-sheet'
+import { useModeChapitre } from '@/components/chapitre-interactif/mode-context'
 
 type Choice = { id: string; text: string }
 
@@ -69,7 +72,9 @@ export function PaperExercise({ id, prompt, statement, solution }: PaperExercise
       <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
         Exercice sur feuille
       </p>
-      <p className="mb-3 font-prose text-base leading-relaxed text-ink">{prompt}</p>
+      <p className="mb-3 font-prose text-base leading-relaxed text-ink group-data-[chapitre-mode=interactif]/mode:font-display group-data-[chapitre-mode=interactif]/mode:text-2xl group-data-[chapitre-mode=interactif]/mode:font-extrabold group-data-[chapitre-mode=interactif]/mode:leading-snug">
+        {prompt}
+      </p>
       {statement && (
         <p className="mb-3 font-prose text-sm leading-relaxed text-ink-muted">{statement}</p>
       )}
@@ -163,6 +168,74 @@ export function ExerciceWidget({
     Array(blankCount).fill(null)
   )
 
+  // Interactive mode (#246): the same widget, laid out full screen. It draws « Vérifier » in the
+  // slide's bottom bar and its result in a sheet over it, both through portals, so its state and
+  // its form stay here. Outside a chapter's provider (teacher courses, the editor) this is inert.
+  const ctx = useModeChapitre()
+  const formId = useId()
+  const formRef = useRef<HTMLFormElement>(null)
+  const interactif = ctx?.mode === 'interactif'
+  const courant =
+    interactif &&
+    id !== undefined &&
+    (ctx.deck[ctx.index]?.blockIds as readonly string[] | undefined)?.includes(id) === true
+  const feuille = courant && result !== null && ctx.feuilleOuverte === id
+  const enregistrerExercice = ctx?.enregistrerExercice
+  const [refocus, setRefocus] = useState(false)
+
+  useEffect(() => {
+    if (!enregistrerExercice || !id || !exerciceId) return
+    return enregistrerExercice(id)
+  }, [enregistrerExercice, id, exerciceId])
+
+  // After « Réessayer », the first control again, once the form is enabled.
+  useEffect(() => {
+    if (!refocus) return
+    setRefocus(false)
+    formRef.current
+      ?.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled])')
+      ?.focus()
+  }, [refocus])
+
+  // Keyboard on the current slide: A–E or 1–5 pick an option, Entrée checks. Never while typing in
+  // a field (a digit there is an answer), never over the sheet (its buttons take Entrée).
+  const clavier = useRef<(e: KeyboardEvent) => void>(() => {})
+  clavier.current = (e: KeyboardEvent) => {
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || ctx?.tiroirOuvert) return
+    const cible = e.target instanceof Element ? e.target : null
+    if (cible?.closest('input, textarea, select, [contenteditable="true"]')) return
+    if (result) return
+    if (e.key === 'Enter') {
+      if (cible?.closest('button, a[href], summary')) return
+      e.preventDefault()
+      formRef.current?.requestSubmit()
+      return
+    }
+    if (exerciseType !== 'multiple-choice' || !choices) return
+    const touche = e.key.toUpperCase()
+    const i = /^[1-9]$/.test(touche) ? Number(touche) - 1 : MARKERS.indexOf(touche)
+    if (i < 0 || i >= choices.length) return
+    e.preventDefault()
+    toggleChoice(choices[i].id)
+  }
+  useEffect(() => {
+    if (!courant || feuille) return
+    const onKeyDown = (e: KeyboardEvent) => clavier.current(e)
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [courant, feuille])
+
+  function continuer() {
+    ctx?.setFeuilleOuverte(null)
+    ctx?.suivante()
+  }
+
+  function reessayer() {
+    reset()
+    ctx?.setFeuilleOuverte(null)
+    setRefocus(true)
+  }
+
   function markActive() {
     if (exerciceId) setActiveExerciceId(exerciceId)
   }
@@ -246,6 +319,10 @@ export function ExerciceWidget({
     try {
       const res = await soumettre(exerciceId, answer)
       setResult(res)
+      if (id) {
+        ctx?.signalerExercice(id, res.correct === true ? 'resolu' : 'tente')
+        if (courant) ctx?.setFeuilleOuverte(id)
+      }
       // A correct answer may have awarded XP (asynchronously, ADR 0022). Re-read
       // progression and surface the real gain — never a fixed number. Runs in the
       // background so the feedback panel shows immediately.
@@ -288,13 +365,18 @@ export function ExerciceWidget({
     apercu || loading || (exerciseType === 'short-answer' && shortAnswerText.trim() === '')
 
   return (
-    <div id={id} className="rounded-lg border border-line bg-surface-panel p-5">
-      <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+    <div
+      id={id}
+      className="rounded-lg border border-line bg-surface-panel p-5 group-data-[chapitre-mode=interactif]/mode:border-0 group-data-[chapitre-mode=interactif]/mode:bg-transparent group-data-[chapitre-mode=interactif]/mode:p-0"
+    >
+      <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted group-data-[chapitre-mode=interactif]/mode:hidden">
         Exercice
       </p>
-      <p className="mb-4 font-prose text-base leading-relaxed text-ink">{prompt}</p>
+      <p className="mb-4 font-prose text-base leading-relaxed text-ink group-data-[chapitre-mode=interactif]/mode:mb-6 group-data-[chapitre-mode=interactif]/mode:font-display group-data-[chapitre-mode=interactif]/mode:text-2xl group-data-[chapitre-mode=interactif]/mode:font-extrabold group-data-[chapitre-mode=interactif]/mode:leading-snug">
+        {prompt}
+      </p>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form id={formId} ref={formRef} onSubmit={handleSubmit} noValidate>
         {exerciseType === 'multiple-choice' && choices && (
           <fieldset className="mb-4" disabled={result !== null}>
             <legend className="sr-only">Choix de réponse</legend>
@@ -416,7 +498,7 @@ export function ExerciceWidget({
           </p>
         )}
 
-        {!result && (
+        {!result && !interactif && (
           <Button
             type="submit"
             loading={loading}
@@ -433,7 +515,44 @@ export function ExerciceWidget({
         )}
       </form>
 
-      {result && (
+      {courant &&
+        ctx?.piedExercice &&
+        createPortal(
+          !result ? (
+            <Button
+              type="submit"
+              form={formId}
+              loading={loading}
+              disabled={submitDisabled}
+              className="min-w-40"
+            >
+              Vérifier
+            </Button>
+          ) : result.correct !== true && !feuille ? (
+            <Button variant="secondary" size="sm" onClick={reessayer}>
+              Réessayer
+            </Button>
+          ) : null,
+          ctx.piedExercice
+        )}
+
+      {feuille &&
+        result &&
+        ctx?.feuilleExercice &&
+        createPortal(
+          <FeuilleResultat
+            result={result}
+            exerciseType={exerciseType}
+            staticExplanation={explanation}
+            courseSection={courseSection}
+            xpGain={xpGain}
+            onContinuer={continuer}
+            onReessayer={reessayer}
+          />,
+          ctx.feuilleExercice
+        )}
+
+      {result && !interactif && (
         <ResultPanel
           result={result}
           exerciseType={exerciseType}
@@ -476,21 +595,19 @@ const RESULT_CONFIG = {
   },
 } as const
 
-function ResultPanel({
-  result,
-  exerciseType,
-  staticExplanation,
-  courseSection,
-  xpGain,
-  onReset,
-}: ResultPanelProps) {
+/**
+ * What a result says (#253). A wrong answer never reveals the expected answer (T0). Author
+ * explanations often state it, so they appear only after a correct answer; a wrong one gets a
+ * nudge that reveals nothing, pointing back to the lesson section when there is one. We never echo
+ * `expectedValue` or accepted answers.
+ */
+function retour(
+  result: SoumissionResult,
+  exerciseType: string,
+  staticExplanation: string | undefined,
+  courseSection: CourseSection | undefined
+) {
   const isCorrect = result.correct === true
-  const c = RESULT_CONFIG[isCorrect ? 'success' : 'failure']
-
-  // A wrong answer never reveals the expected answer (T0). Author explanations often state
-  // it (#253), so they appear only after a correct answer; a wrong one gets a nudge that
-  // reveals nothing, pointing back to the lesson section when there is one. We never echo
-  // `expectedValue` or accepted answers.
   const explanation = isCorrect ? (result.explanation ?? staticExplanation) : null
   const nudge = isCorrect
     ? null
@@ -499,6 +616,50 @@ function ResultPanel({
       : exerciseType === 'short-answer'
         ? 'On regarde ensemble : relis la section précédente.'
         : 'On regarde ensemble : reprends le raisonnement pas à pas.'
+  return { isCorrect, explanation, nudge }
+}
+
+/** The real XP this answer earned (ADR 0022), never a fixed number. */
+function GainXp({ xpGain }: { xpGain?: number | null }) {
+  if (xpGain == null || xpGain <= 0) return null
+  return (
+    <span
+      className="xp-pop inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-display text-xs font-extrabold text-xp"
+      role="status"
+    >
+      <Icon name="star" weight="bold" size={14} className="text-xp" />+{xpGain}
+      &nbsp;XP
+    </span>
+  )
+}
+
+function LienRevoir({ courseSection }: { courseSection: CourseSection }) {
+  return (
+    <a
+      href={`#${courseSection.id}`}
+      className="mt-2 inline-flex items-center gap-1.5 font-display text-sm font-bold text-accent-ink hover:underline"
+    >
+      <Icon name="book-open" weight="bold" size={16} aria-hidden="true" />
+      Revoir : {courseSection.title}
+    </a>
+  )
+}
+
+function ResultPanel({
+  result,
+  exerciseType,
+  staticExplanation,
+  courseSection,
+  xpGain,
+  onReset,
+}: ResultPanelProps) {
+  const { isCorrect, explanation, nudge } = retour(
+    result,
+    exerciseType,
+    staticExplanation,
+    courseSection
+  )
+  const c = RESULT_CONFIG[isCorrect ? 'success' : 'failure']
 
   return (
     <div className={`mt-4 rounded-lg border ${c.surface} p-4`} role="status">
@@ -512,29 +673,13 @@ function ResultPanel({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className={`font-display text-lg font-extrabold ${c.title}`}>{c.heading}</p>
-            {isCorrect && xpGain != null && xpGain > 0 && (
-              <span
-                className="xp-pop inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-display text-xs font-extrabold text-xp"
-                role="status"
-              >
-                <Icon name="star" weight="bold" size={14} className="text-xp" />+{xpGain}
-                &nbsp;XP
-              </span>
-            )}
+            {isCorrect && <GainXp xpGain={xpGain} />}
           </div>
           {explanation && (
             <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{explanation}</p>
           )}
           {nudge && <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{nudge}</p>}
-          {!isCorrect && courseSection && (
-            <a
-              href={`#${courseSection.id}`}
-              className="mt-2 inline-flex items-center gap-1.5 font-display text-sm font-bold text-accent-ink hover:underline"
-            >
-              <Icon name="book-open" weight="bold" size={16} aria-hidden="true" />
-              Revoir : {courseSection.title}
-            </a>
-          )}
+          {!isCorrect && courseSection && <LienRevoir courseSection={courseSection} />}
           <div className="mt-3">
             <Button variant="secondary" size="sm" onClick={onReset}>
               Réessayer
@@ -543,5 +688,77 @@ function ResultPanel({
         </div>
       </div>
     </div>
+  )
+}
+
+type FeuilleResultatProps = Omit<ResultPanelProps, 'onReset'> & {
+  onContinuer: () => void
+  onReessayer: () => void
+}
+
+/**
+ * Interactive mode: the result rises from the bottom of the slide, over its bar (#246). It is not
+ * modal: the question stays readable above it. A correct answer focuses « Continuer », a wrong one
+ * « Réessayer », so Entrée does the expected next thing; moving on stays possible either way.
+ */
+function FeuilleResultat({
+  result,
+  exerciseType,
+  staticExplanation,
+  courseSection,
+  xpGain,
+  onContinuer,
+  onReessayer,
+}: FeuilleResultatProps) {
+  const { isCorrect, explanation, nudge } = retour(
+    result,
+    exerciseType,
+    staticExplanation,
+    courseSection
+  )
+  const variant = isCorrect ? 'success' : 'failure'
+  const texte = resultSheetText(variant)
+  const principal = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    principal.current?.focus({ preventScroll: true })
+  }, [])
+
+  return (
+    <ResultSheetSurface
+      variant={variant}
+      role="status"
+      data-feuille-resultat={variant}
+      className="absolute inset-x-0 bottom-0 animate-[slideUp_var(--duration-sheet)_var(--ease-in)]"
+      heading={
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className={`font-display text-xl font-extrabold ${texte.title}`}>
+              {RESULT_CONFIG[variant].heading}
+            </p>
+            {isCorrect && <GainXp xpGain={xpGain} />}
+          </div>
+          {(explanation ?? nudge) && (
+            <p className="font-prose text-sm leading-relaxed text-ink">{explanation ?? nudge}</p>
+          )}
+          {!isCorrect && courseSection && <LienRevoir courseSection={courseSection} />}
+        </>
+      }
+    >
+      {isCorrect ? (
+        <Button ref={principal} size="lg" onClick={onContinuer} className="w-full">
+          Continuer
+        </Button>
+      ) : (
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button ref={principal} size="lg" onClick={onReessayer} className="w-full sm:flex-1">
+            Réessayer
+          </Button>
+          <Button variant="secondary" size="lg" onClick={onContinuer} className="w-full sm:flex-1">
+            Continuer
+          </Button>
+        </div>
+      )}
+    </ResultSheetSurface>
   )
 }

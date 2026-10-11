@@ -51,7 +51,26 @@ type ModeChapitreContext = {
   setBandeRepliee: (repliee: boolean) => void
   tiroirOuvert: boolean
   setTiroirOuvert: (ouvert: boolean) => void
+  /** This session's exercises, by block id. Never persisted (ADR 0032 §1). */
+  exercices: Readonly<Record<string, EtatExercice>>
+  /** The slides opened in this session, so a skipped exercise can be told apart. */
+  vues: ReadonlySet<string>
+  /** An auto-graded exercise announces itself; returns its unregistration. */
+  enregistrerExercice: (blockId: string) => () => void
+  signalerExercice: (blockId: string, etat: 'tente' | 'resolu') => void
+  /** Where the current exercise draws « Vérifier », in the bottom bar (#246). */
+  piedExercice: HTMLElement | null
+  setPiedExercice: (el: HTMLElement | null) => void
+  /** Where it draws its result sheet, over the bottom bar. */
+  feuilleExercice: HTMLElement | null
+  setFeuilleExercice: (el: HTMLElement | null) => void
+  /** The exercise whose result sheet is open: the bar's own buttons step aside. */
+  feuilleOuverte: string | null
+  setFeuilleOuverte: (blockId: string | null) => void
 }
+
+/** `a-faire`: never checked; `tente`: checked, not right yet; `resolu`: right once. */
+export type EtatExercice = 'a-faire' | 'tente' | 'resolu'
 
 const Context = createContext<ModeChapitreContext | null>(null)
 
@@ -159,6 +178,11 @@ export function ModeChapitreProvider({
   const [bandeRepliee, setBandeRepliee] = useState(false)
   const [tiroirOuvert, setTiroirOuvert] = useState(false)
   const [transitionsPretes, setTransitionsPretes] = useState(false)
+  const [exercices, setExercices] = useState<Readonly<Record<string, EtatExercice>>>({})
+  const [vues, setVues] = useState<ReadonlySet<string>>(() => new Set())
+  const [piedExercice, setPiedExercice] = useState<HTMLElement | null>(null)
+  const [feuilleExercice, setFeuilleExercice] = useState<HTMLElement | null>(null)
+  const [feuilleOuverte, setFeuilleOuverte] = useState<string | null>(null)
   const reducedMotion = useReducedMotion()
   const racine = useRef<HTMLDivElement>(null)
 
@@ -201,6 +225,32 @@ export function ModeChapitreProvider({
     },
     [chapitreId]
   )
+
+  // --- Exercises of the session (#246): what the strip marks, what the bar offers. ---
+
+  const enregistrerExercice = useCallback((blockId: string) => {
+    setExercices((prev) => (blockId in prev ? prev : { ...prev, [blockId]: 'a-faire' }))
+    return () =>
+      setExercices((prev) => {
+        const reste = { ...prev }
+        delete reste[blockId]
+        return reste
+      })
+  }, [])
+
+  const signalerExercice = useCallback((blockId: string, etat: 'tente' | 'resolu') => {
+    // Solved once stays solved for the session, even after « Réessayer ».
+    setExercices((prev) => (prev[blockId] === 'resolu' ? prev : { ...prev, [blockId]: etat }))
+  }, [])
+
+  // A result sheet belongs to the moment after « Vérifier »: leaving the slide closes it, and a
+  // student coming back finds the answered exercise with its bar, not the sheet.
+  useEffect(() => {
+    setFeuilleOuverte(null)
+    if (mode !== 'interactif') return
+    const id = deck[index]?.id
+    if (id) setVues((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
+  }, [mode, index, deck])
 
   // --- Moving between slides. ---
 
@@ -509,6 +559,16 @@ export function ModeChapitreProvider({
       setBandeRepliee,
       tiroirOuvert,
       setTiroirOuvert,
+      exercices,
+      vues,
+      enregistrerExercice,
+      signalerExercice,
+      piedExercice,
+      setPiedExercice,
+      feuilleExercice,
+      setFeuilleExercice,
+      feuilleOuverte,
+      setFeuilleOuverte,
     }),
     [
       mode,
@@ -524,6 +584,13 @@ export function ModeChapitreProvider({
       basculer,
       bandeRepliee,
       tiroirOuvert,
+      exercices,
+      vues,
+      enregistrerExercice,
+      signalerExercice,
+      piedExercice,
+      feuilleExercice,
+      feuilleOuverte,
     ]
   )
 

@@ -6,7 +6,7 @@ import type { Diapo } from '@brio/content'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Infobulle, InfobulleProvider } from '@/components/ui/infobulle'
-import { libelleDiapo } from '@/lib/diapos'
+import { etatDiapo, libelleDiapo } from '@/lib/diapos'
 import { useModeChapitre } from './mode-context'
 
 /**
@@ -129,7 +129,7 @@ function groupes(deck: readonly Diapo[]): { cle: string; sectionId?: string; ind
 function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
   const ctx = useModeChapitre()
   if (!ctx) return null
-  const { deck, index, sectionTitles, chemin, aller } = ctx
+  const { deck, index, sectionTitles, chemin, aller, exercices, vues } = ctx
 
   return (
     <InfobulleProvider>
@@ -144,7 +144,8 @@ function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
               {groupe.indices.map((i) => {
                 const diapo = deck[i]
                 const courante = i === index
-                const libelle = libelleDiapo(diapo, i, deck.length, sectionTitles)
+                const etat = etatDiapo(diapo, courante, exercices, vues)
+                const libelle = libelleDiapo(diapo, i, deck.length, sectionTitles, etat)
                 return (
                   <li key={diapo.id}>
                     <Infobulle label={libelle} side="right">
@@ -159,7 +160,7 @@ function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
                           aller(i)
                         }}
                         className={[
-                          'flex h-9 w-9 items-center justify-center rounded-md border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                          'relative flex h-9 w-9 items-center justify-center rounded-md border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                           courante
                             ? 'border-accent-edge bg-accent-soft text-accent-ink'
                             : 'border-transparent text-ink-muted hover:bg-surface-raised hover:text-ink',
@@ -171,6 +172,7 @@ function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
                           weight={courante ? 'bold' : 'regular'}
                           aria-hidden="true"
                         />
+                        <MarqueEtat etat={etat} />
                       </a>
                     </Infobulle>
                   </li>
@@ -182,6 +184,31 @@ function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
       </div>
     </InfobulleProvider>
   )
+}
+
+/** Solved: a check mark. Seen and left with no answer: an amber dot (#246). The label says it too. */
+function MarqueEtat({ etat }: { etat: ReturnType<typeof etatDiapo> }) {
+  if (etat === 'resolu') {
+    return (
+      <span
+        data-etat="resolu"
+        aria-hidden="true"
+        className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent"
+      >
+        <Icon name="check" weight="bold" size={10} className="text-surface-page" />
+      </span>
+    )
+  }
+  if (etat === 'sans-reponse') {
+    return (
+      <span
+        data-etat="sans-reponse"
+        aria-hidden="true"
+        className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-feedback-incorrect"
+      />
+    )
+  }
+  return null
 }
 
 /** Desktop: the strip in the left column; it folds away. Below `lg` it lives in a drawer. */
@@ -229,21 +256,50 @@ export function TiroirDiapos() {
   )
 }
 
-/** Previous and next, under the slide. */
+/**
+ * Previous and next, under the slide. On an auto-graded exercise the middle holds the slot where
+ * that exercise draws « Vérifier » and, once checked, its result sheet, which covers the bar (#246).
+ * « Passer » says the student may move on without answering; it is « Suivant » once checked.
+ */
 export function CommandesScene() {
   const ctx = useModeChapitre()
   if (!ctx || ctx.mode !== 'interactif') return null
-  const { deck, index, suivante, precedente } = ctx
+  const {
+    deck,
+    index,
+    suivante,
+    precedente,
+    exercices,
+    setPiedExercice,
+    setFeuilleExercice,
+    feuilleOuverte,
+  } = ctx
+  const blocs = deck[index].blockIds as readonly string[]
+  const exercice = blocs.find((id) => id in exercices)
+  const feuille = exercice !== undefined && feuilleOuverte === exercice
   return (
-    <div className="sticky bottom-0 z-20 mt-10 flex items-center justify-between gap-3 border-t border-line bg-surface-page py-3">
-      <Button variant="ghost" size="sm" onClick={precedente} disabled={index === 0}>
-        <Icon name="arrow-left" size={16} aria-hidden="true" />
-        Précédent
-      </Button>
-      <Button size="sm" onClick={suivante} disabled={index === deck.length - 1}>
-        Suivant
-        <Icon name="arrow-right" size={16} aria-hidden="true" />
-      </Button>
+    <div className="sticky bottom-0 z-20 mt-10 border-t border-line bg-surface-page py-3">
+      <div
+        className={`flex items-center justify-between gap-3${feuille ? ' invisible' : ''}`}
+        inert={feuille || undefined}
+      >
+        <Button variant="ghost" size="sm" onClick={precedente} disabled={index === 0}>
+          <Icon name="arrow-left" size={16} aria-hidden="true" />
+          Précédent
+        </Button>
+        {exercice !== undefined && <div ref={setPiedExercice} className="flex justify-center" />}
+        <Button
+          variant={exercice !== undefined ? 'ghost' : 'primary'}
+          size="sm"
+          onClick={suivante}
+          disabled={index === deck.length - 1}
+        >
+          {exercice !== undefined && exercices[exercice] === 'a-faire' ? 'Passer' : 'Suivant'}
+          <Icon name="arrow-right" size={16} aria-hidden="true" />
+        </Button>
+      </div>
+      {/* The sheet is drawn here by the exercise, over the bar. */}
+      {exercice !== undefined && <div ref={setFeuilleExercice} className="contents" />}
     </div>
   )
 }
