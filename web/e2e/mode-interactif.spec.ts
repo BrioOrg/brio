@@ -189,6 +189,30 @@ test.describe('slide transitions (MOTION.md)', () => {
     await expect(page.locator('[data-diapo="enonce-prose"]')).toBeHidden()
   })
 
+  test('the leaving slide never comes back into the flow before it is hidden', async ({ page }) => {
+    await ouvrir(page, `${CHAPITRE}?diapo=enonce-prose`)
+    await expect(page.locator('[data-transitions="pretes"]')).toBeAttached()
+
+    // A ResizeObserver runs after layout, right before paint: it sees every painted frame where
+    // the leaving slide is back in the flow (the article grows) and not yet hidden.
+    const retours = await page.evaluate(() => {
+      const sortante = document.querySelector<HTMLElement>('[data-diapo="enonce-prose"]')!
+      let n = 0
+      const observer = new ResizeObserver(() => {
+        if (!sortante.hidden && sortante.style.position !== 'absolute') n++
+      })
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+      observer.observe(document.querySelector('[data-chapitre-article]')!)
+      return new Promise<number>((resolve) =>
+        setTimeout(() => {
+          observer.disconnect()
+          resolve(n)
+        }, 600)
+      )
+    })
+    expect(retours).toBe(0)
+  })
+
   /** Each block of a slide, right after a key press: its opacity and how many animations run. */
   async function tempsApresTouche(page: Page, diapo: string, key = 'ArrowRight') {
     return page.evaluate(

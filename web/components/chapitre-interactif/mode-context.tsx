@@ -11,6 +11,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react'
+import { flushSync } from 'react-dom'
 import type { Diapo } from '@brio/content'
 import { marquerSectionLue } from '@/lib/api'
 import { getMoi } from '@/lib/session'
@@ -396,7 +397,9 @@ export function ModeChapitreProvider({
     apres.current = { focus: false, transition: null }
     if (t) {
       const entrants = frames(deck[index].id)
-      transition(t.sortants, t.rattacher, entrants, t.direction, t.depuisX, () => setSortante(null))
+      transition(t.sortants, t.rattacher, entrants, t.direction, t.depuisX, () =>
+        flushSync(() => setSortante(null))
+      )
       temps(entrants, t.entreeSection)
     }
     if (focus) {

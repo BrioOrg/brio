@@ -114,8 +114,8 @@ export function suivre(controls: Controls): Controls {
 /**
  * Slide exit and entry, run together: the old slide fades out and slides `shift` px against the
  * direction of travel, the new one fades in and slides `shift` px in that direction. `depuisX` is
- * where a swipe left the old slide. `rattacher` (from `detacher`) and then `fin` run once the old
- * slide is gone, animated or skipped.
+ * where a swipe left the old slide. Once the old slide is gone, animated or skipped, `fin` runs
+ * and must hide it synchronously; `rattacher` (from `detacher`) runs after it.
  */
 export function transition(
   sortants: HTMLElement[],
@@ -131,8 +131,10 @@ export function transition(
     if (fini) return
     fini = true
     finirSortie = null
-    rattacher()
+    // Hidden before its styles go: put back in the flow first, it would show at full opacity
+    // above the entering slide until React hid it.
     fin()
+    rattacher()
   }
   if (motion === null) {
     finirSortie()
