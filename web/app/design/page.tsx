@@ -1,5 +1,6 @@
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { OptionRowDemo, ButtonLoadingDemo, ResultSheetDemo } from './kit-interactive'
+import { MotionDemo } from './motion-demo'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
 import { OptionRow } from '@/components/ui/option-row'
@@ -256,26 +257,13 @@ export default function DesignPage() {
         <Section title="Motion">
           <div className="flex flex-col gap-4">
             <p className="text-sm text-ink-muted">
-              Survole les barres pour voir les durées. L&rsquo;animation est désactivée si{' '}
-              <code>prefers-reduced-motion</code> est actif.
+              Seuls <code>transform</code> et <code>opacity</code> s&rsquo;animent. Ce que chaque
+              durée anime est décrit dans <code>docs/design/MOTION.md</code>. Si{' '}
+              <code>prefers-reduced-motion</code> est actif, tout saute directement à
+              l&rsquo;arrivée : en CSS par la règle de <code>tokens.css</code>, en JavaScript par{' '}
+              <code>motionMs()</code>, qui renvoie 0.
             </p>
-            {(
-              [
-                ['fast', '100 ms', 'Micro-interaction'],
-                ['base', '120 ms', 'Transition standard'],
-                ['slow', '300 ms', 'Entrée / sortie'],
-              ] as const
-            ).map(([name, label, desc]) => (
-              <div key={name} className="flex items-center gap-4">
-                <div
-                  className="h-10 w-8 cursor-pointer rounded-md bg-accent hover:w-64"
-                  style={{ transition: `width var(--duration-${name}) var(--ease-out)` }}
-                />
-                <span className="font-prose text-sm text-ink">
-                  <strong>{label}</strong> — {desc}
-                </span>
-              </div>
-            ))}
+            <MotionDemo />
           </div>
         </Section>
 
