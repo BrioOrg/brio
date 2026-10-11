@@ -321,6 +321,25 @@ describe('steps revealed one at a time (MOTION.md "Step reveal")', () => {
   // debut · def · etapes · p-fin · fin
   const deck = buildDeck(AVEC_ETAPES)
 
+  // Slides swap at once under reduced motion. Otherwise, once `motion` has loaded (a race with the
+  // awaited tests above), the leaving slide stays visible during its exit. Beats and transitions
+  // have their own tests (mode-interactif.spec.ts); steps come one at a time either way.
+  beforeEach(() => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query === '(prefers-reduced-motion: reduce)',
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }))
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   function renderEtapes(index: number, mode: ModeChapitre = 'interactif') {
     return render(
       <ModeChapitreProvider
