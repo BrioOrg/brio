@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { Infobulle, InfobulleProvider } from '@/components/ui/infobulle'
 import { etatDiapo, libelleDiapo } from '@/lib/diapos'
+import { CompteursScene } from './compteurs-scene'
 import { useModeChapitre } from './mode-context'
 
 /**
@@ -34,7 +35,10 @@ export function BasculeInteractif() {
   )
 }
 
-/** Top bar: back to reading, the position in the deck (never a completion), the strip toggle. */
+/**
+ * Top bar: back to reading, the position in the deck (never a completion), the student's real XP
+ * and streak (#248), the strip toggle.
+ */
 export function BarreScene() {
   const ctx = useModeChapitre()
   if (!ctx || ctx.mode !== 'interactif') return null
@@ -73,6 +77,8 @@ export function BarreScene() {
               </span>
             </span>
           </div>
+
+          <CompteursScene />
 
           <Infobulle
             label={bandeRepliee ? 'Afficher les diapos' : 'Replier les diapos'}

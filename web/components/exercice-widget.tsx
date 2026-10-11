@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { ResultSheetSurface, resultSheetText } from '@/components/ui/result-sheet'
 import { useModeChapitre } from '@/components/chapitre-interactif/mode-context'
+import { popPastille } from '@/components/chapitre-interactif/celebration'
+import { useCelebrate, type AvantReponse } from '@/components/chapitre-interactif/use-celebrate'
 
 type Choice = { id: string; text: string }
 
@@ -149,7 +151,9 @@ export function ExerciceWidget({
   apercu,
 }: ExerciceWidgetProps) {
   const { setActiveExerciceId } = useChapterInteraction()
-  const { refresh: refreshProgression } = useProgression()
+  const { refresh: refreshProgression, gain, serieChange } = useProgression()
+  // What progression had reported before this answer: the rewards celebrate only what came after.
+  const avantReponse = useRef<AvantReponse>({ gain: 0, serie: 0 })
   const entraide = useEntraideActive()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [numericValue, setNumericValue] = useState('')
@@ -262,6 +266,11 @@ export function ExerciceWidget({
 
   function toggleChoice(choiceId: string) {
     markActive()
+    // Interactive mode: the badge of an option being picked pops; the colours switch at once.
+    if (courant && !selectedIds.includes(choiceId) && choices) {
+      const i = choices.findIndex((c) => c.id === choiceId)
+      popPastille(formRef.current?.querySelectorAll('[data-pastille]')[i], ctx.reducedMotion)
+    }
     if (multiple) {
       setSelectedIds((prev) =>
         prev.includes(choiceId) ? prev.filter((x) => x !== choiceId) : [...prev, choiceId]
@@ -311,6 +320,7 @@ export function ExerciceWidget({
     if (!exerciceId) return // preview: nothing to grade against
 
     setLoading(true)
+    avantReponse.current = { gain: gain?.id ?? 0, serie: serieChange?.id ?? 0 }
     try {
       const res = await soumettre(exerciceId, answer)
       setResult(res)
@@ -545,6 +555,7 @@ export function ExerciceWidget({
             staticExplanation={explanation}
             courseSection={courseSection}
             xpGain={xpGain}
+            avant={avantReponse.current}
             onContinuer={continuer}
             onReessayer={reessayer}
           />,
@@ -618,12 +629,19 @@ function retour(
   return { isCorrect, explanation, nudge }
 }
 
-/** The real XP this answer earned (ADR 0022), never a fixed number. */
-function GainXp({ xpGain }: { xpGain?: number | null }) {
+/**
+ * The real XP this answer earned (ADR 0022), never a fixed number. In interactive mode it does
+ * not pop on its own: it is where the XP flight to the top bar leaves from (#248).
+ */
+function GainXp({ xpGain, interactif = false }: { xpGain?: number | null; interactif?: boolean }) {
   if (xpGain == null || xpGain <= 0) return null
   return (
     <span
-      className="xp-pop inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-display text-xs font-extrabold text-xp"
+      data-gain-xp={interactif || undefined}
+      className={[
+        'inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-display text-xs font-extrabold text-xp',
+        interactif ? '' : 'xp-pop',
+      ].join(' ')}
       role="status"
     >
       <Icon name="star" weight="bold" size={14} className="text-xp" />+{xpGain}
@@ -691,14 +709,18 @@ function ResultPanel({
 }
 
 type FeuilleResultatProps = Omit<ResultPanelProps, 'onReset'> & {
+  avant: AvantReponse
   onContinuer: () => void
   onReessayer: () => void
 }
 
 /**
- * Interactive mode: the result rises from the bottom of the slide, over its bar (#246). It is not
+ * Interactive mode: the result shows at the bottom of the slide, over its bar (#246). It is not
  * modal: the question stays readable above it. A correct answer focuses « Continuer », a wrong one
  * « Réessayer », so Entrée does the expected next thing; moving on stays possible either way.
+ *
+ * A correct answer's sheet rises and celebrates (`useCelebrate`, #248). A wrong answer's sheet is
+ * simply there: no rise, no shake, nothing that moves on a mistake (MOTION.md "What never moves").
  */
 function FeuilleResultat({
   result,
@@ -706,6 +728,7 @@ function FeuilleResultat({
   staticExplanation,
   courseSection,
   xpGain,
+  avant,
   onContinuer,
   onReessayer,
 }: FeuilleResultatProps) {
@@ -718,6 +741,8 @@ function FeuilleResultat({
   const variant = isCorrect ? 'success' : 'failure'
   const texte = resultSheetText(variant)
   const principal = useRef<HTMLButtonElement>(null)
+  const surface = useRef<HTMLDivElement>(null)
+  useCelebrate(isCorrect, surface, avant)
 
   useEffect(() => {
     principal.current?.focus({ preventScroll: true })
@@ -725,17 +750,21 @@ function FeuilleResultat({
 
   return (
     <ResultSheetSurface
+      ref={surface}
       variant={variant}
       role="status"
       data-feuille-resultat={variant}
-      className="absolute inset-x-0 bottom-0 animate-[slideUp_var(--duration-sheet)_var(--ease-in)]"
+      className={[
+        'absolute inset-x-0 bottom-0',
+        isCorrect ? 'animate-[slideUp_var(--duration-sheet)_var(--ease-in)]' : '',
+      ].join(' ')}
       heading={
         <>
           <div className="flex flex-wrap items-center gap-2">
             <p className={`font-display text-xl font-extrabold ${texte.title}`}>
               {RESULT_CONFIG[variant].heading}
             </p>
-            {isCorrect && <GainXp xpGain={xpGain} />}
+            {isCorrect && <GainXp xpGain={xpGain} interactif />}
           </div>
           {(explanation ?? nudge) && (
             <p className="font-prose text-sm leading-relaxed text-ink">{explanation ?? nudge}</p>

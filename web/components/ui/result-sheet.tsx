@@ -70,14 +70,18 @@ export const ResultSheetSurface = forwardRef<HTMLDivElement, ResultSheetSurfaceP
         <div className="flex flex-col gap-4">
           {/* Icon + heading row */}
           <div className="flex items-center gap-3">
-            <span
-              className={[
-                'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
-                c.iconBg,
-              ].join(' ')}
-              aria-hidden="true"
-            >
-              <Icon name={c.icon} weight="bold" size={22} className={c.iconColor} />
+            {/* `data-*`: where the interactive mode pops the check mark and bursts its particles. */}
+            <span className="relative shrink-0" aria-hidden="true">
+              <span
+                data-icone-resultat
+                className={[
+                  'flex h-12 w-12 items-center justify-center rounded-full',
+                  c.iconBg,
+                ].join(' ')}
+              >
+                <Icon name={c.icon} weight="bold" size={22} className={c.iconColor} />
+              </span>
+              <span data-eclats className="pointer-events-none absolute left-1/2 top-1/2" />
             </span>
             <div className="flex min-w-0 flex-col gap-0.5">{heading}</div>
           </div>

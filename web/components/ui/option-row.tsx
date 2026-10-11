@@ -59,6 +59,7 @@ export function OptionRow({ label, marker, state = 'idle', onClick }: OptionRowP
     >
       {/* Hexagonal marker */}
       <span
+        data-pastille
         className={[
           'flex h-7 w-7 shrink-0 items-center justify-center font-display text-sm font-extrabold',
           HEX[state],
