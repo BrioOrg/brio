@@ -120,6 +120,24 @@ follows the method rather than reading the answer first.
 - Under reduced motion, steps still come one at a time: that is pacing, not
   motion. Only the rise and fade are gone.
 
+## End slide (#249)
+
+The celebration is in proportion to what the student did, and never a reproach.
+
+- **Read only** (nothing solved): « Fin du chapitre », the beats, nothing else.
+- **Some exercises solved**: « Beau travail ! »; after the beats, the session XP
+  counts up from 0 over `finale` (linear) and the completion moves from its
+  value at the chapter's opening to the value read now, at the same time.
+- **Every auto-graded exercise solved**: « Tous les exercices réussis ! », the
+  same counts, then the finale burst (twice the particles, 1.6× the spread) at
+  the end of the count, or at the end of the beats when no XP was earned.
+- The completion is read again when the slide opens, a few times: sections
+  read and exercises solved are recorded asynchronously. A value that arrives
+  later counts from where the counter stands.
+- « Tu veux y revenir ? » lists the auto-graded exercises seen and left with no
+  answer (the strip's amber dot), never the ones tried.
+- Under reduced motion every value is simply there. Any press ends it all.
+
 ## What never moves
 
 - **The reading mode.** It keeps today's micro-interactions (hover, press) and
@@ -147,8 +165,10 @@ follows the method rather than reading the answer first.
   nothing flies and the counter simply shows the new total.
 - The flame bumps once, like the XP counter (`check`, `out-quint`), **after**
   the count when the streak moved with that answer, and never when it did not.
-- The end slide shows the XP earned **during the session**, the exercises solved
-  and the streak. The streak does not animate unless it actually changed.
+- The end slide shows the XP earned **during the session** (the sum of the real
+  gains since the chapter opened), the exercises solved, and the chapter's
+  completion as `progression` reads it. A value the backend does not give, or a
+  0, draws no line (see "End slide" below). The streak stays in the top bar.
 - **T0.** On a wrong answer, only the student's own pick is marked (amber, with
   an icon, not colour alone). The right option is never highlighted, the
   expected value is never echoed, and the author's explanation appears only
