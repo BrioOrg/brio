@@ -190,7 +190,7 @@ describe('interactive mode — a full-screen exercise', () => {
 
     fireEvent.click(reessayer)
     expect(screen.queryByText('Pas tout à fait…')).not.toBeInTheDocument()
-    await waitFor(() => expect(option('A')).toHaveFocus())
+    await waitFor(() => expect(screen.getByText("Quel côté est l'hypoténuse ?")).toHaveFocus())
     expect(option('A')).not.toHaveAttribute('aria-pressed')
     expect(visibles(container)).toEqual(['qcm'])
   })

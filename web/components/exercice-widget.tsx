@@ -174,6 +174,7 @@ export function ExerciceWidget({
   const ctx = useModeChapitre()
   const formId = useId()
   const formRef = useRef<HTMLFormElement>(null)
+  const enonceRef = useRef<HTMLParagraphElement>(null)
   const interactif = ctx?.mode === 'interactif'
   const courant =
     interactif &&
@@ -188,13 +189,13 @@ export function ExerciceWidget({
     return enregistrerExercice(id)
   }, [enregistrerExercice, id, exerciceId])
 
-  // After « Réessayer », the first control again, once the form is enabled.
+  // After « Réessayer », the answer field once the form is enabled; without one (options, tiles),
+  // the prompt: focus on an option would make Entrée toggle it instead of checking.
   useEffect(() => {
     if (!refocus) return
     setRefocus(false)
-    formRef.current
-      ?.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled])')
-      ?.focus()
+    const champ = formRef.current?.querySelector<HTMLElement>('input:not([disabled])')
+    ;(champ ?? enonceRef.current)?.focus()
   }, [refocus])
 
   // Keyboard on the current slide: A–E or 1–5 pick an option, Entrée checks. Never while typing in
@@ -372,7 +373,11 @@ export function ExerciceWidget({
       <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted group-data-[chapitre-mode=interactif]/mode:hidden">
         Exercice
       </p>
-      <p className="mb-4 font-prose text-base leading-relaxed text-ink group-data-[chapitre-mode=interactif]/mode:mb-6 group-data-[chapitre-mode=interactif]/mode:font-display group-data-[chapitre-mode=interactif]/mode:text-2xl group-data-[chapitre-mode=interactif]/mode:font-extrabold group-data-[chapitre-mode=interactif]/mode:leading-snug">
+      <p
+        ref={enonceRef}
+        tabIndex={-1}
+        className="mb-4 font-prose text-base leading-relaxed text-ink focus:outline-none group-data-[chapitre-mode=interactif]/mode:mb-6 group-data-[chapitre-mode=interactif]/mode:font-display group-data-[chapitre-mode=interactif]/mode:text-2xl group-data-[chapitre-mode=interactif]/mode:font-extrabold group-data-[chapitre-mode=interactif]/mode:leading-snug"
+      >
         {prompt}
       </p>
 
