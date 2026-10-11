@@ -32,6 +32,7 @@ import {
   transition,
 } from './animation'
 import { useBilanSession, type BilanSession } from './bilan-session'
+import { basculerPleinEcran, estPleinEcran, quitterPleinEcran } from './plein-ecran'
 
 /**
  * The chapter's two modes (ADR 0032): reading, today's long page, and interactive, one slide at a
@@ -65,6 +66,9 @@ type ModeChapitreContext = {
   setBandeRepliee: (repliee: boolean) => void
   tiroirOuvert: boolean
   setTiroirOuvert: (ouvert: boolean) => void
+  /** The tutor and entraide drawer (#250): the rail is hidden in this mode. */
+  aideOuverte: boolean
+  setAideOuverte: (ouverte: boolean) => void
   /** This session's exercises, by block id. Never persisted (ADR 0032 §1). */
   exercices: Readonly<Record<string, EtatExercice>>
   /** The slides opened in this session, so a skipped exercise can be told apart. */
@@ -216,6 +220,7 @@ export function ModeChapitreProvider({
   const [sortante, setSortante] = useState<string | null>(null)
   const [bandeRepliee, setBandeRepliee] = useState(false)
   const [tiroirOuvert, setTiroirOuvert] = useState(false)
+  const [aideOuverte, setAideOuverte] = useState(false)
   const [transitionsPretes, setTransitionsPretes] = useState(false)
   const [exercices, setExercices] = useState<Readonly<Record<string, EtatExercice>>>(() =>
     Object.fromEntries(corriges.map((id) => [id, 'a-faire' as const]))
@@ -236,8 +241,8 @@ export function ModeChapitreProvider({
   const racine = useRef<HTMLDivElement>(null)
 
   // Latest values for the window listeners, which are bound once per mode.
-  const etat = useRef({ mode, index, tiroirOuvert, reducedMotion, etapesVisibles })
-  etat.current = { mode, index, tiroirOuvert, reducedMotion, etapesVisibles }
+  const etat = useRef({ mode, index, tiroirOuvert, aideOuverte, reducedMotion, etapesVisibles })
+  etat.current = { mode, index, tiroirOuvert, aideOuverte, reducedMotion, etapesVisibles }
 
   // --- Steps (MOTION.md "Step reveal"): one at a time on a slide entered forward. ---
 
@@ -414,6 +419,9 @@ export function ModeChapitreProvider({
       window.history.replaceState(null, '', urlAvecDiapo(window.location.href, null))
       versLecture.current = etat.current.index
       setTiroirOuvert(false)
+      setAideOuverte(false)
+      // Full screen belongs to the interactive mode: the long page never opens in it.
+      quitterPleinEcran()
       setMode('lecture')
       return
     }
@@ -519,13 +527,14 @@ export function ModeChapitreProvider({
     }
   }, [mode])
 
-  // --- Keyboard: ← → space, Escape back to reading. ---
+  // --- Keyboard: ← → space, F full screen, T the tutor, Escape back to reading. ---
 
   useEffect(() => {
     if (mode !== 'interactif') return
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
-      if (etat.current.tiroirOuvert || estSaisie(e.target)) return
+      const { tiroirOuvert: tiroir, aideOuverte: aide } = etat.current
+      if (tiroir || aide || estSaisie(e.target)) return
       switch (e.key) {
         case 'ArrowRight':
         case 'ArrowLeft':
@@ -540,7 +549,19 @@ export function ModeChapitreProvider({
           if (e.shiftKey) precedente()
           else suivante()
           return
+        case 'f':
+        case 'F':
+          e.preventDefault()
+          basculerPleinEcran()
+          return
+        case 't':
+        case 'T':
+          e.preventDefault()
+          setAideOuverte(true)
+          return
         case 'Escape':
+          // In full screen, Escape is the browser's: it leaves full screen, and only that.
+          if (estPleinEcran()) return
           e.preventDefault()
           basculer()
           return
@@ -667,6 +688,8 @@ export function ModeChapitreProvider({
       setBandeRepliee,
       tiroirOuvert,
       setTiroirOuvert,
+      aideOuverte,
+      setAideOuverte,
       exercices,
       vues,
       signalerExercice,
@@ -696,6 +719,7 @@ export function ModeChapitreProvider({
       basculer,
       bandeRepliee,
       tiroirOuvert,
+      aideOuverte,
       exercices,
       vues,
       signalerExercice,
