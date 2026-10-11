@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ExerciceWidget } from '../exercice-widget'
 
@@ -143,6 +143,59 @@ describe('ExerciceWidget — choix multiple', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('Pas tout à fait')
   })
 
+  // T0 (#253): « L'angle droit est en S, donc l'hypoténuse est [RT]. » gives the answer away.
+  it("n'affiche pas l'explication de l'auteur sur une réponse incorrecte", async () => {
+    mockSoumettre.mockResolvedValue(INCORRECT_MC)
+    render(<ExerciceWidget {...MC_PROPS} explanation="L'hypoténuse est [RT]." />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Le côté \[RS\]/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
+
+    const status = await screen.findByRole('status')
+    expect(status).not.toHaveTextContent("L'hypoténuse est [RT].")
+    expect(status).toHaveTextContent(/reprends le raisonnement/)
+    expect(within(status).queryByRole('link')).not.toBeInTheDocument()
+  })
+
+  it('renvoie vers la partie du cours sur une réponse incorrecte', async () => {
+    mockSoumettre.mockResolvedValue(INCORRECT_MC)
+    render(
+      <ExerciceWidget
+        {...MC_PROPS}
+        explanation="L'hypoténuse est [RT]."
+        courseSection={{ id: 'enonce-du-theoreme', title: 'Énoncé du théorème' }}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Le côté \[RS\]/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
+
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent('Pas tout à fait — regarde cette partie du cours.')
+    expect(
+      within(status).getByRole('link', { name: /Revoir : Énoncé du théorème/ })
+    ).toHaveAttribute('href', '#enonce-du-theoreme')
+    expect(within(status).getByRole('button', { name: 'Réessayer' })).toBeInTheDocument()
+  })
+
+  it("affiche l'explication de l'auteur après une bonne réponse, sans lien vers le cours", async () => {
+    mockSoumettre.mockResolvedValue({ ...SUCCESS_MC, explanation: null })
+    render(
+      <ExerciceWidget
+        {...MC_PROPS}
+        explanation="L'hypoténuse est [RT]."
+        courseSection={{ id: 'enonce-du-theoreme', title: 'Énoncé du théorème' }}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Le côté \[RT\]/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
+
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent("L'hypoténuse est [RT].")
+    expect(within(status).queryByRole('link')).not.toBeInTheDocument()
+  })
+
   it('affiche une erreur réseau quand le backend est inaccessible', async () => {
     mockSoumettre.mockRejectedValue(new Error('Erreur réseau. Réessaie plus tard.'))
     render(<ExerciceWidget {...MC_PROPS} />)
@@ -260,7 +313,9 @@ describe('ExerciceWidget — réponse courte', () => {
     expect(status).toHaveTextContent(/relis la section précédente/i)
   })
 
-  it("affiche l'explication quand elle est présente", async () => {
+  // T0 (#253): explanations often state the answer, so a wrong answer never shows one —
+  // even if a backend still sends it.
+  it("n'affiche pas l'explication sur une réponse incorrecte", async () => {
     mockSoumettre.mockResolvedValue(INCORRECT_SA_WITH_EXPLANATION)
     render(<ExerciceWidget {...SHORT_ANSWER_PROPS} />)
 
@@ -268,8 +323,8 @@ describe('ExerciceWidget — réponse courte', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('Relis la définition du triangle rectangle.')
-    expect(status).not.toHaveTextContent('Relis la section précédente')
+    expect(status).not.toHaveTextContent('Relis la définition du triangle rectangle.')
+    expect(status).toHaveTextContent(/relis la section précédente/i)
   })
 
   it("n'expose pas les réponses acceptées dans la réponse incorrecte", async () => {

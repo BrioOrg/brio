@@ -13,6 +13,9 @@ import { Icon } from '@/components/ui/icon'
 
 type Choice = { id: string; text: string }
 
+/** The part of the course a wrong answer sends the student back to (#253). */
+export type CourseSection = { id: string; title: string }
+
 type ExerciceWidgetProps = {
   id?: string
   exerciseType: string
@@ -21,6 +24,8 @@ type ExerciceWidgetProps = {
   multiple?: boolean
   unit?: string
   explanation?: string
+  /** Where « Pas tout à fait » points; absent when the exercise sits in an exercises section. */
+  courseSection?: CourseSection
   placeholder?: string
   /** fill-blank: sentence with `{}` markers, one per blank. */
   template?: string
@@ -132,6 +137,7 @@ export function ExerciceWidget({
   multiple,
   unit,
   explanation,
+  courseSection,
   placeholder,
   template,
   bank,
@@ -432,6 +438,7 @@ export function ExerciceWidget({
           result={result}
           exerciseType={exerciseType}
           staticExplanation={explanation}
+          courseSection={courseSection}
           xpGain={xpGain}
           onReset={reset}
         />
@@ -446,6 +453,7 @@ type ResultPanelProps = {
   result: SoumissionResult
   exerciseType: string
   staticExplanation?: string
+  courseSection?: CourseSection
   /** Real XP awarded for this answer, or null when none (cap reached / already earned). */
   xpGain?: number | null
   onReset: () => void
@@ -472,22 +480,25 @@ function ResultPanel({
   result,
   exerciseType,
   staticExplanation,
+  courseSection,
   xpGain,
   onReset,
 }: ResultPanelProps) {
   const isCorrect = result.correct === true
   const c = RESULT_CONFIG[isCorrect ? 'success' : 'failure']
 
-  // A wrong answer opens an explanation, never the expected answer (T0).
-  // We surface the author's pedagogical explanation when present; otherwise a
-  // non-punitive nudge — we never echo `expectedValue` or accepted answers.
-  const explanation = result.explanation ?? staticExplanation
-  const fallback =
-    !isCorrect && !explanation
-      ? exerciseType === 'short-answer'
+  // A wrong answer never reveals the expected answer (T0). Author explanations often state
+  // it (#253), so they appear only after a correct answer; a wrong one gets a nudge that
+  // reveals nothing, pointing back to the lesson section when there is one. We never echo
+  // `expectedValue` or accepted answers.
+  const explanation = isCorrect ? (result.explanation ?? staticExplanation) : null
+  const nudge = isCorrect
+    ? null
+    : courseSection
+      ? 'Pas tout à fait — regarde cette partie du cours.'
+      : exerciseType === 'short-answer'
         ? 'On regarde ensemble : relis la section précédente.'
         : 'On regarde ensemble : reprends le raisonnement pas à pas.'
-      : null
 
   return (
     <div className={`mt-4 rounded-lg border ${c.surface} p-4`} role="status">
@@ -514,8 +525,15 @@ function ResultPanel({
           {explanation && (
             <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{explanation}</p>
           )}
-          {fallback && (
-            <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{fallback}</p>
+          {nudge && <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{nudge}</p>}
+          {!isCorrect && courseSection && (
+            <a
+              href={`#${courseSection.id}`}
+              className="mt-2 inline-flex items-center gap-1.5 font-display text-sm font-bold text-accent-ink hover:underline"
+            >
+              <Icon name="book-open" weight="bold" size={16} aria-hidden="true" />
+              Revoir : {courseSection.title}
+            </a>
           )}
           <div className="mt-3">
             <Button variant="secondary" size="sm" onClick={onReset}>
