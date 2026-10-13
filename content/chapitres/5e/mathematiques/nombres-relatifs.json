@@ -58,7 +58,7 @@
             "7,5",
             "+7,5"
           ],
-          "explanation": "L'opposé de −7,5 a la même distance à zéro, 7,5, et le signe contraire : c'est 7,5 (on peut écrire +7,5)."
+          "explanation": "L'opposé de −7,5 a la même distance à zéro (7,5) et le signe contraire : c'est 7,5 (on peut écrire +7,5)."
         },
         {
           "id": "ex-zero",
@@ -678,7 +678,7 @@
           "estimatedDurationMinutes": 2,
           "answer": -3,
           "tolerance": 0,
-          "explanation": "Sur la droite graduée, −2,4 est entre −3 et −2. Les entiers plus petits que −2,4 sont −3, −4, −5… Le plus grand d'entre eux est −3. −2 est plus grand que −2,4, il ne convient pas."
+          "explanation": "Sur la droite graduée, −2,4 est entre −3 et −2. Les entiers plus petits que −2,4 sont −3, −4, −5… Le plus grand d'entre eux est −3. −2 est plus grand que −2,4 et ne convient donc pas."
         },
         {
           "id": "ex-deplacement-gauche",

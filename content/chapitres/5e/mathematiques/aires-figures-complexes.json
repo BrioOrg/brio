@@ -188,7 +188,7 @@
               "correct": false
             }
           ],
-          "explanation": "On multiplie la base par la hauteur qui lui est perpendiculaire : 5 × 3 = 15 cm². 18 cm² utilise le côté AD au lieu de la hauteur : ce serait l'aire d'un rectangle de 5 sur 3,6, plus grand que le parallélogramme. 7,5 cm² divise par 2 comme pour un triangle."
+          "explanation": "On multiplie la base par la hauteur qui lui est perpendiculaire : 5 × 3 = 15 cm². 18 cm² utilise le côté AD au lieu de la hauteur : ce serait l'aire d'un rectangle de 5 sur 3,6 (plus grand que le parallélogramme). 7,5 cm² divise par 2 comme pour un triangle."
         }
       ]
     },

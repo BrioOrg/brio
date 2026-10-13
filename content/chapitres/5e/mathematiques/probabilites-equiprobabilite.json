@@ -414,7 +414,7 @@
           "estimatedDurationMinutes": 2,
           "answer": 0.18,
           "tolerance": 0,
-          "explanation": "9 lancers sur 50 : 9 ÷ 50 = 0,18. C'est proche de la probabilité $\\frac{1}{6}$ ≈ 0,17, sans lui être égal."
+          "explanation": "9 lancers sur 50 : 9 ÷ 50 = 0,18. C'est proche de la probabilité $\\frac{1}{6}$ ≈ 0,17 sans lui être égal."
         },
         {
           "id": "ex-frequences-urne",
@@ -491,7 +491,7 @@
           "choices": [
             {
               "id": "choix-elle-sera-proche-de-0-5-mais-p",
-              "text": "Elle sera proche de 0,5, mais pas forcément exactement 0,5",
+              "text": "Elle sera proche de 0,5 mais pas forcément exactement égale à 0,5",
               "correct": true
             },
             {
@@ -505,7 +505,7 @@
               "correct": false
             }
           ],
-          "explanation": "Sur un grand nombre de lancers, la fréquence se rapproche de la probabilité, 0,5, mais le hasard laisse un petit écart. Elle n'est presque jamais exactement 0,5."
+          "explanation": "Sur un grand nombre de lancers, la fréquence se rapproche de la probabilité (0,5) mais le hasard laisse un petit écart. Elle n'est presque jamais exactement 0,5."
         },
         {
           "id": "ex-certain",

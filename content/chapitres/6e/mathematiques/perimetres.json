@@ -89,7 +89,7 @@
           "type": "callout",
           "variant": "tip",
           "title": "Une valeur approchée",
-          "text": "π n'est pas un nombre décimal : on utilise une valeur approchée, 3,14, et le résultat est une **valeur approchée** du périmètre. Dans ce chapitre, prends π ≈ 3,14."
+          "text": "π n'est pas un nombre décimal : on utilise une valeur approchée (3,14) et le résultat est une **valeur approchée** du périmètre. Dans ce chapitre, prends π ≈ 3,14."
         },
         {
           "id": "ex-diametre-dix",
