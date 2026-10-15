@@ -97,7 +97,7 @@ describe('soumettre', () => {
       vi.fn(async () => new Response(null, { status: 401 }))
     )
     const { soumettre } = await import('@/lib/api')
-    await expect(soumettre('ex-1', { choiceIds: ['a'] })).rejects.toThrow('Non authentifié')
+    await expect(soumettre('ex-1', { choiceIds: ['a'] })).rejects.toThrow(/session a expiré/)
   })
 })
 

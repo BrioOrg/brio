@@ -247,7 +247,8 @@ export async function soumettre(
   // Guard on the status too: an auth/CSRF failure can return an empty body, which
   // openapi-fetch surfaces as no `error` rather than a populated one.
   if (error || !response.ok) {
-    if (response.status === 401) throw new Error('Non authentifié')
+    if (response.status === 401)
+      throw new Error('Ta session a expiré. Reconnecte-toi, puis réessaie.')
     if (response.status === 404) throw new Error('Exercice introuvable')
     throw new Error('Erreur lors de la soumission')
   }
