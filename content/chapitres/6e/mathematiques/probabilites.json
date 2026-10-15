@@ -308,7 +308,7 @@
           "estimatedDurationMinutes": 2,
           "answer": 0.56,
           "tolerance": 0,
-          "explanation": "28 ÷ 50 = 0,56. Elle est proche de la probabilité 0,5, sans lui être égale : c'est normal sur 50 lancers."
+          "explanation": "28 ÷ 50 = 0,56. Elle est proche de la probabilité 0,5 sans lui être égale : c'est normal sur 50 lancers."
         },
         {
           "id": "ex-dix-lancers",

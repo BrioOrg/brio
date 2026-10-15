@@ -107,7 +107,7 @@
               "correct": false
             }
           ],
-          "explanation": "40 % = 40/100 = 0,4. Répondre 40, c'est oublier le « sur 100 ». Répondre 0,04, c'est diviser par 1 000 au lieu de 100 : 0,04 = 4 %. Répondre 4, c'est diviser par 10 seulement."
+          "explanation": "40 % = 40/100 = 0,4. Répondre 40, c'est oublier le « sur 100 ». Répondre 0,04 revient à diviser par 1 000 au lieu de 100 : 0,04 = 4 %. Répondre 4, c'est diviser par 10 seulement."
         },
         {
           "id": "ex-vingt-cinq-pourcent",
@@ -146,7 +146,7 @@
           "estimatedDurationMinutes": 2,
           "answer": 0.07,
           "tolerance": 0,
-          "explanation": "7 % = 7/100 = 0,07 : le 7 est au rang des centièmes. Attention à ne pas écrire 0,7, qui vaut 70 %."
+          "explanation": "7 % = 7/100 = 0,07 : le 7 est au rang des centièmes. Attention à ne pas écrire 0,7 (qui vaut 70 %)."
         }
       ]
     },

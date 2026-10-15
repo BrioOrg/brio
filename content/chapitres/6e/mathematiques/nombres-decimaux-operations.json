@@ -196,7 +196,7 @@
           "type": "callout",
           "variant": "warning",
           "title": "Multiplier peut diminuer",
-          "text": "Multiplier par un nombre **inférieur à 1** donne un résultat **plus petit** que le premier facteur. Par exemple : 5 × 0,3 = 1,5, et 1,5 < 5. La multiplication ne « fait pas toujours grandir »."
+          "text": "Multiplier par un nombre **inférieur à 1** donne un résultat **plus petit** que le premier facteur. Par exemple : 5 × 0,3 = 1,5 et 1,5 < 5. La multiplication ne « fait pas toujours grandir »."
         },
         {
           "id": "ex-piege-produit",

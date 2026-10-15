@@ -262,7 +262,7 @@
           "estimatedDurationMinutes": 2,
           "answer": 12,
           "tolerance": 0,
-          "explanation": "On divise par 0,5 : x = 6 ÷ 0,5 = 12 (diviser par 0,5, c'est multiplier par 2). Vérification : 0,5 × 12 = 6."
+          "explanation": "On divise par 0,5 : x = 6 ÷ 0,5 = 12 (diviser par 0,5 revient à multiplier par 2). Vérification : 0,5 × 12 = 6."
         },
         {
           "id": "ex-nombre-pense",

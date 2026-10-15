@@ -192,7 +192,7 @@
           "answer": 28,
           "tolerance": 0,
           "unit": "%",
-          "explanation": "7 ÷ 25 = 0,28, soit 28 %. Astuce : 25 × 4 = 100, donc $\\frac{7}{25}$ = $\\frac{28}{100}$."
+          "explanation": "7 ÷ 25 = 0,28 soit 28 %. Astuce : 25 × 4 = 100, donc $\\frac{7}{25}$ = $\\frac{28}{100}$."
         },
         {
           "id": "ex-somme-frequences",
@@ -699,7 +699,7 @@
               "correct": false
             }
           ],
-          "explanation": "La moyenne de 12, 15, 9 et 14 est 12,5, qui n'est aucune des notes. La valeur du milieu d'une série rangée s'appelle la médiane (vue plus tard) : ce n'est pas la même chose."
+          "explanation": "La moyenne de 12, 15, 9 et 14 est 12,5 et ne correspond à aucune des notes. La valeur du milieu d'une série rangée s'appelle la médiane (vue plus tard) : ce n'est pas la même chose."
         }
       ]
     },

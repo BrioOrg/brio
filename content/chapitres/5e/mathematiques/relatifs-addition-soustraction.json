@@ -193,7 +193,7 @@
           "estimatedDurationMinutes": 2,
           "answer": -4.5,
           "tolerance": 0,
-          "explanation": "3,5 − 8 = 3,5 + (−8). Signes contraires : 8 − 3,5 = 4,5, et c'est −8 qui l'emporte : −4,5."
+          "explanation": "3,5 − 8 = 3,5 + (−8). Signes contraires : 8 − 3,5 = 4,5 et c'est −8 qui l'emporte : −4,5."
         },
         {
           "id": "ex-sous-sens",

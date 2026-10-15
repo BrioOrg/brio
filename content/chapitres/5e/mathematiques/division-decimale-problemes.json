@@ -96,7 +96,7 @@
           "type": "callout",
           "variant": "warning",
           "title": "Les deux, pas un seul",
-          "text": "Si tu multiplies seulement le diviseur par 10, tu changes le résultat. 7,2 ÷ 3 = 2,4, ce n'est pas 7,2 ÷ 0,3."
+          "text": "Si tu multiplies seulement le diviseur par 10, tu changes le résultat. 7,2 ÷ 3 = 2,4 et non 7,2 ÷ 0,3."
         },
         {
           "id": "ex-diviser-4-8",
@@ -116,7 +116,7 @@
           "id": "ex-calcul-equivalent",
           "type": "exercise",
           "exerciseType": "multiple-choice",
-          "prompt": "Pour calculer 15,6 ÷ 1,2, on peut calculer :",
+          "prompt": "Pour calculer 15,6 ÷ 1,2 on peut écrire :",
           "competencies": [
             "c4.num.operations.diviser-decimal"
           ],
@@ -317,13 +317,13 @@
           "estimatedDurationMinutes": 2,
           "answer": 36,
           "tolerance": 0,
-          "explanation": "On multiplie les deux nombres par 100 : 9 ÷ 0,25 = 900 ÷ 25 = 36. Autre façon : dans 1 il y a 4 fois 0,25, donc dans 9 il y en a 9 × 4 = 36."
+          "explanation": "On multiplie les deux nombres par 100 : 9 ÷ 0,25 = 900 ÷ 25 = 36. Autre façon : dans 1 il y a 4 fois 0,25 donc dans 9 il y en a 9 × 4 = 36."
         },
         {
           "id": "ex-diviser-par-0-5",
           "type": "exercise",
           "exerciseType": "multiple-choice",
-          "prompt": "Diviser un nombre par 0,5, c'est :",
+          "prompt": "Diviser un nombre par 0,5 revient à :",
           "competencies": [
             "c4.num.operations.diviser-decimal"
           ],
@@ -352,7 +352,7 @@
               "correct": false
             }
           ],
-          "explanation": "Dans 1 il y a deux fois 0,5 : 1 ÷ 0,5 = 2. Donc diviser par 0,5 revient à multiplier par 2 (par exemple 3 ÷ 0,5 = 6). Diviser par 2 ou multiplier par 0,5, c'est prendre la moitié : c'est l'inverse. Et le nombre change, car 0,5 n'est pas égal à 1."
+          "explanation": "Dans 1 il y a deux fois 0,5 : 1 ÷ 0,5 = 2. Donc diviser par 0,5 revient à multiplier par 2 (par exemple 3 ÷ 0,5 = 6). Diviser par 2 ou multiplier par 0,5 revient à prendre la moitié : c'est l'inverse. Et le nombre change, car 0,5 n'est pas égal à 1."
         },
         {
           "id": "ex-yaourts",
@@ -433,7 +433,7 @@
               "correct": false
             }
           ],
-          "explanation": "59,8 est proche de 60 et 0,52 est proche de 0,5. Or 60 ÷ 0,5 = 120 (diviser par 0,5, c'est multiplier par 2). « Environ 30 » vient de l'erreur qui divise par 2 au lieu de multiplier. « Environ 12 » et « environ 1 200 » viennent d'une virgule mal placée."
+          "explanation": "59,8 est proche de 60 et 0,52 est proche de 0,5. Or 60 ÷ 0,5 = 120 (diviser par 0,5 revient à multiplier par 2). « Environ 30 » vient de l'erreur qui divise par 2 au lieu de multiplier. « Environ 12 » et « environ 1 200 » viennent d'une virgule mal placée."
         }
       ]
     }

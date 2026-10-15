@@ -358,7 +358,7 @@
             { "id": "choix-3s4", "text": "3/4", "correct": false },
             { "id": "choix-2s5", "text": "2/5", "correct": false }
           ],
-          "explanation": "1/3 = 0,333… : la division ne se termine pas — ce n'est pas un décimal exact. 1/2 = 0,5, 3/4 = 0,75 et 2/5 = 0,4 sont tous des décimaux exacts."
+          "explanation": "1/3 = 0,333… : la division ne se termine pas — ce n'est pas un décimal exact. 1/2 = 0,5 ; 3/4 = 0,75 et 2/5 = 0,4 sont tous des décimaux exacts."
         },
         {
           "id": "fig-fraction-finale",
