@@ -210,7 +210,7 @@ function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
                           aller(i)
                         }}
                         className={[
-                          'relative flex h-9 w-9 items-center justify-center rounded-md border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                          'relative flex h-11 w-11 items-center justify-center rounded-md border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                           courante
                             ? 'border-accent-edge bg-accent-soft text-accent-ink'
                             : 'border-transparent text-ink-muted hover:bg-surface-raised hover:text-ink',
@@ -218,7 +218,7 @@ function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
                       >
                         <Icon
                           name={ICONE[diapo.kind]}
-                          size={18}
+                          size={24}
                           weight={courante ? 'bold' : 'regular'}
                           aria-hidden="true"
                         />

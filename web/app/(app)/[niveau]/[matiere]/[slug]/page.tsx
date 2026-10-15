@@ -180,7 +180,11 @@ export default async function ChapterPage({
 
             <div className="mx-auto max-w-[68ch] group-data-[chapitre-mode=interactif]/mode:flex group-data-[chapitre-mode=interactif]/mode:w-full group-data-[chapitre-mode=interactif]/mode:flex-1 group-data-[chapitre-mode=interactif]/mode:flex-col">
               <BasculeInteractif />
-              <ChapterProgress niveau={niveau} matiere={matiere} slug={slug} />
+              {/* Reading mode only: the interactive mode has the deck's position bar, and the end
+                  slide draws its own completion, so the gauge would double it here (#240). */}
+              <SeulementEnLecture>
+                <ChapterProgress niveau={niveau} matiere={matiere} slug={slug} />
+              </SeulementEnLecture>
               <EntraideProvider>
                 <ChapterView chapitre={chapitre} deck={deck} />
               </EntraideProvider>
