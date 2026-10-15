@@ -19,7 +19,10 @@ export const APP_SECTIONS: AppSection[] = [
     label: 'Parcours',
     icon: 'compass',
     href: '/',
-    isActive: (pathname) => !pathname.startsWith('/devoirs') && !pathname.startsWith('/annales'),
+    isActive: (pathname) =>
+      !pathname.startsWith('/devoirs') &&
+      !pathname.startsWith('/annales') &&
+      !pathname.startsWith('/ma-classe'),
   },
   {
     key: 'devoirs',
@@ -34,5 +37,12 @@ export const APP_SECTIONS: AppSection[] = [
     icon: 'book-open',
     href: '/annales',
     isActive: (pathname) => pathname.startsWith('/annales'),
+  },
+  {
+    key: 'ma-classe',
+    label: 'Ma classe',
+    icon: 'chat-circle',
+    href: '/ma-classe',
+    isActive: (pathname) => pathname.startsWith('/ma-classe'),
   },
 ]

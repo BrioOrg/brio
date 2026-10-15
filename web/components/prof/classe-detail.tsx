@@ -5,19 +5,23 @@ import { useCallback, useEffect, useState } from 'react'
 
 import {
   CoursApiError,
+  creerSalon,
   genererCodeClasse,
   getCodeClasse,
   listerInscrits,
   listerMesClasses,
+  listerSalons,
   renommerEleve,
   type ClasseInfo,
   type CodeClasseInfo,
   type InscriptionInfo,
+  type SalonVue,
 } from '@brio/api-client'
 
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { TextInput } from '@/components/ui/text-input'
+import { messageErreur } from '@/components/messagerie/messagerie-format'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Une classe de l'enseignant : son code, à transmettre aux élèves, et la liste des élèves qui
@@ -93,11 +97,87 @@ export function ClasseDetail({ classeId }: { classeId: string }) {
         {classe && (
           <>
             <CodeDeClasse classeId={classeId} />
+            <SalonDeClasse classeId={classeId} libelle={classe.libelle} />
             <Eleves classeId={classeId} />
           </>
         )}
       </main>
     </div>
+  )
+}
+
+function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: string }) {
+  // undefined: loading · null: no salon yet · SalonVue: open
+  const [salon, setSalon] = useState<SalonVue | null | undefined>(undefined)
+  const [ouvre, setOuvre] = useState(false)
+  const [erreur, setErreur] = useState<string | null>(null)
+
+  const charger = useCallback(async () => {
+    try {
+      const salons = await listerSalons(apiBaseUrl())
+      setSalon(salons.find((s) => s.classeId === classeId) ?? null)
+    } catch (e) {
+      setErreur(messageErreur(e, 'Impossible de charger le salon de la classe.'))
+    }
+  }, [classeId])
+
+  useEffect(() => {
+    void charger()
+  }, [charger])
+
+  async function ouvrir() {
+    setOuvre(true)
+    setErreur(null)
+    try {
+      await creerSalon(apiBaseUrl(), { classeId, titre: `Salon de ${libelle}` })
+      await charger()
+    } catch (e) {
+      setErreur(messageErreur(e, "L'ouverture du salon a échoué. Réessayez."))
+    } finally {
+      setOuvre(false)
+    }
+  }
+
+  return (
+    <section
+      aria-label="Salon de la classe"
+      className="flex flex-col gap-3 rounded-xl border border-line bg-surface-panel p-6"
+    >
+      <h2 className="font-display text-sm font-extrabold uppercase tracking-widest text-ink-muted">
+        Salon de la classe
+      </h2>
+
+      {erreur && (
+        <p role="alert" className="text-sm text-danger">
+          {erreur}
+        </p>
+      )}
+
+      {salon === undefined && !erreur && <p className="text-ink-muted">Chargement…</p>}
+
+      {salon && (
+        <p className="text-sm text-ink-muted">
+          Le salon <span className="font-semibold text-ink">{salon.titre}</span> est ouvert. Tes
+          élèves le retrouvent dans « Ma classe ». Les messages signalés arrivent dans{' '}
+          <span className="text-ink">Signalements du salon</span>.
+        </p>
+      )}
+
+      {salon === null && (
+        <>
+          <p className="text-sm text-ink-muted">
+            Ouvre un salon de discussion pour la classe : chaque élève et toi pouvez y écrire. Tu
+            peux masquer un message signalé à tout moment.
+          </p>
+          <div>
+            <Button size="sm" onClick={() => void ouvrir()} loading={ouvre}>
+              <Icon name="chat-circle" size={16} aria-hidden="true" />
+              Ouvrir le salon
+            </Button>
+          </div>
+        </>
+      )}
+    </section>
   )
 }
 

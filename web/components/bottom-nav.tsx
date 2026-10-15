@@ -8,17 +8,16 @@ import { APP_SECTIONS, type AppSection } from '@/lib/app-sections'
 /**
  * App shell bottom navigation (mobile only — hidden ≥ sm, where SiteHeader
  * carries the same sections through HeaderNav). Hidden while a chapter is in interactive mode,
- * which takes the whole screen (#245). Tabs: parcours · devoirs · annales · social · profil.
+ * which takes the whole screen (#245). Tabs: parcours · devoirs · annales · ma-classe · profil.
  *
- * "parcours" (catalogue/app home), "devoirs" (homework, F4) and "annales" (exam
- * papers, F7) are wired. "social" and "profil" point at modules that do not exist
- * yet, so they are rendered disabled rather than linking nowhere.
+ * "parcours" (catalogue/app home), "devoirs" (homework, F4), "annales" (exam
+ * papers, F7) and "ma-classe" (class salon, F6b) are wired. "profil" points at a
+ * module that does not exist yet, so it is rendered disabled rather than linking nowhere.
  */
 type Tab = Omit<AppSection, 'href'> & { href?: string }
 
 const TABS: Tab[] = [
   ...APP_SECTIONS,
-  { key: 'social', label: 'Social', icon: 'chat-circle', isActive: () => false },
   { key: 'profil', label: 'Profil', icon: 'user', isActive: () => false },
 ]
 
