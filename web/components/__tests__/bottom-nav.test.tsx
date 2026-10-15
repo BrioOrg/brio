@@ -25,8 +25,8 @@ describe('BottomNav', () => {
     expect(screen.getByRole('link', { name: 'Parcours' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Devoirs' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Annales' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ma classe' })).toBeInTheDocument()
     // Disabled tabs are buttons, not links.
-    expect(screen.getByRole('button', { name: /Social/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Profil/ })).toBeInTheDocument()
   })
 
@@ -37,15 +37,14 @@ describe('BottomNav', () => {
     expect(parcours).toHaveAttribute('aria-current', 'page')
   })
 
-  it('renders social and profil as disabled and non-interactive', async () => {
+  it('renders profil as disabled and non-interactive', async () => {
     await setup()
-    for (const label of [/Social/, /Profil/]) {
-      const tab = screen.getByRole('button', { name: label })
-      expect(tab).toBeDisabled()
-      expect(tab).toHaveAttribute('aria-disabled', 'true')
-    }
-    // None of the disabled sections are links.
-    expect(screen.queryByRole('link', { name: /Social/ })).not.toBeInTheDocument()
+    const profil = screen.getByRole('button', { name: /Profil/ })
+    expect(profil).toBeDisabled()
+    expect(profil).toHaveAttribute('aria-disabled', 'true')
     expect(screen.queryByRole('link', { name: /Profil/ })).not.toBeInTheDocument()
+    // "Ma classe" replaced the old disabled "Social" placeholder: it is a real link now.
+    expect(screen.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('href', '/ma-classe')
+    expect(screen.queryByRole('button', { name: /Social/ })).not.toBeInTheDocument()
   })
 })

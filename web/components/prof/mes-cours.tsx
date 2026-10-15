@@ -124,6 +124,12 @@ export function MesCours() {
           >
             Signalements
           </Link>
+          <Link
+            href="/prof/signalements-salon"
+            className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface-page px-4 py-2.5 font-display text-sm font-extrabold text-ink hover:border-accent"
+          >
+            Salon
+          </Link>
           <button
             type="button"
             onClick={() => {
