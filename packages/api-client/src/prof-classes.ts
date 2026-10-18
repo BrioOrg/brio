@@ -5,7 +5,6 @@ import { CoursApiError } from './cours-edition.js'
 import { csrfHeaders, ensureCsrfToken } from './csrf.js'
 import { EtablissementPublicSchema } from './enrollment.js'
 import type { EtablissementPublic } from './enrollment.js'
-import type { components } from './generated/schema.js'
 
 /**
  * The connected teacher's own classes: listed for the publish screen's class picker
@@ -23,8 +22,6 @@ import type { components } from './generated/schema.js'
  *   PATCH /api/classes/{id}/inscriptions/{compteId}    200 -> InscriptionInfo · 403 · 404
  */
 
-export type ClasseInfo = components['schemas']['ClasseInfo']
-
 /** The teacher's active classes, with labels. Empty when the teacher runs no class. */
 export async function listerMesClasses(baseUrl: string): Promise<ClasseInfo[]> {
   const client = createApiClient(baseUrl)
@@ -32,7 +29,7 @@ export async function listerMesClasses(baseUrl: string): Promise<ClasseInfo[]> {
   if (error || !data) {
     throw new CoursApiError(response.status, 'Impossible de charger vos classes.')
   }
-  return data
+  return z.array(ClasseInfoSchema).parse(data)
 }
 
 // --- Responses validated at the boundary ---
@@ -49,6 +46,8 @@ const ClasseInfoSchema = z.object({
     .nullish()
     .transform((v) => v ?? undefined),
 })
+
+export type ClasseInfo = z.infer<typeof ClasseInfoSchema>
 
 /** Returned once at generation: the only response that carries the raw code (ADR 0018 §6). */
 export const CodeClasseCreeeSchema = z.object({

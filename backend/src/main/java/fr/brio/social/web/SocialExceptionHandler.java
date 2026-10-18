@@ -1,10 +1,13 @@
 package fr.brio.social.web;
 
 import fr.brio.social.AccesEntraideRefuseException;
+import fr.brio.social.AccesMessagerieRefuseException;
 import fr.brio.social.FilNotFoundException;
 import fr.brio.social.MessageInvalideException;
 import fr.brio.social.MessageNotFoundException;
 import fr.brio.social.PasModerateurException;
+import fr.brio.social.SalonMessageNotFoundException;
+import fr.brio.social.SalonNotFoundException;
 import fr.brio.social.SousSanctionException;
 import fr.brio.social.TropDeMessagesException;
 import java.util.Map;
@@ -17,13 +20,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice(basePackages = "fr.brio.social.web")
 class SocialExceptionHandler {
 
-    @ExceptionHandler({FilNotFoundException.class, MessageNotFoundException.class})
+    @ExceptionHandler({
+        FilNotFoundException.class,
+        MessageNotFoundException.class,
+        SalonNotFoundException.class,
+        SalonMessageNotFoundException.class
+    })
     ResponseEntity<Map<String, String>> introuvable(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler({
         AccesEntraideRefuseException.class,
+        AccesMessagerieRefuseException.class,
         PasModerateurException.class,
         SousSanctionException.class
     })

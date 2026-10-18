@@ -23,6 +23,7 @@ describe('HeaderNav', () => {
     expect(screen.getByRole('link', { name: 'Parcours' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Devoirs' })).toHaveAttribute('href', '/devoirs')
     expect(screen.getByRole('link', { name: 'Annales' })).toHaveAttribute('href', '/annales')
+    expect(screen.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('href', '/ma-classe')
   })
 
   it('marks only the current section', async () => {

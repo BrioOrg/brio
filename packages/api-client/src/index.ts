@@ -138,3 +138,22 @@ export type {
   TypeSanction,
   SanctionnerInput,
 } from './entraide.js'
+export {
+  listerSalons,
+  messagesDuSalon,
+  publierDansSalon,
+  signalerMessageSalon,
+  creerSalon,
+  fileSignalementsSalon,
+  masquerMessageSalon,
+  MessagerieError,
+  SalonVueSchema,
+  SalonMessageVueSchema,
+  SalonSignalementVueSchema,
+} from './salons.js'
+export type {
+  SalonVue,
+  SalonMessageVue,
+  SalonSignalementVue,
+  CreerSalonInput,
+} from './salons.js'

@@ -21,6 +21,11 @@
  *   POST /api/exercices/{id}/soumissions          graded from content/ like the backend's
  *                                                 evaluators (#246); 401 without a session
  *   POST /api/chapitres/{id}/sections/{s}/lu      204 with a session, 401 without
+ *   GET  /api/moi/classes, /api/salons            the test student's class and salon; 401
+ *                                                 without that student's session (F6b)
+ *   GET  /api/salons/{id}/messages                that salon's messages, own ones flagged
+ *   POST /api/salons/{id}/messages                201 { id }; 422 on an empty body
+ *   POST /api/salons/messages/{id}/signalement    204 with a session, 401 without
  *   anything else                                 404 (the catalogue too: the page falls back
  *                                                 to codes, nothing is invented)
  *
@@ -89,6 +94,37 @@ const ELEVE = {
   nom: null,
   email: null,
 }
+
+// The logged-in student's class and its salon (F6b, #270), for /ma-classe. `estMoi` is derived
+// per reader, as the real backend does — the student's own messages are the ones they authored.
+const CLASSE = { id: 'classe-5eB', libelle: '5e B', niveauCode: '5e' }
+const SALON = {
+  id: 'salon-5eB',
+  classeId: CLASSE.id,
+  titre: 'Salon de la 5e B',
+  statut: 'ouvert',
+  nbMessages: 2,
+  createdAt: '2026-10-12T08:00:00Z',
+}
+const salonMessages = [
+  {
+    id: 'msg-1',
+    auteurId: 'prof-1',
+    auteurNom: 'M. Dubois',
+    corps: 'Bonjour la 5e B ! Pensez aux fractions pour mardi.',
+    statut: 'publie',
+    createdAt: '2026-10-12T08:01:00Z',
+  },
+  {
+    id: 'msg-2',
+    auteurId: 'eleve-lea',
+    auteurNom: 'Léa',
+    corps: 'Bonjour monsieur, c’est noté.',
+    statut: 'publie',
+    createdAt: '2026-10-12T08:05:00Z',
+  },
+]
+const salonMessageVue = (m) => ({ ...m, estMoi: m.auteurId === ELEVE.id })
 
 async function chapitres() {
   const out = []
@@ -226,6 +262,21 @@ const server = createServer(async (req, res) => {
       }
       return send(res, 404)
     }
+
+    // Class salon (F6b). A session that is not the test student's gets 401, as the backend
+    // would for a logged-out caller — the client treats that as "no class".
+    if (pathname === '/api/moi/classes') {
+      return connecte(req) ? send(res, 200, [CLASSE]) : send(res, 401)
+    }
+    if (pathname === '/api/salons') {
+      return connecte(req) ? send(res, 200, [SALON]) : send(res, 401)
+    }
+    const messagesDuSalon = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)
+    if (messagesDuSalon) {
+      if (!connecte(req)) return send(res, 401)
+      if (messagesDuSalon[1] !== SALON.id) return send(res, 404)
+      return send(res, 200, salonMessages.filter((m) => m.statut !== 'masque').map(salonMessageVue))
+    }
   }
 
   if (req.method === 'POST') {
@@ -272,6 +323,28 @@ const server = createServer(async (req, res) => {
     if (/^\/api\/chapitres\/[^/]+\/sections\/[^/]+\/lu$/.test(pathname)) {
       res.writeHead(connecte(req) ? 204 : 401)
       return res.end()
+    }
+
+    // Class salon (F6b): publish a message, report a message.
+    const publier = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)
+    if (publier) {
+      if (!connecte(req)) return send(res, 401)
+      if (publier[1] !== SALON.id) return send(res, 404)
+      const texte = ((await corps(req))?.corps ?? '').trim()
+      if (!texte) return send(res, 422, { error: 'Message vide.' })
+      const id = `msg-${salonMessages.length + 1}`
+      salonMessages.push({
+        id,
+        auteurId: ELEVE.id,
+        auteurNom: 'Moi',
+        corps: texte,
+        statut: 'publie',
+        createdAt: '2026-10-12T10:00:00Z',
+      })
+      return send(res, 201, { id })
+    }
+    if (/^\/api\/salons\/messages\/[^/]+\/signalement$/.test(pathname)) {
+      return send(res, connecte(req) ? 204 : 401)
     }
   }
 
