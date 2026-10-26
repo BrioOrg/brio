@@ -966,6 +966,13 @@ function Poignee({
   )
 }
 
+// Le type de partie se lit à l'icône (celles des diapos du mode interactif), nommée pour les
+// lecteurs d'écran.
+const ICONE_SECTION: Record<SectionKind, string> = {
+  lesson: 'book-open',
+  exercises: 'pencil-simple',
+}
+
 function PlanSection({
   section,
   problemes,
@@ -1008,9 +1015,14 @@ function PlanSection({
             <span className="block truncate font-display text-[13px] font-extrabold text-ink">
               {section.title.trim() || 'Partie sans titre'}
             </span>
-            <span className="block font-prose text-[11px] text-ink-muted">
-              {SECTION_KIND_LABELS[section.kind]} · {section.blocks.length} bloc
-              {section.blocks.length > 1 ? 's' : ''}
+            <span className="flex items-center gap-1 font-prose text-[11px] text-ink-muted">
+              <Icon
+                name={ICONE_SECTION[section.kind]}
+                size={12}
+                label={SECTION_KIND_LABELS[section.kind]}
+                className="shrink-0"
+              />
+              {section.blocks.length} bloc{section.blocks.length > 1 ? 's' : ''}
             </span>
             <CompteProblemes problemes={problemes} />
           </span>
