@@ -32,7 +32,8 @@ test('the figure is on the exercise slide, above the exercise', async ({ page })
   const consigne = slide.getByText('Un parallélogramme est un quadrilatère :')
   await expect(figure).toBeVisible()
   await expect(consigne).toBeVisible()
-  await expect(slide.getByRole('button', { name: 'Vérifier' })).toBeVisible()
+  // The check button lives in the scene's bottom bar, outside the slide.
+  await expect(page.getByRole('button', { name: 'Vérifier' })).toBeVisible()
 
   // One column on every screen: the figure first, the exercise below it.
   const boiteFigure = await figure.boundingBox()
@@ -56,5 +57,5 @@ test('a figure with no exercise after it keeps its lesson slide', async ({ page 
   await expect(page).toHaveURL(/\?diapo=intro-prose$/)
   const slide = diapo(page, 'intro-prose')
   await expect(slide.getByRole('img', { name: /^Triangle rectangle ABC/ })).toBeVisible()
-  await expect(slide.getByRole('button', { name: 'Vérifier' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Vérifier' })).toBeHidden()
 })
