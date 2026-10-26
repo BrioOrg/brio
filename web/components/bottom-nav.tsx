@@ -3,26 +3,23 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Icon } from '@/components/ui/icon'
-import { APP_SECTIONS, type AppSection } from '@/lib/app-sections'
+import { activeSectionKey, APP_SECTIONS } from '@/lib/app-sections'
 
 /**
- * App shell bottom navigation (mobile only — hidden ≥ sm, where SiteHeader
- * carries the same sections through HeaderNav). Hidden while a chapter is in interactive mode,
+ * App shell bottom navigation (mobile only — hidden ≥ sm, where SectionSidebar
+ * carries the same sections). Hidden while a chapter is in interactive mode,
  * which takes the whole screen (#245). Tabs: parcours · devoirs · annales · ma-classe · profil.
  *
  * "parcours" (catalogue/app home), "devoirs" (homework, F4), "annales" (exam
  * papers, F7) and "ma-classe" (class salon, F6b) are wired. "profil" points at a
  * module that does not exist yet, so it is rendered disabled rather than linking nowhere.
  */
-type Tab = Omit<AppSection, 'href'> & { href?: string }
+type Tab = { key: string; label: string; icon: string; href?: string }
 
-const TABS: Tab[] = [
-  ...APP_SECTIONS,
-  { key: 'profil', label: 'Profil', icon: 'user', isActive: () => false },
-]
+const TABS: Tab[] = [...APP_SECTIONS, { key: 'profil', label: 'Profil', icon: 'user' }]
 
 export function BottomNav() {
-  const pathname = usePathname()
+  const activeKey = activeSectionKey(APP_SECTIONS, usePathname() ?? '/')
 
   return (
     <nav
@@ -32,7 +29,7 @@ export function BottomNav() {
       <ul className="flex items-center justify-around px-2 py-2">
         {TABS.map((tab) => {
           const disabled = tab.href === undefined
-          const active = !disabled && tab.isActive(pathname)
+          const active = !disabled && tab.key === activeKey
 
           const shell =
             'grid place-items-center rounded-md p-2 transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel'
