@@ -49,7 +49,8 @@
  *    (reserved for the opening and closing slides; read from packages/content/src/deck.ts).
  *
  * Scanned: content/ (excluding referentiel) + docs/schema/examples/.
- * No dependencies; it imports the Scratch parser and the reserved slide ids as TypeScript, so it
+ * No dependencies; it imports the Scratch parser, the reserved slide ids and the chart rules as
+ * TypeScript (packages/content), so it
  * runs with Node's type stripping: `pnpm check:content` (node --experimental-strip-types). Exits non-zero on any problem.
  */
 import { readdirSync, readFileSync } from 'node:fs'
@@ -57,9 +58,11 @@ import { join, relative } from 'node:path'
 
 let parseScratch
 let RESERVED_DIAPO_IDS
+let checkChart
 try {
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
+  ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -491,62 +494,39 @@ function checkAxes(spec, file, path) {
   }
 }
 
-const MAX_CHART_GRADUATIONS = 20
+// The rules live in packages/content/src/chart-rules.ts, shared with the teacher editor (#229);
+// only their English wording is here.
+function chartMessage(issue) {
+  switch (issue.code) {
+    case 'SERIES_COUNT':
+      return `a chart has exactly one series for now, found ${issue.count}`
+    case 'CATEGORY_COUNT':
+      return `a ${issue.kind} chart needs 2 to ${issue.max} categories, found ${issue.count}`
+    case 'BLANK_LABEL':
+      return 'blank category label'
+    case 'DUPLICATE_LABEL':
+      return `duplicate category "${issue.label}"`
+    case 'NON_FINITE_VALUE':
+      return 'value is not a finite number'
+    case 'NON_POSITIVE_PIE':
+      return 'a pie sector must have a positive value'
+    case 'NEGATIVE_BAR':
+      return 'a bar cannot be negative (use a line for values below 0)'
+    case 'PIE_AXIS_FIELD':
+      return 'a pie has no axis'
+    case 'YMAX_BELOW_LARGEST':
+      return `yMax ${issue.yMax} is below the largest value ${issue.largest}`
+    case 'YSTEP_NOT_POSITIVE':
+      return 'yStep must be positive'
+    case 'TOO_MANY_GRADUATIONS':
+      return `${issue.graduations} graduations; at most ${issue.max}`
+    default:
+      return issue.code
+  }
+}
 
 function checkChartBlock(block, file, path) {
-  const series = Array.isArray(block.series) ? block.series : []
-  if (series.length !== 1) {
-    fail(file, path + '.series', `a chart has exactly one series for now, found ${series.length}`)
-    return
-  }
-  const data = Array.isArray(series[0].data) ? series[0].data : []
-  const isPie = block.kind === 'pie'
-  const maxCategories = isPie ? 6 : 12
-  if (data.length < 2 || data.length > maxCategories) {
-    fail(file, path + '.series[0].data', `a ${block.kind} chart needs 2 to ${maxCategories} categories, found ${data.length}`)
-  }
-
-  const seen = new Set()
-  data.forEach((d, i) => {
-    const at = `${path}.series[0].data[${i}]`
-    const label = typeof d.label === 'string' ? d.label.trim() : ''
-    if (label === '') fail(file, at + '.label', 'blank category label')
-    else if (seen.has(label)) fail(file, at + '.label', `duplicate category "${label}"`)
-    seen.add(label)
-    if (typeof d.value !== 'number' || !Number.isFinite(d.value)) {
-      fail(file, at + '.value', 'value is not a finite number')
-    } else if (isPie && d.value <= 0) {
-      fail(file, at + '.value', 'a pie sector must have a positive value')
-    } else if (block.kind === 'bar' && d.value < 0) {
-      fail(file, at + '.value', 'a bar cannot be negative (use a line for values below 0)')
-    }
-  })
-
-  if (isPie) {
-    for (const field of ['xLabel', 'yLabel', 'yMax', 'yStep', 'showValues']) {
-      if (field in block) fail(file, `${path}.${field}`, 'a pie has no axis')
-    }
-    return
-  }
-
-  const values = data.map((d) => d.value).filter((v) => Number.isFinite(v))
-  const largest = Math.max(0, ...values)
-  const smallest = Math.min(0, ...values)
-  if (block.yMax !== undefined && block.yMax < largest) {
-    fail(file, path + '.yMax', `yMax ${block.yMax} is below the largest value ${largest}`)
-  }
-  if (block.yStep !== undefined) {
-    if (!(block.yStep > 0)) {
-      fail(file, path + '.yStep', 'yStep must be positive')
-    } else {
-      const top = block.yMax ?? largest
-      const bottom = smallest < 0 ? Math.floor(smallest / block.yStep) * block.yStep : 0
-      const graduations = (top - bottom) / block.yStep
-      if (graduations > MAX_CHART_GRADUATIONS) {
-        fail(file, path + '.yStep', `${Math.ceil(graduations)} graduations; at most ${MAX_CHART_GRADUATIONS}`)
-      }
-    }
-  }
+  for (const issue of checkChart(block)) fail(file, `${path}.${issue.path}`, chartMessage(issue))
 }
 
 // --- Scratch programmes (ADR 0031) ---

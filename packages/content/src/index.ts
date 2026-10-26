@@ -66,6 +66,17 @@ export type {
 } from './chart'
 export { buildChartModel, niceStep, valueScale, wrapLabel } from './chart'
 
+export type { ChartIssue, ChartIssueCode } from './chart-rules'
+export {
+  checkChart,
+  maxCategories,
+  CHART_AXIS_FIELDS,
+  CHART_MAX_CATEGORIES,
+  CHART_MAX_GRADUATIONS,
+  CHART_MIN_CATEGORIES,
+  PIE_MAX_CATEGORIES,
+} from './chart-rules'
+
 export type {
   ScratchOperator,
   ScratchValue,
