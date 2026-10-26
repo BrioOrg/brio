@@ -6,6 +6,8 @@
 - **Amended**: 2026-10-11 (#245) — §1, §6, §7: both modes render **one tree**, so exercise state
   survives a switch without a store; `motion` drives the slides imperatively with `animate()`
   instead of `LazyMotion` + `m.*`
+- **Amended**: 2026-10-26 (#277) — §2 rule 6: a figure right before an exercise goes on the
+  exercise slide, so the student never has to go back to see it while answering
 
 ## Context
 
@@ -83,13 +85,28 @@ Rules, applied section by section:
 4. **A support or aside with no open slide opens one** (after an exercise, at the start of a
    section).
 5. **One exercise per slide**, full screen. It closes the open slide.
-6. **The support placed right before an exercise** goes on the exercise slide **only when the lead
-   before it already has a support**: it is then the exercise's data, not the lesson's
-   illustration. `callout → figure → exercise` keeps the figure with the callout;
-   `callout → figure → table → exercise` moves the table onto the exercise slide. 5 slides in the
-   catalogue are affected. A slide opened by a support or an aside (rule 4) has no lead, so its
-   supports stay with it: `exercise → table → chart → exercise` keeps the table and the chart
-   together (#244).
+6. **Supports right before an exercise** (amended, #277). A support "figure" is a `figure`, an
+   `image` or a `chart`: what a student looks at while answering.
+   - **a. Figures go with the exercise.** The figures placed right before an exercise, with
+     nothing else in between, go on its slide: `callout → figure → exercise` gives `callout` then
+     `figure + exercise`, and `callout → figure → figure → exercise` moves both figures. A figure
+     followed by a table or a formula before the exercise is not "right before" it and stays with
+     the lesson: `callout → figure → table → exercise` keeps `callout + figure` (rule 6b moves the
+     table). An aside ends the run: `callout → figure → tip → figure → exercise` moves only the
+     second figure. A slide opened by a support or an aside (rule 4) has no lead, so its supports
+     stay together: `exercise → table → chart → exercise` moves the table **and** the chart onto
+     the exercise slide (#244).
+   - **b. Other supports** (`table`, `formula`, `code`): the one placed right before an exercise
+     goes on its slide **only when the lead before it already has a support**: it is then the
+     exercise's data, not the lesson's illustration. `callout → formula → exercise` keeps the
+     formula with the callout; `callout → figure → table → exercise` moves the table.
+   - A figure with no exercise right after it keeps its place on the lesson slide. A figure never
+     joins an exercise in another section (rule 7). The exercise slide lays its blocks out in one
+     column, figure above, exercise below, on every screen: the reading column is narrow (68ch)
+     and a geometry figure is drawn at most 320 px wide, so a side-by-side layout would squeeze the exercise.
+   - The first version of this rule (#244) kept a lead's only figure on the lesson slide, which
+     made the student go back a slide to see it while answering (#277). 30 exercise slides of the
+     catalogue now hold a support, against 5.
 7. **Never across a section.** The section title is the kicker of each of its slides. There is no
    divider slide: the side strip draws the divider.
 8. **A slide is never cut.** When a slide is taller than the screen, its inside scrolls.
@@ -110,10 +127,11 @@ ex-justifier-rectangle     exercise
 fin
 ```
 
-Over the whole catalogue, these rules give 10 to 35 slides per chapter (median 22, 996 in total).
-Apart from the empty `fin` slides and the 5 `debut` slides without objectives, slides hold 1 block
-(809), 2 (101), 3 (33), 4 (2) or 5 (1). The tallest is the `statistiques` table with its three
-charts, which scrolls (rule 8).
+Over the whole catalogue, these rules give 10 to 33 slides per chapter (median 21, 985 in total;
+measured after #277). Apart from the empty `fin` slides and the 5 `debut` slides without
+objectives, slides hold 1 block (787), 2 (113), 3 (32), 4 (1) or 5 (2). The tallest is the
+`statistiques` exercise slide, a table and three charts before the exercise, which scrolls
+(rule 8).
 
 Hand-written slide breaks are out of scope. They are worth considering only if the automatic split
 is often wrong.

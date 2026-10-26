@@ -44,8 +44,8 @@ test.describe('Ma classe — salon de la classe', () => {
 })
 
 test('a student in no class is asked to join one', async ({ page, context, baseURL }) => {
-  // A session cookie clears the middleware, but it is not the test student's, so the backend
-  // serves no class — the empty state, not the salon.
+  // Another student, logged in but in no class: the backend serves no class — the empty state,
+  // not the salon.
   await context.addCookies([{ name: 'JSESSIONID', value: 'e2e-sans-classe', url: baseURL ?? '' }])
   await page.goto('/ma-classe')
 

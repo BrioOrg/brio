@@ -17,6 +17,23 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     trace: 'retain-on-failure',
+    // Every page but login and signup needs a session (#279): specs run as the test student
+    // (E2E_SESSION in fake-backend.mjs). A spec about a logged-out visitor clears the cookies.
+    storageState: {
+      cookies: [
+        {
+          name: 'JSESSIONID',
+          value: 'e2e-eleve',
+          domain: 'localhost',
+          path: '/',
+          expires: -1,
+          httpOnly: true,
+          secure: false,
+          sameSite: 'Lax',
+        },
+      ],
+      origins: [],
+    },
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

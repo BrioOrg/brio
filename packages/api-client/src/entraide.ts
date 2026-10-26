@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { csrfHeaders, ensureCsrfToken } from './csrf.js'
+import { signalerSessionExpiree } from './session-expiree.js'
 
 /**
  * Entraide client (F6a, ADR 0023) — manual Zod wrappers.
@@ -133,6 +134,7 @@ const ErreurServeurSchema = z.object({ error: z.string() })
 
 async function entraideError(res: Response, fallback: string): Promise<EntraideError> {
   if (res.status === 401) {
+    signalerSessionExpiree()
     return new EntraideError(401, 'Ta session a expiré. Reconnecte-toi pour continuer.')
   }
   // 403/404/422/429 carry a precise French message from SocialExceptionHandler.

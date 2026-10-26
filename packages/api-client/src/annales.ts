@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { CoursApiError } from './cours-edition.js'
 import { csrfHeaders, ensureCsrfToken } from './csrf.js'
+import { signalerSessionExpiree } from './session-expiree.js'
 
 /**
  * Annales client (F7, ADR 0026) — wrappers Zod manuels.
@@ -40,6 +41,7 @@ export const EntrainementExerciceSchema = z.object({
 export type EntrainementExercice = z.infer<typeof EntrainementExerciceSchema>
 
 function annaleError(status: number, fallback: string): CoursApiError {
+  if (status === 401) signalerSessionExpiree()
   const message =
     status === 401 ? 'Votre session a expiré. Reconnectez-vous pour continuer.' : fallback
   return new CoursApiError(status, message)
@@ -102,16 +104,18 @@ export async function demarrerExamen(baseUrl: string, annaleId: string): Promise
 /** Termine (rend) une session d'examen. */
 export async function rendreExamen(baseUrl: string, sessionId: string): Promise<void> {
   const token = await ensureCsrfToken(baseUrl)
-  const res = await fetch(
-    `${baseUrl}/api/annales/examen/${encodeURIComponent(sessionId)}/rendre`,
-    { method: 'POST', credentials: 'include', headers: csrfHeaders(token) }
-  )
+  const res = await fetch(`${baseUrl}/api/annales/examen/${encodeURIComponent(sessionId)}/rendre`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: csrfHeaders(token),
+  })
   if (!res.ok) throw annaleError(res.status, "Impossible de rendre l'examen.")
 }
 
 /** L'examen en cours de l'élève (pour le bandeau/chrono + verrou tuteur). Résilient : pas de verrou si l'appel échoue. */
 export async function examenActif(baseUrl: string): Promise<ExamenActif> {
   const res = await fetch(`${baseUrl}/api/annales/examen-actif`, { credentials: 'include' })
-  if (!res.ok) return { enExamen: false, sessionId: null, annaleId: null, titre: null, endsAt: null }
+  if (!res.ok)
+    return { enExamen: false, sessionId: null, annaleId: null, titre: null, endsAt: null }
   return ExamenActifSchema.parse(await res.json())
 }

@@ -96,8 +96,29 @@ describe('soumettre', () => {
       'fetch',
       vi.fn(async () => new Response(null, { status: 401 }))
     )
+    const { surSessionExpiree } = await import('@brio/api-client')
+    const ecouteur = vi.fn()
+    const desabonner = surSessionExpiree(ecouteur)
     const { soumettre } = await import('@/lib/api')
     await expect(soumettre('ex-1', { choiceIds: ['a'] })).rejects.toThrow(/session a expiré/)
+    // The app is told too, so it can send the student back to the login page (#279).
+    expect(ecouteur).toHaveBeenCalledOnce()
+    desabonner()
+  })
+
+  it('does not signal an expired session on other errors', async () => {
+    document.cookie = 'XSRF-TOKEN=already'
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 404 }))
+    )
+    const { surSessionExpiree } = await import('@brio/api-client')
+    const ecouteur = vi.fn()
+    const desabonner = surSessionExpiree(ecouteur)
+    const { soumettre } = await import('@/lib/api')
+    await expect(soumettre('ex-1', { choiceIds: ['a'] })).rejects.toThrow(/introuvable/)
+    expect(ecouteur).not.toHaveBeenCalled()
+    desabonner()
   })
 })
 
