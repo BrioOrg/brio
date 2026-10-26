@@ -12,7 +12,8 @@ export type AppSection = {
 }
 
 // The whole catalogue lives under "parcours" for now, so any app-shell route
-// that is not another section's is a parcours route.
+// that is not another section's is a parcours route — except Paramètres, which is
+// no section (it is reached from the burger menu).
 export const APP_SECTIONS: AppSection[] = [
   {
     key: 'parcours',
@@ -22,7 +23,8 @@ export const APP_SECTIONS: AppSection[] = [
     isActive: (pathname) =>
       !pathname.startsWith('/devoirs') &&
       !pathname.startsWith('/annales') &&
-      !pathname.startsWith('/ma-classe'),
+      !pathname.startsWith('/ma-classe') &&
+      !pathname.startsWith('/parametres'),
   },
   {
     key: 'devoirs',

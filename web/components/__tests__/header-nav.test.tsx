@@ -33,6 +33,13 @@ describe('HeaderNav', () => {
     expect(screen.getByRole('link', { name: 'Parcours' })).not.toHaveAttribute('aria-current')
   })
 
+  it('marks no section on the Paramètres page', async () => {
+    await setup('/parametres')
+    for (const name of ['Parcours', 'Devoirs', 'Annales', 'Ma classe']) {
+      expect(screen.getByRole('link', { name })).not.toHaveAttribute('aria-current')
+    }
+  })
+
   it('treats catalogue routes as parcours', async () => {
     await setup('/3e/mathematiques')
     expect(screen.getByRole('link', { name: 'Parcours' })).toHaveAttribute('aria-current', 'page')
