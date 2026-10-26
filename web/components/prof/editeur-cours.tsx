@@ -16,6 +16,7 @@ import {
 import { ChapterView } from '@/components/chapter-view'
 import { Icon } from '@/components/ui/icon'
 import { Infobulle, InfobulleProvider } from '@/components/ui/infobulle'
+import { useMenuDansEcran } from '@/components/ui/use-menu-dans-ecran'
 import { BlocEditeur } from '@/components/prof/bloc-editeur'
 import { ProblemesDuBlocProvider, marqueChamp } from '@/components/prof/problemes-du-bloc'
 import { PublierCours } from '@/components/prof/publier-cours'
@@ -705,6 +706,9 @@ function AjoutBloc({
 }) {
   const [ouvert, setOuvert] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const boutonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const { placement, hauteurMax, surToucheMenu } = useMenuDansEcran(ouvert, ref, menuRef)
 
   useEffect(() => {
     if (!ouvert) return
@@ -712,7 +716,10 @@ function AjoutBloc({
       if (ref.current && !ref.current.contains(e.target as Node)) setOuvert(false)
     }
     function surTouche(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOuvert(false)
+      if (e.key === 'Escape') {
+        setOuvert(false)
+        boutonRef.current?.focus()
+      }
     }
     document.addEventListener('mousedown', surClic)
     document.addEventListener('keydown', surTouche)
@@ -746,6 +753,7 @@ function AjoutBloc({
           <span className="h-px flex-1 bg-line transition-colors group-hover:bg-accent/40" />
         )}
         <button
+          ref={boutonRef}
           type="button"
           onClick={() => setOuvert((o) => !o)}
           aria-expanded={ouvert}
@@ -767,8 +775,15 @@ function AjoutBloc({
 
       {ouvert && (
         <div
+          ref={menuRef}
           role="menu"
-          className="absolute left-1/2 top-full z-30 mt-1 w-[min(340px,90vw)] -translate-x-1/2 rounded-xl border border-line bg-surface-panel p-2 shadow-lg"
+          aria-label="Type de bloc à ajouter"
+          data-placement={placement}
+          onKeyDown={surToucheMenu}
+          style={hauteurMax === undefined ? undefined : { maxHeight: hauteurMax }}
+          className={`absolute left-1/2 z-30 w-[min(340px,90vw)] -translate-x-1/2 overflow-y-auto rounded-xl border border-line bg-surface-panel p-2 shadow-lg ${
+            placement === 'dessus' ? 'bottom-full mb-1' : 'top-full mt-1'
+          }`}
         >
           <p className="px-2 pb-1 pt-1 font-display text-[10px] font-extrabold uppercase tracking-widest text-ink-muted">
             Contenu

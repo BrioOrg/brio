@@ -20,7 +20,6 @@ function entree(over: Partial<BilanEntree> = {}): BilanEntree {
     xpSession: null,
     completion: { avant: null, actuelle: null },
     suivant: null,
-    etatSuivant: null,
     ...over,
   }
 }
@@ -84,10 +83,9 @@ describe('bilan — the end slide draws only real values (#249)', () => {
     expect(b.sansReponse).toEqual([{ diapoId: 'ex3', libelle: "Exercice 3 · S'entraîner" }])
   })
 
-  it('offers the next chapter, unless the path locks it', () => {
+  it('offers the next chapter when there is one', () => {
     expect(bilan(entree({ suivant: SUIVANT })).suivant).toEqual(SUIVANT)
-    expect(bilan(entree({ suivant: SUIVANT, etatSuivant: 'en_cours' })).suivant).toEqual(SUIVANT)
-    expect(bilan(entree({ suivant: SUIVANT, etatSuivant: 'verrouille' })).suivant).toBeUndefined()
+    expect(bilan(entree()).suivant).toBeUndefined()
   })
 
   it('celebrates in proportion: read, some solved, all solved', () => {

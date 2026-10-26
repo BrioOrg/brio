@@ -17,10 +17,12 @@ import { useProgression } from '@/components/progression-context'
 export function XpBadge() {
   const { info, gain } = useProgression()
   const [flash, setFlash] = useState<{ amount: number; id: number } | null>(null)
-  const seenGain = useRef(0)
+  // The provider lives in the layout and outlives this badge, which each page's header remounts
+  // on navigation: a gain reported before the mount is not new, it must not replay (#280).
+  const seenGain = useRef(gain?.id ?? 0)
 
   useEffect(() => {
-    if (!gain || gain.id === seenGain.current) return
+    if (!gain || gain.id <= seenGain.current) return
     seenGain.current = gain.id
     setFlash(gain)
     const timer = setTimeout(() => setFlash(null), 1000)
