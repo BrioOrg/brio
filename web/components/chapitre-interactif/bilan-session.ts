@@ -12,8 +12,7 @@ import { getMoi } from '@/lib/session'
  *   chapter's opening on, whatever the mode they were earned in;
  * - this chapter's completion when it opened, then again each time the end slide opens. Sections
  *   read and exercises solved are recorded asynchronously (ADR 0022), the last section only as the
- *   student enters the end slide, so that read polls a little until the value moves;
- * - the next chapter's state on the path, from the same reads: finishing this one can unlock it.
+ *   student enters the end slide, so that read polls a little until the value moves.
  *
  * A teacher, a visitor or a failed read leaves everything null: the slide then draws no line.
  */
@@ -24,14 +23,12 @@ const POLL_DELAY_MS = 300
 export type BilanSession = {
   xpSession: number | null
   completion: { avant: number | null; actuelle: number | null }
-  etatSuivant: string | null
 }
 
 type Props = {
   niveau: string
   matiere: string
   slug: string
-  suivantSlug: string | null
   /** The end slide is open: the moment to read the completion again. */
   finOuverte: boolean
 }
@@ -42,7 +39,6 @@ export function useBilanSession({
   niveau,
   matiere,
   slug,
-  suivantSlug,
   finOuverte,
 }: Props): BilanSession {
   const { gain } = useProgression()
@@ -50,7 +46,6 @@ export function useBilanSession({
   const [xp, setXp] = useState(0)
   const [avant, setAvant] = useState<number | null>(null)
   const [actuelle, setActuelle] = useState<number | null>(null)
-  const [etatSuivant, setEtatSuivant] = useState<string | null>(null)
 
   // Only gains reported after the chapter opened belong to this session.
   const gainVu = useRef(gain?.id ?? 0)
@@ -60,14 +55,11 @@ export function useBilanSession({
     setXp((x) => x + gain.amount)
   }, [gain])
 
-  const lire = useRef<(() => Promise<{ pourcentage: number | null; etat: string | null }>) | null>(
-    null
-  )
+  const lire = useRef<(() => Promise<{ pourcentage: number | null }>) | null>(null)
   lire.current = async () => {
     const parcours = await getParcours(niveau, matiere)
     const ici = parcours?.find((c) => c.chapitreId === slug)
-    const suivant = suivantSlug ? parcours?.find((c) => c.chapitreId === suivantSlug) : undefined
-    return { pourcentage: ici?.pourcentage ?? null, etat: suivant?.etat ?? null }
+    return { pourcentage: ici?.pourcentage ?? null }
   }
 
   useEffect(() => {
@@ -81,7 +73,6 @@ export function useBilanSession({
         if (!alive) return
         setAvant(lu.pourcentage)
         setActuelle(lu.pourcentage)
-        setEtatSuivant(lu.etat)
       } catch {
         // No value rather than a fabricated one.
       }
@@ -103,7 +94,6 @@ export function useBilanSession({
           const lu = await lire.current!()
           if (!alive) return
           if (lu.pourcentage !== null) setActuelle(lu.pourcentage)
-          setEtatSuivant(lu.etat)
           if (lu.pourcentage !== null && lu.pourcentage !== depart) return
         } catch {
           // Transient: keep the last value read and try again.
@@ -119,6 +109,5 @@ export function useBilanSession({
   return {
     xpSession: eleve ? xp : null,
     completion: { avant, actuelle },
-    etatSuivant,
   }
 }

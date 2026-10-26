@@ -246,7 +246,6 @@ export function ModeChapitreProvider({
     niveau,
     matiere,
     slug,
-    suivantSlug: suivant?.slug ?? null,
     finOuverte: mode === 'interactif' && deck[index]?.kind === 'fin',
   })
   const racine = useRef<HTMLDivElement>(null)

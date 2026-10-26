@@ -22,8 +22,6 @@ export type BilanEntree = {
   /** This chapter's completion when the chapter opened, and as last read; null when unknown. */
   completion: { avant: number | null; actuelle: number | null }
   suivant: ChapitreSuivant | null
-  /** The next chapter's state on the student's path (`ParcoursChapitre.etat`), when known. */
-  etatSuivant: string | null
 }
 
 /**
@@ -78,6 +76,7 @@ export function bilan(e: BilanEntree): Bilan {
   if (valeur !== null) {
     out.completion = { de: pourcent(e.completion.avant ?? valeur), a: pourcent(valeur) }
   }
-  if (e.suivant && e.etatSuivant !== 'verrouille') out.suivant = e.suivant
+  // Every chapter is open (#278): the next one is offered whatever the path says.
+  if (e.suivant) out.suivant = e.suivant
   return out
 }
