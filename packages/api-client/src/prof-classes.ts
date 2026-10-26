@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { createApiClient } from './client.js'
 import { CoursApiError } from './cours-edition.js'
 import { csrfHeaders, ensureCsrfToken } from './csrf.js'
+import { signalerSessionExpiree } from './session-expiree.js'
 import { EtablissementPublicSchema } from './enrollment.js'
 import type { EtablissementPublic } from './enrollment.js'
 
@@ -84,6 +85,7 @@ export type CreerMaClasseInput = {
 }
 
 function classeError(status: number, fallback: string): CoursApiError {
+  if (status === 401) signalerSessionExpiree()
   const message =
     status === 401
       ? 'Votre session a expiré. Reconnectez-vous pour continuer.'

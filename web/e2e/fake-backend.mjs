@@ -11,9 +11,11 @@
  *
  * Routes:
  *   GET /api/chapitres/{niveau}/{matiere}/{slug}  chapter from content/chapitres
- *   GET /api/moi, /api/progression/*              401: an anonymous visitor; with the test
- *                                                 student's session (E2E_SESSION), that student,
- *                                                 who has not earned any XP yet
+ *   GET /api/moi, /api/progression/*              401: an anonymous visitor or an expired
+ *                                                 session; with the test student's session
+ *                                                 (E2E_SESSION), that student, who has not earned
+ *                                                 any XP yet. The web middleware asks /api/moi
+ *                                                 before every page (#279)
  *   GET /api/progression/parcours/{niveau}/{matiere}  that student's path, as ProgressionService
  *                                                 returns it before anything is recorded: every
  *                                                 chapter at 0 %, the first `en_cours`, the
@@ -21,8 +23,8 @@
  *   POST /api/exercices/{id}/soumissions          graded from content/ like the backend's
  *                                                 evaluators (#246); 401 without a session
  *   POST /api/chapitres/{id}/sections/{s}/lu      204 with a session, 401 without
- *   GET  /api/moi/classes, /api/salons            the test student's class and salon; 401
- *                                                 without that student's session (F6b)
+ *   GET  /api/moi/classes, /api/salons            the test student's class and salon, none for
+ *                                                 E2E_SESSION_SANS_CLASSE; 401 without a session
  *   GET  /api/salons/{id}/messages                that salon's messages, own ones flagged
  *   POST /api/salons/{id}/messages                201 { id }; 422 on an empty body
  *   POST /api/salons/messages/{id}/signalement    204 with a session, 401 without
@@ -83,8 +85,20 @@ function asServed(chapitre) {
 /** The session cookie a spec sets to act as a logged-in student (Spring's default name). */
 export const E2E_SESSION = 'JSESSIONID=e2e-eleve'
 
+/** Another logged-in student, who has joined no class yet. */
+export const E2E_SESSION_SANS_CLASSE = 'JSESSIONID=e2e-sans-classe'
+
+function cookies(req) {
+  return (req.headers.cookie ?? '').split(/;\s*/)
+}
+
+/** Any live session. Another JSESSIONID (`e2e-expiree`…) is a session the backend has dropped. */
 function connecte(req) {
-  return (req.headers.cookie ?? '').split(/;\s*/).includes(E2E_SESSION)
+  return cookies(req).includes(E2E_SESSION) || sansClasse(req)
+}
+
+function sansClasse(req) {
+  return cookies(req).includes(E2E_SESSION_SANS_CLASSE)
 }
 
 const ELEVE = {
@@ -266,10 +280,12 @@ const server = createServer(async (req, res) => {
     // Class salon (F6b). A session that is not the test student's gets 401, as the backend
     // would for a logged-out caller — the client treats that as "no class".
     if (pathname === '/api/moi/classes') {
-      return connecte(req) ? send(res, 200, [CLASSE]) : send(res, 401)
+      if (!connecte(req)) return send(res, 401)
+      return send(res, 200, sansClasse(req) ? [] : [CLASSE])
     }
     if (pathname === '/api/salons') {
-      return connecte(req) ? send(res, 200, [SALON]) : send(res, 401)
+      if (!connecte(req)) return send(res, 401)
+      return send(res, 200, sansClasse(req) ? [] : [SALON])
     }
     const messagesDuSalon = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)
     if (messagesDuSalon) {

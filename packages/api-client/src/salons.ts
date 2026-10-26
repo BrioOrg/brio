@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { csrfHeaders, ensureCsrfToken } from './csrf.js'
+import { signalerSessionExpiree } from './session-expiree.js'
 
 /**
  * Messagerie de classe client (F6b, ADR 0033) — manual Zod wrappers.
@@ -88,6 +89,7 @@ const ErreurServeurSchema = z.object({ error: z.string() })
 
 async function messagerieError(res: Response, fallback: string): Promise<MessagerieError> {
   if (res.status === 401) {
+    signalerSessionExpiree()
     return new MessagerieError(401, 'Ta session a expiré. Reconnecte-toi pour continuer.')
   }
   // 403/404/422/429 carry a precise French message from SocialExceptionHandler.
