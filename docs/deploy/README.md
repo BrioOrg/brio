@@ -317,6 +317,9 @@ All commands run from `~/brio`.
   need the catalogue reload above: it is never automatic.
 - `deploy.sh` snapshots the database first (`pre-deploy-…`, last 5 kept) and does
   nothing if that dump fails.
+- A deploy logs nobody out: sessions live in Postgres (ADR 0034), so the backend
+  restart only interrupts requests while it starts. Snapshots leave the
+  sessions out, so `restore.sh` and `reset.sh` do log everyone out.
 - `deploy.sh`, `restore.sh` and `reset.sh` never run at the same time. A deploy
   waits up to 15 minutes for the other to finish; a restore or a reset refuses
   while a deploy is running.

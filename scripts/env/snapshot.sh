@@ -43,8 +43,11 @@ partial="$file.partial"
 
 info "Dumping the database to $file"
 # Write under a temporary name: a failed dump never looks like a usable snapshot.
+# Live sessions (ADR 0034) are left out — the tables, not their rows: a session ID in a
+# dump would let whoever reads it act as that user, and a restored database starts with
+# everyone logged out anyway.
 # shellcheck disable=SC2016 # expanded by the container's shell
-if ! pg_exec 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' >"$partial"; then
+if ! pg_exec 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom --exclude-table-data="identite.spring_session*"' >"$partial"; then
   rm -f "$partial"
   die "pg_dump failed — no snapshot written."
 fi

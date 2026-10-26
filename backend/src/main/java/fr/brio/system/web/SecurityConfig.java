@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -35,7 +36,8 @@ class SecurityConfig {
                                     AuthenticationSuccessHandler loginSuccess,
                                     AuthenticationFailureHandler loginFailure,
                                     LogoutSuccessHandler logoutSuccess,
-                                    CompteService compteService) throws Exception {
+                                    CompteService compteService,
+                                    SessionRegistry sessionRegistry) throws Exception {
         var csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null); // always populate the attribute
 
@@ -94,7 +96,9 @@ class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(logoutSuccess))
             .sessionManagement(session -> session
-                .maximumSessions(5))
+                .maximumSessions(5)
+                // Counted in the persistent store (SessionStoreConfig, ADR 0034).
+                .sessionRegistry(sessionRegistry))
             .addFilterAfter(statutCheck, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) ->
