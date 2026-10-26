@@ -14,11 +14,15 @@
  *    - Every lengthMark references a segment that exists.
  *    - Segments sharing the same tick count have equal Euclidean length ± 1e-6 relative.
  *    - Every circle's center and through point (if given) are defined.
+ *    - arcs (ADR 0013 amendment #227): by points, center/from/to are defined, from is not the
+ *      center, to is at the same distance from the center as from (± 1e-6 relative), and from
+ *      and to are on different rays (a whole turn is a circle); by angles, radius > 0 and
+ *      0 < endAngle − startAngle < 360. Never both forms at once.
  *    - numberLines: from < to, step > 0, labelEvery > 0 and a multiple of step.
  *    - polylines: every point is defined.
  *    - axes (repère, ADR 0013 amendment #214): on each axis from < to, from ≤ 0 ≤ to,
  *      step > 0, labelEvery a multiple of step; no coordinateSpace or numberLines alongside.
- *      Each axis has its own scale, so angleMarks, lengthMarks and circles are only allowed
+ *      Each axis has its own scale, so angleMarks, lengthMarks, circles and arcs are only allowed
  *      when both spans are equal: otherwise the drawing would not show what CI measured.
  *    - solids (perspective cavalière, ADR 0013 amendment #215): positive dimensions, reduction
  *      in ]0, 1], angle in ]0°, 180°[ and not 90°, a convex non-degenerate prism base, names in
@@ -246,6 +250,11 @@ function checkFigureBlock(block, file, blockPath) {
     }
   }
 
+  // Arcs
+  for (let i = 0; i < (spec.arcs ?? []).length; i++) {
+    checkArc(spec.arcs[i], requirePt, file, `${blockPath}.spec.arcs[${i}]`)
+  }
+
   // Angle marks
   for (let i = 0; i < (spec.angleMarks ?? []).length; i++) {
     const am = spec.angleMarks[i]
@@ -402,6 +411,49 @@ function checkSolid(solid, pointNames, solidNames, file, path) {
   }
 }
 
+function checkArc(arc, requirePt, file, path) {
+  const byPoints = arc.from !== undefined || arc.to !== undefined
+  const byAngles = arc.radius !== undefined || arc.startAngle !== undefined || arc.endAngle !== undefined
+  const center = requirePt(arc.center, path + '.center')
+  if (byPoints && byAngles) {
+    fail(file, path, 'arc: give either "from" and "to", or "radius", "startAngle" and "endAngle", not both')
+    return
+  }
+  if (byPoints) {
+    const from = requirePt(arc.from, path + '.from')
+    const to = requirePt(arc.to, path + '.to')
+    if (!center || !from || !to) return
+    const r = euclidean(center, from)
+    if (r < 1e-12) {
+      fail(file, path, `arc: "from" (${arc.from}) is the center`)
+      return
+    }
+    const d = euclidean(center, to)
+    if (Math.abs(d - r) / r > 1e-6) {
+      fail(
+        file,
+        path,
+        `arc: "${arc.from}" and "${arc.to}" must be at the same distance from "${arc.center}", got ${r.toFixed(6)} and ${d.toFixed(6)}`,
+      )
+    }
+    const cross = (from.x - center.x) * (to.y - center.y) - (from.y - center.y) * (to.x - center.x)
+    const dot = (from.x - center.x) * (to.x - center.x) + (from.y - center.y) * (to.y - center.y)
+    if (Math.abs(cross) < 1e-9 * r * r && dot > 0) {
+      fail(file, path, `arc: "${arc.from}" and "${arc.to}" are on the same ray, which makes a whole circle: use circles`)
+    }
+    return
+  }
+  if (!(arc.radius > 0)) fail(file, path, `arc: radius must be > 0, got ${arc.radius}`)
+  const sweep = arc.endAngle - arc.startAngle
+  if (!(sweep > 0 && sweep < 360)) {
+    fail(
+      file,
+      path,
+      `arc: endAngle (${arc.endAngle}) must be greater than startAngle (${arc.startAngle}) by less than 360 (counter-clockwise, degrees)`,
+    )
+  }
+}
+
 function checkAxes(spec, file, path) {
   for (const name of ['x', 'y']) {
     const axis = spec.axes[name]
@@ -427,7 +479,7 @@ function checkAxes(spec, file, path) {
   const xSpan = spec.axes.x.to - spec.axes.x.from
   const ySpan = spec.axes.y.to - spec.axes.y.from
   if (Math.abs(xSpan - ySpan) > 1e-9) {
-    for (const key of ['angleMarks', 'lengthMarks', 'circles']) {
+    for (const key of ['angleMarks', 'lengthMarks', 'circles', 'arcs']) {
       if ((spec[key] ?? []).length > 0) {
         fail(
           file,
