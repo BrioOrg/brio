@@ -53,7 +53,7 @@ export default async function ProfLayout({ children }: { children: ReactNode }) 
           <div className="flex h-12 items-center justify-between gap-3 px-4">
             <Link
               href="/prof"
-              className="rounded-sm font-display text-lg font-black tracking-tight text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel"
+              className="rounded-sm font-display text-2xl font-black tracking-tight text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel"
               aria-label="brio — espace enseignant"
             >
               br<span className="text-accent">io</span>
