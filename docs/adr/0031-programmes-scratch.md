@@ -67,6 +67,18 @@ renderer, and the teacher editor, show the text as before.
    rejects a `scratch` programme that does not parse. Content that does not go through CI (a
    teacher's course) falls back to the monospace text when it does not parse; it never breaks
    the page.
+7. **Teacher editor** (#233, amendment 2026-10-26). The code block of the course editor
+   (« Programme ») offers « Texte » (no `language`) or « Scratch » (`language: "scratch"`, the
+   default for a new block). In Scratch it runs the same `parseScratch` on every keystroke, lists
+   each error with its line number, translated into French in the web (the parser's messages
+   stay in English for CI), and draws the blocks beside the field as soon as the programme
+   parses. A Scratch programme that does not parse is a **blocking** problem in the editor's
+   pre-publication check (`SCRATCH_INVALID`, a web-only rule like `NO_CORRECT_CHOICE`).
+   **The backend's `PublicationValidator` does not parse Scratch.** Doing so would need a
+   second parser in Java, which would drift from the TypeScript one as the catalogue grows
+   (#234), or a JavaScript engine in the JVM for one rule. The only author of a course is the
+   editor, which already blocks; content that bypasses it is still harmless, since point 6 makes
+   the renderer fall back to text. If a second client ever writes courses, this is revisited.
 
 ## Consequences
 
@@ -87,7 +99,7 @@ renderer, and the teacher editor, show the text as before.
 ### Follow-ups
 
 - An evaluator for "prévoir la valeur" exercises (#232).
-- Choosing "Scratch" as the language of a code block in the teacher editor (#233).
+- Choosing "Scratch" as the language of a code block in the teacher editor (#233). Done: point 7.
 - Conditions, comparisons and the pen for 4e (#234).
 
 ## Alternatives considered
