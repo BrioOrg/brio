@@ -7,6 +7,7 @@ vi.mock('@/lib/session', () => ({ getMoi: vi.fn() }))
 import { getProgression, getSerie } from '@/lib/progression'
 import { getMoi } from '@/lib/session'
 import { ProgressionProvider, useProgression } from '../progression-context'
+import { XpBadge } from '../xp-badge'
 
 const mock = vi.mocked(getProgression)
 const moi = vi.mocked(getMoi)
@@ -103,6 +104,32 @@ describe('ProgressionProvider', () => {
     await waitFor(() => expect(screen.getByTestId('gain').textContent).toBe('10'))
     expect(screen.getByTestId('xp').textContent).toBe('110')
     expect(screen.getByTestId('delta').textContent).toBe('10')
+  })
+
+  // #280: the provider sits in the (app) layout and survives navigation, while each page's header
+  // remounts the badge. Changing tab after a real gain must not replay « +10 XP ».
+  it('a badge remounted by navigation does not replay an earlier gain', async () => {
+    mock.mockResolvedValueOnce({ xpTotal: 100, niveau: 1 }) // mount
+    const page = (onglet: string) => (
+      <ProgressionProvider>
+        <Harness />
+        <XpBadge key={onglet} />
+      </ProgressionProvider>
+    )
+    const { rerender } = render(page('parcours'))
+    await waitFor(() => expect(screen.getByTestId('xp').textContent).toBe('100'))
+
+    mock.mockResolvedValueOnce({ xpTotal: 110, niveau: 1 }) // a real correct answer
+    fireEvent.click(screen.getByText('refresh'))
+    expect(await screen.findByText(/\+10/)).toBeTruthy()
+    await waitFor(() => expect(screen.queryByText(/\+10/)).toBeNull(), { timeout: 2000 })
+
+    rerender(page('annales')) // the new page mounts a fresh header
+    expect(screen.getByTestId('xp-badge').textContent).toContain('110')
+    expect(screen.queryByText(/\+10/)).toBeNull()
+    rerender(page('devoirs'))
+    expect(screen.queryByText(/\+10/)).toBeNull()
+    expect(mock).toHaveBeenCalledTimes(2)
   })
 
   it('shows no gain when nothing was awarded (cap reached / already earned)', async () => {
