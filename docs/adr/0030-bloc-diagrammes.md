@@ -83,6 +83,8 @@ Add a `chart` block to the content schema, separate from `figure`. Additive chan
 ### Follow-ups
 
 - A `chart` form in the teacher editor (F3 palette); until then the block renders in the preview.
+  Done in #229: the §9 rules moved to `packages/content/src/chart-rules.ts`, read by both
+  `check-content` and the editor, which words them in French before publication.
 
 ## Alternatives considered
 

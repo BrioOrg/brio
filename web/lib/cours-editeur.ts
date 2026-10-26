@@ -5,6 +5,16 @@
 // déplacement, persistance locale) pour rester testable sans le DOM. L'écriture vers le serveur
 // (créer / enregistrer / publier un brouillon) est une étape suivante — ici on persiste en local.
 
+import {
+  checkChart,
+  formatNumber,
+  maxCategories,
+  CHART_AXIS_FIELDS,
+  type ChartIssue,
+  type ChartKind,
+  type ChartSpec,
+} from '@brio/content'
+
 import type { ChapitreResponse } from '@/components/chapter-view'
 
 // Les types de blocs que l'afficheur élève sait rendre AUJOURD'HUI (chapter-view.tsx). On s'y
@@ -19,6 +29,7 @@ export type BlocType =
   | 'table'
   | 'reference'
   | 'figure'
+  | 'chart'
   | 'exercise'
 
 /** Une étape d'un bloc « exemple en étapes » : un texte, et éventuellement une formule. */
@@ -100,6 +111,12 @@ export const BLOCS: {
     icone: '△',
   },
   {
+    type: 'chart',
+    label: 'Diagramme',
+    description: 'Un diagramme en barres, circulaire ou une courbe',
+    icone: '◔',
+  },
+  {
     type: 'exercise',
     exerciseType: 'multiple-choice',
     label: 'QCM',
@@ -154,8 +171,19 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   table: 'Tableau',
   reference: 'Référence',
   figure: 'Figure',
+  chart: 'Diagramme',
   exercise: 'Exercice',
 }
+
+// Les trois sortes de diagramme (ADR 0030 §1), dans l'ordre du sélecteur.
+export const GRAPHIQUE_SORTES: { valeur: ChartKind; label: string }[] = [
+  { valeur: 'bar', label: 'Barres' },
+  { valeur: 'pie', label: 'Circulaire' },
+  { valeur: 'line', label: 'Courbe' },
+]
+
+/** Une ligne catégorie / valeur d'un diagramme ; `value` absente tant qu'elle n'est pas saisie. */
+export type Donnee = { label: string; value?: number }
 
 // Variantes d'encadré reconnues par l'afficheur (CALLOUT dans chapter-view.tsx).
 export const CALLOUT_VARIANTES: { valeur: string; label: string }[] = [
@@ -222,6 +250,25 @@ export function nouveauBloc(
       // Figure déclarative (ADR 0013) : `alt` obligatoire (rempli par l'enseignant, vérifié à la
       // publication) et une `spec` vide mais valide, que le constructeur remplit primitive à primitive.
       return { id: genId(), type, alt: '', spec: { points: [], segments: [] } }
+    case 'chart':
+      // Diagramme (ADR 0030) : des barres par défaut, deux catégories vides (le minimum) et une
+      // seule série, dont le nom (« Effectif ») titre la colonne des valeurs. `alt` est
+      // obligatoire, vérifié avant la publication comme pour une figure.
+      return {
+        id: genId(),
+        type,
+        kind: 'bar',
+        title: '',
+        xLabel: '',
+        yLabel: '',
+        series: [
+          {
+            label: 'Effectif',
+            data: [{ label: '' }, { label: '' }] as Donnee[],
+          },
+        ],
+        alt: '',
+      }
     case 'exercise':
       return nouvelExercice(exerciseType ?? 'paper', preset)
   }
@@ -331,7 +378,16 @@ const vide = (v: unknown) => typeof v === 'string' && v.trim() === ''
 // formulaires les initialisent à '' : laissés vides, on les retire plutôt que d'envoyer un
 // document que le validateur refuserait. Le `title` d'une référence est requis : il reste, et
 // le validateur le signale s'il est vide.
-const CHAMPS_FACULTATIFS = ['title', 'caption', 'source', 'unit', 'explanation', 'statement']
+const CHAMPS_FACULTATIFS = [
+  'title',
+  'caption',
+  'source',
+  'unit',
+  'explanation',
+  'statement',
+  'xLabel',
+  'yLabel',
+]
 
 function sansChampsVides(bloc: Bloc): Bloc {
   const propre: Bloc = { ...bloc }
@@ -360,6 +416,13 @@ function blocServi(bloc: Bloc): Bloc {
       return b
     case 'table':
       if (Array.isArray(b.headers) && (b.headers as unknown[]).every(vide)) delete b.headers
+      return b
+    case 'chart':
+      // Un circulaire n'a pas d'axes : le schéma refuse leurs champs. Ils restent dans l'éditeur
+      // (repasser en barres les retrouve) mais ne partent pas. `showValues: false` est la valeur
+      // par défaut : inutile de l'écrire.
+      if (b.kind === 'pie') for (const champ of CHART_AXIS_FIELDS) delete b[champ]
+      if (b.showValues !== true) delete b.showValues
       return b
     case 'exercise':
       return b.exerciseType === 'fill-blank' ? { ...b, bank: banqueServie(b.bank) } : b
@@ -523,7 +586,7 @@ function normaliserReponse(reponse: string, sensibleCasse: boolean): string {
   return (sensibleCasse ? sansAccents : sansAccents.toLowerCase()).replace(/[\s.!?;]+$/, '')
 }
 
-type ProblemeBrut = { code: string; champ?: string; gravite?: Gravite }
+type ProblemeBrut = { code: string; champ?: string; gravite?: Gravite; message?: string }
 
 /** Les problèmes d'un bloc tel qu'il serait servi (après blocServi). */
 function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
@@ -578,6 +641,9 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       break
     case 'figure':
       if (!texteRempli(b.alt)) p.push({ code: 'MISSING_ALT', champ: 'alt' })
+      break
+    case 'chart':
+      p.push(...problemesGraphique(b))
       break
     case 'objectives': {
       const items = chaines(b.items)
@@ -665,6 +731,118 @@ function problemesExercice(b: Bloc): ProblemeBrut[] {
   return p
 }
 
+// --- Diagramme ----------------------------------------------------------------
+// Les règles sont celles de check-content (packages/content, chart-rules.ts : une seule source) ;
+// seul leur libellé français est ici. Le schéma ajoute deux champs requis : `alt` et le nom de la
+// série. Le message dépend de la règle ET de ses données (rang, nom…) : il est calculé ici.
+
+function premiereSerie(b: Bloc): { label?: unknown; data?: unknown } {
+  const series = Array.isArray(b.series) ? (b.series as unknown[]) : []
+  const s = series[0]
+  return s && typeof s === 'object' ? (s as { label?: unknown; data?: unknown }) : {}
+}
+
+/** Les lignes catégorie / valeur d'un diagramme, telles que saisies. */
+export function donneesGraphique(b: Bloc): Donnee[] {
+  const data = premiereSerie(b).data
+  return Array.isArray(data) ? (data as Donnee[]) : []
+}
+
+function libelleGraphique(i: ChartIssue): string {
+  switch (i.code) {
+    case 'SERIES_COUNT':
+      return 'Un diagramme a une seule série de valeurs.'
+    case 'CATEGORY_COUNT':
+      if (i.count < 2) return 'Ajoute au moins deux catégories.'
+      return i.kind === 'pie'
+        ? `Un diagramme circulaire a au plus ${i.max} catégories : retire-en ${i.count - i.max}.`
+        : `Un diagramme a au plus ${i.max} catégories : retire-en ${i.count - i.max}.`
+    case 'BLANK_LABEL':
+      return `Nomme la catégorie ${i.index + 1}.`
+    case 'DUPLICATE_LABEL':
+      return `La catégorie « ${i.label} » apparaît deux fois : donne-leur des noms différents.`
+    case 'NON_FINITE_VALUE':
+      return `Donne une valeur à la catégorie ${i.index + 1}.`
+    case 'NEGATIVE_BAR':
+      return `Une barre ne peut pas être négative (catégorie ${i.index + 1}) : choisis une courbe pour des valeurs sous 0.`
+    case 'NON_POSITIVE_PIE':
+      return `Dans un diagramme circulaire, chaque valeur doit être plus grande que 0 (catégorie ${i.index + 1}).`
+    case 'PIE_AXIS_FIELD':
+      return 'Un diagramme circulaire n’a pas d’axes.'
+    case 'YMAX_BELOW_LARGEST':
+      return `Le haut de l’axe (${formatNumber(i.yMax)}) est sous la plus grande valeur (${formatNumber(i.largest)}).`
+    case 'YSTEP_NOT_POSITIVE':
+      return 'Le pas des graduations doit être plus grand que 0.'
+    case 'TOO_MANY_GRADUATIONS':
+      return `Ce pas donne ${i.graduations} graduations, au plus ${i.max} : choisis un pas plus grand.`
+  }
+}
+
+function problemesGraphique(b: Bloc): ProblemeBrut[] {
+  const p: ProblemeBrut[] = []
+  if (!texteRempli(b.alt)) {
+    p.push({
+      code: 'MISSING_ALT',
+      champ: 'alt',
+      message: 'Décris le diagramme dans le texte alternatif.',
+    })
+  }
+  if (!texteRempli(premiereSerie(b).label)) {
+    p.push({
+      code: 'EMPTY',
+      champ: 'series[0].label',
+      message: 'Indique ce que mesurent les valeurs (ex. Effectif).',
+    })
+  }
+  for (const i of checkChart(b)) {
+    p.push({ code: `CHART_${i.code}`, champ: i.path, message: libelleGraphique(i) })
+  }
+  return p
+}
+
+/**
+ * Ce que l'aperçu peut dessiner d'un diagramme en cours de saisie : les lignes nommées et
+ * chiffrées (une seule fois chaque nom, strictement positives pour un circulaire), et les
+ * graduations seulement si elles sont valides. Null s'il reste moins de deux catégories.
+ */
+export function graphiquePourApercu(b: Bloc): ChartSpec | null {
+  const kind: ChartKind = b.kind === 'pie' || b.kind === 'line' ? b.kind : 'bar'
+  const vus = new Set<string>()
+  const data: { label: string; value: number }[] = []
+  for (const d of donneesGraphique(b)) {
+    const label = typeof d?.label === 'string' ? d.label.trim() : ''
+    const value = d?.value
+    if (label === '' || vus.has(label)) continue
+    if (typeof value !== 'number' || !Number.isFinite(value)) continue
+    if ((kind === 'pie' && value <= 0) || (kind === 'bar' && value < 0)) continue
+    vus.add(label)
+    data.push({ label, value })
+  }
+  if (data.length < 2) return null
+  const serie = premiereSerie(b)
+  const spec: ChartSpec = {
+    kind,
+    series: [
+      {
+        label: texteRempli(serie.label) ? String(serie.label) : 'Valeur',
+        data: data.slice(0, maxCategories(kind)),
+      },
+    ],
+  }
+  if (kind === 'pie') return spec
+  if (texteRempli(b.xLabel)) spec.xLabel = String(b.xLabel)
+  if (texteRempli(b.yLabel)) spec.yLabel = String(b.yLabel)
+  if (b.showValues === true) spec.showValues = true
+  const graduationsValides = !checkChart({ ...b, kind, series: spec.series }).some(
+    (i) => i.path === 'yMax' || i.path === 'yStep'
+  )
+  if (graduationsValides) {
+    if (typeof b.yMax === 'number') spec.yMax = b.yMax
+    if (typeof b.yStep === 'number') spec.yStep = b.yStep
+  }
+  return spec
+}
+
 function probleme(
   brut: ProblemeBrut,
   lieu: { sectionId?: string; blocId?: string },
@@ -675,7 +853,7 @@ function probleme(
     gravite: brut.gravite ?? 'bloquant',
     ...lieu,
     ...(brut.champ ? { champ: brut.champ } : {}),
-    message: libelleProbleme(brut.code, brut.champ, niveau),
+    message: brut.message ?? libelleProbleme(brut.code, brut.champ, niveau),
   }
 }
 
@@ -824,6 +1002,12 @@ export function exerciceComplet(bloc: Bloc): boolean {
 const CHAMPS_CORRECTION = ['expected', 'acceptedAnswers', 'answer', 'tolerance', 'caseSensitive']
 
 function blocPourApercu(bloc: Bloc): Bloc {
+  if (bloc.type === 'chart') {
+    // Le diagramme dessinable (graphiquePourApercu), avec ses textes : l'afficheur élève ne
+    // reçoit jamais une valeur manquante ou une graduation invalide.
+    const { id, type, title, alt, caption } = bloc
+    return { id, type, title, alt, caption, ...graphiquePourApercu(bloc) }
+  }
   if (bloc.type !== 'exercise') return bloc
   const copie: Bloc = { ...bloc }
   for (const champ of CHAMPS_CORRECTION) delete copie[champ]
@@ -848,6 +1032,8 @@ export function brouillonVersApercu(b: Brouillon): {
     kind: s.kind,
     blocks: s.blocks
       .filter((bloc) => {
+        // Un diagramme de moins de deux catégories remplies n'a rien à dessiner.
+        if (bloc.type === 'chart') return graphiquePourApercu(bloc) !== null
         if (bloc.type !== 'exercise' || exerciceComplet(bloc)) return true
         exercicesMasques++
         return false

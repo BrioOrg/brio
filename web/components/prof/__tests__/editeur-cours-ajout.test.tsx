@@ -67,6 +67,17 @@ describe('EditeurCours — ajout de bloc par « + »', () => {
     expect(screen.getAllByLabelText('Ajouter un bloc ici')).toHaveLength(2)
   })
 
+  it('insère un diagramme depuis la palette (#229)', async () => {
+    render(<EditeurCours coursId="c1" />)
+    await screen.findByLabelText('Titre du cours')
+
+    await userEvent.click(screen.getByLabelText('Ajouter un bloc ici'))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Diagramme' }))
+
+    expect(screen.getByRole('group', { name: 'Sorte de diagramme' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Catégorie 1')).toBeInTheDocument()
+  })
+
   it('ferme le menu avec la touche Échap', async () => {
     render(<EditeurCours coursId="c1" />)
     await screen.findByLabelText('Titre du cours')

@@ -7,6 +7,7 @@ import type { Competence } from '@brio/api-client'
 import { ChampFormule } from '@/components/maths/champ-formule'
 import { CompetencesPicker } from '@/components/prof/competences-picker'
 import { FigureEditeur } from '@/components/prof/figure-editeur'
+import { GraphiqueEditeur } from '@/components/prof/graphique-editeur'
 import {
   marqueChamp,
   marqueGroupe,
@@ -367,6 +368,9 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
 
     case 'figure':
       return <FigureEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+
+    case 'chart':
+      return <GraphiqueEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
 
     case 'exercise':
       return <ExerciceEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
