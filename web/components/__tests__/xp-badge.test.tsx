@@ -33,14 +33,40 @@ describe('XpBadge', () => {
   })
 
   it('flashes the real gain amount when XP is awarded', async () => {
+    const base = { serie: null, serieChange: null, refresh: vi.fn() }
+    mock.mockReturnValue({ ...base, info: { xpTotal: 100, niveau: 1 }, gain: null })
+    const { rerender } = render(<XpBadge />)
+    expect(screen.queryByText(/\+10/)).toBeNull()
+
     mock.mockReturnValue({
-      serie: null,
+      ...base,
       info: { xpTotal: 110, niveau: 1 },
       gain: { amount: 10, id: 1 },
-      serieChange: null,
-      refresh: vi.fn(),
     })
-    render(<XpBadge />)
+    rerender(<XpBadge />)
     expect(await screen.findByText(/\+10/)).toBeTruthy()
+  })
+
+  // #280: the provider outlives the header, which every page remounts. A gain it reported before
+  // the badge mounted is not new, so navigating between tabs must not replay « +10 XP ».
+  it('does not replay a gain reported before it mounted (navigation remount)', async () => {
+    const base = { serie: null, serieChange: null, refresh: vi.fn() }
+    mock.mockReturnValue({
+      ...base,
+      info: { xpTotal: 110, niveau: 1 },
+      gain: { amount: 10, id: 1 },
+    })
+    const { rerender } = render(<XpBadge />)
+    expect(screen.getByText('110')).toBeTruthy()
+    expect(screen.queryByText(/\+10/)).toBeNull()
+
+    // A later real gain still flashes.
+    mock.mockReturnValue({
+      ...base,
+      info: { xpTotal: 125, niveau: 1 },
+      gain: { amount: 15, id: 2 },
+    })
+    rerender(<XpBadge />)
+    expect(await screen.findByText(/\+15/)).toBeTruthy()
   })
 })
