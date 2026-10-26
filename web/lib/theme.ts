@@ -1,6 +1,6 @@
 /**
- * The light/dark theme preference, shared by every control that changes it (the header
- * ThemeToggle, the Paramètres page). It lives in this browser only (localStorage), and is
+ * The light/dark theme preference, shared by every control that changes it (the Paramètres
+ * page, the /design styleguide's ThemeToggle). It lives in this browser only (localStorage), and is
  * applied before first paint by the init script in app/layout.tsx, which reads the same key.
  *
  * "system" means no stored choice: `data-theme` stays absent and tokens.css follows

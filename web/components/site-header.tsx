@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { Icon } from '@/components/ui/icon'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { XpBadge } from '@/components/xp-badge'
 import { StreakBadge } from '@/components/streak-badge'
 import { SessionActions } from '@/components/session-actions'
@@ -9,8 +8,9 @@ import { MenuBurger } from '@/components/menu-burger'
 export type Crumb = { label: string; href?: string }
 
 /**
- * Top bar shared by every page: brand wordmark, a breadcrumb trail, theme toggle, when a session exists the account actions
- * (teacher-space link for a teacher, logout button), and the burger menu (Paramètres).
+ * Top bar shared by every page: brand wordmark, a breadcrumb trail, when a session exists the account actions
+ * (teacher-space link for a teacher, logout button), and the burger menu (Paramètres). The theme
+ * choice is not here: it lives on the Paramètres page (#284).
  * The breadcrumb is the app's primary "where am I" signal on desktop; on narrow
  * screens the intermediate crumbs collapse so only the current context shows.
  */
@@ -76,7 +76,6 @@ export function SiteHeader({ crumbs = [] }: { crumbs?: Crumb[] }) {
         <div className="ml-auto flex shrink-0 items-center gap-3">
           <StreakBadge />
           <XpBadge />
-          <ThemeToggle />
           <SessionActions />
           <MenuBurger />
         </div>
