@@ -47,6 +47,24 @@ describe('SessionActions', () => {
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
   })
 
+  it('affiche le rôle élève du compte (#285)', async () => {
+    const { getMoi, renderActions } = await setup()
+    getMoi.mockResolvedValue(ELEVE)
+    renderActions()
+
+    expect(await screen.findByText('Compte élève')).toBeInTheDocument()
+    expect(screen.queryByText('Compte enseignant')).not.toBeInTheDocument()
+  })
+
+  it('affiche le rôle enseignant, y compris dans le catalogue élève (#285)', async () => {
+    const { getMoi, renderActions } = await setup()
+    getMoi.mockResolvedValue(ENSEIGNANT)
+    renderActions()
+
+    expect(await screen.findByText('Compte enseignant')).toBeInTheDocument()
+    expect(screen.queryByText('Compte élève')).not.toBeInTheDocument()
+  })
+
   it("ne propose pas l'espace enseignant à un élève", async () => {
     const { getMoi, renderActions } = await setup()
     getMoi.mockResolvedValue(ELEVE)

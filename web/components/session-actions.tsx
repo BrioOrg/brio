@@ -5,11 +5,14 @@ import { getMoi } from '@/lib/session'
 import type { CompteInfo } from '@/lib/session'
 import { EspaceEnseignantLink } from '@/components/espace-enseignant-link'
 import { LogoutButton } from '@/components/logout-button'
+import { RoleBadge } from '@/components/role-badge'
 
 /**
  * The account-dependent end of the top bar, for pages that are also served to
- * logged-out visitors (the public catalogue): the logout button and, for a
- * teacher, the way to the teacher space. It asks the backend who the caller is
+ * logged-out visitors (the public catalogue): the account's role (#285), the
+ * logout button and, for a teacher, the way to the teacher space. A teacher
+ * browsing the catalogue still reads « Enseignant »: it is the account's role,
+ * not a guess from the page. It asks the backend who the caller is
  * and renders nothing until it knows — never a button for a session, nor a link
  * for a role, that we have not confirmed.
  */
@@ -34,6 +37,7 @@ export function SessionActions() {
 
   return (
     <>
+      <RoleBadge role={compte.role} />
       {compte.role === 'enseignant' && <EspaceEnseignantLink />}
       <LogoutButton labelFrom="lg" />
     </>

@@ -52,6 +52,9 @@ describe('ProfLayout role gate', () => {
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
     // The burger menu (Paramètres) is there in the teacher space too (#282).
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false')
+    // The role comes from the /api/moi answer the gate already fetched (#285): no other request.
+    expect(screen.getByText('Compte enseignant')).toBeInTheDocument()
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('carries the teacher sections in a sidebar and a bottom bar (#286)', async () => {

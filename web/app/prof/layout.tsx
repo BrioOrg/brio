@@ -9,6 +9,7 @@ import { CompteInfoSchema } from '@brio/api-client'
 import { BottomNav } from '@/components/bottom-nav'
 import { LogoutButton } from '@/components/logout-button'
 import { MenuBurger } from '@/components/menu-burger'
+import { RoleBadge } from '@/components/role-badge'
 import { SectionSidebar } from '@/components/section-sidebar'
 import { Icon } from '@/components/ui/icon'
 import { apiBaseUrl } from '@/lib/api-base-url'
@@ -22,9 +23,10 @@ const NAV_LABEL = "Navigation de l'espace enseignant"
  * backend who the caller is and let only ENSEIGNANT accounts through. This mirrors the
  * backend gate on /api/prof/** ; it exists so non-teachers see a redirect, not a broken page.
  *
- * The top bar carries the way back to the student catalogue and the logout button for
- * every teacher page. The session was just verified above, so the button is rendered
- * without asking again.
+ * The top bar carries the account's role (#285, from the /api/moi answer just above), the
+ * way back to the student catalogue and the logout button for every teacher page. The
+ * session was just verified above, so the badge and the button are rendered without asking
+ * again.
  *
  * The teacher sections are navigated like the student ones (#286): the left icon sidebar
  * on desktop (≥ sm), the fixed bottom bar on mobile, with space reserved so page content
@@ -59,6 +61,7 @@ export default async function ProfLayout({ children }: { children: ReactNode }) 
               br<span className="text-accent">io</span>
             </Link>
             <div className="flex items-center gap-3">
+              <RoleBadge role={moi.role} />
               <Link
                 href="/"
                 className="flex items-center gap-2 rounded-md px-2 py-1.5 font-display text-sm font-bold text-ink-muted transition-colors duration-[var(--duration-fast)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel sm:px-3"
