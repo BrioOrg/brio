@@ -28,13 +28,20 @@ describe('listerMesDevoirs', () => {
   it('renvoie la liste validée', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify([
-            { id: 'd1', titre: 'Pythagore', echeanceAt: '2026-10-03T18:00:00Z', nombreExercices: 3, statutRendu: 'non_commence' },
-          ]),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
-        )
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify([
+              {
+                id: 'd1',
+                titre: 'Pythagore',
+                echeanceAt: '2026-10-03T18:00:00Z',
+                nombreExercices: 3,
+                statutRendu: 'non_commence',
+              },
+            ]),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          )
       )
     )
     const res = await listerMesDevoirs(BASE)
@@ -43,7 +50,10 @@ describe('listerMesDevoirs', () => {
   })
 
   it('renvoie null quand déconnecté (401)', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 401 }))
+    )
     expect(await listerMesDevoirs(BASE)).toBeNull()
   })
 })
@@ -100,10 +110,17 @@ describe('creerDevoir', () => {
         echeanceAt: '2026-10-03T18:00:00Z',
       })
     ).rejects.toMatchObject({ status: 403 })
-    await expect(creerDevoir(BASE, {
-      classeId: 'c1', titre: 'DM', sourceType: 'cours', sourceRef: 'x',
-      exerciceIds: ['e1'], ouvreAt: '2026-09-29T08:00:00Z', echeanceAt: '2026-10-03T18:00:00Z',
-    })).rejects.toBeInstanceOf(CoursApiError)
+    await expect(
+      creerDevoir(BASE, {
+        classeId: 'c1',
+        titre: 'DM',
+        sourceType: 'cours',
+        sourceRef: 'x',
+        exerciceIds: ['e1'],
+        ouvreAt: '2026-09-29T08:00:00Z',
+        echeanceAt: '2026-10-03T18:00:00Z',
+      })
+    ).rejects.toBeInstanceOf(CoursApiError)
   })
 })
 
@@ -116,7 +133,14 @@ describe('listerDevoirsClasse', () => {
         calls.push(url)
         return new Response(
           JSON.stringify([
-            { id: 'd1', titre: 'DM', ouvreAt: '2026-09-29T08:00:00Z', echeanceAt: '2026-10-03T18:00:00Z', statut: 'publie', nombreExercices: 2 },
+            {
+              id: 'd1',
+              titre: 'DM',
+              ouvreAt: '2026-09-29T08:00:00Z',
+              echeanceAt: '2026-10-03T18:00:00Z',
+              statut: 'publie',
+              nombreExercices: 2,
+            },
           ]),
           { status: 200, headers: { 'Content-Type': 'application/json' } }
         )
@@ -132,22 +156,23 @@ describe('getTableauDeBord', () => {
   it('valide le tableau de bord (élèves + par compétence)', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            devoirId: 'd1',
-            titre: 'DM',
-            echeanceAt: '2026-10-03T18:00:00Z',
-            total: 2,
-            nbRendu: 1,
-            nbEnCours: 0,
-            nbNonCommence: 1,
-            moyenne: 0.72,
-            eleves: [{ eleveId: 'e1', nomAffiche: 'Léa', statut: 'rendu', score: 0.9 }],
-            parCompetence: [{ code: 'c4.geo.pythagore', tauxReussite: 0.5, nombreReponses: 2 }],
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
-        )
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              devoirId: 'd1',
+              titre: 'DM',
+              echeanceAt: '2026-10-03T18:00:00Z',
+              total: 2,
+              nbRendu: 1,
+              nbEnCours: 0,
+              nbNonCommence: 1,
+              moyenne: 0.72,
+              eleves: [{ eleveId: 'e1', nomAffiche: 'Léa', statut: 'rendu', score: 0.9 }],
+              parCompetence: [{ code: 'c4.geo.pythagore', tauxReussite: 0.5, nombreReponses: 2 }],
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          )
       )
     )
     const tdb = await getTableauDeBord(BASE, 'd1')
@@ -161,15 +186,16 @@ describe('controleActif', () => {
   it('signale un contrôle en cours', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            enControle: true,
-            titre: 'Contrôle Pythagore',
-            echeanceAt: '2026-10-03T18:00:00Z',
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
-        )
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              enControle: true,
+              titre: 'Contrôle Pythagore',
+              echeanceAt: '2026-10-03T18:00:00Z',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          )
       )
     )
     const c = await controleActif(BASE)
@@ -178,7 +204,10 @@ describe('controleActif', () => {
   })
 
   it('ne verrouille pas si déconnecté (401)', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 401 }))
+    )
     expect((await controleActif(BASE)).enControle).toBe(false)
   })
 })
