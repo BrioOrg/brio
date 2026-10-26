@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Duration;
@@ -169,18 +168,11 @@ class ConsentementIntegrationTest {
                 "admin.brio." + suffixe, "{noop}admin123", "Admin", "admin." + suffixe + "@brio.fr"));
 
         UUID eleveId = eleveEnAttente.getId();
-        var session = new MockHttpSession();
-        mockMvc.perform(post("/api/sessions")
-                        .session(session)
-                        .contentType("application/x-www-form-urlencoded")
-                        .param("identifiant", "admin.brio." + suffixe)
-                        .param("mot_de_passe", "admin123")
-                        .with(csrf()))
-                .andExpect(status().isOk());
+        var session = SessionCookies.login(mockMvc, "admin.brio." + suffixe, "admin123");
 
         // Enseignant role doesn't have ADMIN_BRIO — should be 403
         mockMvc.perform(delete("/api/comptes/{id}/consentement", eleveId)
-                        .session(session)
+                        .cookie(session)
                         .with(csrf()))
                 .andExpect(status().isForbidden());
     }
@@ -196,17 +188,10 @@ class ConsentementIntegrationTest {
                 .andExpect(status().isOk());
 
         // 2. Log in with the now-active account
-        var session = new MockHttpSession();
-        mockMvc.perform(post("/api/sessions")
-                        .session(session)
-                        .contentType("application/x-www-form-urlencoded")
-                        .param("identifiant", identifiantEleve)
-                        .param("mot_de_passe", "motdepasse")
-                        .with(csrf()))
-                .andExpect(status().isOk());
+        var session = SessionCookies.login(mockMvc, identifiantEleve, "motdepasse");
 
         // 3. Active session works
-        mockMvc.perform(get("/api/moi").session(session))
+        mockMvc.perform(get("/api/moi").cookie(session))
                 .andExpect(status().isOk());
 
         // 4. Revoke consent
@@ -215,7 +200,7 @@ class ConsentementIntegrationTest {
                 .andExpect(status().isOk());
 
         // 5. Same session cookie now rejected by StatutCheckFilter
-        mockMvc.perform(get("/api/moi").session(session))
+        mockMvc.perform(get("/api/moi").cookie(session))
                 .andExpect(status().isUnauthorized());
     }
 

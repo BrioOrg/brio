@@ -15,8 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import jakarta.servlet.http.Cookie;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,8 +45,8 @@ class RejoindreClasseIntegrationTest {
 
     private Compte adminCompte;
     private Compte enseignantCompte;
-    private MockHttpSession adminSession;
-    private MockHttpSession enseignantSession;
+    private Cookie adminSession;
+    private Cookie enseignantSession;
 
     private UUID classeId;
     private UUID etabId;
@@ -166,7 +166,7 @@ class RejoindreClasseIntegrationTest {
                         .andReturn().getResponse().getContentAsString(),
                 "$.identifiantConnexion");
 
-        mockMvc.perform(get("/api/moi/classes").session(login(identifiant, "monMotDePasse1")))
+        mockMvc.perform(get("/api/moi/classes").cookie(login(identifiant, "monMotDePasse1")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(classeId.toString()))
@@ -175,13 +175,13 @@ class RejoindreClasseIntegrationTest {
 
     @Test
     void shouldListTheClassesATeacherRuns() throws Exception {
-        mockMvc.perform(get("/api/moi/classes").session(enseignantSession))
+        mockMvc.perform(get("/api/moi/classes").cookie(enseignantSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
 
         classeService.assignerEnseignantPrincipal(classeId, enseignantCompte.getId());
 
-        mockMvc.perform(get("/api/moi/classes").session(enseignantSession))
+        mockMvc.perform(get("/api/moi/classes").cookie(enseignantSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(classeId.toString()));
     }
@@ -248,7 +248,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn201WhenAdminCreatesEtablissement() throws Exception {
         mockMvc.perform(post("/api/etablissements")
-                        .session(adminSession)
+                        .cookie(adminSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -262,7 +262,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn403WhenNonAdminTriesToCreateEtablissement() throws Exception {
         mockMvc.perform(post("/api/etablissements")
-                        .session(enseignantSession)
+                        .cookie(enseignantSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -274,7 +274,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn201WhenAdminCreatesClasse() throws Exception {
         mockMvc.perform(post("/api/classes")
-                        .session(adminSession)
+                        .cookie(adminSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -288,7 +288,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn403WhenNonAdminTriesToCreateClasse() throws Exception {
         mockMvc.perform(post("/api/classes")
-                        .session(enseignantSession)
+                        .cookie(enseignantSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -303,7 +303,7 @@ class RejoindreClasseIntegrationTest {
         classeService.revoquerCode(classeId, adminCompte.getId(), true);
 
         mockMvc.perform(post("/api/classes/{id}/codes", classeId)
-                        .session(adminSession)
+                        .cookie(adminSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -317,7 +317,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn403WhenNonAdminTriesToGenerateCode() throws Exception {
         mockMvc.perform(post("/api/classes/{id}/codes", classeId)
-                        .session(enseignantSession)
+                        .cookie(enseignantSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
@@ -327,7 +327,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn204WhenAdminRevokesCode() throws Exception {
         mockMvc.perform(delete("/api/classes/{id}/codes/actif", classeId)
-                        .session(adminSession)
+                        .cookie(adminSession)
                         .with(csrf()))
                 .andExpect(status().isNoContent());
 
@@ -337,7 +337,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn200WhenAdminReadsCodeInfo() throws Exception {
         mockMvc.perform(get("/api/classes/{id}/codes/actif", classeId)
-                        .session(adminSession))
+                        .cookie(adminSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usages").value(0))
                 .andExpect(jsonPath("$.usagesMax").value(40))
@@ -347,7 +347,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn200AndSetPrincipalWhenAdminAssignsEnseignant() throws Exception {
         mockMvc.perform(put("/api/classes/{id}/enseignant-principal", classeId)
-                        .session(adminSession)
+                        .cookie(adminSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -360,7 +360,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn403WhenNonAdminTriesToAssignEnseignant() throws Exception {
         mockMvc.perform(put("/api/classes/{id}/enseignant-principal", classeId)
-                        .session(enseignantSession)
+                        .cookie(enseignantSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -372,7 +372,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn422WhenAssignedAccountIsNotAnEnseignant() throws Exception {
         mockMvc.perform(put("/api/classes/{id}/enseignant-principal", classeId)
-                        .session(adminSession)
+                        .cookie(adminSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -384,7 +384,7 @@ class RejoindreClasseIntegrationTest {
     @Test
     void shouldReturn404WhenAssigningEnseignantToUnknownClasse() throws Exception {
         mockMvc.perform(put("/api/classes/{id}/enseignant-principal", UUID.randomUUID())
-                        .session(adminSession)
+                        .cookie(adminSession)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -395,15 +395,7 @@ class RejoindreClasseIntegrationTest {
 
     // ── Helper ────────────────────────────────────────────────────────────────
 
-    private MockHttpSession login(String identifiant, String motDePasse) throws Exception {
-        var session = new MockHttpSession();
-        mockMvc.perform(post("/api/sessions")
-                        .session(session)
-                        .contentType("application/x-www-form-urlencoded")
-                        .param("identifiant", identifiant)
-                        .param("mot_de_passe", motDePasse)
-                        .with(csrf()))
-                .andExpect(status().isOk());
-        return session;
+    private Cookie login(String identifiant, String motDePasse) throws Exception {
+        return SessionCookies.login(mockMvc, identifiant, motDePasse);
     }
 }
