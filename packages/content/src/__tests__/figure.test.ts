@@ -391,6 +391,107 @@ describe('line styles', () => {
   })
 })
 
+describe('buildDrawingModel — arcs', () => {
+  // A half disk of diameter [AB] = 8 and centre O.
+  const halfDisk: FigureSpec = {
+    points: [
+      { name: 'O', x: 0, y: 0 },
+      { name: 'A', x: -4, y: 0 },
+      { name: 'B', x: 4, y: 0 },
+    ],
+    arcs: [{ center: 'O', from: 'B', to: 'A', closed: 'chord' }],
+  }
+  const dotOf = (model: ReturnType<typeof buildDrawingModel>, i: number) =>
+    `${model.dots[i].cx.toFixed(2)} ${model.dots[i].cy.toFixed(2)}`
+
+  it('draws a closed half disk counter-clockwise from B to A, over the top', () => {
+    const model = buildDrawingModel(halfDisk)
+    expect(model.curves).toHaveLength(1)
+    const { d, dashed } = model.curves[0]
+    expect(dashed).toBe(false)
+    // Small arc (180° exactly is not > 180°), sweep flag 0 = counter-clockwise on screen.
+    expect(d).toMatch(
+      new RegExp(`^M ${dotOf(model, 2)} A ([\\d.]+) \\1 0 0 0 ${dotOf(model, 1)} Z$`)
+    )
+  })
+
+  it('widens the viewport to the bulge of the arc, not only its ends', () => {
+    const withTop: FigureSpec = {
+      ...halfDisk,
+      points: [...halfDisk.points!, { name: 'T', x: 0, y: 4, dot: false, showName: false }],
+    }
+    expect(buildDrawingModel(halfDisk).curves).toEqual(buildDrawingModel(withTop).curves)
+  })
+
+  it('gives the same drawing by points or by radius and angles', () => {
+    const byAngles: FigureSpec = {
+      ...halfDisk,
+      arcs: [{ center: 'O', radius: 4, startAngle: 0, endAngle: 180, closed: 'chord' }],
+    }
+    expect(buildDrawingModel(byAngles).curves).toEqual(buildDrawingModel(halfDisk).curves)
+  })
+
+  it('closes a sector through the centre', () => {
+    const quarter: FigureSpec = {
+      points: [
+        { name: 'O', x: 0, y: 0 },
+        { name: 'A', x: 4, y: 0 },
+        { name: 'B', x: 0, y: 4 },
+      ],
+      arcs: [{ center: 'O', from: 'A', to: 'B', closed: 'sector' }],
+    }
+    const model = buildDrawingModel(quarter)
+    expect(model.curves[0].d).toMatch(
+      new RegExp(`^M ${dotOf(model, 0)} L ${dotOf(model, 1)} A .* ${dotOf(model, 2)} Z$`)
+    )
+  })
+
+  it('sets the large-arc flag beyond a half turn, and draws a dashed construction arc', () => {
+    const model = buildDrawingModel({
+      points: [
+        { name: 'O', x: 0, y: 0 },
+        { name: 'A', x: 1, y: 0 },
+        { name: 'B', x: 0, y: -1 },
+      ],
+      arcs: [{ center: 'O', from: 'A', to: 'B', style: 'dashed' }],
+    })
+    expect(model.curves[0].d).toMatch(/ 0 1 0 /)
+    expect(model.curves[0].d).not.toMatch(/Z$/)
+    expect(model.curves[0].dashed).toBe(true)
+  })
+
+  it('draws a whole turn as two halves', () => {
+    const model = buildDrawingModel({
+      points: [{ name: 'O', x: 0, y: 0 }],
+      arcs: [{ center: 'O', radius: 1, startAngle: 0, endAngle: 360 }],
+    })
+    expect(model.curves[0].d.match(/A /g)).toHaveLength(2)
+  })
+
+  it('takes each axis scale in a repère', () => {
+    const model = buildDrawingModel({
+      axes: { x: { from: 0, to: 10, step: 1 }, y: { from: 0, to: 5, step: 1 } },
+      points: [{ name: 'O', x: 5, y: 2 }],
+      arcs: [{ center: 'O', radius: 1, startAngle: 0, endAngle: 90 }],
+    })
+    const [, rx, ry] = /A ([\d.]+) ([\d.]+)/.exec(model.curves[0].d)!
+    expect(Number(ry)).toBeCloseTo(2 * Number(rx), 1)
+  })
+
+  it('fails with a readable message on impossible angles or a missing point', () => {
+    const points = [{ name: 'O', x: 0, y: 0 }]
+    expect(() =>
+      buildDrawingModel({
+        points,
+        arcs: [{ center: 'O', radius: 1, startAngle: 90, endAngle: 30 }],
+      })
+    ).toThrow(/angle de fin/)
+    expect(() =>
+      buildDrawingModel({ points, arcs: [{ center: 'O', from: 'O', to: 'X' }] })
+    ).toThrow(/X/)
+  })
+})
+
 describe('expandSolid', () => {
   const hidden = (drawing: ReturnType<typeof expandSolid>) =>
     drawing.edges.filter((e) => e.hidden).map((e) => [e.from, e.to])
