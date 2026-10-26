@@ -20,7 +20,7 @@ export function SiteHeader({ crumbs = [] }: { crumbs?: Crumb[] }) {
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
         <Link
           href="/"
-          className="font-display text-lg font-black tracking-tight text-ink rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel"
+          className="font-display text-2xl font-black tracking-tight text-ink rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel"
           aria-label="brio — accueil"
         >
           br<span className="text-accent">io</span>
