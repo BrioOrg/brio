@@ -13,7 +13,10 @@ export function getProgression(): Promise<ProgressionInfo | null> {
 }
 
 /** Return the student's path state for a track, or null when not logged in. */
-export function getParcours(niveau: string, matiere: string): Promise<ParcoursChapitre[] | null> {
+export function getParcours(
+  niveau: string,
+  matiere: string
+): Promise<ParcoursChapitre[] | null> {
   return apiGetParcours(apiBaseUrl(), niveau, matiere)
 }
 

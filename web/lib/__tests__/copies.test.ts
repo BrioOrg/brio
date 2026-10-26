@@ -50,10 +50,7 @@ describe('F5 — wrappers copies', () => {
         uploadedAt: '2026-09-29T10:00:00Z',
       },
     ]
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: async () => pieces } as Response)
-    )
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => pieces } as Response))
     const res = await listerPiecesRendu('http://x', 'd1', 'e1')
     expect(res).toHaveLength(1)
   })

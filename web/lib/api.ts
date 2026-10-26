@@ -255,14 +255,11 @@ export async function soumettre(
   // (createApiClient sends it). Being a mutating POST, it also needs the CSRF
   // token echoed as a header — primed here if the cookie isn't set yet.
   const token = await ensureCsrfToken(apiBaseUrl())
-  const { data, error, response } = await createApiClient(apiBaseUrl()).POST(
-    '/api/exercices/{id}/soumissions',
-    {
-      params: { path: { id: exerciceId } },
-      body: { answer },
-      headers: csrfHeaders(token),
-    }
-  )
+  const { data, error, response } = await createApiClient(apiBaseUrl()).POST('/api/exercices/{id}/soumissions', {
+    params: { path: { id: exerciceId } },
+    body: { answer },
+    headers: csrfHeaders(token),
+  })
   // Guard on the status too: an auth/CSRF failure can return an empty body, which
   // openapi-fetch surfaces as no `error` rather than a populated one.
   if (error || !response.ok) {

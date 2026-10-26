@@ -46,19 +46,13 @@ describe('progression client', () => {
   })
 
   it('returns null when the student is not logged in (401)', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(null, { status: 401 }))
-    )
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })))
     const { getProgression } = await import('@/lib/progression')
     expect(await getProgression()).toBeNull()
   })
 
   it('throws on a server error so the caller can leave the badge hidden', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(null, { status: 500 }))
-    )
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 500 })))
     const { getProgression } = await import('@/lib/progression')
     await expect(getProgression()).rejects.toThrow()
   })
