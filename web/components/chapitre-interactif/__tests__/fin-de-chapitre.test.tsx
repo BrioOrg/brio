@@ -202,14 +202,14 @@ describe('the end slide — a summary made of real data (#249)', () => {
     expect(fin().querySelector('[data-bilan="completion"]')).toBeNull()
   })
 
-  it('given the next chapter locked on the path, then the main action is the path', async () => {
+  it('given the next chapter still locked on the path, then it is offered all the same', async () => {
+    // Every chapter is open (#278): the backend's `verrouille` no longer hides it.
     vi.mocked(getParcours).mockResolvedValue(parcours(40, 'verrouille'))
     ouvrir(FIN)
     const slide = within(fin())
     await waitFor(() => expect(getParcours).toHaveBeenCalled())
     await act(async () => {})
-    expect(slide.queryByRole('link', { name: /Chapitre suivant/ })).toBeNull()
-    expect(slide.getByRole('link', { name: 'Revenir au parcours' })).toBeTruthy()
+    expect(slide.getByRole('link', { name: /Chapitre suivant : Les fractions/ })).toBeTruthy()
   })
 
   it('given the last chapter of the track, then the main action is the path', () => {

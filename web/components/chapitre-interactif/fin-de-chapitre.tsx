@@ -94,7 +94,6 @@ export function FinDeChapitre() {
         xpSession: ctx.bilanSession.xpSession,
         completion: ctx.bilanSession.completion,
         suivant: ctx.suivant,
-        etatSuivant: ctx.bilanSession.etatSuivant,
       })
     : null
 
