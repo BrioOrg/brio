@@ -16,6 +16,8 @@ async function ouvrirMenu(page: Page) {
 
 test('a student opens Paramètres from the burger menu and changes the theme', async ({ page }) => {
   await page.goto('/')
+  // The theme choice is no longer in the top bar (#284): only Paramètres has it.
+  await expect(page.getByRole('banner').getByRole('button', { name: /Thème/ })).toHaveCount(0)
   const bouton = await ouvrirMenu(page)
 
   // Escape closes the menu and gives the focus back to the button.
@@ -39,6 +41,14 @@ test('a student opens Paramètres from the burger menu and changes the theme', a
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await expect(page.getByRole('radio', { name: /Sombre/ })).toBeChecked()
+
+  // No flash on another page either: with the app's scripts blocked, React never runs, and
+  // only the inline init script in the root layout can have applied the stored theme.
+  await page.route('**/_next/static/**/*.js', (route) => route.abort())
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.unroute('**/_next/static/**/*.js')
+  await page.goto('/parametres')
 
   await page.getByRole('group', { name: 'Thème' }).getByText('Clair', { exact: true }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
