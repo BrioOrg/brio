@@ -29,19 +29,17 @@ ex-effectif-total           exercice  ex-effectif-total
 ex-frequence-decimale       exercice  ex-frequence-decimale
 ex-frequence-pourcent       exercice  ex-frequence-pourcent
 ex-somme-frequences         exercice  ex-somme-frequences
-chart-barres-sports         lecon     chart-barres-sports
-ex-lire-natation            exercice  ex-lire-natation
+chart-barres-sports         exercice  chart-barres-sports + ex-lire-natation
 ex-lire-ecart               exercice  ex-lire-ecart
 table-choisir               lecon     table-choisir
 def-circulaire              lecon     def-circulaire
-prose-circulaire-transport  lecon     prose-circulaire-transport + chart-circulaire-transport
-ex-lire-circulaire-moitie   exercice  ex-lire-circulaire-moitie
+prose-circulaire-transport  lecon     prose-circulaire-transport
+chart-circulaire-transport  exercice  chart-circulaire-transport + ex-lire-circulaire-moitie
 ex-lire-circulaire-bus      exercice  ex-lire-circulaire-bus
 ex-choisir-circulaire       exercice  ex-choisir-circulaire
 ex-choisir-courbe           exercice  ex-choisir-courbe
 ex-angle-secteur            exercice  ex-angle-secteur
-table-associer              lecon     table-associer + chart-associer-a + chart-associer-b + chart-associer-c
-ex-associer-diagramme       exercice  ex-associer-diagramme
+table-associer              exercice  table-associer + chart-associer-a + chart-associer-b + chart-associer-c + ex-associer-diagramme
 def-moyenne                 lecon     def-moyenne
 ex-moyenne-notes            exercice  ex-moyenne-notes
 ex-moyenne-temperatures     exercice  ex-moyenne-temperatures

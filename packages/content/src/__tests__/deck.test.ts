@@ -24,6 +24,9 @@ const definition = (id: string) => block(id, 'callout', 'definition')
 const tip = (id: string) => block(id, 'callout', 'tip')
 const figure = (id: string) => block(id, 'figure')
 const table = (id: string) => block(id, 'table')
+const formula = (id: string) => block(id, 'formula')
+const chart = (id: string) => block(id, 'chart')
+const image = (id: string) => block(id, 'image')
 const exercise = (id: string) => block(id, 'exercise')
 
 describe('buildDeck', () => {
@@ -80,8 +83,8 @@ describe('buildDeck', () => {
 
   it('should open a slide on a support or aside with nothing open', () => {
     expect(
-      middle({ sections: [section('s1', figure('f1'), exercise('x'), tip('t'), figure('f2'))] })
-    ).toEqual(['lecon:f1', 'exercice:x', 'lecon:t+f2'])
+      middle({ sections: [section('s1', table('t1'), exercise('x'), tip('t'), figure('f2'))] })
+    ).toEqual(['lecon:t1', 'exercice:x', 'lecon:t+f2'])
   })
 
   it('should give each exercise its own slide', () => {
@@ -92,16 +95,18 @@ describe('buildDeck', () => {
 
   it('should keep the only support of a lead on the lesson slide, before an exercise', () => {
     expect(
-      middle({ sections: [section('s1', definition('d'), figure('f'), exercise('x'))] })
-    ).toEqual(['lecon:d+f', 'exercice:x'])
+      middle({ sections: [section('s1', definition('d'), table('t'), exercise('x'))] })
+    ).toEqual(['lecon:d+t', 'exercice:x'])
   })
 
   it('should move a second support onto the exercise slide it comes right before', () => {
     expect(
-      middle({ sections: [section('s1', definition('d'), figure('f'), table('t'), exercise('x'))] })
-    ).toEqual(['lecon:d+f', 'exercice:t+x'])
+      middle({
+        sections: [section('s1', definition('d'), formula('m'), table('t'), exercise('x'))],
+      })
+    ).toEqual(['lecon:d+m', 'exercice:t+x'])
     const deck = buildDeck({
-      sections: [section('s1', definition('d'), figure('f'), table('t'), exercise('x'))],
+      sections: [section('s1', definition('d'), formula('m'), table('t'), exercise('x'))],
     })
     expect(deck[2]).toEqual({ id: 't', kind: 'exercice', sectionId: 's1', blockIds: ['t', 'x'] })
   })
@@ -110,18 +115,100 @@ describe('buildDeck', () => {
     expect(
       middle({
         sections: [
-          section('s1', definition('d'), figure('f1'), tip('t'), figure('f2'), exercise('x')),
+          section('s1', definition('d'), formula('m'), tip('t'), table('t2'), exercise('x')),
         ],
       })
-    ).toEqual(['lecon:d+f1+t', 'exercice:f2+x'])
+    ).toEqual(['lecon:d+m+t', 'exercice:t2+x'])
   })
 
   it('should not move a support onto an exercise when no lead opened the slide', () => {
     expect(
       middle({
-        sections: [section('s1', exercise('x1'), table('t'), figure('f'), exercise('x2'))],
+        sections: [section('s1', exercise('x1'), table('t'), formula('m'), exercise('x2'))],
       })
-    ).toEqual(['exercice:x1', 'lecon:t+f', 'exercice:x2'])
+    ).toEqual(['exercice:x1', 'lecon:t+m', 'exercice:x2'])
+  })
+
+  describe('a figure right before an exercise (#277)', () => {
+    it('should share the exercise slide, even when it is the only support of the lead', () => {
+      const deck = buildDeck({
+        sections: [section('s1', definition('d'), figure('f'), exercise('x'))],
+      })
+      expect(deck.slice(1, -1)).toEqual([
+        { id: 'd', kind: 'lecon', sectionId: 's1', blockIds: ['d'] },
+        { id: 'f', kind: 'exercice', sectionId: 's1', blockIds: ['f', 'x'] },
+      ])
+    })
+
+    it('should share the exercise slide after an introducing prose or another exercise', () => {
+      expect(middle({ sections: [section('s1', prose('p'), figure('f'), exercise('x'))] })).toEqual(
+        ['lecon:p', 'exercice:f+x']
+      )
+      expect(
+        middle({ sections: [section('s1', exercise('x1'), figure('f'), exercise('x2'))] })
+      ).toEqual(['exercice:x1', 'exercice:f+x2'])
+    })
+
+    it('should also hold for an image or a chart', () => {
+      expect(
+        middle({
+          sections: [
+            section('s1', definition('d'), image('i'), exercise('x1'), chart('c'), exercise('x2')),
+          ],
+        })
+      ).toEqual(['lecon:d', 'exercice:i+x1', 'exercice:c+x2'])
+    })
+
+    it('should bring along every support in the same run', () => {
+      expect(
+        middle({
+          sections: [section('s1', definition('d'), figure('f1'), figure('f2'), exercise('x'))],
+        })
+      ).toEqual(['lecon:d', 'exercice:f1+f2+x'])
+      expect(
+        middle({
+          sections: [section('s1', exercise('x1'), table('t'), chart('c'), exercise('x2'))],
+        })
+      ).toEqual(['exercice:x1', 'exercice:t+c+x2'])
+    })
+
+    it('should stop at an aside: a figure before it stays with the lesson', () => {
+      expect(
+        middle({
+          sections: [
+            section('s1', definition('d'), figure('f1'), tip('t'), figure('f2'), exercise('x')),
+          ],
+        })
+      ).toEqual(['lecon:d+f1+t', 'exercice:f2+x'])
+    })
+
+    it('should stay with the lesson when a table, not a figure, comes right before the exercise', () => {
+      expect(
+        middle({
+          sections: [section('s1', definition('d'), figure('f'), table('t'), exercise('x'))],
+        })
+      ).toEqual(['lecon:d+f', 'exercice:t+x'])
+    })
+
+    it('should keep its own slide when no exercise follows', () => {
+      expect(
+        middle({
+          sections: [
+            section('s1', definition('d'), figure('f1'), definition('e')),
+            section('s2', figure('f2')),
+            section('s3', figure('f3'), tip('t'), exercise('x')),
+          ],
+        })
+      ).toEqual(['lecon:d+f1', 'lecon:e', 'lecon:f2', 'lecon:f3+t', 'exercice:x'])
+    })
+
+    it('should not reach an exercise in the next section', () => {
+      expect(
+        middle({
+          sections: [section('s1', definition('d'), figure('f')), section('s2', exercise('x'))],
+        })
+      ).toEqual(['lecon:d+f', 'exercice:x'])
+    })
   })
 
   it('should never cross a section', () => {
@@ -228,12 +315,12 @@ describe('buildDeck on the catalogue', () => {
       movedOntoExercise: decks.flat().filter((d) => d.kind === 'exercice' && d.blockIds.length > 1)
         .length,
     }).toEqual({
-      slides: 996,
+      slides: 985,
       fewest: 10,
-      median: 22,
-      most: 35,
-      blocksPerSlide: { 0: 50, 1: 809, 2: 101, 3: 33, 4: 2, 5: 1 },
-      movedOntoExercise: 5,
+      median: 21,
+      most: 33,
+      blocksPerSlide: { 0: 50, 1: 787, 2: 113, 3: 32, 4: 1, 5: 2 },
+      movedOntoExercise: 30,
     })
   })
 
