@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // The teacher-space role gate. It asks the backend who the caller is (forwarding the
@@ -12,6 +12,7 @@ const redirectMock = vi.fn((url: string) => {
 vi.mock('next/navigation', () => ({
   redirect: redirectMock,
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => '/prof/classes/c-1',
 }))
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({ toString: () => 'JSESSIONID=abc' })),
@@ -51,6 +52,38 @@ describe('ProfLayout role gate', () => {
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
     // The burger menu (Paramètres) is there in the teacher space too (#282).
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('carries the teacher sections in a sidebar and a bottom bar (#286)', async () => {
+    stubMoi(
+      new Response(
+        JSON.stringify({ id: '1', role: 'enseignant', statut: 'actif', nom: 'P', email: 'p@t.fr' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    )
+    const { default: ProfLayout } = await import('../layout')
+
+    render(await ProfLayout({ children: 'CONTENU' }))
+
+    // Both are in the page, one hidden by width (sm): the sidebar first, the bottom bar last.
+    const navs = screen.getAllByRole('navigation', { name: "Navigation de l'espace enseignant" })
+    expect(navs).toHaveLength(2)
+    for (const nav of navs) {
+      const liens = within(nav).getAllByRole('link')
+      expect(liens.map((l) => l.textContent)).toEqual([
+        'Mes cours',
+        'Mes classes',
+        'Devoirs',
+        'Signalements',
+        'Signalements du salon',
+      ])
+      expect(within(nav).getByRole('link', { name: 'Mes classes' })).toHaveAttribute(
+        'aria-current',
+        'page'
+      )
+      // No placeholder for a module that does not exist.
+      expect(within(nav).queryByRole('button')).not.toBeInTheDocument()
+    }
   })
 
   it('redirects a non-enseignant to the home page', async () => {

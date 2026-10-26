@@ -10,7 +10,8 @@ vi.mock('next/navigation', () => ({
 async function setup(path = '/') {
   pathname = path
   const { BottomNav } = await import('../bottom-nav')
-  render(<BottomNav />)
+  const { APP_SECTIONS, APP_UPCOMING_TABS } = await import('@/lib/app-sections')
+  render(<BottomNav sections={APP_SECTIONS} upcoming={APP_UPCOMING_TABS} />)
 }
 
 describe('BottomNav', () => {
@@ -46,5 +47,23 @@ describe('BottomNav', () => {
     // "Ma classe" replaced the old disabled "Social" placeholder: it is a real link now.
     expect(screen.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('href', '/ma-classe')
     expect(screen.queryByRole('button', { name: /Social/ })).not.toBeInTheDocument()
+  })
+
+  it('lists the teacher sections, without a disabled placeholder', async () => {
+    pathname = '/prof/devoirs/nouveau'
+    const { BottomNav } = await import('../bottom-nav')
+    const { PROF_SECTIONS } = await import('@/lib/app-sections')
+    render(<BottomNav sections={PROF_SECTIONS} label="Navigation de l'espace enseignant" />)
+
+    const nav = screen.getByRole('navigation', { name: "Navigation de l'espace enseignant" })
+    expect(nav).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Mes cours' })).toHaveAttribute('href', '/prof')
+    expect(screen.getByRole('link', { name: 'Mes classes' })).toHaveAttribute(
+      'href',
+      '/prof/classes'
+    )
+    expect(screen.getByRole('link', { name: 'Devoirs' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Mes cours' })).not.toHaveAttribute('aria-current')
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })

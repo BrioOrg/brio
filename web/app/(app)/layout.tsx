@@ -2,7 +2,7 @@ import { BottomNav } from '@/components/bottom-nav'
 import { ExamenBanner } from '@/components/examen-banner'
 import { ProgressionProvider } from '@/components/progression-context'
 import { SectionSidebar } from '@/components/section-sidebar'
-import { APP_SECTIONS } from '@/lib/app-sections'
+import { APP_SECTIONS, APP_UPCOMING_TABS } from '@/lib/app-sections'
 
 /**
  * App-shell layout for the catalogue/parcours section. Carries the section
@@ -26,7 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </div>
-      <BottomNav />
+      <BottomNav sections={APP_SECTIONS} upcoming={APP_UPCOMING_TABS} />
     </ProgressionProvider>
   )
 }

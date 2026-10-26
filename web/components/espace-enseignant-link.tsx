@@ -3,7 +3,7 @@ import { Icon } from '@/components/ui/icon'
 
 /**
  * The way from the student pages to the teacher space (/prof). Shown at every
- * width — BottomNav only carries student sections, so on mobile this is the
+ * width — the student shell's BottomNav only carries student sections, so on mobile this is the
  * teacher's sole route. Below lg the bar is too narrow for a label, so the link
  * shows its icon only; the label stays for screen readers.
  */
