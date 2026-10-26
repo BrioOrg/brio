@@ -9,6 +9,8 @@
   the renderer, not the author, decides which edges are hidden (see "Amendment (#215)")
 - **Amended**: 2026-10-08 (#226) — cube assemblages described by their plan coté, drawn as shaded
   visible faces (see "Amendment (#226)")
+- **Amended**: 2026-10-26 (#227) — arcs of circles, open or closed into a half disk or a sector
+  (see "Amendment (#227)")
 
 ## Context
 
@@ -154,7 +156,7 @@ reduction coefficient) is error-prone, and CI cannot tell which edges should be 
 **Consequences.** Solids are authored as data, checked by CI and rendered the same way on web and
 mobile. A patron is still drawn with polygons. Out of scope: arcs and half-disks, cube assemblages
 (6e `espace-solides`), pyramids and cones (4e), length marks on a solid's edges. *Cube assemblages:
-amended by #226.*
+amended by #226. Arcs and half-disks: amended by #227.*
 
 ## Amendment (#226) — cube assemblages
 
@@ -193,6 +195,43 @@ authors keep it out of exercises that ask for that view (recipe in `content/AUTH
 scope: computed views, length marks on an assemblage, cubes that are not resting on a cell below
 (every stack starts on the table).
 
+## Amendment (#227) — arcs of circles
+
+**Context.** The figure block drew whole circles only. The 6e chapter `perimetres` is about
+contours made of segments and arcs (a half disk, a quarter disk, a window topped by a half disk,
+a running track), and described every one of them in words. Compass constructions (médiatrice,
+bissectrice, carrying a length) leave short construction arcs, which the original decision had
+deferred.
+
+**Decision.** Additive schema changes, `schemaVersion` unchanged (ADR 0004):
+
+1. **`spec.arcs`**, each with a `center` (a named point) and one of two forms, never both:
+   - **by points**, `from` and `to`: the arc starts at `from` and stops on the ray through `to`.
+     This is how a figure names its arcs, and the ends usually are points of the figure already
+     (the corners of a rectangle under a half disk). `check-content` requires `to` to be at the
+     same distance from the centre as `from` (± 1e-6 relative), so the drawing does stop on `to`;
+   - **by angles**, `radius`, `startAngle`, `endAngle` in degrees: for a construction arc, whose
+     ends are not points of the figure. `startAngle < endAngle`, less than a whole turn apart.
+2. **Counter-clockwise, always**, from `from` (or `startAngle`) to `to` (or `endAngle`), as angles
+   are measured in maths. A single direction keeps one spec for one drawing; the other arc
+   between the same two points is written by swapping them. Two ends on the same ray would be a
+   whole turn: `check-content` rejects it, a whole circle is a `circles` element.
+3. **`closed`**: `"chord"` joins the ends by a straight line (a half disk on its diameter),
+   `"sector"` through the centre (a quarter disk and its two radii). Absent, the arc is open,
+   which is what a composite contour needs: the straight sides belong to the rest of the figure.
+   Closed arcs are not filled, like polygons.
+4. **`style: "dashed"`**, as for segments (#215): a construction arc, or a side hidden inside a
+   composite figure.
+5. **The renderer draws an SVG elliptical arc** with one radius per axis, so the arc is correct
+   in a repère too; like circles, `check-content` rejects arcs in a repère whose spans differ.
+   The bounding box takes in the bulge of the arc (its extreme points), not only its ends, and
+   the centre of a sector.
+
+**Consequences.** Composite figures and compass constructions are authored as data, checked by CI
+and drawn the same way on web and mobile. Not done: arc length or angle labels computed by the
+renderer (an author writes a `label`), arcs marked equal (`lengthMarks` stay on segments), filled
+sectors (a pie chart is a `chart` block, ADR 0030).
+
 ## Consequences
 
 ### Positive
@@ -220,7 +259,7 @@ scope: computed views, length marks on an assemblage, cubes that are not resting
 ### Out of scope for this ADR
 
 - Arcs (compass-construction figures): deferred until médiatrice/bisectrice
-  chapters are authored.
+  chapters are authored. *Amended by #227: `arcs` draws them, open or closed.*
 - Parallel-coding marks (arrows on parallel sides): deferred until the
   positions-relatives chapter.
 - 3D solids and nets: chapter `espace-solides` remains blocked and is noted

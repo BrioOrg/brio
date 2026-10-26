@@ -40,6 +40,22 @@ export type FigureCircle =
   | { center: string; through: string; radius?: never }
   | { center: string; radius: number; through?: never }
 
+/**
+ * An arc of a circle, drawn counter-clockwise (ADR 0013, amendment #227). Either from the named
+ * point `from` to the ray through `to` (both at the same distance from the centre, checked by
+ * check-content), or by a radius and two angles in degrees, `startAngle` < `endAngle`.
+ * `closed` joins its ends: "sector" through the centre (a quarter disk), "chord" straight (a
+ * half disk). `style: "dashed"` draws a construction arc.
+ */
+export type FigureArc = {
+  center: string
+  style?: FigureLineStyle
+  closed?: 'sector' | 'chord'
+} & (
+  | { from: string; to: string; radius?: never; startAngle?: never; endAngle?: never }
+  | { radius: number; startAngle: number; endAngle: number; from?: never; to?: never }
+)
+
 export type FigureAngleMark = {
   vertex: string
   from: string
@@ -137,6 +153,7 @@ export type FigureSpec = {
   segments?: FigureSegment[]
   polygons?: FigurePolygon[]
   circles?: FigureCircle[]
+  arcs?: FigureArc[]
   angleMarks?: FigureAngleMark[]
   lengthMarks?: FigureLengthMark[]
   labels?: FigureLabel[]
@@ -152,7 +169,7 @@ export type DrawingSegment = { x1: number; y1: number; x2: number; y2: number }
 export type DrawingStroke = DrawingSegment & { dashed: boolean }
 export type DrawingPolygon = { points: string }
 export type DrawingShape = DrawingPolygon & { dashed: boolean }
-/** An SVG path (half-ellipses of a cylinder). */
+/** An SVG path: a half-ellipse of a cylinder, an arc of a circle (possibly closed). */
 export type DrawingCurve = { d: string; dashed: boolean }
 export type DrawingCircle = { cx: number; cy: number; r: number }
 export type DrawingRightAngleSquare = { points: string }
@@ -249,7 +266,7 @@ function normalize(v: Pt2): Pt2 {
   return { x: v.x / l, y: v.y / l }
 }
 
-function computeViewport(spec: FigureSpec): CoordinateSpace {
+function computeViewport(spec: FigureSpec, pointMap: Map<string, Pt2>): CoordinateSpace {
   if (spec.axes) {
     const { x, y } = spec.axes
     return { xMin: x.from, xMax: x.to, yMin: y.from, yMax: y.to }
@@ -273,6 +290,12 @@ function computeViewport(spec: FigureSpec): CoordinateSpace {
   }
   for (const solid of spec.solids ?? []) {
     for (const p of expandSolid(solid).extent) {
+      xs.push(p.x)
+      ys.push(p.y)
+    }
+  }
+  for (const arc of spec.arcs ?? []) {
+    for (const p of arcExtent(resolveArc(arc, pointMap), arc.closed === 'sector')) {
       xs.push(p.x)
       ys.push(p.y)
     }
@@ -387,7 +410,7 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     assertDrawableAxis(spec.axes.x, 'des abscisses')
     assertDrawableAxis(spec.axes.y, 'des ordonnées')
   }
-  const viewport = computeViewport(spec)
+  const viewport = computeViewport(spec, pointMap)
   const toSvg = spec.axes ? makeAxesTransform(viewport) : makeTransform(viewport)
 
   // Segments
@@ -424,6 +447,11 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     }
     return { cx: sc.x, cy: sc.y, r }
   })
+
+  // Arcs of circles join the curves
+  const curves: DrawingCurve[] = (spec.arcs ?? []).map((arc) =>
+    arcPath(resolveArc(arc, pointMap), arc, toSvg)
+  )
 
   // Angle marks
   const rightAngleSquares: DrawingRightAngleSquare[] = []
@@ -571,7 +599,6 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
 
   // Solids: their edges join the segments, their half-ellipses the curves, their names the labels;
   // the faces of an assemblage are filled, in drawing order.
-  const curves: DrawingCurve[] = []
   const cubeFaces: DrawingCubeFace[] = []
   for (const solid of spec.solids ?? []) {
     const drawing = expandSolid(solid)
@@ -620,6 +647,89 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     cubeFaces,
     axes,
   }
+}
+
+// --- Arcs of circles (ADR 0013, amendment #227) ---
+
+/** An arc in logical coordinates: centre, radius, start angle and counter-clockwise sweep (rad). */
+type ResolvedArc = { cx: number; cy: number; r: number; start: number; sweep: number }
+
+const FULL_TURN = 2 * Math.PI
+
+function resolveArc(arc: FigureArc, pointMap: Map<string, Pt2>): ResolvedArc {
+  const c = requirePoint(pointMap, arc.center)
+  if (arc.from !== undefined) {
+    const from = requirePoint(pointMap, arc.from)
+    const to = requirePoint(pointMap, arc.to)
+    const r = Math.hypot(from.x - c.x, from.y - c.y)
+    if (r < 1e-12) throw new Error(`Arc de centre ${arc.center} : le point de départ est le centre`)
+    const start = Math.atan2(from.y - c.y, from.x - c.x)
+    const end = Math.atan2(to.y - c.y, to.x - c.x)
+    // The end lies on the ray through `to`; the same direction twice is a whole turn.
+    let sweep = (((end - start) % FULL_TURN) + FULL_TURN) % FULL_TURN
+    if (sweep < 1e-9) sweep = FULL_TURN
+    return { cx: c.x, cy: c.y, r, start, sweep }
+  }
+  if (!(arc.radius > 0)) throw new Error(`Arc de centre ${arc.center} : le rayon doit être positif`)
+  const sweepDeg = arc.endAngle - arc.startAngle
+  if (!(sweepDeg > 0)) {
+    throw new Error(`Arc de centre ${arc.center} : l’angle de fin doit dépasser l’angle de début`)
+  }
+  return {
+    cx: c.x,
+    cy: c.y,
+    r: arc.radius,
+    start: (arc.startAngle * Math.PI) / 180,
+    sweep: Math.min((sweepDeg * Math.PI) / 180, FULL_TURN),
+  }
+}
+
+function pointOnArc(arc: ResolvedArc, angle: number): Pt2 {
+  return { x: arc.cx + arc.r * Math.cos(angle), y: arc.cy + arc.r * Math.sin(angle) }
+}
+
+/** The ends of the arc, the extreme points it passes (0°, 90°, 180°, 270°), and its centre if closed as a sector. */
+function arcExtent(arc: ResolvedArc, sector: boolean): Pt2[] {
+  const pts = [pointOnArc(arc, arc.start), pointOnArc(arc, arc.start + arc.sweep)]
+  for (
+    let k = Math.ceil(arc.start / (Math.PI / 2));
+    k * (Math.PI / 2) <= arc.start + arc.sweep;
+    k++
+  ) {
+    pts.push(pointOnArc(arc, (k * Math.PI) / 2))
+  }
+  if (sector) pts.push({ x: arc.cx, y: arc.cy })
+  return pts
+}
+
+function arcPath(
+  arc: ResolvedArc,
+  spec: FigureArc,
+  toSvg: (lx: number, ly: number) => Pt2
+): DrawingCurve {
+  const centre = toSvg(arc.cx, arc.cy)
+  // Radii on screen, per axis: a repère may scale x and y differently.
+  const rx = Math.abs(toSvg(arc.cx + arc.r, arc.cy).x - centre.x)
+  const ry = Math.abs(toSvg(arc.cx, arc.cy + arc.r).y - centre.y)
+  const at = (angle: number) => {
+    const p = pointOnArc(arc, angle)
+    const s = toSvg(p.x, p.y)
+    return `${fmt(s.x)} ${fmt(s.y)}`
+  }
+  // Counter-clockwise in maths is counter-clockwise on screen too (Y is inverted): sweep flag 0.
+  const piece = (to: number, large: boolean) =>
+    `A ${fmt(rx)} ${fmt(ry)} 0 ${large ? 1 : 0} 0 ${at(to)}`
+  const end = arc.start + arc.sweep
+  // A whole turn cannot be one SVG arc: its two ends would coincide. Draw two halves.
+  const body =
+    arc.sweep >= FULL_TURN - 1e-9
+      ? `${piece(arc.start + Math.PI, false)} ${piece(end, false)}`
+      : piece(end, arc.sweep > Math.PI)
+  const d =
+    spec.closed === 'sector'
+      ? `M ${fmt(centre.x)} ${fmt(centre.y)} L ${at(arc.start)} ${body} Z`
+      : `M ${at(arc.start)} ${body}${spec.closed === 'chord' ? ' Z' : ''}`
+  return { d, dashed: spec.style === 'dashed' }
 }
 
 /** Values k × step (k integer) inside [from, to]: ticks are aligned on the origin. */

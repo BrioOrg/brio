@@ -185,6 +185,55 @@
           ]
         },
         {
+          "id": "fig-demi-disque",
+          "type": "figure",
+          "alt": "Un demi-disque de centre O et de diamètre [AB], long de 8 cm. Son contour est formé d'un demi-cercle et du diamètre [AB].",
+          "caption": "Le contour du demi-disque : le demi-cercle **et** le diamètre.",
+          "spec": {
+            "points": [
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "label": {
+                  "placement": "below"
+                }
+              },
+              {
+                "name": "A",
+                "x": -4,
+                "y": 0,
+                "label": {
+                  "placement": "below-left"
+                }
+              },
+              {
+                "name": "B",
+                "x": 4,
+                "y": 0,
+                "label": {
+                  "placement": "below-right"
+                }
+              }
+            ],
+            "arcs": [
+              {
+                "center": "O",
+                "from": "B",
+                "to": "A",
+                "closed": "chord"
+              }
+            ],
+            "labels": [
+              {
+                "text": "8 cm",
+                "x": 2,
+                "y": -0.7
+              }
+            ]
+          }
+        },
+        {
           "id": "piege-diametre",
           "type": "callout",
           "variant": "warning",
@@ -232,6 +281,204 @@
           "variant": "example",
           "title": "Une piste d'athlétisme",
           "text": "Une piste est formée de deux lignes droites de 100 m et de deux demi-cercles de diamètre 60 m. Les deux demi-cercles forment un cercle entier : 3,14 × 60 = 188,4 m. Périmètre : 100 + 100 + 188,4 = 388,4 m."
+        },
+        {
+          "id": "fig-piste",
+          "type": "figure",
+          "alt": "Une piste formée de deux lignes droites de 100 m et de deux demi-cercles de diamètre 60 m, un à chaque bout. Les diamètres des deux virages sont en pointillés : ils ne font pas partie du contour.",
+          "caption": "Les deux virages mis bout à bout forment un cercle entier de diamètre 60 m.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "B",
+                "x": 10,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "C",
+                "x": 10,
+                "y": 6,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "D",
+                "x": 0,
+                "y": 6,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "I",
+                "x": 10,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "J",
+                "x": 0,
+                "y": 3,
+                "dot": false,
+                "showName": false
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "B"
+              },
+              {
+                "from": "D",
+                "to": "C"
+              },
+              {
+                "from": "B",
+                "to": "C",
+                "style": "dashed"
+              },
+              {
+                "from": "A",
+                "to": "D",
+                "style": "dashed"
+              }
+            ],
+            "arcs": [
+              {
+                "center": "I",
+                "from": "B",
+                "to": "C"
+              },
+              {
+                "center": "J",
+                "from": "D",
+                "to": "A"
+              }
+            ],
+            "labels": [
+              {
+                "text": "100 m",
+                "x": 5,
+                "y": -0.8
+              },
+              {
+                "text": "60 m",
+                "x": 8.3,
+                "y": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "astuce-deux-demi-cercles",
+          "type": "callout",
+          "variant": "tip",
+          "title": "Deux demi-cercles, un cercle",
+          "text": "Deux demi-cercles de même diamètre forment ensemble un cercle entier : on calcule une seule fois π × D, au lieu de deux moitiés."
+        },
+        {
+          "id": "fig-terrain",
+          "type": "figure",
+          "alt": "Un terrain formé d'un rectangle de 50 m sur 20 m, avec un demi-disque collé sur chacune des deux largeurs. Les deux largeurs, à l'intérieur du terrain, sont en pointillés.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "B",
+                "x": 5,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "C",
+                "x": 5,
+                "y": 2,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "D",
+                "x": 0,
+                "y": 2,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "I",
+                "x": 5,
+                "y": 1,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "J",
+                "x": 0,
+                "y": 1,
+                "dot": false,
+                "showName": false
+              }
+            ],
+            "segments": [
+              {
+                "from": "A",
+                "to": "B"
+              },
+              {
+                "from": "D",
+                "to": "C"
+              },
+              {
+                "from": "B",
+                "to": "C",
+                "style": "dashed"
+              },
+              {
+                "from": "A",
+                "to": "D",
+                "style": "dashed"
+              }
+            ],
+            "arcs": [
+              {
+                "center": "I",
+                "from": "B",
+                "to": "C"
+              },
+              {
+                "center": "J",
+                "from": "D",
+                "to": "A"
+              }
+            ],
+            "labels": [
+              {
+                "text": "50 m",
+                "x": 2.5,
+                "y": -0.4
+              },
+              {
+                "text": "20 m",
+                "x": 4.3,
+                "y": 1
+              }
+            ]
+          }
         },
         {
           "id": "ex-piste",
@@ -302,6 +549,64 @@
           "explanation": "P = 3,14 × D, donc D = 47,1 ÷ 3,14 = 15 cm. Vérification : 3,14 × 15 = 47,1."
         },
         {
+          "id": "fig-quart-disque",
+          "type": "figure",
+          "alt": "Un quart de disque de rayon 4 cm : un quart de cercle et les deux rayons, qui forment un angle droit.",
+          "spec": {
+            "points": [
+              {
+                "name": "O",
+                "x": 0,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "A",
+                "x": 4,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "B",
+                "x": 0,
+                "y": 4,
+                "dot": false,
+                "showName": false
+              }
+            ],
+            "arcs": [
+              {
+                "center": "O",
+                "from": "A",
+                "to": "B",
+                "closed": "sector"
+              }
+            ],
+            "angleMarks": [
+              {
+                "vertex": "O",
+                "from": "A",
+                "to": "B",
+                "right": true
+              }
+            ],
+            "labels": [
+              {
+                "text": "4 cm",
+                "x": 2,
+                "y": -0.5
+              },
+              {
+                "text": "4 cm",
+                "x": -0.7,
+                "y": 2
+              }
+            ]
+          }
+        },
+        {
           "id": "ex-final-quart",
           "type": "exercise",
           "exerciseType": "numeric",
@@ -315,6 +620,81 @@
           "tolerance": 0.01,
           "unit": "cm",
           "explanation": "Arc : le quart du cercle, 2 × 3,14 × 4 ÷ 4 = 6,28 cm. On ajoute les deux rayons : 6,28 + 4 + 4 = 14,28 cm."
+        },
+        {
+          "id": "fig-fenetre",
+          "type": "figure",
+          "alt": "Une fenêtre : un carré de 80 cm de côté surmonté d'un demi-disque de diamètre 80 cm. Le côté du haut du carré, sous le demi-disque, est en pointillés : il ne fait pas partie du contour.",
+          "spec": {
+            "points": [
+              {
+                "name": "A",
+                "x": 0,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "B",
+                "x": 8,
+                "y": 0,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "C",
+                "x": 8,
+                "y": 8,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "D",
+                "x": 0,
+                "y": 8,
+                "dot": false,
+                "showName": false
+              },
+              {
+                "name": "M",
+                "x": 4,
+                "y": 8,
+                "dot": false,
+                "showName": false
+              }
+            ],
+            "polylines": [
+              {
+                "points": [
+                  "D",
+                  "A",
+                  "B",
+                  "C"
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "from": "D",
+                "to": "C",
+                "style": "dashed"
+              }
+            ],
+            "arcs": [
+              {
+                "center": "M",
+                "from": "C",
+                "to": "D"
+              }
+            ],
+            "labels": [
+              {
+                "text": "80 cm",
+                "x": 4,
+                "y": -0.8
+              }
+            ]
+          }
         },
         {
           "id": "ex-final-fenetre",

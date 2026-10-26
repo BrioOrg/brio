@@ -8,6 +8,7 @@ export type {
   FigureSegment,
   FigurePolygon,
   FigureCircle,
+  FigureArc,
   FigureAngleMark,
   FigureLengthMark,
   FigureLabel,

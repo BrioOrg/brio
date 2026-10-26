@@ -98,7 +98,7 @@ export function FigureRenderer({
             />
           ))}
 
-          {/* Half-ellipses of cylinder bases */}
+          {/* Arcs of circles (ADR 0013, #227) and half-ellipses of cylinder bases, never filled */}
           {model.curves.map((curve, i) => (
             <path
               key={i}

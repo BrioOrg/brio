@@ -102,8 +102,9 @@ par les fractions), mais si l'ordre devient gênant en classe, c'est ce fichier 
   dans les attendus de 6e du programme 2025.
 - **Droites** : le renderer ne trace que des segments. Un axe nommé « (d) » (`symetrie-axiale`)
   est un segment entre deux points sans point noir (`dot: false`, #214), dont l'un porte le nom.
-- **Demi-cercles** (#227) : seuls les cercles complets se dessinent ; les figures composées de
-  `perimetres` sont décrites en texte.
+- **Demi-cercles** : réglé par #227. `perimetres` dessine ses figures composées (demi-disque,
+  piste, terrain, quart de disque, fenêtre) avec des `arcs` ; un côté intérieur au contour est en
+  pointillés.
 - **Graphiques** : réglé par #216. `donnees-tableaux` représente des mesures dans un repère
   (partie de `c3.ogd.donnees.planifier-recueillir`) avec une courbe `chart` ; tracer soi-même le
   graphique reste un travail sur papier.

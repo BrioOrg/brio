@@ -16,8 +16,8 @@ import type { Bloc } from '@/lib/cours-editeur'
 
 // Constructeur de `spec` d'une figure déclarative (ADR 0013). On saisit des points nommés avec
 // leurs coordonnées mathématiques, puis les primitives (segments, lignes brisées, polygones,
-// cercles, marques d'angle et de longueur, étiquettes, droites graduées, repère) qui référencent
-// ces points par leur nom, et des solides en perspective cavalière, décrits par leurs dimensions :
+// cercles, arcs, marques d'angle et de longueur, étiquettes, droites graduées, repère) qui
+// référencent ces points par leur nom, et des solides en perspective cavalière, décrits par leurs dimensions :
 // le moteur décide seul quelles arêtes sont cachées (ADR 0013, amendement #215).
 // Un aperçu en direct (le même <FigureRenderer/> que l'élève) montre le résultat ; une spec
 // incomplète (un segment vers un point non encore défini) affiche un message au lieu de planter.
@@ -43,6 +43,17 @@ type Axis = { from: number; to: number; step: number; labelEvery?: number; title
 type Axes = { x: Axis; y: Axis; grid?: boolean }
 type Polygon = { vertices: string[]; style?: FigureLineStyle }
 type Circle = { center: string; through?: string; radius?: number }
+// Arc : de `from` à `to` (points), ou rayon + angles, tracé dans le sens direct (ADR 0013, #227).
+type Arc = {
+  center: string
+  from?: string
+  to?: string
+  radius?: number
+  startAngle?: number
+  endAngle?: number
+  closed?: 'sector' | 'chord'
+  style?: FigureLineStyle
+}
 type AngleMark = { vertex: string; from: string; to: string; right?: boolean }
 type LengthMark = { segment: string; ticks: 1 | 2 | 3 }
 type FreeLabel = { text: string; x: number; y: number }
@@ -221,6 +232,7 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
   const segments = (spec.segments ?? []) as Segment[]
   const polygons = (spec.polygons ?? []) as Polygon[]
   const circles = (spec.circles ?? []) as Circle[]
+  const arcs = (spec.arcs ?? []) as Arc[]
   const angleMarks = (spec.angleMarks ?? []) as AngleMark[]
   const lengthMarks = (spec.lengthMarks ?? []) as LengthMark[]
   const labels = (spec.labels ?? []) as FreeLabel[]
@@ -586,6 +598,134 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               }
             >
               ＋ Cercle
+            </button>
+          </section>
+
+          {/* Arcs */}
+          <section>
+            <p className={`${titreSection} mb-1.5`}>Arcs</p>
+            <ul className="flex flex-col gap-1.5">
+              {arcs.map((a, i) => {
+                const par = a.radius !== undefined ? 'angles' : 'points'
+                const maj = (next: Arc) =>
+                  patchSpec({
+                    // Même recollage que pour les cercles : union « points | angles » côté schéma.
+                    arcs: arcs.map((x, j) => (j === i ? next : x)) as FigureSpec['arcs'],
+                  })
+                const commun = { center: a.center, closed: a.closed, style: a.style }
+                return (
+                  <li key={i} className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-prose text-xs text-ink-muted">centre</span>
+                    <ChoixPoint
+                      value={a.center}
+                      points={points}
+                      onChange={(center) => maj({ ...a, center })}
+                      ariaLabel={`Arc ${i + 1} — centre`}
+                    />
+                    <select
+                      aria-label={`Arc ${i + 1} — défini par`}
+                      className={`${selectClass} w-28`}
+                      value={par}
+                      onChange={(e) =>
+                        maj(
+                          e.target.value === 'angles'
+                            ? { ...commun, radius: 1, startAngle: 0, endAngle: 180 }
+                            : { ...commun, from: '', to: '' }
+                        )
+                      }
+                    >
+                      <option value="points">points</option>
+                      <option value="angles">angles</option>
+                    </select>
+                    {par === 'points' ? (
+                      <>
+                        <span className="font-prose text-xs text-ink-muted">de</span>
+                        <ChoixPoint
+                          value={a.from ?? ''}
+                          points={points}
+                          onChange={(from) => maj({ ...a, from })}
+                          ariaLabel={`Arc ${i + 1} — départ`}
+                        />
+                        <span className="font-prose text-xs text-ink-muted">à</span>
+                        <ChoixPoint
+                          value={a.to ?? ''}
+                          points={points}
+                          onChange={(to) => maj({ ...a, to })}
+                          ariaLabel={`Arc ${i + 1} — arrivée`}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-prose text-xs text-ink-muted">rayon</span>
+                        <ChampNombre
+                          value={a.radius ?? 1}
+                          onChange={(radius) => maj({ ...a, radius })}
+                          onFocus={onFocusBloc}
+                          ariaLabel={`Arc ${i + 1} — rayon`}
+                        />
+                        <span className="font-prose text-xs text-ink-muted">de</span>
+                        <ChampNombre
+                          value={a.startAngle ?? 0}
+                          onChange={(startAngle) => maj({ ...a, startAngle })}
+                          onFocus={onFocusBloc}
+                          ariaLabel={`Arc ${i + 1} — angle de début (degrés)`}
+                        />
+                        <span className="font-prose text-xs text-ink-muted">° à</span>
+                        <ChampNombre
+                          value={a.endAngle ?? 180}
+                          onChange={(endAngle) => maj({ ...a, endAngle })}
+                          onFocus={onFocusBloc}
+                          ariaLabel={`Arc ${i + 1} — angle de fin (degrés)`}
+                        />
+                        <span className="font-prose text-xs text-ink-muted">°</span>
+                      </>
+                    )}
+                    <select
+                      aria-label={`Arc ${i + 1} — fermeture`}
+                      className={`${selectClass} w-36`}
+                      value={a.closed ?? ''}
+                      onChange={(e) =>
+                        maj({
+                          ...a,
+                          closed: (e.target.value || undefined) as Arc['closed'],
+                        })
+                      }
+                    >
+                      <option value="">ouvert</option>
+                      <option value="chord">fermé par la corde</option>
+                      <option value="sector">fermé par les rayons</option>
+                    </select>
+                    <Pointilles
+                      style={a.style}
+                      onChange={(style) => maj({ ...a, style })}
+                      ariaLabel={`Arc ${i + 1} en pointillés`}
+                    />
+                    <Supprimer
+                      label={`Supprimer l’arc ${i + 1}`}
+                      onClick={() =>
+                        patchSpec({ arcs: arcs.filter((_, j) => j !== i) as FigureSpec['arcs'] })
+                      }
+                    />
+                  </li>
+                )
+              })}
+            </ul>
+            {arcs.length > 0 && (
+              <p className="mt-1 font-prose text-xs text-ink-muted">
+                Un arc se trace dans le sens inverse des aiguilles d’une montre, du départ à
+                l’arrivée.
+              </p>
+            )}
+            <button
+              type="button"
+              className={`mt-1.5 ${boutonAjouter}`}
+              onClick={() =>
+                patchSpec({
+                  arcs: [...arcs, { center: '', from: '', to: '' }] as FigureSpec['arcs'],
+                })
+              }
+            >
+              ＋ Arc
             </button>
           </section>
 

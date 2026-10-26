@@ -319,8 +319,8 @@ describe('buildDeck on the catalogue', () => {
       fewest: 10,
       median: 21,
       most: 33,
-      blocksPerSlide: { 0: 50, 1: 787, 2: 113, 3: 32, 4: 1, 5: 2 },
-      movedOntoExercise: 30,
+      blocksPerSlide: { 0: 50, 1: 783, 2: 116, 3: 32, 4: 2, 5: 2 },
+      movedOntoExercise: 33,
     })
   })
 
