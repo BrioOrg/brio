@@ -23,6 +23,8 @@ type Role = 'lead' | 'support' | 'aside' | 'exercise'
 
 const SUPPORT_TYPES = new Set(['figure', 'formula', 'chart', 'code', 'table', 'image'])
 const LEAD_CALLOUTS = new Set(['definition', 'example'])
+/** Supports a student looks at while answering (#277): a figure, an image, a chart. */
+const FIGURE_TYPES = new Set(['figure', 'image', 'chart'])
 
 function roleOf(block: DeckBlock): Role {
   if (block.type === 'exercise') return 'exercise'
@@ -34,7 +36,7 @@ function roleOf(block: DeckBlock): Role {
   return 'lead'
 }
 
-/** The lesson slide being filled, with what rules 3 and 6 need to know about it. */
+/** The lesson slide being filled, with what rules 3 and 6b need to know about it. */
 type OpenSlide = {
   diapo: Extract<Diapo, { kind: 'lecon' }>
   /** Opened by a lead, not by a support or aside with nothing before it (rule 4). */
@@ -87,23 +89,31 @@ export function buildDeck(chapitre: DeckInput): Diapo[] {
           open = openSlide(block, true)
         }
       } else {
-        const next = blocks[i + 1]
+        // The supports in a row from here: an aside ends the run.
+        let end = i
+        while (end < blocks.length && roleOf(blocks[end]) === 'support') end++
+        const exercise = blocks[end]
+        const beforeExercise =
+          role === 'support' && exercise !== undefined && roleOf(exercise) === 'exercise'
+        const run = blocks.slice(i, end)
+        const isFigure = (b: DeckBlock) => FIGURE_TYPES.has(b.type)
         if (
-          role === 'support' &&
-          next !== undefined &&
-          roleOf(next) === 'exercise' &&
-          open?.openedByLead &&
-          open.hasSupport
+          beforeExercise &&
+          // Rule 6a: figures right before an exercise are what it is about, so they go with it.
+          (run.every(isFigure) ||
+            // On a slide with no lead (rule 4), the supports around that figure stay together.
+            (!open?.openedByLead && run.some(isFigure)) ||
+            // Rule 6b: the lead already has its illustration, so this support is the exercise's data.
+            (run.length === 1 && open?.openedByLead && open.hasSupport))
         ) {
-          // Rule 6: the lead already has its illustration, so this support is the exercise's data.
           deck.push({
             id: block.id,
             kind: 'exercice',
             sectionId: section.id,
-            blockIds: [block.id, next.id],
+            blockIds: [...run.map((b) => b.id), exercise.id],
           })
           open = null
-          i++
+          i = end
           continue
         }
         if (open === null) {

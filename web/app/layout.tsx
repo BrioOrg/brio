@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { SessionExpireeAlerte } from '@/components/session-expiree-alerte'
 
 export const metadata: Metadata = {
   title: 'Brio',
@@ -28,7 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-screen bg-surface-page font-prose text-ink antialiased">{children}</body>
+      <body className="min-h-screen bg-surface-page font-prose text-ink antialiased">
+        {children}
+        {/* Every page: a 401 on any action, student or teacher, sends back to the login (#279). */}
+        <SessionExpireeAlerte />
+      </body>
     </html>
   )
 }
