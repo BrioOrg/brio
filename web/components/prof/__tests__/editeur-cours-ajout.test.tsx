@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // L'éditeur charge le cours + le référentiel depuis l'API : on moque ces appels (pas de back).
 const { getCoursBrouillon, enregistrerCours, listerCompetences } = vi.hoisted(() => ({
@@ -76,5 +76,80 @@ describe('EditeurCours — ajout de bloc par « + »', () => {
 
     await userEvent.keyboard('{Escape}')
     expect(screen.queryByRole('menuitem', { name: 'Formule' })).toBeNull()
+    // Le focus revient sur le « + » qui avait ouvert le menu.
+    expect(screen.getByLabelText('Ajouter un bloc ici')).toHaveFocus()
+  })
+
+  it('donne le focus à la première option à l’ouverture, et les flèches parcourent les options', async () => {
+    render(<EditeurCours coursId="c1" />)
+    await screen.findByLabelText('Titre du cours')
+
+    await userEvent.click(screen.getByLabelText('Ajouter un bloc ici'))
+    const options = screen
+      .getAllByRole('menuitem')
+      .filter((o) => o.getAttribute('aria-disabled') !== 'true')
+    expect(options[0]).toHaveFocus()
+
+    await userEvent.keyboard('{ArrowDown}')
+    expect(options[1]).toHaveFocus()
+    await userEvent.keyboard('{ArrowUp}{ArrowUp}')
+    expect(options[options.length - 1]).toHaveFocus()
+    await userEvent.keyboard('{Home}')
+    expect(options[0]).toHaveFocus()
+  })
+
+  describe('position du menu dans la fenêtre', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    // jsdom ne calcule aucune mise en page : on place le « + » et on donne sa taille au menu.
+    function simulerMiseEnPage({
+      hautDuPlus,
+      hauteurMenu,
+    }: {
+      hautDuPlus: number
+      hauteurMenu: number
+    }) {
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+        this: HTMLElement
+      ) {
+        const estMenu = this.getAttribute('role') === 'menu'
+        const top = estMenu ? 0 : hautDuPlus
+        const height = estMenu ? hauteurMenu : 24
+        return DOMRect.fromRect({ x: 0, y: top, width: 300, height })
+      })
+    }
+
+    async function ouvrirMenu() {
+      render(<EditeurCours coursId="c1" />)
+      await screen.findByLabelText('Titre du cours')
+      await userEvent.click(screen.getByLabelText('Ajouter un bloc ici'))
+      return screen.getByRole('menu')
+    }
+
+    it('s’ouvre vers le bas quand il y a la place', async () => {
+      simulerMiseEnPage({ hautDuPlus: 100, hauteurMenu: 300 })
+      const menu = await ouvrirMenu()
+      expect(menu).toHaveAttribute('data-placement', 'dessous')
+      expect(menu.style.maxHeight).toBe('')
+    })
+
+    it('s’ouvre vers le haut quand le « + » est en bas de l’écran', async () => {
+      simulerMiseEnPage({ hautDuPlus: window.innerHeight - 40, hauteurMenu: 300 })
+      const menu = await ouvrirMenu()
+      expect(menu).toHaveAttribute('data-placement', 'dessus')
+      expect(menu.style.maxHeight).toBe('')
+    })
+
+    it('se limite à la place disponible et défile quand il ne tient d’aucun côté', async () => {
+      simulerMiseEnPage({ hautDuPlus: 200, hauteurMenu: window.innerHeight * 2 })
+      const menu = await ouvrirMenu()
+      // Plus de place sous le « + » (en haut de l'écran) : il reste dessous, tronqué à l'écran.
+      expect(menu).toHaveAttribute('data-placement', 'dessous')
+      const hauteurMax = parseFloat(menu.style.maxHeight)
+      expect(hauteurMax).toBeGreaterThan(0)
+      expect(200 + 24 + hauteurMax).toBeLessThanOrEqual(window.innerHeight)
+    })
   })
 })
