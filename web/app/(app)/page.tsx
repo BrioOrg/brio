@@ -1,8 +1,6 @@
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { getCatalogue, getCoursVisibles, type CoursVisible } from '@/lib/api'
-import { apiBaseUrl } from '@/lib/api-base-url'
 import { CoursDeTaClasse } from '@/components/cours-de-ta-classe'
 import { SiteHeader } from '@/components/site-header'
 import { Icon } from '@/components/ui/icon'
@@ -14,14 +12,7 @@ export default async function HomePage() {
   const cookieStore = await cookies()
   const cookieHeader = cookieStore.toString()
 
-  // The middleware only checks that a session cookie is present; an expired session
-  // still carries one. Ask the backend, and send a visitor without a live session to login.
-  const moi = await fetch(`${apiBaseUrl()}/api/moi`, {
-    headers: { cookie: cookieHeader },
-    cache: 'no-store',
-  })
-  if (moi.status === 401) redirect('/connexion?from=/')
-
+  // No session check here: the middleware has already sent a visitor without a live one to login.
   const [catalogue, cours] = await Promise.all([
     getCatalogue().catch(() => []),
     // Any failure simply shows no course section.

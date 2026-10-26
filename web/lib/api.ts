@@ -1,4 +1,9 @@
-import { createApiClient, ensureCsrfToken, csrfHeaders } from '@brio/api-client'
+import {
+  createApiClient,
+  ensureCsrfToken,
+  csrfHeaders,
+  signalerSessionExpiree,
+} from '@brio/api-client'
 import type { ChapitreResponse } from '@/components/chapter-view'
 import { z } from 'zod'
 import { apiBaseUrl } from '@/lib/api-base-url'
@@ -213,6 +218,7 @@ async function postTuteur(
     headers: { 'Content-Type': 'application/json', ...csrfHeaders(token) },
     body: JSON.stringify(body),
   })
+  if (res.status === 401) throw sessionExpiree()
   if (!res.ok) throw new Error('Erreur du tuteur')
   return TuteurResponseSchema.parse(await res.json())
 }
@@ -228,7 +234,17 @@ export async function marquerSectionLue(chapitreId: string, sectionId: string): 
     '/api/chapitres/{id}/sections/{sectionId}/lu',
     { params: { path: { id: chapitreId, sectionId } }, headers: csrfHeaders(token) }
   )
+  if (response.status === 401) throw sessionExpiree()
   if (!response.ok) throw new Error('Section non enregistrée')
+}
+
+/**
+ * A 401 on an action means the session ended mid-chapter (#279): tell the app, which shows a
+ * message and sends the student to the login page, and hand the caller the same message.
+ */
+function sessionExpiree(): Error {
+  signalerSessionExpiree()
+  return new Error('Ta session a expiré. Reconnecte-toi, puis réessaie.')
 }
 
 export async function soumettre(
@@ -247,8 +263,7 @@ export async function soumettre(
   // Guard on the status too: an auth/CSRF failure can return an empty body, which
   // openapi-fetch surfaces as no `error` rather than a populated one.
   if (error || !response.ok) {
-    if (response.status === 401)
-      throw new Error('Ta session a expiré. Reconnecte-toi, puis réessaie.')
+    if (response.status === 401) throw sessionExpiree()
     if (response.status === 404) throw new Error('Exercice introuvable')
     throw new Error('Erreur lors de la soumission')
   }

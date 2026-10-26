@@ -157,3 +157,4 @@ export type {
   SalonSignalementVue,
   CreerSalonInput,
 } from './salons.js'
+export { surSessionExpiree, signalerSessionExpiree } from './session-expiree.js'

@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { CoursApiError } from './cours-edition.js'
 import { csrfHeaders, ensureCsrfToken } from './csrf.js'
+import { signalerSessionExpiree } from './session-expiree.js'
 
 /**
  * Devoirs client (F4, ADR 0020) — manual Zod wrappers.
@@ -93,6 +94,7 @@ export type CreerDevoirInput = {
 
 // --- Erreurs : réutilise CoursApiError (statut + copie FR prête à afficher) ---
 function devoirError(status: number, fallback: string): CoursApiError {
+  if (status === 401) signalerSessionExpiree()
   const message =
     status === 401
       ? 'Votre session a expiré. Reconnectez-vous pour continuer.'
@@ -127,10 +129,9 @@ export async function listerDevoirsClasse(
   baseUrl: string,
   classeId: string
 ): Promise<DevoirClasseVue[]> {
-  const res = await fetch(
-    `${baseUrl}/api/prof/devoirs?classeId=${encodeURIComponent(classeId)}`,
-    { credentials: 'include' }
-  )
+  const res = await fetch(`${baseUrl}/api/prof/devoirs?classeId=${encodeURIComponent(classeId)}`, {
+    credentials: 'include',
+  })
   if (!res.ok) throw devoirError(res.status, 'Impossible de charger les devoirs de la classe.')
   return z.array(DevoirClasseVueSchema).parse(await res.json())
 }
@@ -236,7 +237,10 @@ export async function corrigerRendu(
     {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...csrfHeaders(await ensureCsrfToken(baseUrl)) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders(await ensureCsrfToken(baseUrl)),
+      },
       body: JSON.stringify(correction),
     }
   )

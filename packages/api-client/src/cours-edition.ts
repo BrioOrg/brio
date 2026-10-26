@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { createApiClient } from './client.js'
 import { ensureCsrfToken, csrfHeaders } from './csrf.js'
+import { signalerSessionExpiree } from './session-expiree.js'
 import type { components } from './generated/schema.js'
 
 /**
@@ -61,6 +62,7 @@ export class CoursApiError extends Error {
 
 /** Map an HTTP status (and any `{ error }` or `{ violations }` body) to a French message. */
 function coursError(status: number, body: unknown, fallback: string): CoursApiError {
+  if (status === 401) signalerSessionExpiree()
   const probleme = status === 422 ? ProblemeContenuSchema.safeParse(body) : null
   if (probleme?.success) {
     // The editor lists each violation on its block; this message only heads the list.
