@@ -49,6 +49,8 @@ describe('ProfLayout role gate', () => {
     expect(screen.getByText('CONTENU')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Voir le catalogue' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeInTheDocument()
+    // The burger menu (Paramètres) is there in the teacher space too (#282).
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('redirects a non-enseignant to the home page', async () => {

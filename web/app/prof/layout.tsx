@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 
 import { CompteInfoSchema } from '@brio/api-client'
 import { LogoutButton } from '@/components/logout-button'
+import { MenuBurger } from '@/components/menu-burger'
 import { Icon } from '@/components/ui/icon'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
@@ -55,6 +56,7 @@ export default async function ProfLayout({ children }: { children: ReactNode }) 
               <span className="sr-only sm:not-sr-only">Voir le catalogue</span>
             </Link>
             <LogoutButton />
+            <MenuBurger />
           </div>
         </div>
       </div>

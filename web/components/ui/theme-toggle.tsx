@@ -2,39 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Icon } from './icon'
-
-type Theme = 'dark' | 'light' | 'system'
-
-const STORAGE_KEY = 'brio-theme'
-
-function applyTheme(theme: Theme) {
-  const root = document.documentElement
-  if (theme === 'system') {
-    delete root.dataset.theme
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-    } catch {}
-  } else {
-    root.dataset.theme = theme
-    try {
-      localStorage.setItem(STORAGE_KEY, theme)
-    } catch {}
-  }
-}
-
-function readStored(): Theme {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY)
-    if (v === 'dark' || v === 'light') return v
-  } catch {}
-  return 'system'
-}
-
-const LABELS: Record<Theme, string> = {
-  dark: 'Sombre',
-  light: 'Clair',
-  system: 'Système',
-}
+import { applyTheme, onThemeChange, readStoredTheme, THEME_LABELS, type Theme } from '@/lib/theme'
 
 const ICONS: Record<Theme, string> = {
   dark: 'eye-slash',
@@ -48,7 +16,9 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>('system')
 
   useEffect(() => {
-    setTheme(readStored())
+    setTheme(readStoredTheme())
+    // Follow a change made elsewhere on the page (the Paramètres theme choice).
+    return onThemeChange(setTheme)
   }, [])
 
   function toggle() {
@@ -60,12 +30,12 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      aria-label={`Thème : ${LABELS[theme]}. Cliquer pour changer.`}
+      aria-label={`Thème : ${THEME_LABELS[theme]}. Cliquer pour changer.`}
       className="inline-flex items-center gap-2 font-prose text-sm font-semibold text-ink-muted border border-line rounded-pill px-4 py-2 hover:text-ink hover:border-accent transition-colors"
       style={{ transitionDuration: 'var(--duration-base)' }}
     >
       <Icon name={ICONS[theme]} size={16} aria-hidden="true" />
-      <span className="hidden sm:inline">Thème : {LABELS[theme]}</span>
+      <span className="hidden sm:inline">Thème : {THEME_LABELS[theme]}</span>
     </button>
   )
 }
