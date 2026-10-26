@@ -551,6 +551,7 @@
         "segments":    { "type": "array", "items": { "$ref": "#/$defs/figureSegment" } },
         "polygons":    { "type": "array", "items": { "$ref": "#/$defs/figurePolygon" } },
         "circles":     { "type": "array", "items": { "$ref": "#/$defs/figureCircle" } },
+        "arcs":        { "type": "array", "items": { "$ref": "#/$defs/figureArc" } },
         "angleMarks":  { "type": "array", "items": { "$ref": "#/$defs/figureAngleMark" } },
         "lengthMarks": { "type": "array", "items": { "$ref": "#/$defs/figureLengthMark" } },
         "labels":      { "type": "array", "items": { "$ref": "#/$defs/figureLabel" } },
@@ -647,6 +648,33 @@
       "oneOf": [
         { "required": ["through"], "not": { "required": ["radius"] } },
         { "required": ["radius"],  "not": { "required": ["through"] } }
+      ]
+    },
+
+    "figureArc": {
+      "description": "An arc of a circle, drawn counter-clockwise from its start to its end. Either from the named point 'from' to the ray through the named point 'to' (both at the same distance from 'center', checked by CI), or by 'radius', 'startAngle' and 'endAngle' in degrees (startAngle < endAngle, less than a whole turn apart). 'closed' joins the ends: 'sector' through the centre (a quarter disk), 'chord' straight (a half disk). style 'dashed' draws a construction arc. See ADR 0013, amendment #227.",
+      "type": "object",
+      "required": ["center"],
+      "additionalProperties": false,
+      "properties": {
+        "center":     { "type": "string", "minLength": 1 },
+        "from":       { "type": "string", "minLength": 1 },
+        "to":         { "type": "string", "minLength": 1 },
+        "radius":     { "type": "number", "exclusiveMinimum": 0 },
+        "startAngle": { "type": "number" },
+        "endAngle":   { "type": "number" },
+        "closed":     { "enum": ["sector", "chord"] },
+        "style":      { "$ref": "#/$defs/figureLineStyle" }
+      },
+      "oneOf": [
+        {
+          "required": ["from", "to"],
+          "not": { "anyOf": [{ "required": ["radius"] }, { "required": ["startAngle"] }, { "required": ["endAngle"] }] }
+        },
+        {
+          "required": ["radius", "startAngle", "endAngle"],
+          "not": { "anyOf": [{ "required": ["from"] }, { "required": ["to"] }] }
+        }
       ]
     },
 

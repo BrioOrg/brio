@@ -196,6 +196,48 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptArcsByPointsOrByAngles() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un demi-disque et un arc de construction",
+                  "spec": {
+                    "points": [ { "name": "O", "x": 0, "y": 0 }, { "name": "A", "x": -2, "y": 0 },
+                                { "name": "B", "x": 2, "y": 0 } ],
+                    "arcs": [
+                      { "center": "O", "from": "B", "to": "A", "closed": "chord" },
+                      { "center": "A", "radius": 3, "startAngle": -20, "endAngle": 20, "style": "dashed" }
+                    ] } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectAnArcGivenBothByPointsAndByAngles() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un arc",
+                  "spec": { "points": [ { "name": "O", "x": 0, "y": 0 }, { "name": "A", "x": 1, "y": 0 } ],
+                            "arcs": [ { "center": "O", "from": "A", "to": "A", "radius": 1,
+                                        "startAngle": 0, "endAngle": 90 } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectAnUnknownWayToCloseAnArc() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un arc",
+                  "spec": { "points": [ { "name": "O", "x": 0, "y": 0 } ],
+                            "arcs": [ { "center": "O", "radius": 1, "startAngle": 0, "endAngle": 90,
+                                        "closed": "triangle" } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldRejectTheDimensionsOfAnotherKindOfSolid() {
         String block =
                 """

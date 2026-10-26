@@ -15,7 +15,8 @@
  *                                                 session; with the test student's session
  *                                                 (E2E_SESSION), that student, who has not earned
  *                                                 any XP yet. The web middleware asks /api/moi
- *                                                 before every page (#279)
+ *                                                 before every page (#279). With
+ *                                                 E2E_SESSION_ENSEIGNANT, /api/moi answers a teacher
  *   GET /api/progression/parcours/{niveau}/{matiere}  that student's path, as ProgressionService
  *                                                 returns it before anything is recorded: every
  *                                                 chapter at 0 %, the first `en_cours`, the
@@ -88,13 +89,20 @@ export const E2E_SESSION = 'JSESSIONID=e2e-eleve'
 /** Another logged-in student, who has joined no class yet. */
 export const E2E_SESSION_SANS_CLASSE = 'JSESSIONID=e2e-sans-classe'
 
+/** A logged-in teacher: /api/moi answers ENSEIGNANT, so the teacher space (/prof) opens. */
+export const E2E_SESSION_ENSEIGNANT = 'JSESSIONID=e2e-enseignant'
+
 function cookies(req) {
   return (req.headers.cookie ?? '').split(/;\s*/)
 }
 
 /** Any live session. Another JSESSIONID (`e2e-expiree`…) is a session the backend has dropped. */
 function connecte(req) {
-  return cookies(req).includes(E2E_SESSION) || sansClasse(req)
+  return cookies(req).includes(E2E_SESSION) || sansClasse(req) || enseignant(req)
+}
+
+function enseignant(req) {
+  return cookies(req).includes(E2E_SESSION_ENSEIGNANT)
 }
 
 function sansClasse(req) {
@@ -107,6 +115,14 @@ const ELEVE = {
   statut: 'actif',
   nom: null,
   email: null,
+}
+
+const ENSEIGNANT = {
+  id: '00000000-0000-4000-8000-0000000000e3',
+  role: 'enseignant',
+  statut: 'actif',
+  nom: 'M. Dubois',
+  email: 'prof.e2e@example.org',
 }
 
 // The logged-in student's class and its salon (F6b, #270), for /ma-classe. `estMoi` is derived
@@ -262,7 +278,7 @@ const server = createServer(async (req, res) => {
     if (pathname === '/api/moi' || pathname.startsWith('/api/progression/')) {
       if (!connecte(req)) return send(res, 401)
       // A student who has not earned anything yet, as ProgressionService returns them.
-      if (pathname === '/api/moi') return send(res, 200, ELEVE)
+      if (pathname === '/api/moi') return send(res, 200, enseignant(req) ? ENSEIGNANT : ELEVE)
       if (pathname === '/api/progression/moi') return send(res, 200, { xpTotal: 0, niveau: 0 })
       const track = pathname.match(/^\/api\/progression\/parcours\/([^/]+)\/([^/]+)$/)
       if (track) return send(res, 200, await parcours(track[1], track[2]))

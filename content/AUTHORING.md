@@ -241,7 +241,7 @@ Pour lire ou placer des points, tracer une courbe ou un graphique de proportionn
 - `grid: true` trace un quadrillage à chaque graduation : à mettre dès que l'élève doit lire
   une coordonnée.
 - Pas de `coordinateSpace` ni de `numberLines` avec `axes` : les axes fixent la zone visible.
-- `angleMarks`, `lengthMarks` et `circles` ne sont acceptés que si les deux axes ont la
+- `angleMarks`, `lengthMarks`, `circles` et `arcs` ne sont acceptés que si les deux axes ont la
   **même plage** (`to − from` égal) : sinon le dessin est étiré et ne montrerait pas ce que
   le script vérifie.
 
@@ -255,6 +255,47 @@ Pour lire ou placer des points, tracer une courbe ou un graphique de proportionn
 - `"style": "dashed"` sur un segment, une ligne brisée ou un polygone le trace en pointillés
   (trait de construction, axe de symétrie). Un seul côté d'un polygone en pointillés : un
   segment à part.
+
+#### Arcs et figures composées
+
+Un arc de cercle est un élément `arcs` (ADR 0013, amendement #227) : jamais une suite de petits
+segments. Il se trace toujours **dans le sens inverse des aiguilles d'une montre**, du départ à
+l'arrivée.
+
+Recette — une fenêtre : un carré surmonté d'un demi-disque.
+
+```json
+"spec": {
+  "points": [
+    { "name": "A", "x": 0, "y": 0, "dot": false, "showName": false },
+    { "name": "B", "x": 8, "y": 0, "dot": false, "showName": false },
+    { "name": "C", "x": 8, "y": 8, "dot": false, "showName": false },
+    { "name": "D", "x": 0, "y": 8, "dot": false, "showName": false },
+    { "name": "M", "x": 4, "y": 8, "dot": false, "showName": false }
+  ],
+  "polylines": [{ "points": ["D", "A", "B", "C"] }],
+  "segments": [{ "from": "D", "to": "C", "style": "dashed" }],
+  "arcs": [{ "center": "M", "from": "C", "to": "D" }],
+  "labels": [{ "text": "80 cm", "x": 4, "y": -0.8 }]
+}
+```
+
+1. **Par points** : `center`, `from`, `to`, trois points nommés. L'arc part de `from` et tourne
+   dans le sens direct jusqu'à `to` : de C (à droite) à D (à gauche), il passe par le haut. Pour
+   l'autre arc entre les deux mêmes points, échange `from` et `to`. `from` et `to` doivent être
+   **à la même distance du centre** : `check-content.mjs` le vérifie.
+2. **Par angles** : `{ "center": "A", "radius": 5, "startAngle": -20, "endAngle": 20 }`, en
+   degrés, `startAngle < endAngle`, moins d'un tour. Pour un arc de construction au compas, dont
+   les extrémités ne sont pas des points de la figure.
+3. `"closed": "chord"` ferme l'arc par la corde (un demi-disque seul), `"closed": "sector"` par
+   les deux rayons (un quart de disque). Sans `closed`, l'arc est ouvert : c'est ce qu'il faut
+   dans une figure composée, dont les côtés droits sont déjà tracés.
+4. `"style": "dashed"` : un arc de construction en pointillés.
+- Une figure composée se dessine **à l'échelle** des longueurs de l'énoncé (80 cm → 8 unités) ;
+  les longueurs s'écrivent avec des `labels`.
+- Un côté qui ne fait pas partie du contour (le diamètre caché sous un demi-disque, les largeurs
+  d'un terrain arrondi) est un segment en **pointillés**, pas un trait plein.
+- Un cercle entier reste un élément `circles` : un arc qui ferait le tour est refusé.
 
 #### Solides en perspective cavalière
 

@@ -129,6 +129,30 @@ describe('FigureRenderer', () => {
     expect(paths.filter((p) => p.hasAttribute('stroke-dasharray'))).toHaveLength(1)
   })
 
+  it('draws a closed half disk and a dashed construction arc, unfilled', () => {
+    const { container } = render(
+      <FigureRenderer
+        spec={{
+          points: [
+            { name: 'O', x: 0, y: 0 },
+            { name: 'A', x: -4, y: 0 },
+            { name: 'B', x: 4, y: 0 },
+          ],
+          arcs: [
+            { center: 'O', from: 'B', to: 'A', closed: 'chord' },
+            { center: 'A', radius: 6, startAngle: -15, endAngle: 15, style: 'dashed' },
+          ],
+        }}
+        alt="Un demi-disque de diamètre [AB] et un arc de construction."
+      />
+    )
+    const paths = Array.from(container.querySelectorAll('path'))
+    expect(paths).toHaveLength(2)
+    expect(paths.every((p) => p.getAttribute('fill') === 'none')).toBe(true)
+    expect(paths[0].getAttribute('d')).toMatch(/ Z$/)
+    expect(paths.map((p) => p.hasAttribute('stroke-dasharray'))).toEqual([false, true])
+  })
+
   it('draws an assemblage as shaded faces, without dashed edges', () => {
     const { container } = render(
       <FigureRenderer
