@@ -3,6 +3,8 @@
 - **Status**: Accepted
 - **Date**: 2026-09-08
 - **Deciders**: Pierce Broudin
+- **Amended**: 2026-10-26 (#300) — §1: sessions are stored in Postgres (Spring Session JDBC),
+  not in memory; see [ADR 0034](0034-sessions-persistantes.md).
 
 ## Context
 
@@ -28,7 +30,9 @@ Redis-backed sessions (`spring-session-data-redis`) are introduced when the firs
 of these triggers is reached: a second application instance is added, or
 zero-downtime deploys are required. The Redis infrastructure already exists for
 the tutor's prompt cache; the swap is a single configuration change if the session
-objects remain serializable.
+objects remain serializable. *Amended by #300 (ADR 0034): the trigger was reached by
+automatic deploys (ADR 0024 §10), and the store is Postgres via Spring Session JDBC —
+Redis is not in the deployed stack.*
 
 Session cookies are set with:
 - `HttpOnly` — not accessible to JavaScript
@@ -151,7 +155,7 @@ arrives, uses SAML or OIDC — neither requires JWT for internal session managem
 
 - In-memory session store means a restart logs out all active users. Acceptable
   for F0 (single VPS, pilot class); must be revisited before multi-instance
-  deployment (see §1 trigger).
+  deployment (see §1 trigger). *Resolved by ADR 0034.*
 - CSRF token delivery requires the frontend to read the `XSRF-TOKEN` cookie and
   echo it on mutating requests. This is a standard pattern but must be wired
   explicitly in the Next.js API layer (separate ticket).
@@ -164,7 +168,7 @@ arrives, uses SAML or OIDC — neither requires JWT for internal session managem
 - Frontend: `XSRF-TOKEN` cookie read and echo in `@brio/api-client`.
 - Rate-limiting middleware (Spring's `HandlerInterceptor` or a dedicated filter).
 - Password reset flow (email → tokenised link → new password).
-- Redis session store when §1 trigger is reached.
+- Redis session store when §1 trigger is reached. *Done in Postgres instead (ADR 0034).*
 
 ## Alternatives considered
 
