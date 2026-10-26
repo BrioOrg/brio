@@ -8,6 +8,7 @@
 import {
   checkChart,
   formatNumber,
+  parseScratch,
   maxCategories,
   CHART_AXIS_FIELDS,
   type ChartIssue,
@@ -30,6 +31,7 @@ export type BlocType =
   | 'reference'
   | 'figure'
   | 'chart'
+  | 'code'
   | 'exercise'
 
 /** Une étape d'un bloc « exemple en étapes » : un texte, et éventuellement une formule. */
@@ -117,6 +119,12 @@ export const BLOCS: {
     icone: '◔',
   },
   {
+    type: 'code',
+    label: 'Programme',
+    description: 'Un programme Scratch dessiné en blocs, ou du code en texte',
+    icone: '⌘',
+  },
+  {
     type: 'exercise',
     exerciseType: 'multiple-choice',
     label: 'QCM',
@@ -172,6 +180,7 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   reference: 'Référence',
   figure: 'Figure',
   chart: 'Diagramme',
+  code: 'Programme',
   exercise: 'Exercice',
 }
 
@@ -184,6 +193,20 @@ export const GRAPHIQUE_SORTES: { valeur: ChartKind; label: string }[] = [
 
 /** Une ligne catégorie / valeur d'un diagramme ; `value` absente tant qu'elle n'est pas saisie. */
 export type Donnee = { label: string; value?: number }
+
+// Les deux langages d'un bloc code, dans l'ordre du sélecteur (ADR 0031). « Texte » n'écrit
+// aucun `language` : le code s'affiche en police fixe. « Scratch » écrit `language: "scratch"` :
+// le programme est dessiné en blocs, et doit s'analyser pour être publié.
+export type CodeLangage = 'texte' | 'scratch'
+
+export const CODE_LANGAGES: { valeur: CodeLangage; label: string }[] = [
+  { valeur: 'texte', label: 'Texte' },
+  { valeur: 'scratch', label: 'Scratch' },
+]
+
+export function langageCode(b: Bloc): CodeLangage {
+  return b.language === 'scratch' ? 'scratch' : 'texte'
+}
 
 // Variantes d'encadré reconnues par l'afficheur (CALLOUT dans chapter-view.tsx).
 export const CALLOUT_VARIANTES: { valeur: string; label: string }[] = [
@@ -269,6 +292,10 @@ export function nouveauBloc(
         ],
         alt: '',
       }
+    case 'code':
+      // Scratch par défaut : c'est le seul langage de programmation du collège (cycle 4,
+      // algorithmique). « Texte » reste à un clic pour du pseudo-code ou une sortie.
+      return { id: genId(), type, language: 'scratch', code: '' }
     case 'exercise':
       return nouvelExercice(exerciseType ?? 'paper', preset)
   }
@@ -462,6 +489,7 @@ const TROP_DE_BONNES_REPONSES = 'TOO_MANY_CORRECT_CHOICES'
 const OBJECTIFS_VIDES = 'EMPTY_OBJECTIVES'
 const REPONSES_EN_DOUBLE = 'DUPLICATE_ANSWERS'
 const REFERENCE_NON_VERIFIEE = 'REFERENCE_UNVERIFIED'
+const SCRATCH_INVALIDE = 'SCRATCH_INVALID'
 
 const LIBELLES_CHAMPS: Record<string, string> = {
   title: 'le titre',
@@ -483,6 +511,7 @@ const LIBELLES_CHAMPS: Record<string, string> = {
   steps: 'les étapes',
   items: 'les objectifs',
   competencies: 'les compétences',
+  code: 'le programme',
 }
 
 /** Le premier segment d'un chemin de champ : `choices[1].text` → `choices`. */
@@ -565,6 +594,8 @@ export function libelleProbleme(code: string, champ?: string, niveau?: 'cours' |
       return 'Ce bloc est vide : ajoute un objectif ou une compétence.'
     case REPONSES_EN_DOUBLE:
       return 'Deux réponses acceptées sont identiques (aux accents et majuscules près).'
+    case SCRATCH_INVALIDE:
+      return 'Le programme Scratch contient des erreurs : corrige-les ou passe le bloc en « Texte ».'
     default:
       return 'Ce point empêche la publication.'
   }
@@ -644,6 +675,15 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       break
     case 'chart':
       p.push(...problemesGraphique(b))
+      break
+    case 'code':
+      exiger('code', b.code)
+      // Un programme qui ne s'analyse pas s'afficherait en texte (ADR 0031 §6) : ce n'est pas ce
+      // qu'a choisi l'enseignant en passant le bloc en Scratch. Le détail, ligne par ligne, est
+      // sous le champ ; ici, une seule entrée pour la liste des problèmes.
+      if (b.language === 'scratch' && texteRempli(b.code) && !parseScratch(String(b.code)).ok) {
+        p.push({ code: SCRATCH_INVALIDE, champ: 'code' })
+      }
       break
     case 'objectives': {
       const items = chaines(b.items)
@@ -1034,6 +1074,9 @@ export function brouillonVersApercu(b: Brouillon): {
       .filter((bloc) => {
         // Un diagramme de moins de deux catégories remplies n'a rien à dessiner.
         if (bloc.type === 'chart') return graphiquePourApercu(bloc) !== null
+        // Un programme vide n'a rien à montrer. Un programme Scratch qui ne s'analyse pas reste :
+        // l'afficheur le montre en texte, comme il le ferait pour l'élève.
+        if (bloc.type === 'code') return texteRempli(bloc.code)
         if (bloc.type !== 'exercise' || exerciceComplet(bloc)) return true
         exercicesMasques++
         return false
@@ -1101,6 +1144,8 @@ export function apercuBloc(bloc: Bloc): string {
     (typeof bloc.prompt === 'string' && bloc.prompt) ||
     (typeof bloc.title === 'string' && bloc.title) ||
     (typeof bloc.latex === 'string' && bloc.latex) ||
+    // Un programme résume par sa première ligne.
+    (typeof bloc.code === 'string' && bloc.code.trim().split('\n')[0]) ||
     // Une référence résume par son titre ; une figure par son texte alternatif ; un tableau par
     // sa légende ou sa première cellule.
     (typeof bloc.alt === 'string' && bloc.alt) ||

@@ -9,7 +9,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,17 +82,9 @@ class SessionIntegrationTest {
 
     @Test
     void shouldReturnCurrentUserOnMoi() throws Exception {
-        var session = new MockHttpSession();
+        var session = SessionCookies.login(mockMvc, "prof.test", "motdepasse");
 
-        mockMvc.perform(post("/api/sessions")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("identifiant", "prof.test")
-                        .param("mot_de_passe", "motdepasse")
-                        .session(session)
-                        .with(csrf()))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/api/moi").session(session))
+        mockMvc.perform(get("/api/moi").cookie(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNotEmpty());
     }
@@ -121,38 +112,22 @@ class SessionIntegrationTest {
 
     @Test
     void shouldLogout() throws Exception {
-        var session = new MockHttpSession();
+        var session = SessionCookies.login(mockMvc, "prof.test", "motdepasse");
 
-        mockMvc.perform(post("/api/sessions")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("identifiant", "prof.test")
-                        .param("mot_de_passe", "motdepasse")
-                        .session(session)
-                        .with(csrf()))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(delete("/api/sessions").session(session).with(csrf()))
+        mockMvc.perform(delete("/api/sessions").cookie(session).with(csrf()))
                 .andExpect(status().isNoContent());
 
         // Session should be invalidated
-        mockMvc.perform(get("/api/moi").session(session))
+        mockMvc.perform(get("/api/moi").cookie(session))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldExpireSessionCookieOnLogout() throws Exception {
-        var session = new MockHttpSession();
-
-        mockMvc.perform(post("/api/sessions")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("identifiant", "prof.test")
-                        .param("mot_de_passe", "motdepasse")
-                        .session(session)
-                        .with(csrf()))
-                .andExpect(status().isOk());
+        var session = SessionCookies.login(mockMvc, "prof.test", "motdepasse");
 
         // The browser must drop the cookie: the web middleware only checks its presence.
-        mockMvc.perform(delete("/api/sessions").session(session).with(csrf()))
+        mockMvc.perform(delete("/api/sessions").cookie(session).with(csrf()))
                 .andExpect(status().isNoContent())
                 .andExpect(cookie().maxAge("JSESSIONID", 0));
     }
@@ -166,20 +141,12 @@ class SessionIntegrationTest {
 
     @Test
     void shouldRejectLogoutWithoutCsrfTokenAndKeepSession() throws Exception {
-        var session = new MockHttpSession();
+        var session = SessionCookies.login(mockMvc, "prof.test", "motdepasse");
 
-        mockMvc.perform(post("/api/sessions")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("identifiant", "prof.test")
-                        .param("mot_de_passe", "motdepasse")
-                        .session(session)
-                        .with(csrf()))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(delete("/api/sessions").session(session))
+        mockMvc.perform(delete("/api/sessions").cookie(session))
                 .andExpect(status().isForbidden());
 
-        mockMvc.perform(get("/api/moi").session(session))
+        mockMvc.perform(get("/api/moi").cookie(session))
                 .andExpect(status().isOk());
     }
 
