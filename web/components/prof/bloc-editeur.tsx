@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, type MutableRefObject, type ReactNode } from 'react'
+import { useEffect, useRef, type KeyboardEvent, type MutableRefObject, type ReactNode } from 'react'
 
 import type { Competence } from '@brio/api-client'
 
@@ -85,6 +85,98 @@ function ZoneAuto({
 
 // Un champ sans bordure ni marge : en erreur, un peu d'air pour que le texte ne touche pas la marque.
 const inline = `w-full border-0 bg-transparent p-0 focus:outline-none focus:ring-0 placeholder:text-ink-muted/60 aria-[invalid=true]:px-1 ${marqueChamp}`
+
+/**
+ * Liste des objectifs, éditable au clavier comme une liste à puces :
+ * Entrée crée un objectif vide juste en dessous, Retour arrière sur un objectif vide le supprime
+ * et remonte sur le précédent. Le bouton ✕ et « ＋ Ajouter un objectif » restent disponibles.
+ */
+function ListeObjectifs({
+  items,
+  onChange,
+  onFocus,
+}: {
+  items: string[]
+  onChange: (next: string[]) => void
+  onFocus?: () => void
+}) {
+  const champs = useRef<(HTMLInputElement | null)[]>([])
+  // Objectif à focaliser une fois la liste re-rendue (ligne créée ou précédente après suppression).
+  const aFocaliser = useRef<number | null>(null)
+
+  useEffect(() => {
+    const i = aFocaliser.current
+    if (i === null) return
+    const el = champs.current[i]
+    if (!el) return
+    aFocaliser.current = null
+    el.focus()
+    el.setSelectionRange(el.value.length, el.value.length)
+  }, [items])
+
+  function surTouche(e: KeyboardEvent<HTMLInputElement>, i: number) {
+    // Pendant une composition (IME, accents morts), Entrée valide la saisie : on ne touche à rien.
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return
+    if (e.altKey || e.ctrlKey || e.metaKey) return
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      aFocaliser.current = i + 1
+      onChange([...items.slice(0, i + 1), '', ...items.slice(i + 1)])
+    } else if (e.key === 'Backspace' && items[i] === '' && items.length > 1) {
+      e.preventDefault()
+      aFocaliser.current = Math.max(i - 1, 0)
+      onChange(items.filter((_, j) => j !== i))
+    }
+  }
+
+  return (
+    <>
+      <ul className="flex flex-col gap-1.5">
+        {items.map((item, i) => (
+          <li key={i} className="flex items-center gap-2">
+            <span
+              className="font-display text-sm font-extrabold text-accent-ink"
+              aria-hidden="true"
+            >
+              ✓
+            </span>
+            <input
+              ref={(el) => {
+                champs.current[i] = el
+              }}
+              aria-label={`Objectif ${i + 1}`}
+              className={`${inline} font-prose text-base text-ink`}
+              value={item}
+              onChange={(e) => onChange(items.map((it, j) => (j === i ? e.target.value : it)))}
+              onKeyDown={(e) => surTouche(e, i)}
+              onFocus={onFocus}
+              placeholder="Ex. Calculer une longueur avec Pythagore"
+            />
+            <button
+              type="button"
+              aria-label="Supprimer l’objectif"
+              onClick={() => onChange(items.filter((_, j) => j !== i))}
+              disabled={items.length <= 1}
+              className="shrink-0 text-ink-muted hover:text-danger disabled:opacity-30"
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        onClick={() => {
+          aFocaliser.current = items.length
+          onChange([...items, ''])
+        }}
+        className="mt-2 font-display text-sm font-bold text-accent-ink hover:underline"
+      >
+        ＋ Ajouter un objectif
+      </button>
+    </>
+  )
+}
 
 export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Props) {
   const { champ } = useChamp()
@@ -193,41 +285,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
             onFocus={onFocusBloc}
             placeholder="Ce que tu vas savoir faire"
           />
-          <ul className="flex flex-col gap-1.5">
-            {items.map((item, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <span
-                  className="font-display text-sm font-extrabold text-accent-ink"
-                  aria-hidden="true"
-                >
-                  ✓
-                </span>
-                <input
-                  className={`${inline} font-prose text-base text-ink`}
-                  value={item}
-                  onChange={(e) => maj(items.map((it, j) => (j === i ? e.target.value : it)))}
-                  onFocus={onFocusBloc}
-                  placeholder="Ex. Calculer une longueur avec Pythagore"
-                />
-                <button
-                  type="button"
-                  aria-label="Supprimer l’objectif"
-                  onClick={() => maj(items.filter((_, j) => j !== i))}
-                  disabled={items.length <= 1}
-                  className="shrink-0 text-ink-muted hover:text-danger disabled:opacity-30"
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={() => maj([...items, ''])}
-            className="mt-2 font-display text-sm font-bold text-accent-ink hover:underline"
-          >
-            ＋ Ajouter un objectif
-          </button>
+          <ListeObjectifs items={items} onChange={maj} onFocus={onFocusBloc} />
           <CompetencesPicker
             competences={competences ?? []}
             selection={competencies}

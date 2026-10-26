@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
@@ -260,5 +260,74 @@ describe('BlocEditeur — texte à trous', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Supprimer l’étiquette piège' }))
     expect(etat().bank).toEqual(['droit'])
+  })
+})
+
+// Harnais du bloc « objectifs » : liste contrôlée, comme dans l'éditeur.
+function HarnaisObjectifs({ items }: { items: string[] }) {
+  const [bloc, setBloc] = useState<Bloc>(() => ({ ...nouveauBloc('objectives'), items }))
+  return (
+    <>
+      <BlocEditeur bloc={bloc} onModifier={(patch) => setBloc((b) => ({ ...b, ...patch }))} />
+      <output data-testid="etat">{JSON.stringify(bloc)}</output>
+    </>
+  )
+}
+
+describe('BlocEditeur — objectifs au clavier', () => {
+  it('Entrée crée un objectif vide juste en dessous et y place le curseur', async () => {
+    render(<HarnaisObjectifs items={['Premier', 'Dernier']} />)
+
+    await userEvent.click(screen.getByRole('textbox', { name: 'Objectif 1' }))
+    await userEvent.keyboard('{Enter}')
+
+    expect(etat().items).toEqual(['Premier', '', 'Dernier'])
+    expect(screen.getByRole('textbox', { name: 'Objectif 2' })).toHaveFocus()
+
+    await userEvent.keyboard('Milieu')
+    expect(etat().items).toEqual(['Premier', 'Milieu', 'Dernier'])
+  })
+
+  it('n’ajoute rien quand Entrée valide une composition (IME)', () => {
+    render(<HarnaisObjectifs items={['Premier']} />)
+
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Objectif 1' }), {
+      key: 'Enter',
+      isComposing: true,
+    })
+
+    expect(etat().items).toEqual(['Premier'])
+  })
+
+  it('Retour arrière sur un objectif vide le supprime et remonte sur le précédent', async () => {
+    render(<HarnaisObjectifs items={['Premier', '', 'Dernier']} />)
+
+    await userEvent.click(screen.getByRole('textbox', { name: 'Objectif 2' }))
+    await userEvent.keyboard('{Backspace}')
+
+    expect(etat().items).toEqual(['Premier', 'Dernier'])
+    const precedent = screen.getByRole('textbox', { name: 'Objectif 1' })
+    expect(precedent).toHaveFocus()
+    // Le curseur arrive en fin de ligne : on continue d'écrire, rien n'est effacé.
+    await userEvent.keyboard('!')
+    expect(etat().items).toEqual(['Premier!', 'Dernier'])
+  })
+
+  it('Retour arrière sur un objectif non vide efface un caractère, rien de plus', async () => {
+    render(<HarnaisObjectifs items={['Premier', 'Ab']} />)
+
+    await userEvent.click(screen.getByRole('textbox', { name: 'Objectif 2' }))
+    await userEvent.keyboard('{Backspace}')
+
+    expect(etat().items).toEqual(['Premier', 'A'])
+  })
+
+  it('ne supprime pas le dernier objectif restant', async () => {
+    render(<HarnaisObjectifs items={['']} />)
+
+    await userEvent.click(screen.getByRole('textbox', { name: 'Objectif 1' }))
+    await userEvent.keyboard('{Backspace}')
+
+    expect(etat().items).toEqual([''])
   })
 })
