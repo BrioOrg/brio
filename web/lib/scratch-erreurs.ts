@@ -1,82 +1,49 @@
 // Les erreurs de parseScratch (packages/content, ADR 0031) en français, pour l'éditeur enseignant.
 //
-// Le parseur écrit ses messages en anglais : ils servent aussi à check-content, lu par les
-// développeurs. On les traduit ici, motif par motif, sans toucher au parseur partagé. Un message
-// qu'aucun motif ne reconnaît (une règle ajoutée depuis) est montré tel quel : mieux vaut un
-// message en anglais qu'une erreur tue. Les tests passent chaque erreur connue par ce module.
+// Le parseur écrit ses messages en anglais (ils servent aussi à check-content, lu par les
+// développeurs). On traduit par `code` stable, pas par le texte anglais : reformuler un message
+// côté parseur (#232, #234…) ne casse plus la traduction (#307). Un code que ce module ne connaît
+// pas encore (une règle ajoutée depuis) retombe sur le message d'origine : mieux vaut un message
+// en anglais qu'une erreur tue.
 
-import type { ScratchError } from '@brio/content'
+import type { ScratchError, ScratchErrorCode, ScratchErrorParams } from '@brio/content'
 
-type Traduction = [RegExp, (...m: string[]) => string]
+const TRADUCTIONS: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> = {
+  blankLine: () => 'Ligne vide : un programme s’écrit d’un seul tenant, sans ligne vide.',
+  tabs: (p) => `Indente avec ${p.expected} espaces, pas une tabulation.`,
+  finWithoutLoop: () => '« fin » ne ferme aucun « répéter ».',
+  finIndent: (p) => `« fin » doit être aligné sur son « répéter » (ligne ${p.loopLine}).`,
+  emptyLoop: () => 'La boucle « répéter » est vide : indente au moins une instruction dessous.',
+  loopNotClosedBeforeLine: (p) =>
+    `Ferme le « répéter » de la ligne ${p.loopLine} par « fin » avant cette ligne.`,
+  unexpectedIndent: (p) =>
+    p.expected === 0
+      ? 'Cette ligne ne doit pas être indentée.'
+      : `Indentation inattendue : ${p.expected} espaces attendus.`,
+  flagNotFirst: () =>
+    '« quand le drapeau vert est cliqué » ne peut être que la première ligne.',
+  loopNeverClosed: () => 'Ce « répéter » n’est jamais fermé par « fin ».',
+  unknownInstruction: (p) => `Instruction inconnue : « ${p.text} ».`,
+  invalidVariableName: (p) =>
+    `« ${p.text} » n’est pas un nom de variable (lettres, chiffres et _, sans espace).`,
+  valueMissing: (p) => `Il manque une valeur dans « ${p.source} ».`,
+  valueMissingBeforeOperator: (p) =>
+    `Il manque une valeur avant « ${p.operator} » dans « ${p.source} ».`,
+  valueMissingBeforeClose: (p) => `Il manque une valeur avant « ) » dans « ${p.source} ».`,
+  closeMissing: (p) => `Il manque une parenthèse fermante dans « ${p.source} ».`,
+  oneOperatorPerPair: (p) =>
+    `Un seul opérateur par paire de parenthèses, comme ((a + b) * c), dans « ${p.source} ».`,
+  operatorNeedsParentheses: (p) =>
+    `Un bloc opérateur s’écrit entre parenthèses, comme (a * b), dans « ${p.source} ».`,
+  unexpectedTextAfterValue: (p) => `Texte en trop après la valeur dans « ${p.source} ».`,
+  textNeverClosed: (p) => `Un texte ouvert par « n’est pas fermé dans ${p.source}.`,
+  emptyText: (p) => `Texte vide « » dans ${p.source}.`,
+  wrongOperatorSymbol: (p) => `Scratch écrit ${p.correct}, pas ${p.symbol}, dans « ${p.source} ».`,
+  unexpectedCharacter: (p) => `Caractère inattendu « ${p.character} » dans « ${p.source} ».`,
+}
 
-const TRADUCTIONS: Traduction[] = [
-  [/^blank line/, () => 'Ligne vide : un programme s’écrit d’un seul tenant, sans ligne vide.'],
-  [/^indent with (\d+) spaces, not tabs$/, (n) => `Indente avec ${n} espaces, pas une tabulation.`],
-  [/^"fin" closes no "répéter"$/, () => '« fin » ne ferme aucun « répéter ».'],
-  [
-    /^"fin" must be at the indentation of its "répéter" \(line (\d+)\)$/,
-    (l) => `« fin » doit être aligné sur son « répéter » (ligne ${l}).`,
-  ],
-  [
-    /^"répéter" has an empty body$/,
-    () => 'La boucle « répéter » est vide : indente au moins une instruction dessous.',
-  ],
-  [
-    /^"répéter" \(line (\d+)\) must be closed by "fin" before this line$/,
-    (l) => `Ferme le « répéter » de la ligne ${l} par « fin » avant cette ligne.`,
-  ],
-  [
-    /^unexpected indentation \(expected (\d+) spaces\)$/,
-    (n) =>
-      n === '0'
-        ? 'Cette ligne ne doit pas être indentée.'
-        : `Indentation inattendue : ${n} espaces attendus.`,
-  ],
-  [
-    /^the green-flag block can only start a programme$/,
-    () => '« quand le drapeau vert est cliqué » ne peut être que la première ligne.',
-  ],
-  [/^"répéter" is never closed by "fin"$/, () => 'Ce « répéter » n’est jamais fermé par « fin ».'],
-  [/^unknown instruction "(.*)" — /, (t) => `Instruction inconnue : « ${t} ».`],
-  [
-    /^"(.*)" is not a variable name/,
-    (t) => `« ${t} » n’est pas un nom de variable (lettres, chiffres et _, sans espace).`,
-  ],
-  [/^a value is missing in "(.*)"$/, (s) => `Il manque une valeur dans « ${s} ».`],
-  [
-    /^a value is missing before "(.)" in "(.*)"$/,
-    (op, s) => `Il manque une valeur avant « ${op} » dans « ${s} ».`,
-  ],
-  [/^"\)" is missing in "(.*)"$/, (s) => `Il manque une parenthèse fermante dans « ${s} ».`],
-  [
-    /^one operator per pair of parentheses.* in "(.*)"$/,
-    (s) => `Un seul opérateur par paire de parenthèses, comme ((a + b) * c), dans « ${s} ».`,
-  ],
-  [
-    /^an operator block goes in parentheses.* in "(.*)"$/,
-    (s) => `Un bloc opérateur s’écrit entre parenthèses, comme (a * b), dans « ${s} ».`,
-  ],
-  [
-    /^unexpected text after the value in "(.*)"$/,
-    (s) => `Texte en trop après la valeur dans « ${s} ».`,
-  ],
-  [/^« is never closed by » in "(.*)"$/, (s) => `Un texte ouvert par « n’est pas fermé dans ${s}.`],
-  [/^empty text « » in "(.*)"$/, (s) => `Texte vide « » dans ${s}.`],
-  [
-    /^Scratch writes (.), not (.), in "(.*)"$/,
-    (bon, faux, s) => `Scratch écrit ${bon}, pas ${faux}, dans « ${s} ».`,
-  ],
-  [
-    /^unexpected character "(.*)" in "(.*)"$/,
-    (c, s) => `Caractère inattendu « ${c} » dans « ${s} ».`,
-  ],
-]
-
-/** Le message français d'une erreur de parseScratch (le message d'origine si aucun motif ne va). */
+/** Le message français d'une erreur de parseScratch (le message d'origine si le code est inconnu). */
 export function messageScratch(erreur: ScratchError): string {
-  for (const [motif, traduire] of TRADUCTIONS) {
-    const m = motif.exec(erreur.message)
-    if (m) return traduire(...m.slice(1))
-  }
-  return erreur.message
+  const traduire = TRADUCTIONS[erreur.code]
+  return traduire ? traduire(erreur.params) : erreur.message
 }

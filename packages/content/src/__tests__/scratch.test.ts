@@ -118,9 +118,26 @@ describe('parseScratch', () => {
     expect(error.message).toContain(message)
   })
 
+  it('should carry a stable code and structured params on each error (#307)', () => {
+    // The code + params are the language-agnostic form the web translates; the English message
+    // is derived from them, so rewording a message never changes what the web keys on.
+    expect(errors(parseScratch('mettre x à (x × 3)'))[0]).toMatchObject({
+      code: 'wrongOperatorSymbol',
+      params: { symbol: '×', correct: '*', source: '(x × 3)' },
+    })
+    expect(errors(parseScratch('répéter 2 fois\n    dire 1\n  fin'))[0]).toMatchObject({
+      code: 'finIndent',
+      params: { loopLine: 1 },
+    })
+    expect(errors(parseScratch('sauter'))[0]).toMatchObject({
+      code: 'unknownInstruction',
+      params: { text: 'sauter' },
+    })
+  })
+
   it('should reject a loop that is never closed, with the loop line', () => {
-    expect(errors(parseScratch('répéter 4 fois\n    avancer de 10 pas'))).toEqual([
-      { line: 1, message: '"répéter" is never closed by "fin"' },
+    expect(errors(parseScratch('répéter 4 fois\n    avancer de 10 pas'))).toMatchObject([
+      { line: 1, code: 'loopNeverClosed', message: '"répéter" is never closed by "fin"' },
     ])
   })
 
