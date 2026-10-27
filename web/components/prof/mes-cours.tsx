@@ -97,7 +97,7 @@ export function MesCours() {
   }
 
   return (
-    <div data-theme="light" className="min-h-screen bg-surface-page font-prose text-ink">
+    <div className="min-h-screen bg-surface-page font-prose text-ink">
       <header className="border-b border-line bg-surface-panel">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-3 px-4 py-4 sm:px-6">
           <div className="min-w-0 flex-1">

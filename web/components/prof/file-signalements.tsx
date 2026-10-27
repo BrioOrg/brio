@@ -43,7 +43,7 @@ export function FileSignalements() {
   }, [charger])
 
   return (
-    <div data-theme="light" className="min-h-screen bg-surface-page font-prose text-ink">
+    <div className="min-h-screen bg-surface-page font-prose text-ink">
       <header className="flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
         <h1 className="min-w-0 flex-1 font-display text-lg font-extrabold text-ink">
           Signalements
@@ -224,7 +224,6 @@ function DialogueSanction({ compteId, classeId, nom, onApplique }: DialogueSanct
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <Dialog.Content
-          data-theme="light"
           className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface-panel p-5 font-prose text-ink focus-visible:outline-none"
         >
           <Dialog.Title className="font-display text-lg font-extrabold text-ink">

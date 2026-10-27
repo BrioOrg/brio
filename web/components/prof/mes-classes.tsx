@@ -65,7 +65,7 @@ export function MesClasses() {
   }, [charger])
 
   return (
-    <div data-theme="light" className="min-h-screen bg-surface-page font-prose text-ink">
+    <div className="min-h-screen bg-surface-page font-prose text-ink">
       <header className="flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
         <h1 className="min-w-0 flex-1 font-display text-lg font-extrabold text-ink">Mes classes</h1>
         {donnees && donnees.classes.length > 0 && !creation && (
