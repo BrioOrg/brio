@@ -67,13 +67,6 @@ export function MesClasses() {
   return (
     <div data-theme="light" className="min-h-screen bg-surface-page font-prose text-ink">
       <header className="flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
-        <Link
-          href="/prof"
-          aria-label="Retour à l'espace enseignant"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-line text-ink-muted hover:text-ink"
-        >
-          <Icon name="arrow-right" size={16} className="rotate-180" aria-hidden="true" />
-        </Link>
         <h1 className="min-w-0 flex-1 font-display text-lg font-extrabold text-ink">Mes classes</h1>
         {donnees && donnees.classes.length > 0 && !creation && (
           <Button size="sm" onClick={() => setCreation(true)}>
