@@ -84,4 +84,54 @@ describe('CodeEditeur', () => {
     render(<Harnais valider depart={{ code: 'sauter' }} />)
     expect(screen.getByLabelText('Programme Scratch')).toHaveAttribute('aria-invalid', 'true')
   })
+
+  it('should insert four spaces when Tab is pressed at the caret', () => {
+    render(<Harnais depart={{ code: 'répéter 4 fois\navancer de 50 pas\nfin' }} />)
+    const champ = screen.getByLabelText('Programme Scratch') as HTMLTextAreaElement
+    champ.setSelectionRange(15, 15) // début de la 2e ligne
+
+    fireEvent.keyDown(champ, { key: 'Tab' })
+
+    expect(etat().code).toBe('répéter 4 fois\n    avancer de 50 pas\nfin')
+  })
+
+  it('should indent every selected line with Tab and dedent with Shift+Tab', () => {
+    render(<Harnais depart={{ code: 'une\ndeux\ntrois' }} />)
+    const champ = screen.getByLabelText('Programme Scratch') as HTMLTextAreaElement
+    champ.setSelectionRange(0, 'une\ndeux\ntrois'.length)
+
+    fireEvent.keyDown(champ, { key: 'Tab' })
+    expect(etat().code).toBe('    une\n    deux\n    trois')
+
+    champ.setSelectionRange(0, '    une\n    deux\n    trois'.length)
+    fireEvent.keyDown(champ, { key: 'Tab', shiftKey: true })
+    expect(etat().code).toBe('une\ndeux\ntrois')
+  })
+
+  it('should keep a keyboard exit: Escape then Tab leaves the field and is announced', () => {
+    render(<Harnais depart={{ code: 'répéter 4 fois' }} />)
+    const champ = screen.getByLabelText('Programme Scratch') as HTMLTextAreaElement
+    champ.setSelectionRange(0, 0)
+
+    fireEvent.keyDown(champ, { key: 'Escape' })
+    expect(screen.getByText(/Tab quitte le champ/)).toBeInTheDocument()
+
+    // Après Échap, Tab ne modifie plus le code (il laisse le focus sortir).
+    const avant = etat().code
+    const sortie = fireEvent.keyDown(champ, { key: 'Tab' })
+    expect(sortie).toBe(true) // non annulé : le comportement par défaut (déplacer le focus) est conservé
+    expect(etat().code).toBe(avant)
+  })
+
+  it('should re-arm indentation after any other key following Escape', () => {
+    render(<Harnais depart={{ code: 'fin' }} />)
+    const champ = screen.getByLabelText('Programme Scratch') as HTMLTextAreaElement
+    champ.setSelectionRange(0, 0)
+
+    fireEvent.keyDown(champ, { key: 'Escape' })
+    fireEvent.keyDown(champ, { key: 'a' }) // réarme
+    fireEvent.keyDown(champ, { key: 'Tab' })
+
+    expect(etat().code).toBe('    fin')
+  })
 })
