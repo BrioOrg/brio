@@ -5,6 +5,9 @@
 - **Deciders**: Pierce Broudin
 - **Amended**: 2026-10-26 (#300) — §1: sessions are stored in Postgres (Spring Session JDBC),
   not in memory; see [ADR 0034](0034-sessions-persistantes.md).
+- **Amended**: 2026-10-27 (#305) — §7: progressive lockout and rate limiting are stored in
+  **Postgres**, not Redis (Redis is absent from the deployed stack — ADR 0034), and Redis has
+  been removed from the dev `docker-compose.yml`.
 
 ## Context
 
@@ -115,10 +118,12 @@ their pencil case.
 - **No minimum complexity rule** for student accounts. A passphrase of sufficient
   length is accepted without special characters.
 - **Progressive lockout**: 5 failed attempts triggers a 15-minute lockout of that
-  `identifiant_connexion`. The lockout is server-side (stored in Redis); it is
-  not a client-side counter.
+  `identifiant_connexion`. The lockout is server-side (stored in Postgres, amended
+  by #305 — was Redis); it is not a client-side counter. A locked attempt is refused
+  with `423 Locked` before the password is checked; a successful login clears the counter.
 - **Rate limiting** on the login endpoint regardless of lockout: 20 attempts per
-  minute per IP (truncated, not full).
+  minute per IP (truncated, not full), server-side in Postgres (fixed one-minute window),
+  refused with `429 Too Many Requests`.
 - **No security question, no SMS reset** — both introduce more risk than they
   mitigate. Password reset is by email to `email_titulaire_legal` for students,
   to the account's own email for adults.

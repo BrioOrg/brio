@@ -100,6 +100,38 @@ class SessionIntegrationTest {
     }
 
     @Test
+    void shouldLockIdentifiantAfterFiveFailedAttempts() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            tenterConnexion("prof.test", "mauvais").andExpect(status().isUnauthorized());
+        }
+        // Even the right password is refused while locked — and the lock is checked before it.
+        tenterConnexion("prof.test", "motdepasse").andExpect(status().isLocked());
+    }
+
+    @Test
+    void shouldClearTheLockoutCounterOnSuccessfulLogin() throws Exception {
+        for (int i = 0; i < 4; i++) {
+            tenterConnexion("prof.test", "mauvais").andExpect(status().isUnauthorized());
+        }
+        // A success before the threshold resets the counter...
+        tenterConnexion("prof.test", "motdepasse").andExpect(status().isOk());
+        // ...so four more failures still do not lock (would be the 8th failure without the reset).
+        for (int i = 0; i < 4; i++) {
+            tenterConnexion("prof.test", "mauvais").andExpect(status().isUnauthorized());
+        }
+        tenterConnexion("prof.test", "motdepasse").andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldRateLimitPerIpRegardlessOfLockout() throws Exception {
+        // Distinct unknown identifiants so no single one locks: this isolates the per-IP cap (20/min).
+        for (int i = 0; i < 20; i++) {
+            tenterConnexion("inconnu" + i, "peu-importe").andExpect(status().isUnauthorized());
+        }
+        tenterConnexion("inconnu-de-trop", "peu-importe").andExpect(status().isTooManyRequests());
+    }
+
+    @Test
     void shouldReturn401ForEleveEnAttenteConsentement() throws Exception {
         // en_attente_consentement accounts must not be able to authenticate (ADR 0016 §5)
         mockMvc.perform(post("/api/sessions")
@@ -154,5 +186,14 @@ class SessionIntegrationTest {
     void shouldReturn401OnMoiWithoutSession() throws Exception {
         mockMvc.perform(get("/api/moi"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    private org.springframework.test.web.servlet.ResultActions tenterConnexion(String identifiant,
+                                                                               String motDePasse) throws Exception {
+        return mockMvc.perform(post("/api/sessions")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .param("identifiant", identifiant)
+                .param("mot_de_passe", motDePasse)
+                .with(csrf()));
     }
 }
