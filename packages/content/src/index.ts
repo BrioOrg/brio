@@ -82,6 +82,8 @@ export type {
   ScratchValue,
   ScratchStatement,
   ScratchError,
+  ScratchErrorCode,
+  ScratchErrorParams,
   ScratchParseResult,
   ScratchCategory,
   ScratchPart,
