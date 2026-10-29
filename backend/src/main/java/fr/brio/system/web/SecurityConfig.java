@@ -1,6 +1,7 @@
 package fr.brio.system.web;
 
 import fr.brio.identite.CompteService;
+import fr.brio.identite.ProtectionConnexionService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,11 +38,13 @@ class SecurityConfig {
                                     AuthenticationFailureHandler loginFailure,
                                     LogoutSuccessHandler logoutSuccess,
                                     CompteService compteService,
+                                    ProtectionConnexionService protection,
                                     SessionRegistry sessionRegistry) throws Exception {
         var csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null); // always populate the attribute
 
         var statutCheck = new StatutCheckFilter(compteService);
+        var protectionCheck = new ProtectionConnexionFilter(protection);
 
         http
             .cors(withDefaults())
@@ -99,6 +102,7 @@ class SecurityConfig {
                 .maximumSessions(5)
                 // Counted in the persistent store (SessionStoreConfig, ADR 0034).
                 .sessionRegistry(sessionRegistry))
+            .addFilterBefore(protectionCheck, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(statutCheck, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) ->
@@ -132,8 +136,12 @@ class SecurityConfig {
     }
 
     @Bean
-    AuthenticationFailureHandler loginFailureHandler() {
+    AuthenticationFailureHandler loginFailureHandler(ProtectionConnexionService protection) {
         return (req, res, ex) -> {
+            // Count the failure towards the identifiant's lockout (ADR 0017 §7). A throttled or
+            // already-locked attempt is stopped earlier by ProtectionConnexionFilter and never
+            // reaches here, so this only records genuine credential failures.
+            protection.enregistrerEchec(req.getParameter("identifiant"));
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.setContentType("application/json;charset=UTF-8");
             res.getWriter().write("{\"error\":\"Identifiant ou mot de passe incorrect\"}");

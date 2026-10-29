@@ -9,7 +9,7 @@ XP/progression, teacher-authored content, and student chat rooms.
 - **backend/** — Spring Boot, Java 21, Maven. Modular monolith (Spring Modulith).
 - **web/** — Next.js (App Router), TypeScript, Tailwind.
 - **mobile/** — Expo (added later).
-- **Data** — PostgreSQL + pgvector, Redis. Flyway migrations.
+- **Data** — PostgreSQL + pgvector. Flyway migrations.
 
 Monorepo, flat layout. JS side is a pnpm workspace orchestrated by Turborepo.
 
@@ -27,12 +27,12 @@ docs/adr/   Architecture Decision Records
 
 - JDK 21, Maven 3.9+
 - Node 20+, pnpm 9+
-- Docker (Postgres + Redis via compose)
+- Docker (Postgres via compose)
 
 ## Commands
 
 ### Infra (from repo root)
-- `docker compose up -d` — start Postgres (pgvector) + Redis
+- `docker compose up -d` — start Postgres (pgvector)
 - `docker compose down` — stop infra
 
 ### Backend (from `backend/`)

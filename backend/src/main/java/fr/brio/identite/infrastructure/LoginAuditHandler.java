@@ -1,6 +1,7 @@
 package fr.brio.identite.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.brio.identite.ProtectionConnexionService;
 import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.domain.Compte;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,11 +24,14 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
 
     private final CompteRepository comptes;
     private final SessionAuditRepository sessions;
+    private final ProtectionConnexionService protection;
     private final ObjectMapper json;
 
-    LoginAuditHandler(CompteRepository comptes, SessionAuditRepository sessions, ObjectMapper json) {
+    LoginAuditHandler(CompteRepository comptes, SessionAuditRepository sessions,
+                      ProtectionConnexionService protection, ObjectMapper json) {
         this.comptes = comptes;
         this.sessions = sessions;
+        this.protection = protection;
         this.json = json;
     }
 
@@ -40,6 +44,9 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
                 .orElseThrow(() -> new IllegalStateException("Compte introuvable après authentification"));
 
         compte.marquerDernierAcces();
+
+        // A clean login clears any accumulated failures for the identifiant that was typed.
+        protection.reinitialiser(req.getParameter("identifiant"));
 
         int maxAge = req.getSession().getMaxInactiveInterval();
         Instant expireAt = Instant.now().plusSeconds(maxAge > 0 ? maxAge : 1800);
@@ -59,19 +66,7 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
     }
 
     static String truncateIp(String ip) {
-        if (ip == null) return null;
-        if (ip.contains(":")) {
-            // IPv6: zero the last 64 bits (last 4 groups in expanded form)
-            String[] parts = ip.split(":", -1);
-            if (parts.length == 8) {
-                parts[4] = "0"; parts[5] = "0"; parts[6] = "0"; parts[7] = "0";
-                return String.join(":", parts);
-            }
-            return ip; // abbreviated form — store as-is rather than guess
-        }
-        // IPv4: remove last octet
-        int last = ip.lastIndexOf('.');
-        return last >= 0 ? ip.substring(0, last) + ".0" : ip;
+        return AdresseIp.tronquer(ip);
     }
 
     static String hashUserAgent(String ua) {
