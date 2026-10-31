@@ -65,6 +65,11 @@ socle de modération minimal mais structurel.
    d'identification (LCEN) séparées du contenu. Mécanisme implémenté comme une tâche
    de purge ; branché au déploiement avec le reste de la rétention (aligné sur F5).
 
+> **Amendement ADR 0035 (2026-10-31) :** la Communauté s'ouvre sans modération pendant
+> le développement, derrière le réglage `brio.communaute.active`, désactivé par défaut.
+> La règle reste entière pour de vrais élèves : le réglage ne s'active pour eux qu'une
+> fois traitées les conditions de l'ADR 0035.
+
 ## Consequences
 
 ### Positive
