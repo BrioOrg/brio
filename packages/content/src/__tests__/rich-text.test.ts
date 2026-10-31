@@ -220,4 +220,25 @@ describe('parseRichText', () => {
       ])
     })
   })
+
+  describe('escapes inside a span', () => {
+    it('keeps an escaped asterisk in bold without closing it', () => {
+      expect(parseRichText('**2\\*3** fin')).toEqual([
+        { kind: 'bold', value: '2*3' },
+        { kind: 'text', value: ' fin' },
+      ])
+    })
+
+    it('keeps an escaped asterisk in italic without closing it', () => {
+      expect(parseRichText('*a\\*b*')).toEqual([{ kind: 'italic', value: 'a*b' }])
+    })
+
+    it('closes a bold span that ends on an escaped asterisk', () => {
+      expect(parseRichText('**a\\***')).toEqual([{ kind: 'bold', value: 'a*' }])
+    })
+
+    it('unescapes an equals sign in bold', () => {
+      expect(parseRichText('**a\\==**')).toEqual([{ kind: 'bold', value: 'a==' }])
+    })
+  })
 })
