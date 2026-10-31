@@ -14,6 +14,7 @@ import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sideb
 import { ChapterRail } from '@/components/chapter-rail'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
 import { ChapterInteractionProvider } from '@/components/chapter-interaction-context'
+import { BandeauDevoir } from '@/components/bandeau-devoir'
 import { ChapterProgress } from '@/components/chapter-progress'
 import { EntraideProvider } from '@/components/entraide/entraide-context'
 import { tutorRequestCap } from '@/lib/tutor-config'
@@ -75,10 +76,10 @@ export default async function ChapterPage({
   searchParams,
 }: {
   params: Promise<{ niveau: string; matiere: string; slug: string }>
-  searchParams: Promise<{ diapo?: string | string[] }>
+  searchParams: Promise<{ diapo?: string | string[]; devoir?: string | string[] }>
 }) {
   const { niveau, matiere, slug } = await params
-  const { diapo } = await searchParams
+  const { diapo, devoir } = await searchParams
   const nav = await loadNavContext(niveau, matiere)
 
   let chapitre: ChapitreResponse | null = null
@@ -179,6 +180,8 @@ export default async function ChapterPage({
             </SeulementEnLecture>
 
             <div className="mx-auto max-w-[68ch] group-data-[chapitre-mode=interactif]/mode:flex group-data-[chapitre-mode=interactif]/mode:w-full group-data-[chapitre-mode=interactif]/mode:flex-1 group-data-[chapitre-mode=interactif]/mode:flex-col">
+              {/* Opened from a homework (#322), in either mode. */}
+              {typeof devoir === 'string' && <BandeauDevoir devoirId={devoir} slug={slug} />}
               <BasculeInteractif />
               {/* Reading mode only: the interactive mode has the deck's position bar, and the end
                   slide draws its own completion, so the gauge would double it here (#240). */}

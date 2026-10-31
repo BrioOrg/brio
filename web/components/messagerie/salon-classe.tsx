@@ -5,18 +5,15 @@ import * as Dialog from '@radix-ui/react-dialog'
 
 import {
   listerSalons,
-  mesClasses,
   messagesDuSalon,
   publierDansSalon,
   signalerMessageSalon,
-  type MaClasse,
   type SalonMessageVue,
   type SalonVue,
 } from '@brio/api-client'
 
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
-import { SelectInput } from '@/components/ui/select-input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TextInput } from '@/components/ui/text-input'
 import { horodatage, messageErreur } from '@/components/messagerie/messagerie-format'
@@ -29,75 +26,42 @@ const MESSAGE_MAX = 2000
  * every classmate write. Asynchronous by design — an "Actualiser" button and a reload after each
  * message, no live updates. The teacher opens the salon; until then, there is nothing to show.
  */
-export function SalonClasse() {
-  const [classes, setClasses] = useState<MaClasse[] | null>(null)
-  const [classeId, setClasseId] = useState<string | null>(null)
+export function SalonClasse({ classeId }: { classeId: string }) {
   const [salons, setSalons] = useState<SalonVue[] | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
 
   useEffect(() => {
     let vivant = true
-    Promise.all([mesClasses(apiBaseUrl()), listerSalons(apiBaseUrl())])
-      .then(([cs, ss]) => {
-        if (!vivant) return
-        setClasses(cs)
-        setClasseId(cs[0]?.id ?? null)
-        setSalons(ss)
+    listerSalons(apiBaseUrl())
+      .then((ss) => {
+        if (vivant) setSalons(ss)
       })
       .catch((e) => {
-        if (vivant) setErreur(messageErreur(e, 'Impossible de charger ta classe.'))
+        if (vivant) setErreur(messageErreur(e, 'Impossible de charger le salon.'))
       })
     return () => {
       vivant = false
     }
   }, [])
 
-  const salon = salons?.find((s) => s.classeId === classeId) ?? null
+  if (erreur) {
+    return (
+      <p role="alert" className="font-prose text-sm text-danger">
+        {erreur}
+      </p>
+    )
+  }
+  if (salons === null) return <Skeleton className="h-32 w-full" />
 
-  return (
-    <main className="px-4 py-6">
-      <div className="mx-auto flex max-w-2xl flex-col gap-4">
-        <h1 className="font-display text-2xl font-extrabold text-ink">Ma classe</h1>
-
-        {classes !== null && classes.length > 1 && (
-          <SelectInput
-            label="Classe"
-            value={classeId ?? ''}
-            onChange={(e) => setClasseId(e.target.value)}
-          >
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.libelle}
-              </option>
-            ))}
-          </SelectInput>
-        )}
-
-        {erreur && (
-          <p role="alert" className="font-prose text-sm text-danger">
-            {erreur}
-          </p>
-        )}
-
-        {classes === null && !erreur && <Skeleton className="h-32 w-full" />}
-
-        {classes !== null && classes.length === 0 && (
-          <p className="rounded-lg border border-line bg-surface-raised p-4 font-prose text-sm text-ink-muted">
-            Le salon de classe se fait entre membres d’une même classe. Rejoins ta classe pour
-            discuter avec tes camarades et ton professeur.
-          </p>
-        )}
-
-        {classeId && salons !== null && salon === null && (
-          <p className="rounded-lg border border-line bg-surface-raised p-4 font-prose text-sm text-ink-muted">
-            Ton professeur n’a pas encore ouvert le salon de la classe. Reviens un peu plus tard.
-          </p>
-        )}
-
-        {salon && <Salon salon={salon} />}
-      </div>
-    </main>
-  )
+  const salon = salons.find((s) => s.classeId === classeId)
+  if (!salon) {
+    return (
+      <p className="rounded-lg border border-line bg-surface-raised p-4 font-prose text-sm text-ink-muted">
+        Ton professeur n’a pas encore ouvert le salon de la classe. Reviens un peu plus tard.
+      </p>
+    )
+  }
+  return <Salon salon={salon} />
 }
 
 function Salon({ salon }: { salon: SalonVue }) {

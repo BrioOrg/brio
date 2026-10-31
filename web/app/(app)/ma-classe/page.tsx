@@ -1,17 +1,18 @@
-import type { Metadata } from 'next'
+import { OngletAFaire } from '@/components/ma-classe/onglets'
+import { getCatalogue } from '@/lib/api'
 
-import { SalonClasse } from '@/components/messagerie/salon-classe'
-import { SiteHeader } from '@/components/site-header'
+export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Ma classe — Brio',
-}
-
-export default function MaClassePage() {
-  return (
-    <div className="min-h-screen bg-surface-page font-prose text-ink">
-      <SiteHeader crumbs={[{ label: 'Ma classe' }]} />
-      <SalonClasse />
-    </div>
+export default async function AFairePage() {
+  const catalogue = await getCatalogue().catch(() => [])
+  // A chapter homework only knows its slug: its URL comes from the catalogue.
+  const cheminsChapitres = Object.fromEntries(
+    catalogue.flatMap(({ niveauCode, matieres }) =>
+      matieres.flatMap(({ matiereCode, chapitres }) =>
+        chapitres.map(({ slug }) => [slug, `/${niveauCode}/${matiereCode}/${slug}`])
+      )
+    )
   )
+
+  return <OngletAFaire cheminsChapitres={cheminsChapitres} />
 }
