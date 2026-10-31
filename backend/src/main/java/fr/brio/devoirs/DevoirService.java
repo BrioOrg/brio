@@ -131,21 +131,31 @@ public class DevoirService {
             return List.of();
         }
         List<Devoir> liste = devoirs.findByClasseIdInAndStatut(classes, "publie");
-        Map<UUID, String> statutsRendu =
+        Map<UUID, Rendu> rendusParDevoir =
                 rendus
                         .findByEleveIdAndDevoirIdIn(eleveId, liste.stream().map(Devoir::getId).toList())
                         .stream()
-                        .collect(Collectors.toMap(r -> r.getDevoirId(), r -> r.getStatut()));
+                        .collect(Collectors.toMap(Rendu::getDevoirId, Function.identity()));
+        Map<UUID, String> noms =
+                enseignantContexte.nomsDesEnseignants(
+                        liste.stream().map(Devoir::getAuteurId).collect(Collectors.toSet()));
         return liste.stream()
                 .map(
-                        d ->
-                                new DevoirEleveVue(
-                                        d.getId(),
-                                        d.getTitre(),
-                                        d.getConsigne(),
-                                        d.getEcheanceAt(),
-                                        d.nombreExercices(),
-                                        statutsRendu.getOrDefault(d.getId(), DerivationRendu.NON_COMMENCE)))
+                        d -> {
+                            Optional<Rendu> rendu = Optional.ofNullable(rendusParDevoir.get(d.getId()));
+                            return new DevoirEleveVue(
+                                    d.getId(),
+                                    d.getClasseId(),
+                                    d.getTitre(),
+                                    d.getConsigne(),
+                                    noms.get(d.getAuteurId()),
+                                    d.getSourceType(),
+                                    d.getSourceRef(),
+                                    d.getEcheanceAt(),
+                                    d.nombreExercices(),
+                                    rendu.map(Rendu::getStatut).orElse(DerivationRendu.NON_COMMENCE),
+                                    rendu.map(r -> r.getCorrigeAt() != null).orElse(false));
+                        })
                 .toList();
     }
 

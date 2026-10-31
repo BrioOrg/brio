@@ -2,7 +2,7 @@ package fr.brio.identite.web;
 
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.CompteService;
-import fr.brio.identite.api.ClasseInfo;
+import fr.brio.identite.api.ClasseDuCompte;
 import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.RoleCompte;
@@ -46,12 +46,10 @@ class SessionController {
      * scope entraide threads to a class (ADR 0023) without a role-specific endpoint.
      */
     @GetMapping("/moi/classes")
-    List<ClasseInfo> classesDuCompte(@AuthenticationPrincipal UserDetails principal) {
+    List<ClasseDuCompte> classesDuCompte(@AuthenticationPrincipal UserDetails principal) {
         UUID compteId = UUID.fromString(principal.getUsername());
         Compte compte = compteService.findById(compteId)
                 .orElseThrow(() -> new IllegalStateException("Compte introuvable"));
-        return compte.getRole() == RoleCompte.enseignant
-                ? classeService.classesDeLEnseignant(compteId)
-                : classeService.classesDeLEleve(compteId);
+        return classeService.classesDuCompte(compteId, compte.getRole() == RoleCompte.enseignant);
     }
 }

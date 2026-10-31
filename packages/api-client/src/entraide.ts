@@ -34,6 +34,10 @@ export const MaClasseSchema = z.object({
   id: z.string(),
   libelle: z.string(),
   niveauCode: z.string(),
+  etablissementNom: z.string().nullish(),
+  anneeScolaire: z.string().nullish(),
+  // The name the student goes by in this class; absent for a teacher.
+  nomAffiche: z.string().nullish(),
 })
 export type MaClasse = z.infer<typeof MaClasseSchema>
 

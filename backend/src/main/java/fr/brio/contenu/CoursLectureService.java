@@ -9,6 +9,7 @@ import fr.brio.contenu.infrastructure.CoursRepository;
 import fr.brio.contenu.infrastructure.CoursVersionRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -79,14 +80,16 @@ public class CoursLectureService {
         if (classesEleve.isEmpty()) {
             return List.of();
         }
-        Set<UUID> coursIds = coursPorteeRepository.findByIdClasseIdIn(classesEleve).stream()
-                .map(p -> p.getCoursId())
-                .collect(Collectors.toSet());
-        return coursRepository.findAllById(coursIds).stream()
+        Map<UUID, List<UUID>> classesParCours = coursPorteeRepository.findByIdClasseIdIn(classesEleve).stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getCoursId(),
+                        Collectors.mapping(p -> p.getClasseId(), Collectors.toList())));
+        return coursRepository.findAllById(classesParCours.keySet()).stream()
                 .filter(c -> Cours.STATUT_PUBLIE.equals(c.getStatut()) && c.getVersionPubliee() != null)
                 .flatMap(c -> coursVersionRepository.findById(new CoursVersionId(c.getId(), c.getVersionPubliee()))
                         .map(v -> new CoursVisible(c.getId(), c.getTitre(), c.getNiveauCode(),
-                                c.getMatiereCode(), c.getAuteurId(), v.getPublieAt()))
+                                c.getMatiereCode(), c.getAuteurId(), v.getPublieAt(),
+                                classesParCours.get(c.getId())))
                         .stream())
                 .sorted(Comparator.comparing(CoursVisible::publieAt).reversed())
                 .toList();
