@@ -69,7 +69,7 @@ export const APP_SECTIONS: AppSection[] = [
 ]
 
 /**
- * A bottom-bar tab for a module that does not exist yet: rendered disabled, never a link.
+ * A bottom-bar tab for a space that is not open: rendered disabled, never a link.
  * Only the student bar has them; the desktop sidebar lists none.
  */
 export type UpcomingTab = {
@@ -83,6 +83,30 @@ export type UpcomingTab = {
 export const APP_UPCOMING_TABS: UpcomingTab[] = [
   { key: 'communaute', label: 'Communauté', icon: 'chat-circle', before: 'profil' },
 ]
+
+const COMMUNAUTE_SECTION: AppSection = {
+  key: 'communaute',
+  label: 'Communauté',
+  icon: 'chat-circle',
+  href: '/communaute',
+  routes: ['/communaute'],
+}
+
+/**
+ * The student navigation for this environment. The Communauté is a real section only when its
+ * server setting is on (ADR 0035 §10); otherwise it stays a disabled tab, so there is no dead link.
+ */
+export function navigationEleve(communauteActive: boolean): {
+  sections: AppSection[]
+  upcoming: UpcomingTab[]
+} {
+  if (!communauteActive) return { sections: APP_SECTIONS, upcoming: APP_UPCOMING_TABS }
+  const profil = APP_SECTIONS.findIndex((section) => section.key === 'profil')
+  return {
+    sections: [...APP_SECTIONS.slice(0, profil), COMMUNAUTE_SECTION, ...APP_SECTIONS.slice(profil)],
+    upcoming: APP_UPCOMING_TABS.filter((tab) => tab.key !== COMMUNAUTE_SECTION.key),
+  }
+}
 
 // The teacher space (/prof), one section per page that exists there. "/prof" is the
 // teacher home (Mes cours), and a course editor (/prof/cours/{id}) belongs to it too; the

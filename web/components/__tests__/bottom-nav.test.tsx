@@ -56,6 +56,17 @@ describe('BottomNav', () => {
     expect(screen.queryByRole('link', { name: /Communauté/ })).not.toBeInTheDocument()
   })
 
+  it('links Communauté and marks it current once its setting is on', async () => {
+    pathname = '/communaute/42'
+    const { BottomNav } = await import('../bottom-nav')
+    const { navigationEleve } = await import('@/lib/app-sections')
+    render(<BottomNav {...navigationEleve(true)} />)
+    const communaute = screen.getByRole('link', { name: 'Communauté' })
+    expect(communaute).toHaveAttribute('href', '/communaute')
+    expect(communaute).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('button', { name: /Communauté/ })).not.toBeInTheDocument()
+  })
+
   it('wires Profil to its route and marks it current there', async () => {
     await setup('/profil')
     const profil = screen.getByRole('link', { name: 'Profil' })
