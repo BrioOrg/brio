@@ -41,6 +41,7 @@ public class ClasseService {
     private final RattachementRepository rattachements;
     private final PasswordEncoder passwordEncoder;
     private final IdentifiantGenerator identifiantGenerator;
+    private final PseudonymeGenerator pseudonymeGenerator;
 
     public ClasseService(EtablissementRepository etablissements,
                          ClasseRepository classes,
@@ -49,7 +50,8 @@ public class ClasseService {
                          CompteRepository comptes,
                          RattachementRepository rattachements,
                          PasswordEncoder passwordEncoder,
-                         IdentifiantGenerator identifiantGenerator) {
+                         IdentifiantGenerator identifiantGenerator,
+                         PseudonymeGenerator pseudonymeGenerator) {
         this.etablissements = etablissements;
         this.classes = classes;
         this.codesClasses = codesClasses;
@@ -58,6 +60,7 @@ public class ClasseService {
         this.rattachements = rattachements;
         this.passwordEncoder = passwordEncoder;
         this.identifiantGenerator = identifiantGenerator;
+        this.pseudonymeGenerator = pseudonymeGenerator;
     }
 
     @Transactional
@@ -297,7 +300,8 @@ public class ClasseService {
         String hash2 = passwordEncoder.encode(motDePasse);
 
         Compte compte = comptes.save(
-                Compte.creerEleveMissionEtablissement(identifiant, hash2, etab.getId()));
+                Compte.creerEleveMissionEtablissement(identifiant, hash2, etab.getId(),
+                        pseudonymeGenerator.generateUnique()));
 
         inscriptions.save(Inscription.creer(classe.getId(), compte.getId(), nomAffiche));
 
@@ -424,6 +428,27 @@ public class ClasseService {
                 .filter(c -> c.getStatut() == StatutClasse.active)
                 .sorted(Comparator.comparing(Classe::getLibelle))
                 .map(ClasseService::toClasseInfo)
+                .toList();
+    }
+
+    /** The classes of an account, as its member reads them: a teacher's or a student's. */
+    @Transactional(readOnly = true)
+    public List<ClasseDuCompte> classesDuCompte(UUID compteId, boolean enseignant) {
+        List<ClasseInfo> liste =
+                enseignant ? classesDeLEnseignant(compteId) : classesDeLEleve(compteId);
+        Map<UUID, String> nomsEtablissements = etablissements
+                .findAllById(liste.stream().map(ClasseInfo::etablissementId).toList())
+                .stream()
+                .collect(Collectors.toMap(Etablissement::getId, Etablissement::getNom));
+        Map<UUID, String> nomsAffiches = enseignant
+                ? Map.of()
+                : inscriptions.findByIdCompteId(compteId).stream()
+                        .collect(Collectors.toMap(i -> i.getId().classeId(), Inscription::getNomAffiche));
+        return liste.stream()
+                .map(c -> new ClasseDuCompte(c.id(), c.etablissementId(),
+                        nomsEtablissements.get(c.etablissementId()), c.niveauCode(), c.libelle(),
+                        c.anneeScolaire(), c.statut(), c.enseignantPrincipalId(),
+                        nomsAffiches.get(c.id())))
                 .toList();
     }
 

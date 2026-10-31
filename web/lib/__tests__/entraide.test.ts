@@ -48,7 +48,7 @@ afterEach(() => vi.unstubAllGlobals())
 beforeEach(() => clearCookies())
 
 describe('mesClasses', () => {
-  it('keeps only what the UI needs from ClasseInfo', async () => {
+  it('keeps only what the UI needs from the class', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () =>
@@ -65,7 +65,7 @@ describe('mesClasses', () => {
         ])
       )
     )
-    expect(await mesClasses(BASE)).toEqual([{ id: 'c1', libelle: '6e B', niveauCode: '6e' }])
+    expect(await mesClasses(BASE)).toEqual([{ id: 'c1', libelle: '6e B', niveauCode: '6e', anneeScolaire: '2026-2027' }])
   })
 
   it('returns no class when logged out', async () => {

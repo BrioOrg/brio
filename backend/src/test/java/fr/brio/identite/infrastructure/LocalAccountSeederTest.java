@@ -80,7 +80,7 @@ class LocalAccountSeederTest {
         PasswordEncoder encoder = mock(PasswordEncoder.class);
         lenient().when(encoder.encode(anyString())).thenReturn("{noop}hash");
 
-        seeder = new LocalAccountSeeder(comptes, classes, inscriptions, classeService, encoder);
+        seeder = new LocalAccountSeeder(comptes, classes, inscriptions, classeService, encoder, new PseudonymeGenerator(comptes));
     }
 
     @Test

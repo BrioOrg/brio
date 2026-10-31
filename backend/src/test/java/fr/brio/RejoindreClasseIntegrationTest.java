@@ -170,7 +170,9 @@ class RejoindreClasseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].id").value(classeId.toString()))
-                .andExpect(jsonPath("$[0].libelle").value("4e B"));
+                .andExpect(jsonPath("$[0].libelle").value("4e B"))
+                .andExpect(jsonPath("$[0].etablissementNom").isNotEmpty())
+                .andExpect(jsonPath("$[0].nomAffiche").value("Inès"));
     }
 
     @Test
@@ -183,7 +185,8 @@ class RejoindreClasseIntegrationTest {
 
         mockMvc.perform(get("/api/moi/classes").cookie(enseignantSession))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(classeId.toString()));
+                .andExpect(jsonPath("$[0].id").value(classeId.toString()))
+                .andExpect(jsonPath("$[0].nomAffiche").doesNotExist());
     }
 
     // ── Failure cases ─────────────────────────────────────────────────────────

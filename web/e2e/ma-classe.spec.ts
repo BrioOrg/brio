@@ -10,9 +10,8 @@ test.describe('Ma classe — salon de la classe', () => {
   })
 
   test('shows the salon and lets the student post a message', async ({ page }, testInfo) => {
-    await page.goto('/ma-classe')
+    await page.goto('/ma-classe/salon')
 
-    await expect(page.getByRole('heading', { name: 'Ma classe' })).toBeVisible()
     await expect(page.getByText('Salon de la 5e B')).toBeVisible()
     // The seeded conversation, from the teacher and a classmate.
     await expect(page.getByText('Bonjour la 5e B ! Pensez aux fractions pour mardi.')).toBeVisible()
@@ -32,7 +31,7 @@ test.describe('Ma classe — salon de la classe', () => {
   })
 
   test('reports another student’s message', async ({ page }) => {
-    await page.goto('/ma-classe')
+    await page.goto('/ma-classe/salon')
 
     await expect(page.getByText('Bonjour monsieur, c’est noté.')).toBeVisible()
     // Léa's message carries a report button; the reader's own messages do not.
@@ -40,6 +39,50 @@ test.describe('Ma classe — salon de la classe', () => {
     await page.getByRole('button', { name: 'Signaler' }).click()
 
     await expect(page.getByText('Signalé')).toBeVisible()
+  })
+})
+
+test.describe('Ma classe — l’espace de la classe', () => {
+  test.beforeEach(async ({ context, baseURL }) => {
+    await context.addCookies([{ name: 'JSESSIONID', value: 'e2e-eleve', url: baseURL ?? '' }])
+  })
+
+  test('shows the class and gives each tab its URL', async ({ page }) => {
+    await page.goto('/ma-classe')
+
+    await expect(
+      page.getByRole('heading', { name: '5e B · Collège Jean Moulin · 2026-2027' })
+    ).toBeVisible()
+    await expect(page.getByText('Dans cette classe tu es Inès')).toBeVisible()
+    await expect(page.getByText('Réviser Pythagore')).toBeVisible()
+
+    const onglets = page.getByRole('navigation', { name: 'Espace de la classe' })
+    await onglets.getByRole('link', { name: 'Cours du prof' }).click()
+    await expect(page).toHaveURL('/ma-classe/cours')
+    await expect(page.getByText('Les fractions, version M. Dubois')).toBeVisible()
+
+    await onglets.getByRole('link', { name: 'Salon' }).click()
+    await expect(page).toHaveURL('/ma-classe/salon')
+    await expect(page.getByText('Salon de la 5e B')).toBeVisible()
+  })
+
+  test('the old homework URL redirects to the class space', async ({ page }) => {
+    await page.goto('/devoirs')
+    await expect(page).toHaveURL('/ma-classe')
+  })
+
+  test('a chapter shows the homework banner only when opened from the homework', async ({
+    page,
+  }) => {
+    // The link itself needs the catalogue, which the fake backend doesn't serve: unit-tested.
+    await page.goto('/3e/mathematiques/theoreme-de-pythagore?devoir=devoir-pythagore')
+
+    const bandeau = page.getByText('Devoir de M. Dubois · à rendre le 20 octobre')
+    await expect(bandeau).toBeVisible()
+
+    await page.goto('/3e/mathematiques/theoreme-de-pythagore')
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+    await expect(bandeau).toHaveCount(0)
   })
 })
 

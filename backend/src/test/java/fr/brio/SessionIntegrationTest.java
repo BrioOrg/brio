@@ -4,6 +4,7 @@ import fr.brio.identite.domain.Compte;
 import fr.brio.identite.infrastructure.CompteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +37,7 @@ class SessionIntegrationTest {
                 Compte.creerEnseignant("prof.test", "{noop}motdepasse", "Dupont", "prof@test.fr"));
 
         eleveEnAttente = compteRepository.save(
-                Compte.creerEleve("eleve.test", "{noop}motdepasse", "parent@test.fr", "4e"));
+                Compte.creerEleve("eleve.test", "{noop}motdepasse", "parent@test.fr", "4e", "Test-" + UUID.randomUUID()));
     }
 
     @Test

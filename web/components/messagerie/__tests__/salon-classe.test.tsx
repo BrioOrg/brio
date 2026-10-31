@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const api = vi.hoisted(() => ({
-  mesClasses: vi.fn(),
   listerSalons: vi.fn(),
   messagesDuSalon: vi.fn(),
   publierDansSalon: vi.fn(),
@@ -23,8 +22,6 @@ vi.mock('@brio/api-client', () => ({
 }))
 
 import { SalonClasse } from '../salon-classe'
-
-const classe6eB = { id: 'c1', libelle: '6e B', niveauCode: '6e' }
 
 const salon = {
   id: 's1',
@@ -53,32 +50,21 @@ beforeEach(() => {
 })
 
 describe('SalonClasse', () => {
-  it('asks a student with no class to join one', async () => {
-    api.mesClasses.mockResolvedValue([])
-    api.listerSalons.mockResolvedValue([])
-    render(<SalonClasse />)
-
-    expect(await screen.findByText(/Rejoins ta classe/)).toBeInTheDocument()
-    expect(api.messagesDuSalon).not.toHaveBeenCalled()
-  })
-
   it('tells the student the teacher has not opened the salon yet', async () => {
-    api.mesClasses.mockResolvedValue([classe6eB])
     api.listerSalons.mockResolvedValue([])
-    render(<SalonClasse />)
+    render(<SalonClasse classeId="c1" />)
 
     expect(await screen.findByText(/n’a pas encore ouvert le salon/)).toBeInTheDocument()
     expect(api.messagesDuSalon).not.toHaveBeenCalled()
   })
 
   it('shows the salon messages, marking the reader’s own', async () => {
-    api.mesClasses.mockResolvedValue([classe6eB])
     api.listerSalons.mockResolvedValue([salon])
     api.messagesDuSalon.mockResolvedValue([
       message({ id: 'm1', auteurNom: 'Léa', corps: 'Salut la classe', estMoi: false }),
       message({ id: 'm2', auteurNom: 'Moi', corps: 'Coucou', estMoi: true }),
     ])
-    render(<SalonClasse />)
+    render(<SalonClasse classeId="c1" />)
 
     expect(await screen.findByText('Salut la classe')).toBeInTheDocument()
     expect(screen.getByText('Coucou')).toBeInTheDocument()
@@ -86,13 +72,21 @@ describe('SalonClasse', () => {
     expect(screen.getByText('Toi')).toBeInTheDocument()
   })
 
+  it('shows only the salon of the given class', async () => {
+    api.listerSalons.mockResolvedValue([salon])
+    api.messagesDuSalon.mockResolvedValue([])
+    render(<SalonClasse classeId="autre" />)
+
+    expect(await screen.findByText(/n’a pas encore ouvert le salon/)).toBeInTheDocument()
+    expect(api.messagesDuSalon).not.toHaveBeenCalled()
+  })
+
   it('publishes a message and reloads the thread', async () => {
     const user = userEvent.setup()
-    api.mesClasses.mockResolvedValue([classe6eB])
     api.listerSalons.mockResolvedValue([salon])
     api.messagesDuSalon.mockResolvedValue([])
     api.publierDansSalon.mockResolvedValue('m-new')
-    render(<SalonClasse />)
+    render(<SalonClasse classeId="c1" />)
 
     const zone = await screen.findByLabelText('Ton message')
     await user.type(zone, 'Bonjour à tous')

@@ -30,6 +30,10 @@ public class Compte {
     @Column(name = "email_titulaire_legal")
     private String emailTitulaireLegal;
 
+    // Élève accounts only: out-of-class identity, assigned by Brio (#325). Never returned
+    // alongside inscriptions.nom_affiche; the student cannot change it.
+    private String pseudonyme;
+
     // Legal basis for processing (ADR 0018); required for eleve accounts, null for adults
     @Enumerated(EnumType.STRING)
     @Column(name = "base_legale")
@@ -56,7 +60,8 @@ public class Compte {
 
     /** Path B (consent): account starts pending, parent must validate email (ADR 0016 §5). */
     public static Compte creerEleve(String identifiantConnexion, String motDePasseHash,
-                                    String emailTitulaireLegal, String niveauDeclare) {
+                                    String emailTitulaireLegal, String niveauDeclare,
+                                    String pseudonyme) {
         var c = new Compte();
         c.role = RoleCompte.eleve;
         c.identifiantConnexion = identifiantConnexion;
@@ -64,6 +69,7 @@ public class Compte {
         c.emailTitulaireLegal = emailTitulaireLegal;
         c.baseLegale = BaseLegale.consentement;
         c.niveauDeclare = niveauDeclare;
+        c.pseudonyme = pseudonyme;
         return c;
     }
 
@@ -73,7 +79,8 @@ public class Compte {
      */
     public static Compte creerEleveMissionEtablissement(String identifiantConnexion,
                                                          String motDePasseHash,
-                                                         UUID etablissementId) {
+                                                         UUID etablissementId,
+                                                         String pseudonyme) {
         var c = new Compte();
         c.role = RoleCompte.eleve;
         c.identifiantConnexion = identifiantConnexion;
@@ -81,6 +88,7 @@ public class Compte {
         c.baseLegale = BaseLegale.mission_etablissement;
         c.statut = StatutCompte.actif;
         c.etablissementId = etablissementId;
+        c.pseudonyme = pseudonyme;
         return c;
     }
 
@@ -113,6 +121,11 @@ public class Compte {
     public String getNom() { return nom; }
     public String getEmail() { return email; }
     public StatutCompte getStatut() { return statut; }
+    public String getPseudonyme() { return pseudonyme; }
+
+    public void remplacerPseudonyme(String pseudonyme) {
+        this.pseudonyme = pseudonyme;
+    }
 
     public void marquerDernierAcces() {
         this.dernierAccesAt = Instant.now();

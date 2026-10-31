@@ -23,11 +23,14 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
 
     private final CompteRepository comptes;
     private final SessionAuditRepository sessions;
+    private final CompteInfoAssembler compteInfos;
     private final ObjectMapper json;
 
-    LoginAuditHandler(CompteRepository comptes, SessionAuditRepository sessions, ObjectMapper json) {
+    LoginAuditHandler(CompteRepository comptes, SessionAuditRepository sessions,
+                      CompteInfoAssembler compteInfos, ObjectMapper json) {
         this.comptes = comptes;
         this.sessions = sessions;
+        this.compteInfos = compteInfos;
         this.json = json;
     }
 
@@ -46,12 +49,7 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
         sessions.save(SessionAudit.of(compteId, expireAt, truncateIp(req.getRemoteAddr()),
                 hashUserAgent(req.getHeader("User-Agent"))));
 
-        CompteInfo info = new CompteInfo(
-                compte.getId(),
-                compte.getRole().name(),
-                compte.getStatut().name(),
-                compte.getNom(),
-                compte.getEmail());
+        CompteInfo info = compteInfos.pour(compte);
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.setContentType("application/json;charset=UTF-8");
