@@ -1,6 +1,6 @@
 # 0035 — Communauté v1 : questions et réponses entre élèves
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-10-31
 - **Deciders**: Pierce Broudin
 
