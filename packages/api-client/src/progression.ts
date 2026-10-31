@@ -102,3 +102,32 @@ export async function getSerie(baseUrl: string): Promise<SerieInfo | null> {
   if (!res.ok) throw new Error('Impossible de récupérer la série.')
   return SerieInfoSchema.parse(await res.json())
 }
+
+/**
+ * The chapter a student left unfinished (fr.brio.progression.api.ChapitreAReprendre, #323).
+ * `chapitreId` is also the catalogue slug. The endpoint answers 204 when there is nothing to resume.
+ */
+export const ChapitreAReprendreSchema = z.object({
+  chapitreId: z.string(),
+  titre: z.string(),
+  niveauCode: z.string(),
+  matiereCode: z.string(),
+  sectionsLues: z.number(),
+  sectionsTotal: z.number(),
+  derniereActivite: z.string(),
+})
+
+export type ChapitreAReprendre = z.infer<typeof ChapitreAReprendreSchema>
+
+/**
+ * Mastery of one competence (fr.brio.progression.api.MaitriseInfo). `niveau` is 0 to 4, absent
+ * while the sample is too small to report an honest level (ADR 0022 §6).
+ */
+export const MaitriseInfoSchema = z.object({
+  competenceCode: z.string(),
+  niveau: z.number().nullish(),
+  echantillon: z.number(),
+  dernierTravail: z.string().nullish(),
+})
+
+export type MaitriseInfo = z.infer<typeof MaitriseInfoSchema>

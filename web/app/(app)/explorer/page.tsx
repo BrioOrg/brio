@@ -1,9 +1,8 @@
 import { cookies } from 'next/headers'
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getCatalogue, getNiveauDeLEleve } from '@/lib/api'
+import { CarteLien, Fleche, TITRE_DE_BLOC } from '@/components/carte-lien'
 import { SiteHeader } from '@/components/site-header'
-import { Icon } from '@/components/ui/icon'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export const metadata: Metadata = {
@@ -11,22 +10,6 @@ export const metadata: Metadata = {
 }
 
 export const dynamic = 'force-dynamic'
-
-const CARD =
-  'group flex h-full flex-col justify-between gap-6 rounded-lg border bg-surface-panel p-5 transition-[transform,border-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent hover:[box-shadow:0_5px_0_var(--color-accent-edge)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page'
-
-const SECTION_HEADING =
-  'mb-4 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted'
-
-function Fleche() {
-  return (
-    <Icon
-      name="arrow-right"
-      size={18}
-      className="text-ink-muted transition-transform duration-[var(--duration-base)] group-hover:translate-x-1 group-hover:text-accent"
-    />
-  )
-}
 
 export default async function ExplorerPage() {
   const cookieStore = await cookies()
@@ -63,7 +46,7 @@ export default async function ExplorerPage() {
         </div>
 
         <section className="mt-10" aria-labelledby="niveaux-heading">
-          <h2 id="niveaux-heading" className={SECTION_HEADING}>
+          <h2 id="niveaux-heading" className={TITRE_DE_BLOC}>
             Les niveaux
           </h2>
 
@@ -79,10 +62,7 @@ export default async function ExplorerPage() {
                 const estLeMien = niveau === monNiveau
                 return (
                   <li key={niveau.niveauCode}>
-                    <Link
-                      href={`/${niveau.niveauCode}`}
-                      className={[CARD, estLeMien ? 'border-accent' : 'border-line'].join(' ')}
-                    >
+                    <CarteLien href={`/${niveau.niveauCode}`} enAvant={estLeMien}>
                       <span className="flex flex-col items-start gap-2">
                         {estLeMien && (
                           <span className="rounded-sm bg-accent-soft px-2 py-0.5 font-display text-xs font-extrabold text-accent">
@@ -97,7 +77,7 @@ export default async function ExplorerPage() {
                         {niveau.matieres.length} matière{niveau.matieres.length > 1 ? 's' : ''}
                         <Fleche />
                       </span>
-                    </Link>
+                    </CarteLien>
                   </li>
                 )
               })}
@@ -107,16 +87,13 @@ export default async function ExplorerPage() {
 
         {monNiveau && monNiveau.matieres.length > 0 && (
           <section className="mt-10" aria-labelledby="matieres-heading">
-            <h2 id="matieres-heading" className={SECTION_HEADING}>
+            <h2 id="matieres-heading" className={TITRE_DE_BLOC}>
               Les matières de ton niveau
             </h2>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {monNiveau.matieres.map(({ matiereCode, matiereLibelle, chapitres }) => (
                 <li key={matiereCode}>
-                  <Link
-                    href={`/${monNiveau.niveauCode}/${matiereCode}`}
-                    className={[CARD, 'border-line'].join(' ')}
-                  >
+                  <CarteLien href={`/${monNiveau.niveauCode}/${matiereCode}`}>
                     <span className="font-display text-lg font-extrabold tracking-tight text-ink">
                       {matiereLibelle}
                     </span>
@@ -124,7 +101,7 @@ export default async function ExplorerPage() {
                       {chapitres.length} chapitre{chapitres.length > 1 ? 's' : ''}
                       <Fleche />
                     </span>
-                  </Link>
+                  </CarteLien>
                 </li>
               ))}
             </ul>
@@ -132,12 +109,12 @@ export default async function ExplorerPage() {
         )}
 
         <section className="mt-10" aria-labelledby="annales-heading">
-          <h2 id="annales-heading" className={SECTION_HEADING}>
+          <h2 id="annales-heading" className={TITRE_DE_BLOC}>
             S&rsquo;entraîner
           </h2>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             <li>
-              <Link href="/annales" className={[CARD, 'border-line'].join(' ')}>
+              <CarteLien href="/annales">
                 <span className="font-display text-lg font-extrabold tracking-tight text-ink">
                   Annales
                 </span>
@@ -145,7 +122,7 @@ export default async function ExplorerPage() {
                   De vrais sujets d&rsquo;examen
                   <Fleche />
                 </span>
-              </Link>
+              </CarteLien>
             </li>
           </ul>
         </section>
