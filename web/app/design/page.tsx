@@ -2,6 +2,7 @@ import 'katex/dist/katex.min.css'
 
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { OptionRowDemo, ButtonLoadingDemo, ResultSheetDemo } from './kit-interactive'
+import { EditeurMessageDemo } from './editeur-message-demo'
 import { MotionDemo } from './motion-demo'
 import { SoundDemo } from './sound-demo'
 import { BlocsCommunaute } from '@/components/blocs/blocs-communaute'
@@ -182,6 +183,12 @@ export default function DesignPage() {
                 },
               ]}
             />
+          </Panel>
+        </Section>
+
+        <Section title="Éditeur de message">
+          <Panel>
+            <EditeurMessageDemo />
           </Panel>
         </Section>
 
