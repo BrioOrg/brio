@@ -19,7 +19,9 @@ async function ouvrir(page: Page, diapo: string) {
 async function expectDiapo(page: Page, position: number, id: string) {
   await expect(page).toHaveURL(`${CHAPITRE}?diapo=${id}`)
   // The slide announcer: the tutor's answers are a live region too.
-  await expect(page.locator('[aria-live="polite"][aria-atomic="true"]')).toHaveText(`Diapo ${position} sur 10`)
+  await expect(page.locator('[aria-live="polite"][aria-atomic="true"]')).toHaveText(
+    `Diapo ${position} sur 10`
+  )
   await expect(page.locator(`[data-diapo="${id}"]`).first()).toBeVisible()
 }
 
@@ -58,7 +60,9 @@ test('the tutor opens from an exercise slide and gives the student back the same
   await expectDiapo(page, 6, 'ex-longueur-cotes')
 })
 
-test('a lesson slide asks about the whole chapter; a citation opens its slide', async ({ page }) => {
+test('a lesson slide asks about the whole chapter; a citation opens its slide', async ({
+  page,
+}) => {
   await ouvrir(page, 'methode-prose')
   await page.keyboard.press('t')
   const tiroir = page.getByRole('dialog', { name: 'Besoin d’aide ?' })

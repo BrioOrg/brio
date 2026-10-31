@@ -93,7 +93,10 @@ test.describe('rewards (MOTION.md)', () => {
       const fin = performance.now() + 1200
       while (performance.now() < fin) {
         const feuille = document.querySelector('[data-feuille-resultat]')
-        vus.particules = Math.max(vus.particules, document.querySelectorAll('[data-eclats] > *').length)
+        vus.particules = Math.max(
+          vus.particules,
+          document.querySelectorAll('[data-eclats] > *').length
+        )
         vus.animations = Math.max(
           vus.animations,
           (feuille?.getAnimations({ subtree: true }) ?? []).filter(

@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 
-// The Communauté composer in a real browser (#336), on the /design styleguide until the pages
-// exist (#337). jsdom has no contentEditable: typing, Enter and the caret are only checked here.
+// The Communauté composer in a real browser (#336), on the /design styleguide: the pages' own
+// journey is communaute.spec.ts. jsdom has no contentEditable: typing, Enter and the caret are only
+// checked here.
 
 async function ouvrir(page: Page) {
   await page.goto('/design')
