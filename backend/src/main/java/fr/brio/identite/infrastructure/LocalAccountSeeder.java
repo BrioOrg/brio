@@ -44,15 +44,18 @@ class LocalAccountSeeder implements ApplicationRunner {
     private final InscriptionRepository inscriptions;
     private final ClasseService classeService;
     private final PasswordEncoder passwordEncoder;
+    private final PseudonymeGenerator pseudonymes;
 
     LocalAccountSeeder(CompteRepository comptes, ClasseRepository classes,
                        InscriptionRepository inscriptions,
-                       ClasseService classeService, PasswordEncoder passwordEncoder) {
+                       ClasseService classeService, PasswordEncoder passwordEncoder,
+                       PseudonymeGenerator pseudonymes) {
         this.comptes = comptes;
         this.classes = classes;
         this.inscriptions = inscriptions;
         this.classeService = classeService;
         this.passwordEncoder = passwordEncoder;
+        this.pseudonymes = pseudonymes;
     }
 
     @Override
@@ -105,7 +108,7 @@ class LocalAccountSeeder implements ApplicationRunner {
             return;
         }
         Compte eleve = comptes.save(Compte.creerEleveMissionEtablissement(
-                "eleve.classe", hash, classe.getEtablissementId()));
+                "eleve.classe", hash, classe.getEtablissementId(), pseudonymes.generateUnique()));
         inscriptions.save(Inscription.creer(classe.getId(), eleve.getId(), "Élève Classe"));
         log.info("Seeded dev account 'eleve.classe' (password '{}') in '{}' — local profile",
                 DEV_PASSWORD, classe.getLibelle());
@@ -113,7 +116,8 @@ class LocalAccountSeeder implements ApplicationRunner {
 
     /** Path B élève, activated directly — dev fixture bypasses the parental consent step. */
     private Compte creerEleveActif(String hash) {
-        var eleve = Compte.creerEleve("eleve.demo", hash, "parent.demo@brio.local", "3e");
+        var eleve = Compte.creerEleve("eleve.demo", hash, "parent.demo@brio.local", "3e",
+                pseudonymes.generateUnique());
         eleve.activer();
         return eleve;
     }

@@ -41,6 +41,7 @@ public class ClasseService {
     private final RattachementRepository rattachements;
     private final PasswordEncoder passwordEncoder;
     private final IdentifiantGenerator identifiantGenerator;
+    private final PseudonymeGenerator pseudonymeGenerator;
 
     public ClasseService(EtablissementRepository etablissements,
                          ClasseRepository classes,
@@ -49,7 +50,8 @@ public class ClasseService {
                          CompteRepository comptes,
                          RattachementRepository rattachements,
                          PasswordEncoder passwordEncoder,
-                         IdentifiantGenerator identifiantGenerator) {
+                         IdentifiantGenerator identifiantGenerator,
+                         PseudonymeGenerator pseudonymeGenerator) {
         this.etablissements = etablissements;
         this.classes = classes;
         this.codesClasses = codesClasses;
@@ -58,6 +60,7 @@ public class ClasseService {
         this.rattachements = rattachements;
         this.passwordEncoder = passwordEncoder;
         this.identifiantGenerator = identifiantGenerator;
+        this.pseudonymeGenerator = pseudonymeGenerator;
     }
 
     @Transactional
@@ -297,7 +300,8 @@ public class ClasseService {
         String hash2 = passwordEncoder.encode(motDePasse);
 
         Compte compte = comptes.save(
-                Compte.creerEleveMissionEtablissement(identifiant, hash2, etab.getId()));
+                Compte.creerEleveMissionEtablissement(identifiant, hash2, etab.getId(),
+                        pseudonymeGenerator.generateUnique()));
 
         inscriptions.save(Inscription.creer(classe.getId(), compte.getId(), nomAffiche));
 

@@ -41,7 +41,7 @@ class ReprendreIntegrationTest {
     void setup() {
         mockMvc = webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
         Compte compte = Compte.creerEleve(
-                "eleve.reprendre." + UUID.randomUUID(), "{noop}motdepasse", "parent@test.fr", "3e");
+                "eleve.reprendre." + UUID.randomUUID(), "{noop}motdepasse", "parent@test.fr", "3e", "Test-" + UUID.randomUUID());
         compte.activer();
         eleve = comptes.save(compte).getId();
     }

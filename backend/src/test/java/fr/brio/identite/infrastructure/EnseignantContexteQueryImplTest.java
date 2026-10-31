@@ -27,7 +27,7 @@ class EnseignantContexteQueryImplTest {
     @Test
     void returnsTeacherNamesButNeverAStudentsName() {
         Compte prof = avecId(Compte.creerEnseignant("prof.x", "h", "Mme Durand", "p@x.fr"));
-        Compte eleve = avecId(Compte.creerEleveMissionEtablissement("eleve.x", "h", UUID.randomUUID()));
+        Compte eleve = avecId(Compte.creerEleveMissionEtablissement("eleve.x", "h", UUID.randomUUID(), "Test-Eleve"));
         when(comptes.findAllById(Set.of(prof.getId(), eleve.getId()))).thenReturn(List.of(prof, eleve));
 
         assertThat(query.nomsDesEnseignants(Set.of(prof.getId(), eleve.getId())))

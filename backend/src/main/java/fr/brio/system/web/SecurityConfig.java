@@ -81,6 +81,7 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/classes").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.PUT, "/api/classes/*/enseignant-principal").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes/*/codes").hasRole("ADMIN_BRIO")
+                .requestMatchers("/api/admin/comptes/**").hasRole("ADMIN_BRIO")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginProcessingUrl("/api/sessions")

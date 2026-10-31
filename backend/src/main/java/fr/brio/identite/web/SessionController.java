@@ -6,6 +6,7 @@ import fr.brio.identite.api.ClasseInfo;
 import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.RoleCompte;
+import fr.brio.identite.infrastructure.CompteInfoAssembler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,10 +23,13 @@ class SessionController {
 
     private final CompteService compteService;
     private final ClasseService classeService;
+    private final CompteInfoAssembler compteInfos;
 
-    SessionController(CompteService compteService, ClasseService classeService) {
+    SessionController(CompteService compteService, ClasseService classeService,
+                      CompteInfoAssembler compteInfos) {
         this.compteService = compteService;
         this.classeService = classeService;
+        this.compteInfos = compteInfos;
     }
 
     @GetMapping("/moi")
@@ -34,12 +38,7 @@ class SessionController {
         Compte compte = compteService.findById(compteId)
                 .orElseThrow(() -> new IllegalStateException("Compte introuvable"));
 
-        return ResponseEntity.ok(new CompteInfo(
-                compte.getId(),
-                compte.getRole().name(),
-                compte.getStatut().name(),
-                compte.getNom(),
-                compte.getEmail()));
+        return ResponseEntity.ok(compteInfos.pour(compte));
     }
 
     /**

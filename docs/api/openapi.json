@@ -1769,6 +1769,33 @@
         }
       }
     },
+    "/api/admin/comptes/{id}/pseudonyme" : {
+      "post" : {
+        "tags" : [ "admin-comptes-controller" ],
+        "operationId" : "regenererPseudonyme",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PseudonymeInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/classes/{id}/inscriptions/{compteId}" : {
       "patch" : {
         "tags" : [ "classe-controller" ],
@@ -3293,6 +3320,12 @@
           },
           "email" : {
             "type" : "string"
+          },
+          "pseudonyme" : {
+            "type" : "string"
+          },
+          "niveau" : {
+            "type" : "string"
           }
         }
       },
@@ -3427,6 +3460,14 @@
           "endsAt" : {
             "type" : "string",
             "format" : "date-time"
+          }
+        }
+      },
+      "PseudonymeInfo" : {
+        "type" : "object",
+        "properties" : {
+          "pseudonyme" : {
+            "type" : "string"
           }
         }
       },
