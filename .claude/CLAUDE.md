@@ -120,7 +120,8 @@ See `.claude/rules/` for the enforced backend and web conventions.
   `<type>(<scope>): <description> (#<issue>)`; types `feat|fix|chore|docs|test|refactor`,
   scope optional (module name or `web`/`infra`/`ci`).
 - Hooks in `.githooks/` enforce this (`scripts/setup.sh` to enable).
-- **Never push without asking me first.**
+- Push `feature/`, `fix/` and `chore/` branches without asking. Never push directly to
+  `develop` or `main` (the `pre-push` hook blocks it).
 
 ## Don't
 
