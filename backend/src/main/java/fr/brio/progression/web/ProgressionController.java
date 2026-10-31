@@ -6,6 +6,7 @@ import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.api.SerieInfo;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.UUID;
@@ -61,7 +62,7 @@ class ProgressionController {
     /** The chapter the authenticated student left unfinished, for the home page (#323). */
     @GetMapping("/reprendre")
     @ApiResponse(responseCode = "200", description = "Dernier chapitre en cours")
-    @ApiResponse(responseCode = "204", description = "Rien à reprendre")
+    @ApiResponse(responseCode = "204", description = "Rien à reprendre", content = @Content)
     ResponseEntity<ChapitreAReprendre> reprendre(@AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
         return progression.reprendre(eleveId)

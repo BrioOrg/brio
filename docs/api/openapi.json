@@ -1870,14 +1870,7 @@
             }
           },
           "204" : {
-            "description" : "Rien à reprendre",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ChapitreAReprendre"
-                }
-              }
-            }
+            "description" : "Rien à reprendre"
           }
         }
       }
