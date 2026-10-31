@@ -16,6 +16,27 @@ function makeChapter(blocks: object[]): ChapitreResponse {
 }
 
 describe('ChapterView — richText rendering', () => {
+  it('renders ==highlight== as <mark>, no equals signs visible', () => {
+    const { container } = render(
+      <ChapterView
+        chapitre={makeChapter([{ id: 'p0', type: 'prose', text: "L'==hypoténuse== est longue." }])}
+      />
+    )
+    expect(container.querySelector('mark')?.textContent).toBe('hypoténuse')
+    expect(container.textContent).not.toContain('==')
+  })
+
+  it('renders a list block with its anchor and rich-text items', () => {
+    const { container } = render(
+      <ChapterView
+        chapitre={makeChapter([{ id: 'l1', type: 'list', items: ['**un**', 'deux'] }])}
+      />
+    )
+    expect(container.querySelector('ul#l1')).not.toBeNull()
+    expect(container.querySelectorAll('ul#l1 > li')).toHaveLength(2)
+    expect(container.querySelector('li strong')?.textContent).toBe('un')
+  })
+
   it('renders **bold** as <strong>, no asterisks visible', () => {
     const { container } = render(
       <ChapterView
