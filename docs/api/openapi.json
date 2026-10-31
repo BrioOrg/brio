@@ -15,6 +15,9 @@
     "name" : "Messagerie — enseignant",
     "description" : "Créer un salon, modérer"
   }, {
+    "name" : "Communauté",
+    "description" : "Questions et réponses entre élèves, sous pseudonyme"
+  }, {
     "name" : "Messagerie",
     "description" : "Salons de classe"
   }, {
@@ -176,6 +179,212 @@
           },
           "404" : {
             "description" : "Cours introuvable"
+          }
+        }
+      }
+    },
+    "/api/communaute/reponses/{reponseId}" : {
+      "put" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Modifier sa réponse ou son commentaire",
+        "operationId" : "modifierReponse",
+        "parameters" : [ {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CorpsCommunauteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Supprimer sa réponse ou son commentaire",
+        "operationId" : "supprimerReponse",
+        "parameters" : [ {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/communaute/reponses/{reponseId}/vote" : {
+      "put" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Voter « Utile » pour une réponse (pas un commentaire)",
+        "operationId" : "voterReponse",
+        "parameters" : [ {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Retirer son vote sur une réponse",
+        "operationId" : "retirerVoteReponse",
+        "parameters" : [ {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/communaute/questions/{questionId}" : {
+      "get" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Détailler une question, ses réponses et leurs commentaires",
+        "operationId" : "consulter",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QuestionCommunauteDetail"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Modifier sa question",
+        "operationId" : "modifierQuestion",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ModifierQuestionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Supprimer sa question",
+        "operationId" : "supprimerQuestion",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/communaute/questions/{questionId}/vote" : {
+      "put" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Voter « Utile » pour une question",
+        "operationId" : "voterQuestion",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Retirer son vote sur une question",
+        "operationId" : "retirerVoteQuestion",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
           }
         }
       }
@@ -1485,6 +1694,202 @@
         }
       }
     },
+    "/api/communaute/reponses/{reponseId}/commentaires" : {
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Commenter une réponse",
+        "operationId" : "commenter",
+        "parameters" : [ {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CorpsCommunauteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/communaute/questions" : {
+      "get" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Lister les questions, les plus récentes d'abord",
+        "operationId" : "lister_2",
+        "parameters" : [ {
+          "name" : "niveau",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "matiere",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "name" : "taille",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PageQuestionsCommunaute"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Poser une question",
+        "operationId" : "poser",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PoserQuestionRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/communaute/questions/{questionId}/reponses" : {
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Répondre à une question",
+        "operationId" : "repondre_1",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CorpsCommunauteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/communaute/questions/{questionId}/reponses/{reponseId}/resolution" : {
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Marquer la réponse qui a résolu la question (auteur de la question uniquement)",
+        "operationId" : "resoudre",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
     "/api/classes" : {
       "post" : {
         "tags" : [ "classe-controller" ],
@@ -1845,7 +2250,7 @@
       "get" : {
         "tags" : [ "Messagerie" ],
         "summary" : "Lister les salons de mes classes",
-        "operationId" : "lister_2",
+        "operationId" : "lister_3",
         "responses" : {
           "200" : {
             "description" : "OK",
@@ -1856,6 +2261,25 @@
                   "items" : {
                     "$ref" : "#/components/schemas/SalonVue"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reglages/communaute" : {
+      "get" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Savoir si la Communauté est active",
+        "operationId" : "lire",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReglageCommunaute"
                 }
               }
             }
@@ -2278,7 +2702,7 @@
       "get" : {
         "tags" : [ "Entraide" ],
         "summary" : "Détailler un fil et ses messages (garde anti-triche appliquée)",
-        "operationId" : "consulter",
+        "operationId" : "consulter_1",
         "parameters" : [ {
           "name" : "filId",
           "in" : "path",
@@ -2691,7 +3115,7 @@
         "tags" : [ "Annales" ],
         "summary" : "Liste les annales",
         "description" : "Sujets d'examen, du plus récent au plus ancien. Filtres optionnels niveau/matière/année. Le sujet se lit via l'endpoint chapitre par triplet.",
-        "operationId" : "lister_3",
+        "operationId" : "lister_4",
         "parameters" : [ {
           "name" : "niveau",
           "in" : "query",
@@ -2843,6 +3267,28 @@
           }
         },
         "required" : [ "classeIds" ]
+      },
+      "CorpsCommunauteRequest" : {
+        "type" : "object",
+        "properties" : {
+          "corps" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          }
+        },
+        "required" : [ "corps" ]
+      },
+      "ModifierQuestionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "titre" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "corps" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          }
+        },
+        "required" : [ "corps", "titre" ]
       },
       "AssignerEnseignantRequest" : {
         "type" : "object",
@@ -3402,6 +3848,22 @@
           }
         }
       },
+      "PoserQuestionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "titre" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "corps" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          },
+          "matiere" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "corps", "titre" ]
+      },
       "CreerClasseRequest" : {
         "type" : "object",
         "properties" : {
@@ -3590,6 +4052,14 @@
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
+          }
+        }
+      },
+      "ReglageCommunaute" : {
+        "type" : "object",
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
           }
         }
       },
@@ -4246,6 +4716,192 @@
             "items" : {
               "type" : "string",
               "format" : "uuid"
+            }
+          }
+        }
+      },
+      "AuteurCommunaute" : {
+        "type" : "object",
+        "properties" : {
+          "pseudonyme" : {
+            "type" : "string"
+          },
+          "niveau" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PageQuestionsCommunaute" : {
+        "type" : "object",
+        "properties" : {
+          "questions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QuestionCommunauteResume"
+            }
+          },
+          "pageSuivante" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "QuestionCommunauteResume" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "auteur" : {
+            "$ref" : "#/components/schemas/AuteurCommunaute"
+          },
+          "niveau" : {
+            "type" : "string"
+          },
+          "matiere" : {
+            "type" : "string"
+          },
+          "resolue" : {
+            "type" : "boolean"
+          },
+          "nombreReponses" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nombreUtile" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "aVote" : {
+            "type" : "boolean"
+          },
+          "estAuteur" : {
+            "type" : "boolean"
+          },
+          "modifie" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "CommentaireCommunauteVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "corps" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          },
+          "auteur" : {
+            "$ref" : "#/components/schemas/AuteurCommunaute"
+          },
+          "estAuteur" : {
+            "type" : "boolean"
+          },
+          "modifie" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "QuestionCommunauteDetail" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "corps" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          },
+          "auteur" : {
+            "$ref" : "#/components/schemas/AuteurCommunaute"
+          },
+          "niveau" : {
+            "type" : "string"
+          },
+          "matiere" : {
+            "type" : "string"
+          },
+          "resolue" : {
+            "type" : "boolean"
+          },
+          "nombreUtile" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "aVote" : {
+            "type" : "boolean"
+          },
+          "estAuteur" : {
+            "type" : "boolean"
+          },
+          "modifie" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "reponses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReponseCommunauteVue"
+            }
+          }
+        }
+      },
+      "ReponseCommunauteVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "corps" : {
+            "$ref" : "#/components/schemas/JsonNode"
+          },
+          "auteur" : {
+            "$ref" : "#/components/schemas/AuteurCommunaute"
+          },
+          "nombreUtile" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "aVote" : {
+            "type" : "boolean"
+          },
+          "estAuteur" : {
+            "type" : "boolean"
+          },
+          "aResolu" : {
+            "type" : "boolean"
+          },
+          "modifie" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "commentaires" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CommentaireCommunauteVue"
             }
           }
         }

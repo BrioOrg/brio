@@ -21,7 +21,8 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+// The Communauté is off by default, and off its routes do not exist: the contract describes it on.
+@SpringBootTest(properties = "brio.communaute.active=true")
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
 class OpenApiContractTest {

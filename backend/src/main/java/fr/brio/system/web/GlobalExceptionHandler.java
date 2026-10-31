@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -30,6 +31,13 @@ class GlobalExceptionHandler {
     ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException ex) {
         String message = ex.getReason() != null ? ex.getReason() : "Erreur";
         return ResponseEntity.status(ex.getStatusCode()).body(Map.of("error", message));
+    }
+
+    // Without this, the catch-all below answers an unknown route with a 500. A switched-off
+    // feature (brio.communaute.active, ADR 0035 §10) relies on its routes simply not existing.
+    @ExceptionHandler(NoResourceFoundException.class)
+    ResponseEntity<Map<String, String>> handleUnknownRoute(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Introuvable"));
     }
 
     @ExceptionHandler(Exception.class)

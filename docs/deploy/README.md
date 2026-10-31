@@ -202,6 +202,8 @@ Fill in every value (the comments in the file explain each one):
 - `BRIO_ETABLISSEMENT_PILOTE_NOM`: the name of the fictional établissement teachers
   pick at signup (ADR 0029 §5). Keep the default or rename it; the backend creates
   it at startup, and again after a reset.
+- `BRIO_COMMUNAUTE_ACTIVE=true`: the student forum, which has no moderation yet
+  (ADR 0035 §10). Missing means off. Remove it at publication.
 
 ## 9. First deploy ☁
 
