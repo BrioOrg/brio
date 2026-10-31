@@ -9,7 +9,7 @@ import { activeSectionKey, type AppSection, type UpcomingTab } from '@/lib/app-s
 type BottomNavProps = {
   /** The sections to list, in order: APP_SECTIONS for students, PROF_SECTIONS for teachers. */
   sections: AppSection[]
-  /** Tabs for modules that do not exist yet, rendered disabled, placed by their `before`. */
+  /** Tabs for spaces that are not open, rendered disabled, placed by their `before`. */
   upcoming?: UpcomingTab[]
   /** Accessible name of the navigation landmark. */
   label?: string
@@ -21,8 +21,8 @@ type BottomNavProps = {
  * screen (#245).
  *
  * It takes its sections as props so both spaces use it: the student shell passes
- * APP_SECTIONS plus the disabled Communauté tab (its page does not exist yet, so it is rendered
- * disabled rather than linking nowhere), the teacher space PROF_SECTIONS.
+ * navigationEleve() (with its setting off, the Communauté is rendered disabled rather than linking
+ * nowhere), the teacher space PROF_SECTIONS.
  */
 export function BottomNav({
   sections,

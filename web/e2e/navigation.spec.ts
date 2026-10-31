@@ -13,8 +13,9 @@ test('the sections sit in a left icon sidebar on desktop', async ({ page }, test
   const viewport = page.viewportSize()
   expect(box?.x).toBe(0)
   expect(box?.height).toBe(viewport?.height)
-  // No bottom-bar-only tab on desktop.
-  await expect(nav.getByRole('button', { name: /Communauté|Profil/ })).toHaveCount(0)
+  // A tab for a closed space is bottom-bar-only: on desktop, every section is a link.
+  await expect(nav.getByRole('button')).toHaveCount(0)
+  await expect(nav.getByRole('link', { name: 'Communauté' })).toHaveAttribute('href', '/communaute')
 
   await expect(nav.getByRole('link', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
 
@@ -97,7 +98,8 @@ test('the bottom bar is kept on mobile', async ({ page }, testInfo) => {
   // Pinned to the bottom edge, across the full width.
   expect(box?.width).toBe(viewport?.width)
   expect((box?.y ?? 0) + (box?.height ?? 0)).toBeCloseTo(viewport?.height ?? 0, 0)
-  await expect(nav.getByRole('button', { name: /Communauté/ })).toBeDisabled()
+  // The fake backend has the Communauté on: a real tab. Off is covered in Vitest.
+  await expect(nav.getByRole('link', { name: 'Communauté' })).toHaveAttribute('href', '/communaute')
   await expect(nav.getByRole('link', { name: 'Profil' })).toHaveAttribute('href', '/profil')
 
   await nav.getByRole('link', { name: 'Ma classe' }).click()

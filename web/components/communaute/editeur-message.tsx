@@ -42,6 +42,7 @@ import {
 const MAX_BLOCS = 50
 const MAX_ELEMENTS_LISTE = 50
 const MAX_CARACTERES = 20_000
+const MAX_TITRE = 200
 
 const CHAMP_FORMULE =
   'w-full rounded-md border border-line bg-surface-page px-3 py-2 font-mono text-sm text-ink placeholder:text-ink-muted focus:border-accent focus:outline-none'
@@ -372,7 +373,14 @@ export function EditeurMessage({
   async function envoyer() {
     const ecrit = message()
     const titreManquant = mode === 'question' && !ecrit.titre
-    setErreurTitre(titreManquant ? 'Donne un titre à ta question.' : undefined)
+    const titreTropLong = (ecrit.titre?.length ?? 0) > MAX_TITRE
+    setErreurTitre(
+      titreManquant
+        ? 'Donne un titre à ta question.'
+        : titreTropLong
+          ? `Ton titre est trop long : ${MAX_TITRE} caractères au maximum.`
+          : undefined
+    )
     let probleme: string | undefined
     if (ecrit.corps.length === 0) {
       probleme = copie.vide
@@ -384,7 +392,7 @@ export function EditeurMessage({
       probleme = 'Ton message est trop long : raccourcis-le avant de le publier.'
     }
     setErreur(probleme)
-    if (titreManquant || probleme) return
+    if (titreManquant || titreTropLong || probleme) return
 
     setEnvoi(true)
     try {
