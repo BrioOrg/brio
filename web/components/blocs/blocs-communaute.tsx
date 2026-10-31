@@ -8,7 +8,7 @@ import { SharedBlock } from '@/components/blocs/shared-block'
  * accepted. The `id` is left out of the schema so that it never reaches the page: several messages
  * share a page, and a student's text must not choose a DOM id.
  */
-const blocCommunaute = z.discriminatedUnion('type', [
+export const blocCommunaute = z.discriminatedUnion('type', [
   z.object({ type: z.literal('prose'), text: z.string() }),
   z.object({
     type: z.literal('formula'),
