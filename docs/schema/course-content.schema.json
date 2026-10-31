@@ -55,7 +55,7 @@
     },
 
     "richText": {
-      "description": "Inline text that may contain minimal, whitelisted inline markup as a string (e.g. **bold**, *italic*). Kept as a string so it renders identically on web and mobile via one shared inline parser.",
+      "description": "Inline text that may contain minimal, whitelisted inline markup as a string (**bold**, *italic*, ==highlight==, $inline math$). Kept as a string so it renders identically on web and mobile via one shared inline parser.",
       "type": "string",
       "minLength": 1
     },
@@ -124,6 +124,7 @@
         { "$ref": "#/$defs/tableBlock" },
         { "$ref": "#/$defs/stepsBlock" },
         { "$ref": "#/$defs/objectivesBlock" },
+        { "$ref": "#/$defs/listBlock" },
         { "$ref": "#/$defs/unknownBlock" }
       ]
     },
@@ -959,6 +960,22 @@
       }
     },
 
+    "listBlock": {
+      "description": "A bulleted list (ADR 0035 §3). Each item is rich text, like prose.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "items"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "list" },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/richText" }
+        }
+      }
+    },
+
     "unknownBlock": {
       "description": "Forward-compatibility fallback. A block whose 'type' is none of the known ones still validates as long as it carries an id and a string type. This is what makes adding a new block/exercise type additive rather than a migration.",
       "type": "object",
@@ -981,7 +998,8 @@
               "reference",
               "table",
               "steps",
-              "objectives"
+              "objectives",
+              "list"
             ]
           }
         }

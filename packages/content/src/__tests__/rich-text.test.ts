@@ -82,6 +82,70 @@ describe('parseRichText', () => {
     })
   })
 
+  describe('highlight', () => {
+    it('tokenizes ==highlight==', () => {
+      expect(parseRichText('==hypoténuse==')).toEqual([{ kind: 'highlight', value: 'hypoténuse' }])
+    })
+
+    it('tokenizes highlight surrounded by text', () => {
+      expect(parseRichText("l'==hypoténuse== est")).toEqual([
+        { kind: 'text', value: "l'" },
+        { kind: 'highlight', value: 'hypoténuse' },
+        { kind: 'text', value: ' est' },
+      ])
+    })
+
+    it('emits == literally when unclosed', () => {
+      expect(parseRichText('==unclosed')).toEqual([{ kind: 'text', value: '==unclosed' }])
+    })
+
+    it('emits a closing == literally when nothing opened it', () => {
+      expect(parseRichText('fin==')).toEqual([{ kind: 'text', value: 'fin==' }])
+    })
+
+    it('keeps comparisons as text', () => {
+      for (const input of ['a == b', 'a == b == c', 'a === b', '====', 'x ==y ']) {
+        expect(parseRichText(input)).toEqual([{ kind: 'text', value: input }])
+      }
+    })
+
+    it('\\= prevents opening a highlight', () => {
+      expect(parseRichText('\\==mot\\==')).toEqual([{ kind: 'text', value: '==mot==' }])
+    })
+
+    it('\\= inside a highlight neither closes it nor stays escaped', () => {
+      expect(parseRichText('==a \\== b==')).toEqual([{ kind: 'highlight', value: 'a == b' }])
+    })
+
+    it('\\* inside a highlight emits a literal asterisk', () => {
+      expect(parseRichText('==2 \\* 3==')).toEqual([{ kind: 'highlight', value: '2 * 3' }])
+    })
+
+    it('does not parse == inside $...$', () => {
+      expect(parseRichText('$a == b$ et ==c==')).toEqual([
+        { kind: 'math', value: 'a == b' },
+        { kind: 'text', value: ' et ' },
+        { kind: 'highlight', value: 'c' },
+      ])
+    })
+
+    it('does not parse == inside **bold**', () => {
+      expect(parseRichText('**==a==**')).toEqual([{ kind: 'bold', value: '==a==' }])
+    })
+
+    it('leaves emphasis literal inside a highlight: spans do not nest', () => {
+      expect(parseRichText('==**a**==')).toEqual([{ kind: 'highlight', value: '**a**' }])
+    })
+
+    it('does not span a formula', () => {
+      expect(parseRichText('==a $x$ b==')).toEqual([
+        { kind: 'text', value: '==a ' },
+        { kind: 'math', value: 'x' },
+        { kind: 'text', value: ' b==' },
+      ])
+    })
+  })
+
   describe('escaping', () => {
     it('\\* emits a literal asterisk', () => {
       expect(parseRichText('\\*')).toEqual([{ kind: 'text', value: '*' }])
