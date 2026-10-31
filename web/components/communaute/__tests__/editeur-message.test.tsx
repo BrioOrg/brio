@@ -270,6 +270,17 @@ describe('EditeurMessage', () => {
     expect(screen.getByRole('textbox', { name: 'Ta réponse' }).textContent).toBe('le grand côté')
   })
 
+  it('refuses a title the server would refuse, and says why', async () => {
+    const { onEnvoyer, envoyer } = monter('question')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Titre de ta question' }), {
+      target: { value: 'x'.repeat(201) },
+    })
+    ecrire(screen.getByRole('textbox', { name: 'Ta question' }), 'Le corps')
+    await userEvent.click(envoyer())
+    expect(onEnvoyer).not.toHaveBeenCalled()
+    expect(screen.getByText(/Ton titre est trop long/)).toBeInTheDocument()
+  })
+
   it('asks for a title and a body on a question', async () => {
     const { onEnvoyer, envoyer } = monter('question')
     await userEvent.click(envoyer())
