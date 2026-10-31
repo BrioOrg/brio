@@ -60,6 +60,8 @@ services:
       # Fictional établissement teachers pick at signup (ADR 0029 §5); empty creates none.
       BRIO_ETABLISSEMENT_PILOTE_NOM: ${BRIO_ETABLISSEMENT_PILOTE_NOM:-}
       BRIO_ETABLISSEMENT_PILOTE_TYPE: ${BRIO_ETABLISSEMENT_PILOTE_TYPE:-college}
+      # Unmoderated student forum (ADR 0035 §10): off unless deploy/.env turns it on.
+      BRIO_COMMUNAUTE_ACTIVE: ${BRIO_COMMUNAUTE_ACTIVE:-false}
     depends_on:
       postgres:
         condition: service_healthy

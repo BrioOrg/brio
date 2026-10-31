@@ -1,11 +1,14 @@
 package fr.brio.social.web;
 
+import fr.brio.social.AccesCommunauteRefuseException;
 import fr.brio.social.AccesEntraideRefuseException;
 import fr.brio.social.AccesMessagerieRefuseException;
 import fr.brio.social.FilNotFoundException;
+import fr.brio.social.MessageCommunauteNotFoundException;
 import fr.brio.social.MessageInvalideException;
 import fr.brio.social.MessageNotFoundException;
 import fr.brio.social.PasModerateurException;
+import fr.brio.social.QuestionDejaResolueException;
 import fr.brio.social.SalonMessageNotFoundException;
 import fr.brio.social.SalonNotFoundException;
 import fr.brio.social.SousSanctionException;
@@ -24,13 +27,15 @@ class SocialExceptionHandler {
         FilNotFoundException.class,
         MessageNotFoundException.class,
         SalonNotFoundException.class,
-        SalonMessageNotFoundException.class
+        SalonMessageNotFoundException.class,
+        MessageCommunauteNotFoundException.class
     })
     ResponseEntity<Map<String, String>> introuvable(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler({
+        AccesCommunauteRefuseException.class,
         AccesEntraideRefuseException.class,
         AccesMessagerieRefuseException.class,
         PasModerateurException.class,
@@ -43,6 +48,11 @@ class SocialExceptionHandler {
     @ExceptionHandler(MessageInvalideException.class)
     ResponseEntity<Map<String, String>> invalide(MessageInvalideException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(QuestionDejaResolueException.class)
+    ResponseEntity<Map<String, String>> conflit(QuestionDejaResolueException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(TropDeMessagesException.class)
