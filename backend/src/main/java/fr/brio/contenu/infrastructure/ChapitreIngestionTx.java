@@ -142,7 +142,8 @@ class ChapitreIngestionTx {
         }
         String statut = doc.path("status").asText("published");
         events.publishEvent(new ChapitrePublie(
-                chapitreId, niveau, matiere, ordre, statut, totalSections, totalExercices));
+                chapitreId, niveau, matiere, ordre, statut, totalSections, totalExercices,
+                doc.path("title").asText()));
     }
 
     private void upsertExercices(String chapitreId, List<Exercice> newExercices, Set<String> existingSlugSet) {

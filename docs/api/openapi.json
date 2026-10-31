@@ -1854,6 +1854,34 @@
         }
       }
     },
+    "/api/progression/reprendre" : {
+      "get" : {
+        "tags" : [ "progression-controller" ],
+        "operationId" : "reprendre",
+        "responses" : {
+          "200" : {
+            "description" : "Dernier chapitre en cours",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChapitreAReprendre"
+                }
+              }
+            }
+          },
+          "204" : {
+            "description" : "Rien à reprendre",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChapitreAReprendre"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/progression/parcours/{niveau}/{matiere}" : {
       "get" : {
         "tags" : [ "progression-controller" ],
@@ -3512,6 +3540,35 @@
           },
           "actifAujourdhui" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "ChapitreAReprendre" : {
+        "type" : "object",
+        "properties" : {
+          "chapitreId" : {
+            "type" : "string"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "sectionsLues" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sectionsTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "derniereActivite" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },

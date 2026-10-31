@@ -40,6 +40,9 @@ public class Chapitre {
     @Column(name = "total_exercices", nullable = false)
     private int totalExercices;
 
+    // Null only for a row whose chapter is missing from contenu (V39 backfill).
+    private String titre;
+
     @Column(name = "maj_at", nullable = false)
     private Instant majAt;
 
@@ -50,13 +53,17 @@ public class Chapitre {
     }
 
     public void maj(String niveauCode, String matiereCode, int ordre, String statut,
-                    int totalSections, int totalExercices) {
+                    int totalSections, int totalExercices, String titre) {
         this.niveauCode = niveauCode;
         this.matiereCode = matiereCode;
         this.ordre = ordre;
         this.statut = statut;
         this.totalSections = totalSections;
         this.totalExercices = totalExercices;
+        // An event persisted before #323 has no title: keep the backfilled one.
+        if (titre != null) {
+            this.titre = titre;
+        }
         this.majAt = Instant.now();
     }
 
@@ -67,4 +74,5 @@ public class Chapitre {
     public String getStatut() { return statut; }
     public int getTotalSections() { return totalSections; }
     public int getTotalExercices() { return totalExercices; }
+    public String getTitre() { return titre; }
 }

@@ -1,12 +1,15 @@
 package fr.brio.progression.web;
 
 import fr.brio.progression.ProgressionService;
+import fr.brio.progression.api.ChapitreAReprendre;
 import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.api.SerieInfo;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,6 +56,17 @@ class ProgressionController {
             @AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
         return progression.parcours(niveau, matiere, eleveId);
+    }
+
+    /** The chapter the authenticated student left unfinished, for the home page (#323). */
+    @GetMapping("/reprendre")
+    @ApiResponse(responseCode = "200", description = "Dernier chapitre en cours")
+    @ApiResponse(responseCode = "204", description = "Rien à reprendre")
+    ResponseEntity<ChapitreAReprendre> reprendre(@AuthenticationPrincipal UserDetails principal) {
+        UUID eleveId = UUID.fromString(principal.getUsername());
+        return progression.reprendre(eleveId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     /**
