@@ -116,6 +116,8 @@ const ELEVE = {
   statut: 'actif',
   nom: null,
   email: null,
+  pseudonyme: 'Renard-Indigo',
+  niveau: '5e',
 }
 
 const ENSEIGNANT = {
@@ -162,6 +164,16 @@ const COURS = [
     classeIds: [CLASSE.id],
   },
 ]
+// The chapter they left unfinished; a student with no class has nothing to resume.
+const REPRENDRE = {
+  chapitreId: 'theoreme-de-pythagore',
+  titre: 'Le théorème de Pythagore',
+  niveauCode: '3e',
+  matiereCode: 'mathematiques',
+  sectionsLues: 2,
+  sectionsTotal: 5,
+  derniereActivite: '2026-10-15T16:00:00Z',
+}
 const SALON = {
   id: 'salon-5eB',
   classeId: CLASSE.id,
@@ -324,7 +336,15 @@ const server = createServer(async (req, res) => {
           actifAujourdhui: false,
         })
       }
+      if (pathname === '/api/progression/reprendre') {
+        return sansClasse(req) ? send(res, 204) : send(res, 200, REPRENDRE)
+      }
+      if (pathname === '/api/progression/maitrise') return send(res, 200, [])
       return send(res, 404)
+    }
+    if (pathname === '/api/referentiel/libelles') {
+      if (!connecte(req)) return send(res, 401)
+      return send(res, 200, [])
     }
 
     // Class salon (F6b). A session that is not the test student's gets 401, as the backend

@@ -1,6 +1,7 @@
 package fr.brio.contenu;
 
 import fr.brio.contenu.api.CompetenceDto;
+import fr.brio.contenu.api.CompetenceLibelle;
 import fr.brio.contenu.domain.Competence;
 import fr.brio.contenu.infrastructure.CompetenceRepository;
 import java.util.List;
@@ -26,6 +27,14 @@ public class ReferentielService {
     public List<CompetenceDto> competencesActives() {
         return competenceRepository.findByDeprecatedSinceIsNullOrderByCodeAsc().stream()
                 .map(ReferentielService::toDto)
+                .toList();
+    }
+
+    /** Every code's label, deprecated ones included (ADR 0009 keeps them forever). */
+    @Transactional(readOnly = true)
+    public List<CompetenceLibelle> libelles() {
+        return competenceRepository.findAll().stream()
+                .map(c -> new CompetenceLibelle(c.getCode(), c.getIntitule()))
                 .toList();
     }
 

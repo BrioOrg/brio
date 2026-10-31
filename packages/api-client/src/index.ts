@@ -26,8 +26,16 @@ export {
   ParcoursSchema,
   getSerie,
   SerieInfoSchema,
+  ChapitreAReprendreSchema,
+  MaitriseInfoSchema,
 } from './progression.js'
-export type { ProgressionInfo, ParcoursChapitre, SerieInfo } from './progression.js'
+export type {
+  ProgressionInfo,
+  ParcoursChapitre,
+  SerieInfo,
+  ChapitreAReprendre,
+  MaitriseInfo,
+} from './progression.js'
 export {
   listerMesCours,
   getCoursBrouillon,

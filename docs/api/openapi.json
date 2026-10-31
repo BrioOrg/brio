@@ -1863,6 +1863,42 @@
         }
       }
     },
+    "/api/referentiel/libelles" : {
+      "get" : {
+        "tags" : [ "Référentiel de compétences" ],
+        "summary" : "Liste le libellé de chaque compétence",
+        "description" : "Codes dépréciés compris : un élève peut les avoir travaillés.",
+        "operationId" : "libelles",
+        "responses" : {
+          "200" : {
+            "description" : "Libellés des compétences",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CompetenceLibelle"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CompetenceLibelle"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/progression/serie" : {
       "get" : {
         "tags" : [ "progression-controller" ],
@@ -3557,6 +3593,17 @@
           }
         }
       },
+      "CompetenceLibelle" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "intitule" : {
+            "type" : "string"
+          }
+        }
+      },
       "SerieInfo" : {
         "type" : "object",
         "properties" : {
@@ -3652,6 +3699,10 @@
           "echantillon" : {
             "type" : "integer",
             "format" : "int32"
+          },
+          "dernierTravail" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },

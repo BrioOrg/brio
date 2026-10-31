@@ -32,6 +32,9 @@ export const CompteInfoSchema = z.object({
   statut: z.string(),
   nom: z.string().nullable(),
   email: z.string().nullable(),
+  // Student accounts only: the out-of-class identity (#325) and the school level.
+  pseudonyme: z.string().nullish(),
+  niveau: z.string().nullish(),
 })
 
 export type CompteInfo = z.infer<typeof CompteInfoSchema>

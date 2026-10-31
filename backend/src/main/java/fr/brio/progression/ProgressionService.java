@@ -22,6 +22,7 @@ import fr.brio.progression.domain.Serie;
 import fr.brio.progression.domain.Solde;
 import fr.brio.progression.domain.SoumissionCompetence;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
+import fr.brio.progression.infrastructure.DernierTravail;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
 import fr.brio.progression.infrastructure.MaitriseRepository;
@@ -35,9 +36,11 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -209,11 +212,14 @@ public class ProgressionService {
      */
     @Transactional(readOnly = true)
     public List<MaitriseInfo> maitrise(UUID eleveId) {
+        Map<String, Instant> derniersTravaux = soumissionsCompetences.derniersTravaux(eleveId).stream()
+                .collect(Collectors.toMap(DernierTravail::competenceCode, DernierTravail::dernier));
         return maitrises.findByIdEleveId(eleveId).stream()
                 .map(m -> new MaitriseInfo(
                         m.getCompetenceCode(),
                         m.getNiveau() == null ? null : (int) (short) m.getNiveau(),
-                        m.getEchantillon()))
+                        m.getEchantillon(),
+                        derniersTravaux.get(m.getCompetenceCode())))
                 .toList();
     }
 

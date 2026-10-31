@@ -27,6 +27,7 @@ describe('SectionSidebar', () => {
     expect(screen.getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('href', '/ma-classe')
     expect(screen.getByRole('link', { name: 'Explorer' })).toHaveAttribute('href', '/explorer')
+    expect(screen.getByRole('link', { name: 'Profil' })).toHaveAttribute('href', '/profil')
   })
 
   it('marks only the current section', async () => {
