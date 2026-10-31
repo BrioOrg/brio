@@ -46,4 +46,5 @@ public class SectionLue {
     public UUID getEleveId() { return eleveId; }
     public String getChapitreId() { return chapitreId; }
     public String getSectionId() { return sectionId; }
+    public Instant getLuAt() { return luAt; }
 }

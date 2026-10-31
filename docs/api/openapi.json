@@ -1769,6 +1769,33 @@
         }
       }
     },
+    "/api/admin/comptes/{id}/pseudonyme" : {
+      "post" : {
+        "tags" : [ "admin-comptes-controller" ],
+        "operationId" : "regenererPseudonyme",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PseudonymeInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/classes/{id}/inscriptions/{compteId}" : {
       "patch" : {
         "tags" : [ "classe-controller" ],
@@ -1850,6 +1877,27 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/progression/reprendre" : {
+      "get" : {
+        "tags" : [ "progression-controller" ],
+        "operationId" : "reprendre",
+        "responses" : {
+          "200" : {
+            "description" : "Dernier chapitre en cours",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ChapitreAReprendre"
+                }
+              }
+            }
+          },
+          "204" : {
+            "description" : "Rien à reprendre"
           }
         }
       }
@@ -3272,6 +3320,12 @@
           },
           "email" : {
             "type" : "string"
+          },
+          "pseudonyme" : {
+            "type" : "string"
+          },
+          "niveau" : {
+            "type" : "string"
           }
         }
       },
@@ -3409,6 +3463,14 @@
           }
         }
       },
+      "PseudonymeInfo" : {
+        "type" : "object",
+        "properties" : {
+          "pseudonyme" : {
+            "type" : "string"
+          }
+        }
+      },
       "RenommerInscriptionRequest" : {
         "type" : "object",
         "properties" : {
@@ -3512,6 +3574,35 @@
           },
           "actifAujourdhui" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "ChapitreAReprendre" : {
+        "type" : "object",
+        "properties" : {
+          "chapitreId" : {
+            "type" : "string"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "sectionsLues" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sectionsTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "derniereActivite" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },

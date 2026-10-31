@@ -124,6 +124,9 @@ pseudonymised within a class scope.
 
 **This asymmetry must never be "harmonised" without a new ADR.**
 
+> **Update (#325):** students now have two identities, each confined to its space: the
+> class-scoped `nom_affiche`, and a Brio-assigned `pseudonyme` outside the class.
+
 ### 3. Display-name deduplication is a form hint, not code
 
 When a teacher sets a `nom_affiche` that already exists in that class, the UI

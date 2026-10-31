@@ -64,7 +64,7 @@ class ProgressionCompletionTest {
 
     private static Chapitre chapitre(String id, int ordre, int totalSections, int totalExercices) {
         Chapitre c = new Chapitre(id);
-        c.maj("6e", "mathematiques", ordre, "published", totalSections, totalExercices);
+        c.maj("6e", "mathematiques", ordre, "published", totalSections, totalExercices, "Chapitre");
         return c;
     }
 

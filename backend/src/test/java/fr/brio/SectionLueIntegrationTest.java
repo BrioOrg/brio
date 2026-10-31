@@ -63,7 +63,7 @@ class SectionLueIntegrationTest {
 
         // A real, active account: StatutCheckFilter re-checks it on every request.
         Compte compte = Compte.creerEleve(
-                "eleve.lu." + UUID.randomUUID(), "{noop}motdepasse", "parent@test.fr", "3e");
+                "eleve.lu." + UUID.randomUUID(), "{noop}motdepasse", "parent@test.fr", "3e", "Test-" + UUID.randomUUID());
         compte.activer();
         eleve = compteRepository.save(compte).getId();
     }

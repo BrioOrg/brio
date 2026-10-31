@@ -8,7 +8,8 @@ package fr.brio.contenu.api;
  * This is <b>not</b> a per-student event. It carries only what progression needs
  * to enumerate a track and compute completion (ADR 0022): the chapter's position
  * in its {@code (niveauCode, matiereCode)} track, its publication status, and the
- * counts that define "toutes sections + ≥ 80 % des exercices".
+ * counts that define "toutes sections + ≥ 80 % des exercices", plus the title that
+ * lets a student resume the chapter (#323).
  */
 public record ChapitrePublie(
         String chapitreId,
@@ -17,4 +18,5 @@ public record ChapitrePublie(
         int ordre,
         String statut,
         int totalSections,
-        int totalExercices) {}
+        int totalExercices,
+        String titre) {}
