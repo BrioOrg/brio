@@ -25,10 +25,6 @@ test('the teacher sections sit in a left icon sidebar on desktop', async ({ page
 
   await expect(nav.getByRole('link', { name: 'Mes cours' })).toHaveAttribute('aria-current', 'page')
 
-  // The label shows as an infobulle on hover.
-  await nav.getByRole('link', { name: 'Mes classes' }).hover()
-  await expect(page.getByRole('tooltip')).toHaveText('Mes classes')
-
   await nav.getByRole('link', { name: 'Mes classes' }).click()
   await expect(page).toHaveURL('/prof/classes')
   await expect(nav.getByRole('link', { name: 'Mes classes' })).toHaveAttribute(

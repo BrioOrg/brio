@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function AnnalesPage() {
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">
-      <SiteHeader crumbs={[{ label: 'Annales' }]} />
+      <SiteHeader crumbs={[{ label: 'Explorer', href: '/explorer' }, { label: 'Annales' }]} />
       <AnnalesEleve />
     </div>
   )

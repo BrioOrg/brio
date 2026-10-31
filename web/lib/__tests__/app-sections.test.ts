@@ -3,13 +3,16 @@ import { activeSectionKey, APP_SECTIONS, PROF_SECTIONS, type AppSection } from '
 
 describe('activeSectionKey', () => {
   it.each([
-    ['/', 'parcours'],
-    ['/3e/mathematiques/theoreme-de-pythagore', 'parcours'],
-    ['/cours/42', 'parcours'],
-    ['/devoirs', 'devoirs'],
-    ['/devoirs/12', 'devoirs'],
-    ['/annales', 'annales'],
+    ['/', 'accueil'],
+    ['/explorer', 'explorer'],
+    ['/annales', 'explorer'],
+    ['/3e', 'explorer'],
+    ['/3e/mathematiques', 'explorer'],
+    ['/3e/mathematiques/theoreme-de-pythagore', 'explorer'],
     ['/ma-classe', 'ma-classe'],
+    ['/devoirs', 'ma-classe'],
+    ['/devoirs/12', 'ma-classe'],
+    ['/cours/42', 'ma-classe'],
   ])('puts %s in the %s section', (pathname, key) => {
     expect(activeSectionKey(APP_SECTIONS, pathname)).toBe(key)
   })
@@ -19,7 +22,16 @@ describe('activeSectionKey', () => {
   })
 
   it('matches whole path segments only', () => {
-    expect(activeSectionKey(APP_SECTIONS, '/devoirsx')).toBe('parcours')
+    expect(activeSectionKey(APP_SECTIONS, '/devoirsx')).toBe('explorer')
+  })
+
+  it('lets an exact route beat a longer or catch-all prefix, on that route only', () => {
+    const sections: AppSection[] = [
+      { key: 'a', label: 'A', icon: 'user', href: '/', routes: [], exactRoutes: ['/x'] },
+      { key: 'b', label: 'B', icon: 'user', href: '/x', routes: ['/x'] },
+    ]
+    expect(activeSectionKey(sections, '/x')).toBe('a')
+    expect(activeSectionKey(sections, '/x/y')).toBe('b')
   })
 
   it('gives a route to the most specific section', () => {

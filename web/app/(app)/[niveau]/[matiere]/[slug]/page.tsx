@@ -51,6 +51,7 @@ async function loadNavContext(niveau: string, matiere: string): Promise<NavConte
     if (niveauEntry && matiereEntry) {
       return {
         crumbs: [
+          { label: 'Explorer', href: '/explorer' },
           { label: niveauEntry.niveauLibelle, href: `/${niveau}` },
           { label: matiereEntry.matiereLibelle, href: `/${niveau}/${matiere}` },
         ],
@@ -63,6 +64,7 @@ async function loadNavContext(niveau: string, matiere: string): Promise<NavConte
   }
   return {
     crumbs: [
+      { label: 'Explorer', href: '/explorer' },
       { label: niveau, href: `/${niveau}` },
       { label: matiere, href: `/${niveau}/${matiere}` },
     ],
