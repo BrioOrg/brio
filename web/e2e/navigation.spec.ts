@@ -51,8 +51,12 @@ test('hovering the sidebar widens it over the page, without moving the page', as
   const before = await main.boundingBox()
 
   // No infobulle any more: the panel carries every label at once.
-  await nav.getByRole('link', { name: 'Ma classe' }).hover()
-  await expect(panel).toHaveCSS('width', '240px')
+  // A mouse that enters before hydration isn't seen, so leave and enter again until it is.
+  await expect(async () => {
+    await page.mouse.move(600, 400)
+    await nav.getByRole('link', { name: 'Ma classe' }).hover()
+    await expect(panel).toHaveCSS('width', '240px', { timeout: 1_000 })
+  }).toPass()
   await expect(page.getByRole('tooltip')).toHaveCount(0)
   // Its height follows the salon as it loads; only the horizontal position matters here.
   const after = await main.boundingBox()
