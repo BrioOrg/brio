@@ -22,7 +22,9 @@ export default async function NiveauPage({ params }: { params: Promise<{ niveau:
 
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">
-      <SiteHeader crumbs={[{ label: entry.niveauLibelle }]} />
+      <SiteHeader
+        crumbs={[{ label: 'Explorer', href: '/explorer' }, { label: entry.niveauLibelle }]}
+      />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
         <div className="max-w-2xl">
@@ -54,7 +56,11 @@ export default async function NiveauPage({ params }: { params: Promise<{ niveau:
                     className="group flex h-full flex-col gap-5 rounded-lg border border-line bg-surface-panel p-5 transition-[transform,border-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent hover:[box-shadow:0_5px_0_var(--color-accent-edge)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page"
                   >
                     <span className="flex h-11 w-11 items-center justify-center rounded-md bg-accent-soft text-accent">
-                      <Icon name={SUBJECT_ICON[matiereCode] ?? 'book-open'} size={22} weight="bold" />
+                      <Icon
+                        name={SUBJECT_ICON[matiereCode] ?? 'book-open'}
+                        size={22}
+                        weight="bold"
+                      />
                     </span>
                     <span className="flex flex-1 flex-col gap-1">
                       <span className="font-display text-lg font-extrabold tracking-tight text-ink">

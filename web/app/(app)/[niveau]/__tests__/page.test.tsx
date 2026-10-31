@@ -42,6 +42,8 @@ describe('NiveauPage', () => {
     expect(screen.getByRole('heading', { name: 'Choisis une matière' })).toBeInTheDocument()
     const link = screen.getByRole('link', { name: /mathématiques/i })
     expect(link).toHaveAttribute('href', '/3e/mathematiques')
+    // The breadcrumb starts at Explorer.
+    expect(screen.getByRole('link', { name: 'Explorer' })).toHaveAttribute('href', '/explorer')
   })
 
   it('appelle notFound pour un niveau inexistant', async () => {

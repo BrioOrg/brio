@@ -21,9 +21,21 @@ test('the sections sit in a left icon sidebar on desktop', async ({ page }, test
   await expect(nav.getByRole('link', { name: 'Explorer' })).toHaveAttribute('aria-current', 'page')
 
   await nav.getByRole('link', { name: 'Ma classe' }).click()
-  await expect(page).toHaveURL('/ma-classe')
+  // next dev compiles the route on its first visit.
+  await expect(page).toHaveURL('/ma-classe', { timeout: 20_000 })
   await expect(nav.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('aria-current', 'page')
   await expect(nav.getByRole('link', { name: 'Explorer' })).not.toHaveAttribute('aria-current')
+})
+
+test('Explorer links to the annales', async ({ page }) => {
+  await page.goto('/explorer')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+
+  const annales = page.getByRole('main').getByRole('link', { name: /Annales/ })
+  await expect(annales).toHaveAttribute('href', '/annales')
+  await annales.click()
+  // next dev compiles the route on its first visit.
+  await expect(page).toHaveURL('/annales', { timeout: 20_000 })
 })
 
 test('hovering the sidebar widens it over the page, without moving the page', async ({
@@ -42,7 +54,10 @@ test('hovering the sidebar widens it over the page, without moving the page', as
   await nav.getByRole('link', { name: 'Ma classe' }).hover()
   await expect(panel).toHaveCSS('width', '240px')
   await expect(page.getByRole('tooltip')).toHaveCount(0)
-  expect(await main.boundingBox()).toEqual(before)
+  // Its height follows the salon as it loads; only the horizontal position matters here.
+  const after = await main.boundingBox()
+  expect(after?.x).toBe(before?.x)
+  expect(after?.width).toBe(before?.width)
   expect((await nav.boundingBox())?.width).toBe(64)
 
   await page.mouse.move(600, 400)
@@ -84,6 +99,7 @@ test('the bottom bar is kept on mobile', async ({ page }, testInfo) => {
   await expect(nav.getByRole('button', { name: /Profil/ })).toBeDisabled()
 
   await nav.getByRole('link', { name: 'Ma classe' }).click()
-  await expect(page).toHaveURL('/ma-classe')
+  // next dev compiles the route on its first visit.
+  await expect(page).toHaveURL('/ma-classe', { timeout: 20_000 })
   await expect(nav.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('aria-current', 'page')
 })

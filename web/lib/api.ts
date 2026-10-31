@@ -119,6 +119,26 @@ export async function getCoursVisibles(cookieHeader: string): Promise<CoursVisib
   return z.array(CoursVisibleSchema).parse(await res.json())
 }
 
+const RoleSchema = z.object({ role: z.string() })
+const ClassesNiveauSchema = z.array(z.object({ niveauCode: z.string() }))
+
+/**
+ * The level of the student's class, to highlight it in Explorer; null for an account with no
+ * class, and for a teacher, whose /api/moi/classes lists the classes they run instead.
+ * Server-side, like getCoursVisibles: the caller relays the request's cookies.
+ * /api/moi/classes only returns active classes, sorted by name: a student in several takes the first.
+ */
+export async function getNiveauDeLEleve(cookieHeader: string): Promise<string | null> {
+  const options = { headers: { cookie: cookieHeader }, cache: 'no-store' } as const
+  const moi = await fetch(`${apiBaseUrl()}/api/moi`, options)
+  if (!moi.ok) throw new Error('Compte indisponible')
+  if (RoleSchema.parse(await moi.json()).role !== 'eleve') return null
+
+  const classes = await fetch(`${apiBaseUrl()}/api/moi/classes`, options)
+  if (!classes.ok) throw new Error('Classes indisponibles')
+  return ClassesNiveauSchema.parse(await classes.json())[0]?.niveauCode ?? null
+}
+
 // ---------------------------------------------------------------------------
 // Exercise submission — rides the session cookie (ADR 0018), see soumettre().
 // ---------------------------------------------------------------------------
@@ -255,11 +275,14 @@ export async function soumettre(
   // (createApiClient sends it). Being a mutating POST, it also needs the CSRF
   // token echoed as a header — primed here if the cookie isn't set yet.
   const token = await ensureCsrfToken(apiBaseUrl())
-  const { data, error, response } = await createApiClient(apiBaseUrl()).POST('/api/exercices/{id}/soumissions', {
-    params: { path: { id: exerciceId } },
-    body: { answer },
-    headers: csrfHeaders(token),
-  })
+  const { data, error, response } = await createApiClient(apiBaseUrl()).POST(
+    '/api/exercices/{id}/soumissions',
+    {
+      params: { path: { id: exerciceId } },
+      body: { answer },
+      headers: csrfHeaders(token),
+    }
+  )
   // Guard on the status too: an auth/CSRF failure can return an empty body, which
   // openapi-fetch surfaces as no `error` rather than a populated one.
   if (error || !response.ok) {
