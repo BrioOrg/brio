@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AppSection } from '@/lib/app-sections'
 
 let pathname = '/'
@@ -49,11 +49,87 @@ describe('SectionSidebar', () => {
     expect(screen.getByRole('link', { name: 'Parcours' })).toHaveAttribute('aria-current', 'page')
   })
 
-  it('shows the label as an infobulle when a link takes keyboard focus', async () => {
+  it('has no infobulle: the panel shows the labels', async () => {
     await setup()
     await userEvent.tab()
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('widens when keyboard focus enters, and closes on Escape or when focus leaves', async () => {
+    await setup()
+    const panel = screen.getByTestId('section-sidebar-panel')
+    expect(panel).toHaveClass('w-16')
+
+    await userEvent.tab()
     expect(screen.getByRole('link', { name: 'Parcours' })).toHaveFocus()
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('Parcours')
+    expect(panel).toHaveClass('w-60')
+
+    await userEvent.keyboard('{Escape}')
+    expect(panel).toHaveClass('w-16')
+
+    // Focus moving on to the next link opens it again, until it leaves the navigation.
+    await userEvent.tab()
+    expect(panel).toHaveClass('w-60')
+    act(() => (document.activeElement as HTMLElement).blur())
+    expect(panel).toHaveClass('w-16')
+  })
+
+  describe('with a pointer', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+      // jsdom has no PointerEvent: without it fireEvent would drop `pointerType`.
+      vi.stubGlobal(
+        'PointerEvent',
+        class extends MouseEvent {
+          pointerType: string
+          constructor(type: string, init: PointerEventInit = {}) {
+            super(type, init)
+            this.pointerType = init.pointerType ?? ''
+          }
+        }
+      )
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    })
+
+    function pointer(type: 'pointerEnter' | 'pointerLeave', pointerType: string) {
+      fireEvent[type](screen.getByRole('navigation'), { pointerType })
+    }
+
+    it('widens after a short delay on mouse hover and closes as soon as the mouse leaves', async () => {
+      await setup()
+      const panel = screen.getByTestId('section-sidebar-panel')
+
+      pointer('pointerEnter', 'mouse')
+      expect(panel).toHaveClass('w-16')
+      act(() => vi.advanceTimersByTime(120))
+      expect(panel).toHaveClass('w-60')
+
+      pointer('pointerLeave', 'mouse')
+      expect(panel).toHaveClass('w-16')
+    })
+
+    it('stays closed when the mouse only crosses the column', async () => {
+      await setup()
+      const panel = screen.getByTestId('section-sidebar-panel')
+
+      pointer('pointerEnter', 'mouse')
+      act(() => vi.advanceTimersByTime(60))
+      pointer('pointerLeave', 'mouse')
+      act(() => vi.advanceTimersByTime(200))
+      expect(panel).toHaveClass('w-16')
+    })
+
+    it('does not widen on touch', async () => {
+      await setup()
+      const panel = screen.getByTestId('section-sidebar-panel')
+
+      pointer('pointerEnter', 'touch')
+      act(() => vi.advanceTimersByTime(200))
+      expect(panel).toHaveClass('w-16')
+    })
   })
 
   it('lists the sections it is given, in order, under the given name', async () => {
