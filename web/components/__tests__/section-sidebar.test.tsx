@@ -24,29 +24,28 @@ describe('SectionSidebar', () => {
   it('links to every student section, named by its label', async () => {
     await setup()
     expect(screen.getByRole('navigation', { name: 'Navigation principale' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Parcours' })).toHaveAttribute('href', '/')
-    expect(screen.getByRole('link', { name: 'Devoirs' })).toHaveAttribute('href', '/devoirs')
-    expect(screen.getByRole('link', { name: 'Annales' })).toHaveAttribute('href', '/annales')
+    expect(screen.getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('href', '/ma-classe')
+    expect(screen.getByRole('link', { name: 'Explorer' })).toHaveAttribute('href', '/explorer')
   })
 
   it('marks only the current section', async () => {
-    await setup('/annales')
-    expect(screen.getByRole('link', { name: 'Annales' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: 'Devoirs' })).not.toHaveAttribute('aria-current')
-    expect(screen.getByRole('link', { name: 'Parcours' })).not.toHaveAttribute('aria-current')
+    await setup('/devoirs')
+    expect(screen.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Explorer' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('link', { name: 'Accueil' })).not.toHaveAttribute('aria-current')
   })
 
   it('marks no section on the Paramètres page', async () => {
     await setup('/parametres')
-    for (const name of ['Parcours', 'Devoirs', 'Annales', 'Ma classe']) {
+    for (const name of ['Accueil', 'Ma classe', 'Explorer']) {
       expect(screen.getByRole('link', { name })).not.toHaveAttribute('aria-current')
     }
   })
 
-  it('treats catalogue routes as parcours', async () => {
+  it('treats catalogue routes as Explorer', async () => {
     await setup('/3e/mathematiques')
-    expect(screen.getByRole('link', { name: 'Parcours' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Explorer' })).toHaveAttribute('aria-current', 'page')
   })
 
   it('has no infobulle: the panel shows the labels', async () => {
@@ -61,7 +60,7 @@ describe('SectionSidebar', () => {
     expect(panel).toHaveClass('w-16')
 
     await userEvent.tab()
-    expect(screen.getByRole('link', { name: 'Parcours' })).toHaveFocus()
+    expect(screen.getByRole('link', { name: 'Accueil' })).toHaveFocus()
     expect(panel).toHaveClass('w-60')
 
     await userEvent.keyboard('{Escape}')

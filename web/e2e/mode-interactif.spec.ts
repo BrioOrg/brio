@@ -26,7 +26,7 @@ test('a first visit opens the interactive mode on the opening slide', async ({ p
     page.getByRole('heading', { level: 1, name: 'Le théorème de Pythagore' })
   ).toBeVisible()
   // The site header and the tutor rail step aside.
-  await expect(page.getByRole('link', { name: 'Devoirs' })).toBeHidden()
+  await expect(page.getByRole('link', { name: 'Ma classe' })).toBeHidden()
 })
 
 test('the keyboard goes through the whole chapter and back', async ({ page }) => {

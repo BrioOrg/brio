@@ -14,15 +14,16 @@ test('the sections sit in a left icon sidebar on desktop', async ({ page }, test
   expect(box?.x).toBe(0)
   expect(box?.height).toBe(viewport?.height)
   // No bottom-bar-only tab on desktop.
-  await expect(nav.getByRole('button', { name: /Profil/ })).toHaveCount(0)
+  await expect(nav.getByRole('button', { name: /Communauté|Profil/ })).toHaveCount(0)
 
-  const parcours = nav.getByRole('link', { name: 'Parcours' })
-  await expect(parcours).toHaveAttribute('aria-current', 'page')
+  // "/" redirects to Explorer until the Accueil page exists (#324).
+  await expect(page).toHaveURL('/explorer')
+  await expect(nav.getByRole('link', { name: 'Explorer' })).toHaveAttribute('aria-current', 'page')
 
   await nav.getByRole('link', { name: 'Ma classe' }).click()
   await expect(page).toHaveURL('/ma-classe')
   await expect(nav.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('aria-current', 'page')
-  await expect(nav.getByRole('link', { name: 'Parcours' })).not.toHaveAttribute('aria-current')
+  await expect(nav.getByRole('link', { name: 'Explorer' })).not.toHaveAttribute('aria-current')
 })
 
 test('hovering the sidebar widens it over the page, without moving the page', async ({
@@ -79,6 +80,7 @@ test('the bottom bar is kept on mobile', async ({ page }, testInfo) => {
   // Pinned to the bottom edge, across the full width.
   expect(box?.width).toBe(viewport?.width)
   expect((box?.y ?? 0) + (box?.height ?? 0)).toBeCloseTo(viewport?.height ?? 0, 0)
+  await expect(nav.getByRole('button', { name: /Communauté/ })).toBeDisabled()
   await expect(nav.getByRole('button', { name: /Profil/ })).toBeDisabled()
 
   await nav.getByRole('link', { name: 'Ma classe' }).click()

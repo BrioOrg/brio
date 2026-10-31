@@ -12,6 +12,8 @@ export type AppSection = {
   href: string
   /** Route prefixes that belong to this section ("/" is every route). */
   routes: string[]
+  /** Routes that belong to this section only when matched exactly; they beat any prefix. */
+  exactRoutes?: string[]
   /** Route prefixes excluded from `routes` (pages that belong to no section). */
   exceptRoutes?: string[]
 }
@@ -22,10 +24,14 @@ function under(prefix: string, pathname: string): boolean {
 
 /**
  * The key of the section the current route belongs to, or undefined when it
- * belongs to none. When several sections claim the route, the most specific
- * (longest) prefix wins, so a catch-all "/" section yields to the others.
+ * belongs to none. An exact route wins outright. Otherwise, when several sections
+ * claim the route, the most specific (longest) prefix wins, so a catch-all "/"
+ * section yields to the others.
  */
 export function activeSectionKey(sections: AppSection[], pathname: string): string | undefined {
+  const exact = sections.find((section) => section.exactRoutes?.includes(pathname))
+  if (exact) return exact.key
+
   let best: { key: string; length: number } | undefined
   for (const section of sections) {
     if (section.exceptRoutes?.some((prefix) => under(prefix, pathname))) continue
@@ -38,36 +44,39 @@ export function activeSectionKey(sections: AppSection[], pathname: string): stri
   return best?.key
 }
 
-// The whole catalogue lives under "parcours" for now, so any app-shell route
-// that is not another section's is a parcours route — except Paramètres, which is
-// no section (it is reached from the burger menu).
+// Accueil is "/" and nothing under it. Explorer is the fallback: the catalogue's semantic URLs
+// (/{niveau}/…, ADR 0011) have dynamic first segments, so any app-shell route no other section
+// claims is an Explorer route — except Paramètres, which is no section (it is reached from the
+// burger menu).
 export const APP_SECTIONS: AppSection[] = [
-  {
-    key: 'parcours',
-    label: 'Parcours',
-    icon: 'compass',
-    href: '/',
-    routes: ['/'],
-    exceptRoutes: ['/parametres'],
-  },
-  { key: 'devoirs', label: 'Devoirs', icon: 'check', href: '/devoirs', routes: ['/devoirs'] },
-  { key: 'annales', label: 'Annales', icon: 'book-open', href: '/annales', routes: ['/annales'] },
+  { key: 'accueil', label: 'Accueil', icon: 'sparkle', href: '/', routes: [], exactRoutes: ['/'] },
   {
     key: 'ma-classe',
     label: 'Ma classe',
-    icon: 'chat-circle',
+    icon: 'chalkboard',
     href: '/ma-classe',
-    routes: ['/ma-classe'],
+    routes: ['/ma-classe', '/devoirs', '/cours'],
+  },
+  {
+    key: 'explorer',
+    label: 'Explorer',
+    icon: 'compass',
+    href: '/explorer',
+    routes: ['/'],
+    exceptRoutes: ['/parametres'],
   },
 ]
 
 /**
  * A bottom-bar tab for a module that does not exist yet: rendered disabled, never a link.
- * Only the student bar has one (Profil); the desktop sidebar lists none.
+ * Only the student bar has them; the desktop sidebar lists none.
  */
 export type UpcomingTab = { key: string; label: string; icon: string }
 
-export const APP_UPCOMING_TABS: UpcomingTab[] = [{ key: 'profil', label: 'Profil', icon: 'user' }]
+export const APP_UPCOMING_TABS: UpcomingTab[] = [
+  { key: 'communaute', label: 'Communauté', icon: 'chat-circle' },
+  { key: 'profil', label: 'Profil', icon: 'user' },
+]
 
 // The teacher space (/prof), one section per page that exists there. "/prof" is the
 // teacher home (Mes cours), and a course editor (/prof/cours/{id}) belongs to it too; the

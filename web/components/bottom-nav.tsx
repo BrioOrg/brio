@@ -20,8 +20,8 @@ type BottomNavProps = {
  * screen (#245).
  *
  * It takes its sections as props so both spaces use it: the student shell passes
- * APP_SECTIONS plus the disabled Profil tab (its module does not exist yet, so it is
- * rendered disabled rather than linking nowhere), the teacher space PROF_SECTIONS.
+ * APP_SECTIONS plus the disabled Communauté and Profil tabs (their pages do not exist yet, so
+ * they are rendered disabled rather than linking nowhere), the teacher space PROF_SECTIONS.
  */
 export function BottomNav({
   sections,
