@@ -120,6 +120,30 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptAListBlock() {
+        String block =
+                """
+                { "id": "lst", "type": "list", "items": [ "Un ==point== clé", "Puis $x^2$" ] }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectAListBlockWithoutItems() {
+        for (String block :
+                List.of(
+                        """
+                        { "id": "lst", "type": "list" }
+                        """,
+                        """
+                        { "id": "lst", "type": "list", "items": [] }
+                        """)) {
+            assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                    .isInstanceOf(InvalidContentException.class);
+        }
+    }
+
+    @Test
     void shouldRejectAnUnknownPropertyOnATableBlock() {
         String block =
                 """

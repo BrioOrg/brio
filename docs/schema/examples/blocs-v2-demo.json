@@ -35,6 +35,11 @@
           ]
         },
         {
+          "id": "liste-rappels",
+          "type": "list",
+          "items": ["L'==hypoténuse== est le plus grand côté.", "L'égalité s'écrit $BC^2 = AB^2 + AC^2$."]
+        },
+        {
           "id": "table-valeurs",
           "type": "table",
           "headers": ["AB (cm)", "AC (cm)", "BC (cm)"],

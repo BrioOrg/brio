@@ -1,7 +1,10 @@
+import 'katex/dist/katex.min.css'
+
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { OptionRowDemo, ButtonLoadingDemo, ResultSheetDemo } from './kit-interactive'
 import { MotionDemo } from './motion-demo'
 import { SoundDemo } from './sound-demo'
+import { BlocsCommunaute } from '@/components/blocs/blocs-communaute'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
 import { OptionRow } from '@/components/ui/option-row'
@@ -154,6 +157,34 @@ export default function DesignPage() {
         </Section>
 
         {/* ── Cube assemblages ──────────────────────────────────────────────── */}
+        <Section title="Message de la Communauté">
+          <Panel>
+            <BlocsCommunaute
+              blocs={[
+                {
+                  type: 'prose',
+                  text: "Dans un triangle rectangle, l'==hypoténuse== est le **plus grand** côté, *toujours* opposé à l'angle droit : $BC^2 = AB^2 + AC^2$.",
+                },
+                { type: 'formula', latex: 'BC = \\sqrt{3^2 + 4^2} = 5' },
+                {
+                  type: 'list',
+                  items: [
+                    "Repérer l'==angle droit==.",
+                    "Écrire **l'égalité** avec $BC^2$.",
+                    'Calculer la racine carrée.',
+                  ],
+                },
+                { type: 'code', language: 'python', code: 'print(3 ** 2 + 4 ** 2)' },
+                {
+                  type: 'code',
+                  language: 'scratch',
+                  code: 'mettre a à 7\nmettre a à (a * 2)\ndire (a)',
+                },
+              ]}
+            />
+          </Panel>
+        </Section>
+
         <Section title="Assemblages de cubes">
           <Label>Une teinte par face, du dessus (clair) au côté (foncé) — arêtes en ink</Label>
           <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-4">
@@ -274,8 +305,8 @@ export default function DesignPage() {
             <p className="text-sm text-ink-muted">
               Mode interactif seulement, coupés par défaut : l&rsquo;élève les active dans la barre
               du haut (ou touche <code>M</code>). Synthétisés avec la Web Audio API depuis{' '}
-              <code>web/lib/sound-tokens.ts</code>, sans fichier audio. Aucun son d&rsquo;échec.
-              Ce qui joue quand est décrit dans <code>docs/design/MOTION.md</code>.
+              <code>web/lib/sound-tokens.ts</code>, sans fichier audio. Aucun son d&rsquo;échec. Ce
+              qui joue quand est décrit dans <code>docs/design/MOTION.md</code>.
             </p>
             <SoundDemo />
           </div>
