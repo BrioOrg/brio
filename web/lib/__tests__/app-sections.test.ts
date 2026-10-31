@@ -13,6 +13,7 @@ describe('activeSectionKey', () => {
     ['/devoirs', 'ma-classe'],
     ['/devoirs/12', 'ma-classe'],
     ['/cours/42', 'ma-classe'],
+    ['/profil', 'profil'],
   ])('puts %s in the %s section', (pathname, key) => {
     expect(activeSectionKey(APP_SECTIONS, pathname)).toBe(key)
   })

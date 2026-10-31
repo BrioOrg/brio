@@ -16,15 +16,13 @@ test('the sections sit in a left icon sidebar on desktop', async ({ page }, test
   // No bottom-bar-only tab on desktop.
   await expect(nav.getByRole('button', { name: /Communauté|Profil/ })).toHaveCount(0)
 
-  // "/" redirects to Explorer until the Accueil page exists (#324).
-  await expect(page).toHaveURL('/explorer')
-  await expect(nav.getByRole('link', { name: 'Explorer' })).toHaveAttribute('aria-current', 'page')
+  await expect(nav.getByRole('link', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
 
   await nav.getByRole('link', { name: 'Ma classe' }).click()
   // next dev compiles the route on its first visit.
   await expect(page).toHaveURL('/ma-classe', { timeout: 20_000 })
   await expect(nav.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('aria-current', 'page')
-  await expect(nav.getByRole('link', { name: 'Explorer' })).not.toHaveAttribute('aria-current')
+  await expect(nav.getByRole('link', { name: 'Accueil' })).not.toHaveAttribute('aria-current')
 })
 
 test('Explorer links to the annales', async ({ page }) => {
@@ -100,7 +98,7 @@ test('the bottom bar is kept on mobile', async ({ page }, testInfo) => {
   expect(box?.width).toBe(viewport?.width)
   expect((box?.y ?? 0) + (box?.height ?? 0)).toBeCloseTo(viewport?.height ?? 0, 0)
   await expect(nav.getByRole('button', { name: /Communauté/ })).toBeDisabled()
-  await expect(nav.getByRole('button', { name: /Profil/ })).toBeDisabled()
+  await expect(nav.getByRole('link', { name: 'Profil' })).toHaveAttribute('href', '/profil')
 
   await nav.getByRole('link', { name: 'Ma classe' }).click()
   // next dev compiles the route on its first visit.

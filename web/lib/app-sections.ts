@@ -65,17 +65,23 @@ export const APP_SECTIONS: AppSection[] = [
     routes: ['/'],
     exceptRoutes: ['/parametres'],
   },
+  { key: 'profil', label: 'Profil', icon: 'user', href: '/profil', routes: ['/profil'] },
 ]
 
 /**
  * A bottom-bar tab for a module that does not exist yet: rendered disabled, never a link.
  * Only the student bar has them; the desktop sidebar lists none.
  */
-export type UpcomingTab = { key: string; label: string; icon: string }
+export type UpcomingTab = {
+  key: string
+  label: string
+  icon: string
+  /** The section this tab sits just before; without one, it comes after every section. */
+  before?: string
+}
 
 export const APP_UPCOMING_TABS: UpcomingTab[] = [
-  { key: 'communaute', label: 'Communauté', icon: 'chat-circle' },
-  { key: 'profil', label: 'Profil', icon: 'user' },
+  { key: 'communaute', label: 'Communauté', icon: 'chat-circle', before: 'profil' },
 ]
 
 // The teacher space (/prof), one section per page that exists there. "/prof" is the

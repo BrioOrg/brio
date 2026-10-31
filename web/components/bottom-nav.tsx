@@ -1,5 +1,6 @@
 'use client'
 
+import { Fragment } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Icon } from '@/components/ui/icon'
@@ -8,7 +9,7 @@ import { activeSectionKey, type AppSection, type UpcomingTab } from '@/lib/app-s
 type BottomNavProps = {
   /** The sections to list, in order: APP_SECTIONS for students, PROF_SECTIONS for teachers. */
   sections: AppSection[]
-  /** Tabs for modules that do not exist yet, rendered disabled after the sections. */
+  /** Tabs for modules that do not exist yet, rendered disabled, placed by their `before`. */
   upcoming?: UpcomingTab[]
   /** Accessible name of the navigation landmark. */
   label?: string
@@ -20,8 +21,8 @@ type BottomNavProps = {
  * screen (#245).
  *
  * It takes its sections as props so both spaces use it: the student shell passes
- * APP_SECTIONS plus the disabled Communauté and Profil tabs (their pages do not exist yet, so
- * they are rendered disabled rather than linking nowhere), the teacher space PROF_SECTIONS.
+ * APP_SECTIONS plus the disabled Communauté tab (its page does not exist yet, so it is rendered
+ * disabled rather than linking nowhere), the teacher space PROF_SECTIONS.
  */
 export function BottomNav({
   sections,
@@ -33,6 +34,20 @@ export function BottomNav({
   const shell =
     'grid place-items-center rounded-md p-2 transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel'
 
+  const tabAVenir = (tab: UpcomingTab) => (
+    <li key={tab.key}>
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        className={[shell, 'cursor-not-allowed text-ink-muted/40'].join(' ')}
+      >
+        <Icon name={tab.icon} size={26} />
+        <span className="sr-only">{tab.label} — bientôt disponible</span>
+      </button>
+    </li>
+  )
+
   return (
     <nav
       aria-label={label}
@@ -42,36 +57,27 @@ export function BottomNav({
         {sections.map((section) => {
           const active = section.key === activeKey
           return (
-            <li key={section.key}>
-              <Link
-                href={section.href}
-                aria-current={active ? 'page' : undefined}
-                className={[
-                  shell,
-                  active
-                    ? 'bg-accent-soft text-accent ring-2 ring-inset ring-accent'
-                    : 'text-ink-muted hover:text-ink',
-                ].join(' ')}
-              >
-                <Icon name={section.icon} weight={active ? 'bold' : 'regular'} size={26} />
-                <span className="sr-only">{section.label}</span>
-              </Link>
-            </li>
+            <Fragment key={section.key}>
+              {upcoming.filter((tab) => tab.before === section.key).map(tabAVenir)}
+              <li>
+                <Link
+                  href={section.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={[
+                    shell,
+                    active
+                      ? 'bg-accent-soft text-accent ring-2 ring-inset ring-accent'
+                      : 'text-ink-muted hover:text-ink',
+                  ].join(' ')}
+                >
+                  <Icon name={section.icon} weight={active ? 'bold' : 'regular'} size={26} />
+                  <span className="sr-only">{section.label}</span>
+                </Link>
+              </li>
+            </Fragment>
           )
         })}
-        {upcoming.map((tab) => (
-          <li key={tab.key}>
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              className={[shell, 'cursor-not-allowed text-ink-muted/40'].join(' ')}
-            >
-              <Icon name={tab.icon} size={26} />
-              <span className="sr-only">{tab.label} — bientôt disponible</span>
-            </button>
-          </li>
-        ))}
+        {upcoming.filter((tab) => !tab.before).map(tabAVenir)}
       </ul>
     </nav>
   )
