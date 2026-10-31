@@ -243,6 +243,7 @@ describe('getCoursVisibles', () => {
               matiereCode: 'mathematiques',
               enseignant: null,
               publieAt: '2026-09-28T10:00:00Z',
+              classeIds: ['classe-1'],
             },
           ]),
           { status: 200, headers: { 'Content-Type': 'application/json' } }

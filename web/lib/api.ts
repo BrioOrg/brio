@@ -101,6 +101,8 @@ const CoursVisibleSchema = z.object({
     .nullish()
     .transform((v) => v ?? null),
   publieAt: z.string(),
+  // The reader's classes this course is scoped to.
+  classeIds: z.array(z.string()),
 })
 
 export type CoursVisible = z.infer<typeof CoursVisibleSchema>

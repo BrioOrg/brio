@@ -24,6 +24,7 @@
  *   POST /api/exercices/{id}/soumissions          graded from content/ like the backend's
  *                                                 evaluators (#246); 401 without a session
  *   POST /api/chapitres/{id}/sections/{s}/lu      204 with a session, 401 without
+ *   GET  /api/devoirs, /api/cours                 the test student's homework and courses
  *   GET  /api/moi/classes, /api/salons            the test student's class and salon, none for
  *                                                 E2E_SESSION_SANS_CLASSE; 401 without a session
  *   GET  /api/salons/{id}/messages                that salon's messages, own ones flagged
@@ -127,7 +128,40 @@ const ENSEIGNANT = {
 
 // The logged-in student's class and its salon (F6b, #270), for /ma-classe. `estMoi` is derived
 // per reader, as the real backend does — the student's own messages are the ones they authored.
-const CLASSE = { id: 'classe-5eB', libelle: '5e B', niveauCode: '5e' }
+const CLASSE = {
+  id: 'classe-5eB',
+  libelle: '5e B',
+  niveauCode: '5e',
+  etablissementNom: 'Collège Jean Moulin',
+  anneeScolaire: '2026-2027',
+  nomAffiche: 'Inès',
+}
+// Their homework, one of which points to a chapter (#322), and a course of their class.
+const DEVOIRS = [
+  {
+    id: 'devoir-pythagore',
+    classeId: CLASSE.id,
+    titre: 'Réviser Pythagore',
+    enseignant: 'M. Dubois',
+    sourceType: 'chapitre',
+    sourceRef: 'theoreme-de-pythagore',
+    echeanceAt: '2026-10-20T16:00:00Z',
+    nombreExercices: 2,
+    statutRendu: 'non_commence',
+    corrige: false,
+  },
+]
+const COURS = [
+  {
+    id: 'cours-fractions',
+    titre: 'Les fractions, version M. Dubois',
+    niveauCode: '5e',
+    matiereCode: 'mathematiques',
+    enseignant: 'M. Dubois',
+    publieAt: '2026-10-01T08:00:00Z',
+    classeIds: [CLASSE.id],
+  },
+]
 const SALON = {
   id: 'salon-5eB',
   classeId: CLASSE.id,
@@ -298,6 +332,14 @@ const server = createServer(async (req, res) => {
     if (pathname === '/api/moi/classes') {
       if (!connecte(req)) return send(res, 401)
       return send(res, 200, sansClasse(req) ? [] : [CLASSE])
+    }
+    if (pathname === '/api/devoirs') {
+      if (!connecte(req)) return send(res, 401)
+      return send(res, 200, sansClasse(req) ? [] : DEVOIRS)
+    }
+    if (pathname === '/api/cours') {
+      if (!connecte(req)) return send(res, 401)
+      return send(res, 200, sansClasse(req) ? [] : COURS)
     }
     if (pathname === '/api/salons') {
       if (!connecte(req)) return send(res, 401)

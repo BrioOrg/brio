@@ -431,6 +431,27 @@ public class ClasseService {
                 .toList();
     }
 
+    /** The classes of an account, as its member reads them: a teacher's or a student's. */
+    @Transactional(readOnly = true)
+    public List<ClasseDuCompte> classesDuCompte(UUID compteId, boolean enseignant) {
+        List<ClasseInfo> liste =
+                enseignant ? classesDeLEnseignant(compteId) : classesDeLEleve(compteId);
+        Map<UUID, String> nomsEtablissements = etablissements
+                .findAllById(liste.stream().map(ClasseInfo::etablissementId).toList())
+                .stream()
+                .collect(Collectors.toMap(Etablissement::getId, Etablissement::getNom));
+        Map<UUID, String> nomsAffiches = enseignant
+                ? Map.of()
+                : inscriptions.findByIdCompteId(compteId).stream()
+                        .collect(Collectors.toMap(i -> i.getId().classeId(), Inscription::getNomAffiche));
+        return liste.stream()
+                .map(c -> new ClasseDuCompte(c.id(), c.etablissementId(),
+                        nomsEtablissements.get(c.etablissementId()), c.niveauCode(), c.libelle(),
+                        c.anneeScolaire(), c.statut(), c.enseignantPrincipalId(),
+                        nomsAffiches.get(c.id())))
+                .toList();
+    }
+
     private static ClasseInfo toClasseInfo(Classe c) {
         return new ClasseInfo(c.getId(), c.getEtablissementId(), c.getNiveauCode(),
                 c.getLibelle(), c.getAnneeScolaire(), c.getStatut().name(),

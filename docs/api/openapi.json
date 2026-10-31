@@ -2229,7 +2229,7 @@
                 "schema" : {
                   "type" : "array",
                   "items" : {
-                    "$ref" : "#/components/schemas/ClasseInfo"
+                    "$ref" : "#/components/schemas/ClasseDuCompte"
                   }
                 }
               }
@@ -3956,6 +3956,41 @@
         },
         "required" : [ "status", "timestamp", "version" ]
       },
+      "ClasseDuCompte" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "etablissementId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "etablissementNom" : {
+            "type" : "string"
+          },
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "libelle" : {
+            "type" : "string"
+          },
+          "anneeScolaire" : {
+            "type" : "string"
+          },
+          "statut" : {
+            "type" : "string"
+          },
+          "enseignantPrincipalId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nomAffiche" : {
+            "type" : "string"
+          }
+        }
+      },
       "FilVue" : {
         "type" : "object",
         "properties" : {
@@ -4082,10 +4117,23 @@
             "type" : "string",
             "format" : "uuid"
           },
+          "classeId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
           "titre" : {
             "type" : "string"
           },
           "consigne" : {
+            "type" : "string"
+          },
+          "enseignant" : {
+            "type" : "string"
+          },
+          "sourceType" : {
+            "type" : "string"
+          },
+          "sourceRef" : {
             "type" : "string"
           },
           "echeanceAt" : {
@@ -4098,6 +4146,9 @@
           },
           "statutRendu" : {
             "type" : "string"
+          },
+          "corrige" : {
+            "type" : "boolean"
           }
         }
       },
@@ -4138,6 +4189,13 @@
           "publieAt" : {
             "type" : "string",
             "format" : "date-time"
+          },
+          "classeIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "format" : "uuid"
+            }
           }
         }
       },

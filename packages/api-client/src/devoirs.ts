@@ -24,11 +24,16 @@ import { signalerSessionExpiree } from './session-expiree.js'
 /** Un devoir tel que l'élève connecté le voit (vue « mes devoirs »). */
 export const DevoirEleveVueSchema = z.object({
   id: z.string(),
+  classeId: z.string(),
   titre: z.string(),
   consigne: z.string().nullish(),
+  enseignant: z.string().nullish(), // absent quand identite n'a pas de nom pour l'auteur
+  sourceType: z.string(), // 'cours' | 'chapitre'
+  sourceRef: z.string(), // id du cours / slug du chapitre
   echeanceAt: z.string(),
   nombreExercices: z.number(),
   statutRendu: z.string(), // 'non_commence' | 'en_cours' | 'rendu'
+  corrige: z.boolean(),
 })
 export type DevoirEleveVue = z.infer<typeof DevoirEleveVueSchema>
 
