@@ -57,6 +57,8 @@ describe('MatierePage', () => {
     expect(screen.getByRole('heading', { name: 'Le parcours' })).toBeInTheDocument()
     const link = screen.getByRole('link', { name: /pythagore/i })
     expect(link).toHaveAttribute('href', '/3e/mathematiques/theoreme-de-pythagore')
+    // The breadcrumb starts at Explorer.
+    expect(screen.getByRole('link', { name: 'Explorer' })).toHaveAttribute('href', '/explorer')
   })
 
   it('appelle notFound pour une combinaison niveau/matière inexistante', async () => {

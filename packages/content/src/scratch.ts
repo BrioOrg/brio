@@ -25,8 +25,86 @@ export type ScratchStatement =
   | { kind: 'turn'; direction: 'right' | 'left'; degrees: ScratchValue; line: number }
   | { kind: 'repeat'; times: ScratchValue; body: ScratchStatement[]; line: number }
 
-/** `line` is 1-based, counted in the block's `code`. */
-export type ScratchError = { line: number; message: string }
+/** A stable code per error, so the web can translate without matching the English message. */
+export type ScratchErrorCode =
+  | 'blankLine'
+  | 'tabs'
+  | 'finWithoutLoop'
+  | 'finIndent'
+  | 'emptyLoop'
+  | 'loopNotClosedBeforeLine'
+  | 'unexpectedIndent'
+  | 'flagNotFirst'
+  | 'loopNeverClosed'
+  | 'unknownInstruction'
+  | 'invalidVariableName'
+  | 'valueMissing'
+  | 'valueMissingBeforeOperator'
+  | 'valueMissingBeforeClose'
+  | 'closeMissing'
+  | 'oneOperatorPerPair'
+  | 'operatorNeedsParentheses'
+  | 'unexpectedTextAfterValue'
+  | 'textNeverClosed'
+  | 'emptyText'
+  | 'wrongOperatorSymbol'
+  | 'unexpectedCharacter'
+
+/** Values interpolated into a message; which fields are set depends on the code. */
+export type ScratchErrorParams = {
+  loopLine?: number
+  expected?: number
+  text?: string
+  source?: string
+  operator?: string
+  symbol?: string
+  correct?: string
+  character?: string
+}
+
+/**
+ * The English message for each code — shown by check-content, read by developers. Reword freely:
+ * the web translates by `code`, not by this text (ADR 0031, #307).
+ */
+const MESSAGES: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> = {
+  blankLine: () => 'blank line — a programme is one block of lines',
+  tabs: (p) => `indent with ${p.expected} spaces, not tabs`,
+  finWithoutLoop: () => '"fin" closes no "répéter"',
+  finIndent: (p) => `"fin" must be at the indentation of its "répéter" (line ${p.loopLine})`,
+  emptyLoop: () => '"répéter" has an empty body',
+  loopNotClosedBeforeLine: (p) =>
+    `"répéter" (line ${p.loopLine}) must be closed by "fin" before this line`,
+  unexpectedIndent: (p) => `unexpected indentation (expected ${p.expected} spaces)`,
+  flagNotFirst: () => 'the green-flag block can only start a programme',
+  loopNeverClosed: () => '"répéter" is never closed by "fin"',
+  unknownInstruction: (p) => `unknown instruction "${p.text}" — see the catalogue in ADR 0031`,
+  invalidVariableName: (p) =>
+    `"${p.text}" is not a variable name (letters, digits and _, no spaces)`,
+  valueMissing: (p) => `a value is missing in "${p.source}"`,
+  valueMissingBeforeOperator: (p) => `a value is missing before "${p.operator}" in "${p.source}"`,
+  valueMissingBeforeClose: (p) => `a value is missing before ")" in "${p.source}"`,
+  closeMissing: (p) => `")" is missing in "${p.source}"`,
+  oneOperatorPerPair: (p) =>
+    `one operator per pair of parentheses, as in Scratch: ((a + b) * c), in "${p.source}"`,
+  operatorNeedsParentheses: (p) =>
+    `an operator block goes in parentheses, as in Scratch: (a * b), in "${p.source}"`,
+  unexpectedTextAfterValue: (p) => `unexpected text after the value in "${p.source}"`,
+  textNeverClosed: (p) => `« is never closed by » in "${p.source}"`,
+  emptyText: (p) => `empty text « » in "${p.source}"`,
+  wrongOperatorSymbol: (p) => `Scratch writes ${p.correct}, not ${p.symbol}, in "${p.source}"`,
+  unexpectedCharacter: (p) => `unexpected character "${p.character}" in "${p.source}"`,
+}
+
+/**
+ * A parse error. `message` is English (check-content / developers); `code` + `params` are the
+ * stable, language-agnostic form the web translates. `line` is 1-based, counted in `code`.
+ */
+export type ScratchError = {
+  line: number
+  code: ScratchErrorCode
+  params: ScratchErrorParams
+  message: string
+}
 
 export type ScratchParseResult =
   { ok: true; script: ScratchStatement[] } | { ok: false; errors: ScratchError[] }
@@ -69,11 +147,21 @@ type Token =
   | { kind: 'text'; text: string }
   | { kind: 'word'; text: string }
 
-class ScratchSyntaxError extends Error {}
+class ScratchSyntaxError extends Error {
+  code: ScratchErrorCode
+  params: ScratchErrorParams
+  constructor(code: ScratchErrorCode, params: ScratchErrorParams = {}) {
+    super(MESSAGES[code](params))
+    this.code = code
+    this.params = params
+  }
+}
 
 export function parseScratch(code: string): ScratchParseResult {
   const lines = code.replace(/\n$/, '').split('\n')
   const errors: ScratchError[] = []
+  const add = (line: number, code: ScratchErrorCode, params: ScratchErrorParams = {}) =>
+    errors.push({ line, code, params, message: MESSAGES[code](params) })
   const script: ScratchStatement[] = []
   // Open loops, innermost last; the root has no loop.
   const frames: Array<{ indent: number; body: ScratchStatement[]; loop: ScratchStatement | null }> =
@@ -83,11 +171,11 @@ export function parseScratch(code: string): ScratchParseResult {
     const lineNo = i + 1
     const raw = lines[i]
     if (raw.trim() === '') {
-      errors.push({ line: lineNo, message: 'blank line — a programme is one block of lines' })
+      add(lineNo, 'blankLine')
       continue
     }
     if (/^\s*\t/.test(raw)) {
-      errors.push({ line: lineNo, message: `indent with ${INDENT} spaces, not tabs` })
+      add(lineNo, 'tabs', { expected: INDENT })
       continue
     }
     const indent = raw.length - raw.trimStart().length
@@ -96,15 +184,12 @@ export function parseScratch(code: string): ScratchParseResult {
 
     if (text === 'fin') {
       if (frame.loop === null) {
-        errors.push({ line: lineNo, message: '"fin" closes no "répéter"' })
+        add(lineNo, 'finWithoutLoop')
       } else if (indent !== frame.indent - INDENT) {
-        errors.push({
-          line: lineNo,
-          message: `"fin" must be at the indentation of its "répéter" (line ${frame.loop.line})`,
-        })
+        add(lineNo, 'finIndent', { loopLine: frame.loop.line })
       } else {
         if (frame.body.length === 0) {
-          errors.push({ line: frame.loop.line, message: '"répéter" has an empty body' })
+          add(frame.loop.line, 'emptyLoop')
         }
         frames.pop()
       }
@@ -112,13 +197,11 @@ export function parseScratch(code: string): ScratchParseResult {
     }
 
     if (indent !== frame.indent) {
-      errors.push({
-        line: lineNo,
-        message:
-          indent < frame.indent && frame.loop !== null
-            ? `"répéter" (line ${frame.loop.line}) must be closed by "fin" before this line`
-            : `unexpected indentation (expected ${frame.indent} spaces)`,
-      })
+      if (indent < frame.indent && frame.loop !== null) {
+        add(lineNo, 'loopNotClosedBeforeLine', { loopLine: frame.loop.line })
+      } else {
+        add(lineNo, 'unexpectedIndent', { expected: frame.indent })
+      }
       continue
     }
 
@@ -127,11 +210,11 @@ export function parseScratch(code: string): ScratchParseResult {
       parsed = parseStatement(text, lineNo)
     } catch (e) {
       if (!(e instanceof ScratchSyntaxError)) throw e
-      errors.push({ line: lineNo, message: e.message })
+      errors.push({ line: lineNo, code: e.code, params: e.params, message: e.message })
       continue
     }
     if (parsed.kind === 'whenFlagClicked' && lineNo !== 1) {
-      errors.push({ line: lineNo, message: 'the green-flag block can only start a programme' })
+      add(lineNo, 'flagNotFirst')
       continue
     }
     frame.body.push(parsed)
@@ -142,7 +225,7 @@ export function parseScratch(code: string): ScratchParseResult {
 
   for (const frame of frames.slice(1).reverse()) {
     if (frame.loop) {
-      errors.push({ line: frame.loop.line, message: '"répéter" is never closed by "fin"' })
+      add(frame.loop.line, 'loopNeverClosed')
     }
   }
 
@@ -175,14 +258,12 @@ function parseStatement(text: string, line: number): ScratchStatement {
 
   m = /^répéter (.+) fois$/.exec(text)
   if (m) return { kind: 'repeat', times: parseValue(m[1]), body: [], line }
-  throw new ScratchSyntaxError(`unknown instruction "${text}" — see the catalogue in ADR 0031`)
+  throw new ScratchSyntaxError('unknownInstruction', { text })
 }
 
 function variableName(text: string): string {
   if (!IDENTIFIER.test(text) || text === ANSWER) {
-    throw new ScratchSyntaxError(
-      `"${text}" is not a variable name (letters, digits and _, no spaces)`
-    )
+    throw new ScratchSyntaxError('invalidVariableName', { text })
   }
   return text
 }
@@ -193,7 +274,7 @@ function parseValue(source: string): ScratchValue {
 
   function value(): ScratchValue {
     const token = tokens[pos]
-    if (!token) throw new ScratchSyntaxError(`a value is missing in "${source}"`)
+    if (!token) throw new ScratchSyntaxError('valueMissing', { source })
     pos++
     switch (token.kind) {
       case 'number':
@@ -210,10 +291,10 @@ function parseValue(source: string): ScratchValue {
           pos++
           return number('-' + next.text)
         }
-        throw new ScratchSyntaxError(`a value is missing before "${token.op}" in "${source}"`)
+        throw new ScratchSyntaxError('valueMissingBeforeOperator', { operator: token.op, source })
       }
       case 'close':
-        throw new ScratchSyntaxError(`a value is missing before ")" in "${source}"`)
+        throw new ScratchSyntaxError('valueMissingBeforeClose', { source })
       case 'open': {
         const left = value()
         const after = tokens[pos]
@@ -221,15 +302,13 @@ function parseValue(source: string): ScratchValue {
           pos++
           return left
         }
-        if (after?.kind !== 'op') throw new ScratchSyntaxError(`")" is missing in "${source}"`)
+        if (after?.kind !== 'op') throw new ScratchSyntaxError('closeMissing', { source })
         pos++
         const right = value()
         const end = tokens[pos]
-        if (end === undefined) throw new ScratchSyntaxError(`")" is missing in "${source}"`)
+        if (end === undefined) throw new ScratchSyntaxError('closeMissing', { source })
         if (end.kind !== 'close') {
-          throw new ScratchSyntaxError(
-            `one operator per pair of parentheses, as in Scratch: ((a + b) * c), in "${source}"`
-          )
+          throw new ScratchSyntaxError('oneOperatorPerPair', { source })
         }
         pos++
         return { kind: 'operator', op: after.op, left, right }
@@ -240,9 +319,8 @@ function parseValue(source: string): ScratchValue {
   const result = value()
   if (pos < tokens.length) {
     throw new ScratchSyntaxError(
-      tokens[pos].kind === 'op'
-        ? `an operator block goes in parentheses, as in Scratch: (a * b), in "${source}"`
-        : `unexpected text after the value in "${source}"`
+      tokens[pos].kind === 'op' ? 'operatorNeedsParentheses' : 'unexpectedTextAfterValue',
+      { source }
     )
   }
   return result
@@ -270,19 +348,22 @@ function tokenize(source: string): Token[] {
       i++
     } else if (c === '«') {
       const end = source.indexOf('»', i + 1)
-      if (end === -1) throw new ScratchSyntaxError(`« is never closed by » in "${source}"`)
+      if (end === -1) throw new ScratchSyntaxError('textNeverClosed', { source })
       const text = source.slice(i + 1, end).trim()
-      if (text === '') throw new ScratchSyntaxError(`empty text « » in "${source}"`)
+      if (text === '') throw new ScratchSyntaxError('emptyText', { source })
       tokens.push({ kind: 'text', text })
       i = end + 1
     } else {
       const m = /^\d+(?:[.,]\d+)?/.exec(source.slice(i)) ?? /^[\p{L}\p{N}_]+/u.exec(source.slice(i))
       if (!m) {
-        throw new ScratchSyntaxError(
-          c === '×' || c === '÷'
-            ? `Scratch writes ${c === '×' ? '*' : '/'}, not ${c}, in "${source}"`
-            : `unexpected character "${c}" in "${source}"`
-        )
+        if (c === '×' || c === '÷') {
+          throw new ScratchSyntaxError('wrongOperatorSymbol', {
+            symbol: c,
+            correct: c === '×' ? '*' : '/',
+            source,
+          })
+        }
+        throw new ScratchSyntaxError('unexpectedCharacter', { character: c, source })
       }
       tokens.push(/^\d/.test(m[0]) ? { kind: 'number', text: m[0] } : { kind: 'word', text: m[0] })
       i += m[0].length

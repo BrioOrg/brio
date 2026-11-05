@@ -13,6 +13,7 @@ import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.domain.Maitrise;
 import fr.brio.progression.domain.SoumissionCompetence;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
+import fr.brio.progression.infrastructure.DernierTravail;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
 import fr.brio.progression.infrastructure.MaitriseRepository;
@@ -186,12 +187,17 @@ class ProgressionMaitriseTest {
 
     @Test
     void maitriseExposeUnNiveauParCompetenceAvecNiveauNullableSousLeSeuil() {
+        Instant travailX = Instant.parse("2026-10-20T10:00:00Z");
+        Instant travailY = Instant.parse("2026-09-01T10:00:00Z");
         when(maitrises.findByIdEleveId(eleve)).thenReturn(List.of(
                 new Maitrise(eleve, COMP_X, (short) 3, 6, Instant.now()),
                 new Maitrise(eleve, COMP_Y, null, 2, Instant.now())));
+        when(soumissionsCompetences.derniersTravaux(eleve)).thenReturn(List.of(
+                new DernierTravail(COMP_X, travailX),
+                new DernierTravail(COMP_Y, travailY)));
 
         assertThat(service.maitrise(eleve)).containsExactly(
-                new MaitriseInfo(COMP_X, 3, 6),
-                new MaitriseInfo(COMP_Y, null, 2));
+                new MaitriseInfo(COMP_X, 3, 6, travailX),
+                new MaitriseInfo(COMP_Y, null, 2, travailY));
     }
 }

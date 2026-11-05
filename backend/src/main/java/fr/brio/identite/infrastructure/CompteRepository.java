@@ -13,4 +13,6 @@ public interface CompteRepository extends JpaRepository<Compte, UUID> {
     Optional<Compte> findByEmailIgnoreCase(String email);
 
     boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByPseudonyme(String pseudonyme);
 }

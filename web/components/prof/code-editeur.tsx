@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { parseScratch } from '@brio/content'
 
@@ -22,6 +22,55 @@ type Props = {
 
 const etiquette = 'font-display text-xs font-bold uppercase tracking-wide text-ink-muted'
 
+// Un pas d'indentation (ADR 0031 §2 : le corps d'un « répéter » est indenté de 4 espaces).
+const PAS = '    '
+
+type Remplacement = { code: string; debut: number; fin: number }
+
+/**
+ * Indentation au clavier dans la zone de code. Maj+Tab (désindente) et toute sélection agissent
+ * sur les lignes entières qu'elles touchent ; Tab avec un simple curseur insère un pas là où il
+ * se trouve. Fonction pure : renvoie le nouveau code et la sélection à y reposer.
+ */
+export function appliqueIndentation(
+  code: string,
+  debut: number,
+  fin: number,
+  desindente: boolean
+): Remplacement {
+  if (!desindente && debut === fin) {
+    const pos = debut + PAS.length
+    return { code: code.slice(0, debut) + PAS + code.slice(fin), debut: pos, fin: pos }
+  }
+
+  const debutLigne = code.lastIndexOf('\n', debut - 1) + 1
+  const avant = code.slice(0, debutLigne)
+  const lignes = code.slice(debutLigne, fin).split('\n')
+  const apres = code.slice(fin)
+
+  let decalageDebut = 0
+  let decalageFin = 0
+  const transformees = lignes.map((ligne, i) => {
+    // Une sélection qui se termine en début de ligne ne doit pas indenter cette ligne-là.
+    if (i === lignes.length - 1 && ligne === '' && lignes.length > 1) return ligne
+    if (desindente) {
+      const retire = /^ {1,4}/.exec(ligne)?.[0].length ?? 0
+      if (i === 0) decalageDebut = -retire
+      decalageFin -= retire
+      return ligne.slice(retire)
+    }
+    if (i === 0) decalageDebut = PAS.length
+    decalageFin += PAS.length
+    return PAS + ligne
+  })
+
+  return {
+    code: avant + transformees.join('\n') + apres,
+    debut: Math.max(debutLigne, debut + decalageDebut),
+    fin: Math.max(debutLigne, fin + decalageFin),
+  }
+}
+
 // Le catalogue de l'ADR 0031 §2, pour l'aide de saisie.
 const CATALOGUE = [
   'quand le drapeau vert est cliqué',
@@ -41,7 +90,13 @@ export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
   const langage = langageCode(bloc)
   const code = typeof bloc.code === 'string' ? bloc.code : ''
   const idErreurs = useId()
+  const idAide = useId()
   const ref = useRef<HTMLTextAreaElement>(null)
+  // Sélection à reposer après qu'une (dés)indentation a réécrit le code (React reconstruit la zone).
+  const selectionAReposer = useRef<{ debut: number; fin: number } | null>(null)
+  // Après Échap, le prochain Tab sort du champ au lieu d'indenter ; toute autre frappe le réarme.
+  const sortieParTab = useRef(false)
+  const [annonce, setAnnonce] = useState('')
 
   const analyse = useMemo(
     () => (langage === 'scratch' && code.trim() !== '' ? parseScratch(code) : null),
@@ -54,15 +109,45 @@ export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
   // La zone grandit avec le programme : la gouttière des numéros reste alignée sans défilement.
   useEffect(() => {
     const el = ref.current
-    if (el) {
-      el.style.height = 'auto'
-      el.style.height = `${el.scrollHeight}px`
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+    if (selectionAReposer.current) {
+      el.focus()
+      el.setSelectionRange(selectionAReposer.current.debut, selectionAReposer.current.fin)
+      selectionAReposer.current = null
     }
   }, [code])
 
+  function surTouche(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Escape') {
+      sortieParTab.current = true
+      setAnnonce('La touche Tab quitte le champ.')
+      return
+    }
+    if (e.key === 'Tab') {
+      if (sortieParTab.current) {
+        sortieParTab.current = false // laisse le focus sortir normalement
+        return
+      }
+      e.preventDefault()
+      const el = e.currentTarget
+      const r = appliqueIndentation(code, el.selectionStart, el.selectionEnd, e.shiftKey)
+      if (r.code === code) return
+      selectionAReposer.current = { debut: r.debut, fin: r.fin }
+      onModifier({ code: r.code })
+      return
+    }
+    // Toute frappe utile réarme l'indentation et efface l'annonce (pas les simples modificateurs).
+    if (sortieParTab.current && !['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) {
+      sortieParTab.current = false
+      setAnnonce('')
+    }
+  }
+
   const champCode = champ('code')
   const decritPar =
-    [champCode['aria-describedby'], erreurs.length > 0 ? idErreurs : undefined]
+    [champCode['aria-describedby'], idAide, erreurs.length > 0 ? idErreurs : undefined]
       .filter(Boolean)
       .join(' ') || undefined
 
@@ -120,6 +205,7 @@ export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               aria-describedby={decritPar}
               value={code}
               onChange={(e) => onModifier({ code: e.target.value })}
+              onKeyDown={surTouche}
               onFocus={onFocusBloc}
               placeholder={
                 langage === 'scratch'
@@ -129,6 +215,14 @@ export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               className={`min-w-0 flex-1 resize-none overflow-y-hidden whitespace-pre bg-transparent px-2 py-2 placeholder:text-ink-muted/60 focus:outline-none ${marqueChamp}`}
             />
           </div>
+
+          <p id={idAide} className="sr-only">
+            Tab ajoute une indentation, Maj+Tab la retire. Pour quitter le champ au clavier, appuie
+            sur Échap puis Tab.
+          </p>
+          <span role="status" aria-live="polite" className="sr-only">
+            {annonce}
+          </span>
 
           {langage === 'scratch' && (
             <>
@@ -146,9 +240,9 @@ export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   Instructions reconnues
                 </summary>
                 <p className="mt-1.5">
-                  Une instruction par ligne. Le corps d’un « répéter » est indenté de 4 espaces et
-                  fermé par « fin ». Un texte s’écrit entre « », un calcul entre parenthèses, une
-                  paire par opérateur : ((x * 3) + 4).
+                  Une instruction par ligne. Le corps d’un « répéter » est indenté de 4 espaces
+                  (touche Tab, Maj+Tab pour revenir) et fermé par « fin ». Un texte s’écrit entre
+                  « », un calcul entre parenthèses, une paire par opérateur : ((x * 3) + 4).
                 </p>
                 <pre className="mt-1.5 overflow-x-auto rounded-md border border-line bg-surface-page p-2 font-mono text-ink">
                   {CATALOGUE.join('\n')}

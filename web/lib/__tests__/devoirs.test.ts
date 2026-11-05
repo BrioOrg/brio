@@ -31,7 +31,7 @@ describe('listerMesDevoirs', () => {
       vi.fn(async () =>
         new Response(
           JSON.stringify([
-            { id: 'd1', titre: 'Pythagore', echeanceAt: '2026-10-03T18:00:00Z', nombreExercices: 3, statutRendu: 'non_commence' },
+            { id: 'd1', classeId: 'c1', titre: 'Pythagore', sourceType: 'cours', sourceRef: 'x', echeanceAt: '2026-10-03T18:00:00Z', nombreExercices: 3, statutRendu: 'non_commence', corrige: false },
           ]),
           { status: 200, headers: { 'Content-Type': 'application/json' } }
         )

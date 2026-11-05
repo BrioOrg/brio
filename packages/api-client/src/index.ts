@@ -26,8 +26,16 @@ export {
   ParcoursSchema,
   getSerie,
   SerieInfoSchema,
+  ChapitreAReprendreSchema,
+  MaitriseInfoSchema,
 } from './progression.js'
-export type { ProgressionInfo, ParcoursChapitre, SerieInfo } from './progression.js'
+export type {
+  ProgressionInfo,
+  ParcoursChapitre,
+  SerieInfo,
+  ChapitreAReprendre,
+  MaitriseInfo,
+} from './progression.js'
 export {
   listerMesCours,
   getCoursBrouillon,
@@ -151,10 +159,33 @@ export {
   SalonMessageVueSchema,
   SalonSignalementVueSchema,
 } from './salons.js'
-export type {
-  SalonVue,
-  SalonMessageVue,
-  SalonSignalementVue,
-  CreerSalonInput,
-} from './salons.js'
+export type { SalonVue, SalonMessageVue, SalonSignalementVue, CreerSalonInput } from './salons.js'
 export { surSessionExpiree, signalerSessionExpiree } from './session-expiree.js'
+export {
+  lireReglageCommunaute,
+  listerQuestions,
+  consulterQuestion,
+  poserQuestion,
+  modifierQuestion,
+  supprimerQuestion,
+  repondre as repondreQuestion,
+  commenter as commenterReponse,
+  modifierReponse,
+  supprimerReponse,
+  voterUtile,
+  resoudreQuestion,
+  CommunauteError,
+  AuteurCommunauteSchema,
+  QuestionResumeSchema,
+  PageQuestionsSchema,
+  QuestionDetailSchema,
+} from './communaute.js'
+export type {
+  AuteurCommunaute,
+  QuestionResume,
+  PageQuestions,
+  QuestionDetail,
+  ReponseCommunaute,
+  CommentaireCommunaute,
+  FiltresQuestions,
+} from './communaute.js'

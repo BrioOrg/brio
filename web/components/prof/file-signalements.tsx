@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -44,15 +43,8 @@ export function FileSignalements() {
   }, [charger])
 
   return (
-    <div data-theme="light" className="min-h-screen bg-surface-page font-prose text-ink">
+    <div className="min-h-screen bg-surface-page font-prose text-ink">
       <header className="flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
-        <Link
-          href="/prof"
-          aria-label="Retour à l'espace enseignant"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-line text-ink-muted hover:text-ink"
-        >
-          <Icon name="arrow-left" size={16} aria-hidden="true" />
-        </Link>
         <h1 className="min-w-0 flex-1 font-display text-lg font-extrabold text-ink">
           Signalements
         </h1>
@@ -232,7 +224,6 @@ function DialogueSanction({ compteId, classeId, nom, onApplique }: DialogueSanct
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <Dialog.Content
-          data-theme="light"
           className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface-panel p-5 font-prose text-ink focus-visible:outline-none"
         >
           <Dialog.Title className="font-display text-lg font-extrabold text-ink">

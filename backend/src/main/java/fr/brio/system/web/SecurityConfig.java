@@ -78,12 +78,15 @@ class SecurityConfig {
                 .requestMatchers("/api/prof/**").hasRole("ENSEIGNANT")
                 // The signup pick-list of établissements: names and types only (ADR 0029 §1).
                 .requestMatchers(HttpMethod.GET, "/api/etablissements").permitAll()
+                // Whether the Communauté is on: one boolean the web server reads (ADR 0035 §10).
+                .requestMatchers(HttpMethod.GET, "/api/reglages/communaute").permitAll()
                 // Établissement creation and class administration: ADMIN_BRIO only. Teachers
                 // create their own classes and codes under /api/prof/** above.
                 .requestMatchers(HttpMethod.POST, "/api/etablissements").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.PUT, "/api/classes/*/enseignant-principal").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes/*/codes").hasRole("ADMIN_BRIO")
+                .requestMatchers("/api/admin/comptes/**").hasRole("ADMIN_BRIO")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginProcessingUrl("/api/sessions")

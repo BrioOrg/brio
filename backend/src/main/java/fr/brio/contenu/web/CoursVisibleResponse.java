@@ -2,6 +2,7 @@ package fr.brio.contenu.web;
 
 import fr.brio.contenu.CoursVisible;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,10 +15,11 @@ record CoursVisibleResponse(
         String niveauCode,
         String matiereCode,
         String enseignant,
-        Instant publieAt) {
+        Instant publieAt,
+        List<UUID> classeIds) {
 
     static CoursVisibleResponse from(CoursVisible c, String enseignant) {
         return new CoursVisibleResponse(
-                c.id(), c.titre(), c.niveauCode(), c.matiereCode(), enseignant, c.publieAt());
+                c.id(), c.titre(), c.niveauCode(), c.matiereCode(), enseignant, c.publieAt(), c.classeIds());
     }
 }

@@ -23,6 +23,7 @@ export default async function MatierePage({
     <div className="min-h-screen bg-surface-page font-prose text-ink">
       <SiteHeader
         crumbs={[
+          { label: 'Explorer', href: '/explorer' },
           { label: niveauEntry.niveauLibelle, href: `/${niveau}` },
           { label: matiereEntry.matiereLibelle },
         ]}

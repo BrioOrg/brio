@@ -23,27 +23,56 @@ describe('BottomNav', () => {
     await setup()
     expect(screen.getByRole('navigation', { name: 'Navigation principale' })).toBeInTheDocument()
     // Wired tabs are links.
-    expect(screen.getByRole('link', { name: 'Parcours' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Devoirs' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Annales' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Accueil' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ma classe' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Explorer' })).toBeInTheDocument()
     // Disabled tabs are buttons, not links.
-    expect(screen.getByRole('button', { name: /Profil/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Communauté/ })).toBeInTheDocument()
   })
 
-  it('wires parcours to the home route and marks it current', async () => {
-    await setup('/3e/mathematiques')
-    const parcours = screen.getByRole('link', { name: 'Parcours' })
-    expect(parcours).toHaveAttribute('href', '/')
-    expect(parcours).toHaveAttribute('aria-current', 'page')
-  })
-
-  it('renders profil as disabled and non-interactive', async () => {
+  it('keeps the five spaces in order, with Communauté before Profil', async () => {
     await setup()
-    const profil = screen.getByRole('button', { name: /Profil/ })
-    expect(profil).toBeDisabled()
-    expect(profil).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.queryByRole('link', { name: /Profil/ })).not.toBeInTheDocument()
+    const noms = screen.getAllByRole('listitem').map((li) => li.textContent)
+    expect(noms).toEqual([
+      'Accueil',
+      'Ma classe',
+      'Explorer',
+      'Communauté — bientôt disponible',
+      'Profil',
+    ])
+  })
+
+  it('wires Explorer to its route and marks it current on a catalogue URL', async () => {
+    await setup('/3e/mathematiques')
+    const explorer = screen.getByRole('link', { name: 'Explorer' })
+    expect(explorer).toHaveAttribute('href', '/explorer')
+    expect(explorer).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('renders communauté as disabled and non-interactive', async () => {
+    await setup()
+    const communaute = screen.getByRole('button', { name: /Communauté/ })
+    expect(communaute).toBeDisabled()
+    expect(screen.queryByRole('link', { name: /Communauté/ })).not.toBeInTheDocument()
+  })
+
+  it('links Communauté and marks it current once its setting is on', async () => {
+    pathname = '/communaute/42'
+    const { BottomNav } = await import('../bottom-nav')
+    const { navigationEleve } = await import('@/lib/app-sections')
+    render(<BottomNav {...navigationEleve(true)} />)
+    const communaute = screen.getByRole('link', { name: 'Communauté' })
+    expect(communaute).toHaveAttribute('href', '/communaute')
+    expect(communaute).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('button', { name: /Communauté/ })).not.toBeInTheDocument()
+  })
+
+  it('wires Profil to its route and marks it current there', async () => {
+    await setup('/profil')
+    const profil = screen.getByRole('link', { name: 'Profil' })
+    expect(profil).toHaveAttribute('href', '/profil')
+    expect(profil).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('button', { name: /Profil/ })).not.toBeInTheDocument()
     // "Ma classe" replaced the old disabled "Social" placeholder: it is a real link now.
     expect(screen.getByRole('link', { name: 'Ma classe' })).toHaveAttribute('href', '/ma-classe')
     expect(screen.queryByRole('button', { name: /Social/ })).not.toBeInTheDocument()

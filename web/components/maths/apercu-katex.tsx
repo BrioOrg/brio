@@ -3,9 +3,10 @@
 import katex from 'katex'
 import { useMemo, useRef } from 'react'
 
-// Rendu KaTeX « en direct » d'une formule LaTeX saisie à la main. Contrairement à l'afficheur
-// élève (chapter-view.tsx), l'entrée ici est saisie par un humain, en cours de frappe : elle est
-// donc souvent incomplète ou invalide. On rend avec throwOnError pour attraper l'erreur nous-mêmes
+import { KATEX_LIMITS, LATEX_MAX_LENGTH } from '@/lib/katex'
+
+// Rendu KaTeX « en direct » d'une formule LaTeX saisie à la main, en cours de frappe : elle est
+// donc souvent incomplète ou invalide. Mêmes limites que l'affichage (lib/katex.ts). On rend avec throwOnError pour attraper l'erreur nous-mêmes
 // et afficher un message discret plutôt qu'un « ParseError » rouge, tout en gardant le dernier
 // rendu valide visible pour ne pas faire clignoter la page à chaque frappe.
 //
@@ -31,10 +32,13 @@ export function ApercuKatex({
   const { html, erreur } = useMemo(() => {
     const source = latex.trim()
     if (!source) return { html: '', erreur: null as string | null }
+    if (source.length > LATEX_MAX_LENGTH) {
+      return { html: dernierValide.current, erreur: 'Formule trop longue.' }
+    }
     try {
       const rendu = katex.renderToString(source, {
+        ...KATEX_LIMITS,
         throwOnError: true,
-        output: 'htmlAndMathml',
         displayMode,
       })
       dernierValide.current = rendu

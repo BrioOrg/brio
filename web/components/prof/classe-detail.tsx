@@ -64,7 +64,7 @@ export function ClasseDetail({ classeId }: { classeId: string }) {
   }, [classeId])
 
   return (
-    <div data-theme="light" className="min-h-screen bg-surface-page font-prose text-ink">
+    <div className="min-h-screen bg-surface-page font-prose text-ink">
       <header className="flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
         <Link
           href="/prof/classes"

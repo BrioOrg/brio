@@ -49,7 +49,7 @@ class ConsentementIntegrationTest {
         identifiantEleve = "eleve.consent." + UUID.randomUUID();
         emailParent = "parent." + UUID.randomUUID() + "@example.fr";
         eleveEnAttente = compteRepository.save(
-                Compte.creerEleve(identifiantEleve, "{noop}motdepasse", emailParent, "4e"));
+                Compte.creerEleve(identifiantEleve, "{noop}motdepasse", emailParent, "4e", "Test-" + UUID.randomUUID()));
     }
 
     // ── Confirmation flow ──────────────────────────────────────────────────────

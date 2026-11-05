@@ -4,8 +4,11 @@ import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.api.InscriptionEleveEnAttenteInfo;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.Rattachement;
+import fr.brio.identite.domain.RoleCompte;
 import fr.brio.identite.domain.StatutCompte;
+import fr.brio.identite.infrastructure.CompteInfoAssembler;
 import fr.brio.identite.infrastructure.CompteRepository;
+import fr.brio.identite.infrastructure.PseudonymeGenerator;
 import fr.brio.identite.infrastructure.EtablissementRepository;
 import fr.brio.identite.infrastructure.RattachementRepository;
 import org.springframework.http.HttpStatus;
@@ -26,6 +29,8 @@ public class CompteService {
     private final RattachementRepository rattachements;
     private final PasswordEncoder passwordEncoder;
     private final IdentifiantGenerator identifiantGenerator;
+    private final PseudonymeGenerator pseudonymeGenerator;
+    private final CompteInfoAssembler compteInfos;
     private final ConsentementService consentementService;
 
     public CompteService(CompteRepository comptes,
@@ -33,12 +38,16 @@ public class CompteService {
                          RattachementRepository rattachements,
                          PasswordEncoder passwordEncoder,
                          IdentifiantGenerator identifiantGenerator,
+                         PseudonymeGenerator pseudonymeGenerator,
+                         CompteInfoAssembler compteInfos,
                          ConsentementService consentementService) {
         this.comptes = comptes;
         this.etablissements = etablissements;
         this.rattachements = rattachements;
         this.passwordEncoder = passwordEncoder;
         this.identifiantGenerator = identifiantGenerator;
+        this.pseudonymeGenerator = pseudonymeGenerator;
+        this.compteInfos = compteInfos;
         this.consentementService = consentementService;
     }
 
@@ -104,14 +113,28 @@ public class CompteService {
         String identifiant = identifiantGenerator.generateUnique();
         String hash = passwordEncoder.encode(motDePasse);
         Compte compte = comptes.save(
-                Compte.creerEleve(identifiant, hash, emailParent, niveauDeclare));
+                Compte.creerEleve(identifiant, hash, emailParent, niveauDeclare,
+                        pseudonymeGenerator.generateUnique()));
         consentementService.envoyerDemandeConsentement(compte.getId());
         return new InscriptionEleveEnAttenteInfo(
                 compte.getId(), identifiant, compte.getStatut().name());
     }
 
-    private static CompteInfo toInfo(Compte c) {
-        return new CompteInfo(c.getId(), c.getRole().name(), c.getStatut().name(),
-                c.getNom(), c.getEmail());
+    /**
+     * Replaces a student's pseudonym. Reached only through the ADMIN_BRIO endpoint.
+     *
+     * @throws ResponseStatusException 404 if the account does not exist or is not a student
+     */
+    @Transactional
+    public String regenererPseudonyme(UUID compteId) {
+        Compte compte = comptes.findById(compteId)
+                .filter(c -> c.getRole() == RoleCompte.eleve)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Élève introuvable"));
+        compte.remplacerPseudonyme(pseudonymeGenerator.generateUnique());
+        return compte.getPseudonyme();
+    }
+
+    private CompteInfo toInfo(Compte c) {
+        return compteInfos.pour(c);
     }
 }

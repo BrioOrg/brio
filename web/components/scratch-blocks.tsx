@@ -35,7 +35,7 @@ export function ScratchBlocks({
   code,
   script,
 }: {
-  id: string
+  id?: string
   code: string
   script: ScratchStatement[]
 }) {

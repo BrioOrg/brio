@@ -26,4 +26,9 @@ public interface SoumissionCompetenceRepository extends JpaRepository<Soumission
     /** Every competence this student has submitted to — the set to recompute. */
     @Query("select distinct s.competenceCode from SoumissionCompetence s where s.eleveId = :eleveId")
     List<String> competencesDeLEleve(@Param("eleveId") UUID eleveId);
+
+    /** The student's latest submission per competence, retries included. */
+    @Query("select new fr.brio.progression.infrastructure.DernierTravail(s.competenceCode, max(s.submittedAt)) "
+            + "from SoumissionCompetence s where s.eleveId = :eleveId group by s.competenceCode")
+    List<DernierTravail> derniersTravaux(@Param("eleveId") UUID eleveId);
 }

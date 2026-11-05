@@ -1,4 +1,4 @@
-import { parseScratch } from '@brio/content'
+import { parseScratch, type ScratchError } from '@brio/content'
 import { describe, expect, it } from 'vitest'
 
 import { messageScratch } from '../scratch-erreurs'
@@ -96,7 +96,13 @@ describe('messageScratch', () => {
     expect(messageScratch(erreur!)).toBe(attendu)
   })
 
-  it('should show an unknown message as written rather than hide it', () => {
-    expect(messageScratch({ line: 1, message: 'something new' })).toBe('something new')
+  it('should show an unknown code’s message as written rather than hide it', () => {
+    const inconnu = {
+      line: 1,
+      code: 'ruleAddedSince' as ScratchError['code'],
+      params: {},
+      message: 'something new',
+    }
+    expect(messageScratch(inconnu)).toBe('something new')
   })
 })

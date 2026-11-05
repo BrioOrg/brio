@@ -31,7 +31,8 @@ const NAV_LABEL = "Navigation de l'espace enseignant"
  * The teacher sections are navigated like the student ones (#286): the left icon sidebar
  * on desktop (≥ sm), the fixed bottom bar on mobile, with space reserved so page content
  * clears it. The top bar sits in the content column, right of the sidebar. The teacher
- * space is light-themed throughout (every page sets it), so the navigations are too.
+ * space follows the account's chosen theme (#284/#313) — no theme is forced here; only the
+ * course editor stays light on purpose (a white document to write on).
  */
 export default async function ProfLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies()
@@ -48,7 +49,7 @@ export default async function ProfLayout({ children }: { children: ReactNode }) 
   if (moi.role !== 'enseignant') redirect('/')
 
   return (
-    <div data-theme="light" className="sm:flex">
+    <div className="sm:flex">
       <SectionSidebar sections={PROF_SECTIONS} label={NAV_LABEL} />
       <div className="min-w-0 flex-1 pb-16 sm:pb-0">
         <div className="border-b border-line bg-surface-panel">

@@ -3,6 +3,7 @@ package fr.brio.progression;
 import fr.brio.contenu.api.ChapitrePublie;
 import fr.brio.contenu.api.SectionTerminee;
 import fr.brio.exercices.api.SoumissionEnregistree;
+import fr.brio.progression.api.ChapitreAReprendre;
 import fr.brio.progression.api.ChapitreTermine;
 import fr.brio.progression.api.EtatParcours;
 import fr.brio.progression.api.MaitriseInfo;
@@ -21,10 +22,12 @@ import fr.brio.progression.domain.Serie;
 import fr.brio.progression.domain.Solde;
 import fr.brio.progression.domain.SoumissionCompetence;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
+import fr.brio.progression.infrastructure.DernierTravail;
 import fr.brio.progression.infrastructure.EvenementXpRepository;
 import fr.brio.progression.infrastructure.ExerciceReussiRepository;
 import fr.brio.progression.infrastructure.MaitriseRepository;
 import fr.brio.progression.infrastructure.SectionLueRepository;
+import fr.brio.progression.infrastructure.SectionLueRepository.LectureChapitre;
 import fr.brio.progression.infrastructure.SerieRepository;
 import fr.brio.progression.infrastructure.SoldeRepository;
 import fr.brio.progression.infrastructure.SoumissionCompetenceRepository;
@@ -33,9 +36,11 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
@@ -111,7 +116,7 @@ public class ProgressionService {
     public void enregistrerChapitre(ChapitrePublie e) {
         Chapitre chapitre = chapitres.findById(e.chapitreId()).orElseGet(() -> new Chapitre(e.chapitreId()));
         chapitre.maj(e.niveauCode(), e.matiereCode(), e.ordre(), e.statut(),
-                e.totalSections(), e.totalExercices());
+                e.totalSections(), e.totalExercices(), e.titre());
         chapitres.save(chapitre);
     }
 
@@ -207,11 +212,14 @@ public class ProgressionService {
      */
     @Transactional(readOnly = true)
     public List<MaitriseInfo> maitrise(UUID eleveId) {
+        Map<String, Instant> derniersTravaux = soumissionsCompetences.derniersTravaux(eleveId).stream()
+                .collect(Collectors.toMap(DernierTravail::competenceCode, DernierTravail::dernier));
         return maitrises.findByIdEleveId(eleveId).stream()
                 .map(m -> new MaitriseInfo(
                         m.getCompetenceCode(),
                         m.getNiveau() == null ? null : (int) (short) m.getNiveau(),
-                        m.getEchantillon()))
+                        m.getEchantillon(),
+                        derniersTravaux.get(m.getCompetenceCode())))
                 .toList();
     }
 
@@ -262,6 +270,32 @@ public class ProgressionService {
             predecesseurTermine = termine;
         }
         return resultat;
+    }
+
+    /**
+     * The chapter the student last read a section of without finishing it (#323): the most
+     * recently read one that is still published and not complete. Empty if there is none.
+     */
+    @Transactional(readOnly = true)
+    public Optional<ChapitreAReprendre> reprendre(UUID eleveId) {
+        for (LectureChapitre lecture : sectionsLues.lecturesParChapitre(eleveId)) {
+            Optional<Chapitre> projete = chapitres.findById(lecture.chapitreId())
+                    .filter(c -> "published".equals(c.getStatut()) && c.getTitre() != null);
+            if (projete.isEmpty()) {
+                continue;
+            }
+            Chapitre c = projete.get();
+            long er = exercicesReussis.countByEleveIdAndChapitreId(eleveId, c.getChapitreId());
+            if (estTermine(eleveId, c, lecture.sectionsLues(), er)) {
+                continue;
+            }
+            // A chapter republished with fewer sections must not read 6/5.
+            int lues = (int) Math.min(lecture.sectionsLues(), c.getTotalSections());
+            return Optional.of(new ChapitreAReprendre(c.getChapitreId(), c.getTitre(),
+                    c.getNiveauCode(), c.getMatiereCode(), lues, c.getTotalSections(),
+                    lecture.derniereLecture()));
+        }
+        return Optional.empty();
     }
 
     // ── internals ─────────────────────────────────────────────────────────────

@@ -41,7 +41,7 @@ Never work on develop or main.
 - Work in small commits, each following the commit convention with (#<N>).
 - If you discover the plan was wrong, stop and tell the user rather than
   improvising a different approach.
-- Never push. Ask first.
+- Push the branch without asking, never `develop` or `main`.
 
 ## Phase 6 — Verify and hand back
 1. Run the build and tests. Report real output, not a summary.

@@ -2,7 +2,7 @@
 /**
  * Validates chapter content files for two categories of problems:
  *
- * 1. richText delimiter balance — **bold**, *italic*, $...$ inline math.
+ * 1. richText delimiter balance — **bold**, *italic*, ==highlight==, $...$ inline math.
  *    An unclosed delimiter renders as raw markup for students.
  *
  * 2. Figure spec correctness — structural and geometric:
@@ -56,10 +56,12 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
+let parseRichText
 let parseScratch
 let RESERVED_DIAPO_IDS
 let checkChart
 try {
+  ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
@@ -117,10 +119,19 @@ function fail(file, path, message) {
 }
 
 /**
- * Checks that **,  *, and $ delimiters are balanced in a richText string.
- * Escapes (\* and \$) are stripped before counting.
+ * Checks that **,  *, == and $ delimiters are balanced in a richText string.
+ * Escapes (\*, \$ and \=) are stripped before counting.
  */
 function checkDelimiters(value, file, path) {
+  // A highlight is asked of the parser itself: `a == b` is not one, and it cannot span a formula.
+  const unclosed = parseRichText(value.replace(/\\=/g, '')).some(
+    (token) => token.kind === 'text' && /==[^\s=]/.test(token.value),
+  )
+  if (unclosed) {
+    fail(file, path, `unclosed == delimiter in: ${JSON.stringify(value)}`)
+    return
+  }
+
   // Strip escape sequences so they don't affect counts
   let s = value.replace(/\\\$/g, '').replace(/\\\*/g, '')
 
@@ -158,7 +169,7 @@ function checkDelimiters(value, file, path) {
 function walkStrings(node, file, path) {
   if (typeof node === 'string') {
     // Only check strings that contain potential richText markup
-    if (/[*$]/.test(node)) {
+    if (/[*$]|==/.test(node)) {
       checkDelimiters(node, file, path)
     }
   } else if (Array.isArray(node)) {

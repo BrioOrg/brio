@@ -18,7 +18,7 @@ function libelleMatiere(catalogue: Catalogue, cours: CoursVisible): string | nul
 }
 
 /**
- * The teacher courses published to the student's classes (#160), above the catalogue. The
+ * The teacher courses published to the student's classes (#160), on Ma classe. The
  * caller renders it only when there is at least one course: no empty state, and every line
  * shows only what the backend returned (a missing subject label or author is omitted).
  */

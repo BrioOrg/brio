@@ -100,7 +100,8 @@ class CoursControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].titre").value("Mon cours"))
                 .andExpect(jsonPath("$[0].matiereCode").value("mathematiques"))
                 .andExpect(jsonPath("$[0].enseignant").value("Mme Durand"))
-                .andExpect(jsonPath("$[0].publieAt").exists());
+                .andExpect(jsonPath("$[0].publieAt").exists())
+                .andExpect(jsonPath("$[0].classeIds.length()").value(1));
     }
 
     @Test
