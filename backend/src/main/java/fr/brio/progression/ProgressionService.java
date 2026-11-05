@@ -303,6 +303,10 @@ public class ProgressionService {
     /** Marks the student active on the day of {@code quand} and updates the streak. */
     private void enregistrerActivite(UUID eleveId, Instant quand) {
         LocalDate jour = quand.atZone(ZONE).toLocalDate();
+        // Create the row race-free first (#344), so the find+save below is a plain update, never a
+        // second concurrent INSERT that would collide on series_pkey and roll back the whole award.
+        // After creerSiAbsent the row exists, so orElseGet is only a defensive fallback.
+        series.creerSiAbsent(eleveId);
         Serie serie = series.findById(eleveId).orElseGet(() -> new Serie(eleveId));
         serie.enregistrerActivite(jour, quand);
         series.save(serie);
@@ -345,6 +349,7 @@ public class ProgressionService {
             sommePoids += poids;
         }
         OptionalInt niveau = NiveauMaitrise.pour(sommeSignal, sommePoids, echantillon);
+        maitrises.creerSiAbsent(eleveId, code); // race-free create (#344), so the save below is an update
         maitrises.save(new Maitrise(eleveId, code,
                 niveau.isPresent() ? (short) niveau.getAsInt() : null, echantillon, quand));
     }
@@ -454,6 +459,11 @@ public class ProgressionService {
     }
 
     private void recalculerSolde(UUID eleveId, Instant quand) {
+        // Create then lock the balance row before summing (#344): concurrent awards for the same
+        // student serialize here, so each sum sees every already-committed event and the stored
+        // total never drops one. The row is guaranteed to exist for the lock by creerSiAbsent.
+        soldes.creerSiAbsent(eleveId);
+        soldes.verrouiller(eleveId);
         int total = evenements.sommePointsPourEleve(eleveId);
         soldes.save(new Solde(eleveId, total, Niveau.pour(total), quand));
     }
