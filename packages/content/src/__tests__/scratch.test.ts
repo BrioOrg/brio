@@ -174,6 +174,133 @@ describe('parseScratch', () => {
       1, 3,
     ])
   })
+
+  // --- 4e: conditions, comparisons, logical operators, répéter jusqu'à, pen (#234) ---
+
+  it('should parse a si … alors as an if with no else branch', () => {
+    const parsed = script(['si (x > 10) alors', '    dire « grand »', 'fin'].join('\n'))
+    expect(parsed[0]).toMatchObject({
+      kind: 'if',
+      elseBody: null,
+      condition: {
+        kind: 'comparison',
+        op: '>',
+        left: { kind: 'variable', name: 'x' },
+        right: { kind: 'number', value: 10 },
+      },
+      body: [{ kind: 'say', message: { kind: 'text', text: 'grand' } }],
+    })
+  })
+
+  it('should parse a si … sinon as an if whose elseBody is an array', () => {
+    const parsed = script(
+      ['si (n = 0) alors', '    dire « zéro »', 'sinon', '    dire « autre »', 'fin'].join('\n')
+    )
+    expect(parsed[0]).toMatchObject({
+      kind: 'if',
+      condition: { kind: 'comparison', op: '=' },
+      body: [{ kind: 'say', message: { kind: 'text', text: 'zéro' } }],
+      elseBody: [{ kind: 'say', message: { kind: 'text', text: 'autre' } }],
+    })
+  })
+
+  it('should parse répéter jusqu’à ce que as a C block with a boolean condition', () => {
+    const parsed = script(["répéter jusqu'à ce que (n = 0)", '    ajouter -1 à n', 'fin'].join('\n'))
+    expect(parsed[0]).toMatchObject({
+      kind: 'repeatUntil',
+      condition: { kind: 'comparison', op: '=', right: { kind: 'number', value: 0 } },
+      body: [{ kind: 'changeVariable', variable: 'n' }],
+    })
+  })
+
+  it('should combine booleans with et/ou only in operator position', () => {
+    const parsed = script('si ((réponse = « oui ») ou (essais > 3)) alors\n    dire 1\nfin')
+    expect(parsed[0]).toMatchObject({
+      kind: 'if',
+      condition: {
+        kind: 'logical',
+        op: 'ou',
+        left: { kind: 'comparison', op: '=', left: { kind: 'answer' } },
+        right: { kind: 'comparison', op: '>', left: { kind: 'variable', name: 'essais' } },
+      },
+    })
+  })
+
+  it('should keep et/ou as variable names when they are operands, not operators', () => {
+    const parsed = script('mettre et à (ou + 1)')
+    expect(parsed[0]).toMatchObject({
+      kind: 'setVariable',
+      variable: 'et',
+      value: { kind: 'operator', op: '+', left: { kind: 'variable', name: 'ou' } },
+    })
+  })
+
+  it('should parse the three pen blocks by exact wording', () => {
+    const parsed = script(
+      ["stylo en position d'écriture", 'effacer tout', 'relever le stylo'].join('\n')
+    )
+    expect(parsed.map((s) => s.kind)).toEqual(['penDown', 'clear', 'penUp'])
+  })
+
+  it('should nest a répéter inside a si and close each with its own fin', () => {
+    const parsed = script(
+      [
+        'si (x > 0) alors',
+        '    répéter 3 fois',
+        '        avancer de 10 pas',
+        '    fin',
+        'fin',
+      ].join('\n')
+    )
+    expect(parsed[0]).toMatchObject({
+      kind: 'if',
+      body: [{ kind: 'repeat', body: [{ kind: 'move' }] }],
+    })
+  })
+
+  it.each([
+    ['si x alors\n    dire 1\nfin', 'conditionNotBoolean', 1],
+    ['si (x + 1) alors\n    dire 1\nfin', 'conditionNotBoolean', 1],
+    ["répéter jusqu'à ce que 5\n    dire 1\nfin", 'conditionNotBoolean', 1],
+    ['mettre x à (a > b)', 'booleanInValueSlot', 1],
+    ['dire ((a > b) > 3)', 'comparisonNeedsValues', 1],
+    ['si (x et y) alors\n    dire 1\nfin', 'logicalNeedsBooleans', 1],
+    ['sinon', 'sinonWithoutIf', 1],
+    ['si (x > 0) alors\n    dire 1\n  sinon\n    dire 2\nfin', 'sinonIndent', 3],
+    [
+      'si (x > 0) alors\n    dire 1\nsinon\n    dire 2\nsinon\n    dire 3\nfin',
+      'duplicateSinon',
+      5,
+    ],
+  ])('should reject %j with code %s', (code, expected, line) => {
+    const [error] = errors(parseScratch(code))
+    expect(error).toMatchObject({ code: expected, line })
+  })
+
+  it('should report an empty si, an empty sinon and an empty répéter jusqu’à with a block type', () => {
+    expect(errors(parseScratch('si (x > 0) alors\nsinon\n    dire 1\nfin'))[0]).toMatchObject({
+      code: 'emptyLoop',
+      params: { blockType: 'if' },
+    })
+    expect(errors(parseScratch('si (x > 0) alors\n    dire 1\nsinon\nfin'))[0]).toMatchObject({
+      code: 'emptyLoop',
+      params: { blockType: 'else' },
+    })
+    expect(errors(parseScratch("répéter jusqu'à ce que (n = 0)\nfin"))[0]).toMatchObject({
+      code: 'emptyLoop',
+      params: { blockType: 'repeatUntil' },
+    })
+  })
+
+  it('should carry the block type when a si or répéter jusqu’à is left open or has a stray fin', () => {
+    expect(errors(parseScratch('si (x > 0) alors\n    dire 1'))[0]).toMatchObject({
+      code: 'loopNeverClosed',
+      params: { blockType: 'if' },
+    })
+    expect(
+      errors(parseScratch('si (x > 0) alors\n    dire 1\n  fin'))[0]
+    ).toMatchObject({ code: 'finIndent', params: { blockType: 'if', loopLine: 1 } })
+  })
 })
 
 describe('buildScratchModel', () => {
@@ -231,5 +358,73 @@ describe('buildScratchModel', () => {
         body: [],
       },
     ])
+  })
+
+  it('should draw a si as a C block with a hexagonal boolean in its condition', () => {
+    const [b] = buildScratchModel(script('si (x > 10) alors\n    dire 1\nfin'))
+    expect(b.shape).toBe('c')
+    expect(b.category).toBe('control')
+    expect(b.elseBody).toBeUndefined()
+    expect(b.parts).toEqual([
+      { kind: 'label', text: 'si' },
+      {
+        kind: 'boolean',
+        category: 'operators',
+        parts: [
+          { kind: 'reporter', category: 'variables', parts: [{ kind: 'label', text: 'x' }] },
+          { kind: 'label', text: '>' },
+          { kind: 'input', text: '10' },
+        ],
+      },
+      { kind: 'label', text: 'alors' },
+    ])
+  })
+
+  it('should draw a si … sinon as a double C block (cElse) with an else row and body', () => {
+    const [b] = buildScratchModel(
+      script('si (n = 0) alors\n    dire « a »\nsinon\n    dire « b »\nfin')
+    )
+    expect(b.shape).toBe('cElse')
+    expect(b.elseParts).toEqual([{ kind: 'label', text: 'sinon' }])
+    expect(b.body).toMatchObject([{ parts: [{ text: 'dire' }, { text: 'a' }] }])
+    expect(b.elseBody).toMatchObject([{ parts: [{ text: 'dire' }, { text: 'b' }] }])
+  })
+
+  it('should nest booleans: a logical holds two hexagonal comparisons', () => {
+    const [b] = buildScratchModel(
+      script('si ((x > 0) et (x < 10)) alors\n    dire 1\nfin')
+    )
+    expect(b.parts[1]).toMatchObject({
+      kind: 'boolean',
+      parts: [
+        { kind: 'boolean', parts: [{}, { text: '>' }, {}] },
+        { kind: 'label', text: 'et' },
+        { kind: 'boolean', parts: [{}, { text: '<' }, {}] },
+      ],
+    })
+  })
+
+  it('should draw répéter jusqu’à ce que as a C block with its boolean condition', () => {
+    const [b] = buildScratchModel(script("répéter jusqu'à ce que (n = 0)\n    dire 1\nfin"))
+    expect(b).toMatchObject({
+      category: 'control',
+      shape: 'c',
+      parts: [
+        { kind: 'label', text: "répéter jusqu'à ce que" },
+        { kind: 'boolean', category: 'operators' },
+      ],
+    })
+  })
+
+  it('should draw the three pen blocks as pen-category stacks', () => {
+    const model = buildScratchModel(
+      script("stylo en position d'écriture\neffacer tout\nrelever le stylo")
+    )
+    expect(model.map((b) => [b.category, b.shape])).toEqual([
+      ['pen', 'stack'],
+      ['pen', 'stack'],
+      ['pen', 'stack'],
+    ])
+    expect(model[0].parts).toEqual([{ kind: 'label', text: "stylo en position d'écriture" }])
   })
 })

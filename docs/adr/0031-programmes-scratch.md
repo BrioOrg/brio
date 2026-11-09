@@ -45,11 +45,23 @@ renderer, and the teacher editor, show the text as before.
    | `avancer de <valeur> pas` | motion | stack |
    | `tourner à droite de <valeur> degrés` (or `à gauche`) | motion | stack |
    | `répéter <valeur> fois` … `fin` | control | C |
+   | `si <booléen> alors` … `fin` | control | C |
+   | `si <booléen> alors` … `sinon` … `fin` | control | double C |
+   | `répéter jusqu'à ce que <booléen>` … `fin` | control | C |
+   | `stylo en position d'écriture` | pen | stack |
+   | `relever le stylo` | pen | stack |
+   | `effacer tout` | pen | stack |
 
    Values: a number, a text « … », a variable, `réponse` (sensing) or an operator block
    `(<valeur> op <valeur>)` with `op` among `+ - * /` (operators). Anything else is an error.
-   Conditions, comparisons, "répéter jusqu'à" and the pen extension come when a chapter needs
-   them (4e), as amendments to this table.
+
+   Booleans (4e, drawn as hexagons, operators category): a **comparison**
+   `(<valeur> cmp <valeur>)` with `cmp` among `< = >`, or a **logical** `(<booléen> et <booléen>)`
+   / `(<booléen> ou <booléen>)`. As for arithmetic there is **no precedence**: every operator
+   (comparison and logical alike) has its own pair of parentheses, e.g.
+   `((réponse = « oui ») ou (essais > 3))`. `et`/`ou` are operators only in operator position;
+   elsewhere they stay variable names. The condition of a `si` and of a `répéter jusqu'à ce que`
+   must be a boolean, never a bare value. A boolean cannot sit in a value slot.
 3. **The parsed tree is the shared model.** `parseScratch` in `packages/content` returns either
    the statement tree or a list of errors with their line number; `buildScratchModel` turns the
    tree into blocks made of parts (label, icon, input oval, variable dropdown, nested reporter),
@@ -59,7 +71,9 @@ renderer, and the teacher editor, show the text as before.
    do the same with its own flexbox.
 4. **Colours** come from the `--color-scratch-*` tokens (#217, own PR): Scratch 3's category
    colours with a dark label instead of white, ≥ 4.5 : 1 on every fill, the same in both themes.
-   Puzzle notches are not drawn; they are decorative.
+   Puzzle notches are not drawn; they are decorative. The pen category adds `--color-scratch-pen`
+   / `-edge` (#234, Scratch 3's teal, 6.73 : 1 on the dark label). Booleans reuse the operators
+   colour (they are the operators category); only their shape is a hexagon, as in Scratch.
 5. **Accessibility.** The drawn blocks are hidden from assistive technology; a visually hidden
    `<pre>` carries the source text, which keeps the parentheses and the `fin`, so a screen reader
    reads the programme's structure. The words on the blocks stay selectable.
@@ -100,7 +114,15 @@ renderer, and the teacher editor, show the text as before.
 
 - An evaluator for "prévoir la valeur" exercises (#232).
 - Choosing "Scratch" as the language of a code block in the teacher editor (#233). Done: point 7.
-- Conditions, comparisons and the pen for 4e (#234).
+- Conditions, comparisons and the pen for 4e (#234, amendment 2026-11-09). Done: the catalogue now
+  carries `si … alors`, `si … alors … sinon` (double C), `répéter jusqu'à ce que`, the hexagonal
+  boolean blocks (comparisons `< = >`, logical `et`/`ou`) and the three pen blocks
+  (`stylo en position d'écriture`, `relever le stylo`, `effacer tout`). The parser unifies values
+  and booleans in one parenthesis-per-operator descent; the operator decides the type, so a
+  boolean in a value slot or a value in a condition is a clear error. The "block" error codes
+  (`finWithoutLoop`, `finIndent`, `emptyLoop`, `loopNotClosedBeforeLine`, `loopNeverClosed`) stay
+  named after the loop (#307) but gained a `blockType` param so the French copy names the real
+  block (« si », « répéter jusqu'à ce que »…).
 
 ## Alternatives considered
 
