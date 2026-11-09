@@ -96,12 +96,13 @@ class SessionPersistanceIntegrationTest {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static ConfigurableApplicationContext startBackend() {
-        // The test application.properties shadows the main one on the classpath: load the
-        // main file explicitly, so the timeout and cookie checked are the deployed ones.
-        // Command-line arguments outrank both files.
+        // Boots its own SpringApplication, so it ignores the @ActiveProfiles the other
+        // @SpringBootTest classes carry: activate `test` explicitly for RecordingEmailSender.
+        // The main application.properties loads by default (no test file shadows it anymore),
+        // so the timeout and cookie checked here are the deployed ones. Command-line arguments
+        // outrank the files.
         return new SpringApplicationBuilder(BrioBackendApplication.class).run(
-                "--spring.config.location=file:src/main/resources/application.properties,"
-                        + "classpath:application.properties",
+                "--spring.profiles.active=test",
                 "--server.port=0",
                 "--spring.datasource.url=" + POSTGRES.getJdbcUrl(),
                 "--spring.datasource.username=" + POSTGRES.getUsername(),

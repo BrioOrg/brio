@@ -73,9 +73,9 @@ startup, no service or variable is added.
   traffic grows by orders of magnitude.
 - JDK serialisation ties stored sessions to class versions. A breaking change logs
   the affected users out once (by design, §3) instead of failing.
-- The test `application.properties` shadows the main one on the test classpath, so
-  the session settings are repeated there; `SessionPersistanceIntegrationTest` loads
-  the main file to check the deployed values.
+- The test configuration is `application-test.properties`, an override applied under the
+  `test` profile on top of the main file (loaded by the suite via `@ActiveProfiles("test")`):
+  the session settings are no longer duplicated, the tests check the deployed values.
 
 ### Follow-ups
 
