@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.context.annotation.Import;
 
 /**
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Import;
  * commit for the race to be real.
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 class ProgressionConcurrenceIntegrationTest {
 

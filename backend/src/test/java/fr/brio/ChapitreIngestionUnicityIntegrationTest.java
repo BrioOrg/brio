@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * belongs to another niveau must fail, and leave the other chapter and its exercises untouched.
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 class ChapitreIngestionUnicityIntegrationTest {
 

@@ -5,6 +5,7 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -15,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /** V40 on accounts that pre-date it, in a database of its own stopped at V39 (#325). */
 @SpringBootTest
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 class PseudonymeBackfillTest {
 
