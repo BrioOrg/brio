@@ -110,6 +110,14 @@ class CommunauteIntegrationTest {
     }
 
     @Test
+    void shouldAnswer400OnAMalformedQuestionId() throws Exception {
+        // A bad id in the path is the client's mistake, not a server failure (#342).
+        mockMvc.perform(get("/api/communaute/questions/pas-un-uuid").with(comme(auteur)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
+    }
+
+    @Test
     void shouldTellTheWebServerItIsOn() throws Exception {
         mockMvc.perform(get("/api/reglages/communaute"))
                 .andExpect(status().isOk())
