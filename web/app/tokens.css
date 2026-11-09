@@ -264,6 +264,8 @@
   --color-scratch-operators-edge: #389438;
   --color-scratch-variables: #ff8c1a;
   --color-scratch-variables-edge: #db6e00;
+  --color-scratch-pen: #0fbd8c;
+  --color-scratch-pen-edge: #0da57a;
 
   /* -- Cube assemblages ---------------------------------------------------- */
   /* Faces of the unit cubes in a figure's assemblage (#226) — not in the

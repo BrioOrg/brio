@@ -83,6 +83,17 @@ const CATALOGUE = [
   'répéter 4 fois',
   '    avancer de 50 pas',
   'fin',
+  'si (x > 10) alors',
+  '    dire « grand »',
+  'sinon',
+  '    dire « petit »',
+  'fin',
+  "répéter jusqu'à ce que (x = 0)",
+  '    ajouter -1 à x',
+  'fin',
+  "stylo en position d'écriture",
+  'relever le stylo',
+  'effacer tout',
 ]
 
 export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
@@ -240,9 +251,14 @@ export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   Instructions reconnues
                 </summary>
                 <p className="mt-1.5">
-                  Une instruction par ligne. Le corps d’un « répéter » est indenté de 4 espaces
-                  (touche Tab, Maj+Tab pour revenir) et fermé par « fin ». Un texte s’écrit entre
-                  « », un calcul entre parenthèses, une paire par opérateur : ((x * 3) + 4).
+                  Une instruction par ligne. Le corps d’un « répéter », d’un « si » ou d’un
+                  « répéter jusqu’à ce que » est indenté de 4 espaces (touche Tab, Maj+Tab pour
+                  revenir) et fermé par « fin » ; « sinon » ouvre la seconde branche d’un « si ».
+                  Un texte s’écrit entre « », un calcul entre parenthèses, une paire par
+                  opérateur : ((x * 3) + 4). Une condition est un booléen entre parenthèses :
+                  une comparaison (x &gt; 10), (n = 0), ou un « et »/« ou » de deux comparaisons :
+                  ((x &gt; 0) et (x &lt; 10)). Le stylo : « stylo en position d’écriture »,
+                  « relever le stylo », « effacer tout ».
                 </p>
                 <pre className="mt-1.5 overflow-x-auto rounded-md border border-line bg-surface-page p-2 font-mono text-ink">
                   {CATALOGUE.join('\n')}

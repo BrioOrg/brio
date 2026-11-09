@@ -13,7 +13,7 @@ const CAS: Array<[string, string, number, string]> = [
     'Ligne vide : un programme s’écrit d’un seul tenant, sans ligne vide.',
   ],
   ['tabulation', 'répéter 2 fois\n\tdire 1\nfin', 2, 'Indente avec 4 espaces, pas une tabulation.'],
-  ['fin orphelin', 'dire 1\nfin', 2, '« fin » ne ferme aucun « répéter ».'],
+  ['fin orphelin', 'dire 1\nfin', 2, '« fin » ne ferme aucun bloc (« répéter », « si »…).'],
   [
     'fin mal aligné',
     'répéter 2 fois\n    dire 1\n  fin',
@@ -84,6 +84,74 @@ const CAS: Array<[string, string, number, string]> = [
   ['texte vide', 'dire « »', 1, 'Texte vide « » dans « ».'],
   ['signe ×', 'dire (2 × 3)', 1, 'Scratch écrit *, pas ×, dans « (2 × 3) ».'],
   ['caractère inattendu', 'dire (2 % 3)', 1, 'Caractère inattendu « % » dans « (2 % 3) ».'],
+  // 4e : conditions, comparaisons, logique, stylo (#234).
+  [
+    'condition pas booléenne',
+    'si x alors',
+    1,
+    'La condition doit être un booléen (une comparaison ou un « et »/« ou »), pas « x ».',
+  ],
+  [
+    'booléen là où une valeur est attendue',
+    'mettre x à (a > b)',
+    1,
+    'Un booléen est utilisé là où une valeur est attendue, dans « (a > b) ».',
+  ],
+  [
+    'comparaison de booléens',
+    'dire ((a > b) > 3)',
+    1,
+    'Une comparaison compare des valeurs, pas des booléens, dans « ((a > b) > 3) ».',
+  ],
+  [
+    'et/ou de valeurs',
+    'si (x et y) alors',
+    1,
+    '« et » et « ou » combinent des booléens, pas des valeurs, dans « (x et y) ».',
+  ],
+  ['sinon orphelin', 'sinon', 1, '« sinon » ne ferme aucun « si ».'],
+  [
+    'sinon mal aligné',
+    'si (x > 0) alors\n    dire 1\n  sinon\n    dire 2\nfin',
+    3,
+    '« sinon » doit être aligné sur son « si » (ligne 1).',
+  ],
+  [
+    'deux sinon',
+    'si (x > 0) alors\n    dire 1\nsinon\n    dire 2\nsinon\n    dire 3\nfin',
+    5,
+    'Un « si » n’a qu’un seul « sinon ».',
+  ],
+  [
+    'si vide',
+    'si (x > 0) alors\nsinon\n    dire 1\nfin',
+    1,
+    'Le « si » est vide : indente au moins une instruction dessous.',
+  ],
+  [
+    'sinon vide',
+    'si (x > 0) alors\n    dire 1\nsinon\nfin',
+    1,
+    'Le « sinon » est vide : indente au moins une instruction dessous.',
+  ],
+  [
+    'répéter jusqu’à vide',
+    "répéter jusqu'à ce que (n = 0)\nfin",
+    1,
+    'La boucle « répéter jusqu’à ce que » est vide : indente au moins une instruction dessous.',
+  ],
+  [
+    'si jamais fermé',
+    'si (x > 0) alors\n    dire 1',
+    1,
+    'Ce « si » n’est jamais fermé par « fin ».',
+  ],
+  [
+    'fin d’un si mal aligné',
+    'si (x > 0) alors\n    dire 1\n  fin',
+    3,
+    '« fin » doit être aligné sur son « si » (ligne 1).',
+  ],
 ]
 
 describe('messageScratch', () => {

@@ -16,7 +16,13 @@ const FILL: Record<ScratchCategory, string> = {
   sensing: 'bg-scratch-sensing border-scratch-sensing-edge',
   operators: 'bg-scratch-operators border-scratch-operators-edge',
   variables: 'bg-scratch-variables border-scratch-variables-edge',
+  pen: 'bg-scratch-pen border-scratch-pen-edge',
 }
+
+// A pointed hexagon, the shape of a boolean block; the horizontal padding leaves room for the
+// points. The clip-path is geometry, not a token (ADR 0031 §4); the fill stays the operators token.
+const HEXAGON =
+  '[clip-path:polygon(10px_0,calc(100%_-_10px)_0,100%_50%,calc(100%_-_10px)_100%,10px_100%,0_50%)]'
 
 const ICON = {
   flag: 'flag',
@@ -86,19 +92,36 @@ function Block({ block, first }: { block: ScratchBlock; first: boolean }) {
     )
   }
   // A C block: its header, an arm along the left of the inner blocks, and a foot. The arm is
-  // drawn over the header's and the foot's borders, which leaves the C's inner edge only.
+  // drawn over the header's and the foot's borders, which leaves the C's inner edge only. A double
+  // C (`cElse`, the `si … sinon`) adds a « sinon » separator row and a second arm + body before
+  // the foot.
   return (
     <div className={`flex flex-col items-stretch ${overlap}`}>
       <div className={`${ROW} ${fill} self-start rounded-t-xs rounded-br-xs`}>
         <Parts parts={block.parts} />
       </div>
-      <div className="flex">
-        <div className={`${fill} relative z-10 -my-px w-4 shrink-0 border-x`} />
-        <div className="py-px">
-          <Stack blocks={block.body} />
-        </div>
-      </div>
+      <Arm fill={fill} blocks={block.body} />
+      {block.shape === 'cElse' && (
+        <>
+          <div className={`${ROW} ${fill} self-start rounded-xs`}>
+            <Parts parts={block.elseParts ?? []} />
+          </div>
+          <Arm fill={fill} blocks={block.elseBody ?? []} />
+        </>
+      )}
       <div className={`${fill} h-4 rounded-b-xs rounded-tr-xs border`} />
+    </div>
+  )
+}
+
+// The inner edge of a C block: a vertical arm, drawn over the rows above and below, beside a body.
+function Arm({ fill, blocks }: { fill: string; blocks: ScratchBlock[] }) {
+  return (
+    <div className="flex">
+      <div className={`${fill} relative z-10 -my-px w-4 shrink-0 border-x`} />
+      <div className="py-px">
+        <Stack blocks={blocks} />
+      </div>
     </div>
   )
 }
@@ -134,6 +157,12 @@ function Part({ part }: { part: ScratchPart }) {
         <span
           className={`${FILL[part.category]} flex items-center gap-1 rounded-pill border px-2 py-0.5`}
         >
+          <Parts parts={part.parts} />
+        </span>
+      )
+    case 'boolean':
+      return (
+        <span className={`${FILL[part.category]} ${HEXAGON} flex items-center gap-1 border px-3 py-0.5`}>
           <Parts parts={part.parts} />
         </span>
       )

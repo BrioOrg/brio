@@ -70,6 +70,7 @@ const dark = {
   'scratch-sensing': '#5cb1d6',
   'scratch-operators': '#59c059',
   'scratch-variables': '#ff8c1a',
+  'scratch-pen': '#0fbd8c',
   'cube-top': '#4f7562',
   'cube-front': '#33503f',
   'cube-side': '#1f3329',
@@ -110,6 +111,7 @@ const light = {
   'scratch-sensing': '#5cb1d6',
   'scratch-operators': '#59c059',
   'scratch-variables': '#ff8c1a',
+  'scratch-pen': '#0fbd8c',
   'cube-top': '#f4fbf7',
   'cube-front': '#bddbc9',
   'cube-side': '#8bb39d',
@@ -131,7 +133,7 @@ function chartPairs(theme) {
 
 // Scratch blocks carry text: their label (scratch-ink) is body text on every category fill and
 // on the input ovals (#217). The values are the same in both themes.
-const SCRATCH_CATEGORIES = ['events', 'control', 'motion', 'looks', 'sensing', 'operators', 'variables']
+const SCRATCH_CATEGORIES = ['events', 'control', 'motion', 'looks', 'sensing', 'operators', 'variables', 'pen']
 function scratchPairs(theme) {
   return [...SCRATCH_CATEGORIES.map((c) => `scratch-${c}`), 'scratch-slot'].map((bg) => ({
     theme,
