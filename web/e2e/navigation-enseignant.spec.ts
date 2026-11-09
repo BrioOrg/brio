@@ -26,7 +26,8 @@ test('the teacher sections sit in a left icon sidebar on desktop', async ({ page
   await expect(nav.getByRole('link', { name: 'Mes cours' })).toHaveAttribute('aria-current', 'page')
 
   await nav.getByRole('link', { name: 'Mes classes' }).click()
-  await expect(page).toHaveURL('/prof/classes')
+  // next dev compiles the route on its first visit.
+  await expect(page).toHaveURL('/prof/classes', { timeout: 20_000 })
   await expect(nav.getByRole('link', { name: 'Mes classes' })).toHaveAttribute(
     'aria-current',
     'page'
@@ -49,7 +50,8 @@ test('the teacher sections are in a bottom bar on mobile', async ({ page }, test
   await expect(nav.getByRole('button')).toHaveCount(0)
 
   await nav.getByRole('link', { name: 'Signalements du salon' }).click()
-  await expect(page).toHaveURL('/prof/signalements-salon')
+  // next dev compiles the route on its first visit.
+  await expect(page).toHaveURL('/prof/signalements-salon', { timeout: 20_000 })
   await expect(nav.getByRole('link', { name: 'Signalements du salon' })).toHaveAttribute(
     'aria-current',
     'page'
