@@ -4,6 +4,7 @@ import fr.brio.identite.api.EnseignantContexteQuery;
 import fr.brio.identite.api.InscriptionInfo;
 import fr.brio.identite.api.InscriptionsQuery;
 import fr.brio.social.api.ReponseUtileValidee;
+import fr.brio.social.domain.DebitPreventif;
 import fr.brio.social.domain.Fil;
 import fr.brio.social.domain.Message;
 import fr.brio.social.domain.ModerationPreventive;
@@ -14,7 +15,6 @@ import fr.brio.social.infrastructure.MessageRepository;
 import fr.brio.social.infrastructure.SanctionRepository;
 import fr.brio.social.infrastructure.SignalementRepository;
 import fr.brio.social.infrastructure.SoumissionVueRepository;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,10 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class EntraideService {
-
-    /** Fenêtre et plafond de la limitation de débit préventive à l'écriture. */
-    private static final Duration FENETRE_ANTI_FLOOD = Duration.ofMinutes(1);
-    private static final int MAX_MESSAGES_PAR_FENETRE = 5;
 
     /** Longueur de l'extrait de message montré dans la file de modération. */
     private static final int EXTRAIT_MAX = 160;
@@ -337,10 +333,8 @@ public class EntraideService {
     }
 
     private void exigerDebitRaisonnable(UUID auteurId) {
-        Instant depuis = Instant.now().minus(FENETRE_ANTI_FLOOD);
-        if (messages.countByAuteurIdAndCreatedAtAfter(auteurId, depuis) >= MAX_MESSAGES_PAR_FENETRE) {
-            throw new TropDeMessagesException("Vous écrivez trop vite. Patientez un instant.");
-        }
+        Instant depuis = Instant.now().minus(DebitPreventif.FENETRE);
+        DebitPreventif.exiger(messages.countByAuteurIdAndCreatedAtAfter(auteurId, depuis));
     }
 
     private boolean aSoumisExercice(UUID eleveId, String porteeRef) {

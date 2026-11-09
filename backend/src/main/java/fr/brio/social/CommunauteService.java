@@ -7,6 +7,7 @@ import fr.brio.identite.api.ProfilEleve;
 import fr.brio.identite.api.ProfilsElevesQuery;
 import fr.brio.social.api.ReponseUtileValidee;
 import fr.brio.social.domain.CorpsCommunaute;
+import fr.brio.social.domain.DebitPreventif;
 import fr.brio.social.domain.QuestionCommunaute;
 import fr.brio.social.domain.ReponseCommunaute;
 import fr.brio.social.infrastructure.QuestionCommunauteRepository;
@@ -70,6 +71,7 @@ public class CommunauteService {
 
     @Transactional
     public UUID poserQuestion(UUID auteurId, String titre, JsonNode corps, String matiere) {
+        exigerDebitRaisonnable(auteurId);
         String titreValide = validerTitre(titre);
         String corpsValide = CorpsCommunaute.valider(corps);
         String matiereValide = matiere == null ? MATIERE_PAR_DEFAUT : matiere;
@@ -100,6 +102,7 @@ public class CommunauteService {
     @Transactional
     public UUID repondre(UUID questionId, UUID auteurId, JsonNode corps) {
         chargerQuestion(questionId);
+        exigerDebitRaisonnable(auteurId);
         String valide = CorpsCommunaute.valider(corps);
         return reponses.save(new ReponseCommunaute(questionId, null, auteurId, valide)).getId();
     }
@@ -111,6 +114,7 @@ public class CommunauteService {
         if (reponse.estCommentaire()) {
             throw new MessageInvalideException("On ne peut pas répondre à un commentaire.");
         }
+        exigerDebitRaisonnable(auteurId);
         String valide = CorpsCommunaute.valider(corps);
         return reponses
                 .save(new ReponseCommunaute(reponse.getQuestionId(), reponseId, auteurId, valide))
@@ -296,6 +300,13 @@ public class CommunauteService {
 
     // ----------------------------------------------------------------- privés
 
+    /** An author may post, answer and comment, so the window counts questions + answers together. */
+    private void exigerDebitRaisonnable(UUID auteurId) {
+        Instant depuis = Instant.now().minus(DebitPreventif.FENETRE);
+        DebitPreventif.exiger(questions.countByAuteurIdAndCreatedAtAfter(auteurId, depuis)
+                + reponses.countByAuteurIdAndCreatedAtAfter(auteurId, depuis));
+    }
+
     private QuestionCommunaute chargerQuestion(UUID questionId) {
         return questions.findById(questionId)
                 .filter(QuestionCommunaute::estVisible)
@@ -337,6 +348,8 @@ public class CommunauteService {
         if (net.indexOf('\0') >= 0) {
             throw new MessageInvalideException("Le titre contient un caractère invalide.");
         }
+        // The title is reader-facing free text too: block contact-sharing there, not just in the body.
+        CorpsCommunaute.exigerTexteLibre(net);
         return net;
     }
 

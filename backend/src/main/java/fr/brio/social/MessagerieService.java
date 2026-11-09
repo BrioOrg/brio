@@ -3,6 +3,7 @@ package fr.brio.social;
 import fr.brio.identite.api.EnseignantContexteQuery;
 import fr.brio.identite.api.InscriptionInfo;
 import fr.brio.identite.api.InscriptionsQuery;
+import fr.brio.social.domain.DebitPreventif;
 import fr.brio.social.domain.ModerationPreventive;
 import fr.brio.social.domain.Salon;
 import fr.brio.social.domain.SalonMessage;
@@ -12,7 +13,6 @@ import fr.brio.social.infrastructure.SalonMessageRepository;
 import fr.brio.social.infrastructure.SalonRepository;
 import fr.brio.social.infrastructure.SalonSignalementRepository;
 import fr.brio.social.infrastructure.SanctionRepository;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,8 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MessagerieService {
 
-    private static final Duration FENETRE_ANTI_FLOOD = Duration.ofMinutes(1);
-    private static final int MAX_MESSAGES_PAR_FENETRE = 5;
     private static final int EXTRAIT_MAX = 160;
     private static final int TITRE_MAX = 120;
     private static final String NOM_INCONNU = "Membre";
@@ -244,10 +242,8 @@ public class MessagerieService {
     }
 
     private void exigerDebitRaisonnable(UUID auteurId) {
-        Instant depuis = Instant.now().minus(FENETRE_ANTI_FLOOD);
-        if (messages.countByAuteurIdAndCreatedAtAfter(auteurId, depuis) >= MAX_MESSAGES_PAR_FENETRE) {
-            throw new TropDeMessagesException("Vous écrivez trop vite. Patientez un instant.");
-        }
+        Instant depuis = Instant.now().minus(DebitPreventif.FENETRE);
+        DebitPreventif.exiger(messages.countByAuteurIdAndCreatedAtAfter(auteurId, depuis));
     }
 
     private Map<UUID, String> resoudreNoms(UUID classeId, Set<UUID> ids) {

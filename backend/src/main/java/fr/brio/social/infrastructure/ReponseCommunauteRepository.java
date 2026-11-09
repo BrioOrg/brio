@@ -1,6 +1,7 @@
 package fr.brio.social.infrastructure;
 
 import fr.brio.social.domain.ReponseCommunaute;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -25,4 +26,7 @@ public interface ReponseCommunauteRepository extends JpaRepository<ReponseCommun
             group by r.questionId
             """)
     List<VoteCommunauteRepository.Total> compter(@Param("questionIds") Collection<UUID> questionIds);
+
+    /** Author's answers and comments since the given instant — feeds the preventive rate-limit. */
+    long countByAuteurIdAndCreatedAtAfter(UUID auteurId, Instant depuis);
 }
