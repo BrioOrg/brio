@@ -474,6 +474,17 @@ class CommunauteIntegrationTest {
     }
 
     @Test
+    void shouldRejectContactDetailsInTheTitle() throws Exception {
+        // #338: the title is reader-facing free text too — a link or a phone number there is a bypass.
+        ecrire(post("/api/communaute/questions"),
+                        "{\"titre\":\"Aide www.x.test\",\"corps\":" + CORPS + "}", auteur)
+                .andExpect(status().isUnprocessableEntity());
+        ecrire(post("/api/communaute/questions"),
+                        "{\"titre\":\"Appelle 06 12 34 56 78\",\"corps\":" + CORPS + "}", auteur)
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
     void shouldAllowLinksAndDigitsInCodeAndFormula() throws Exception {
         String corps = "[{\"id\":\"c\",\"type\":\"code\",\"code\":\"fetch('https://api.test/0612345678')\","
                 + "\"language\":\"js\"},"

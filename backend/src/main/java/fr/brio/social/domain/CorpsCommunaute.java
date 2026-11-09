@@ -100,8 +100,8 @@ public final class CorpsCommunaute {
         }
     }
 
-    /** Refuse clickable links and phone numbers in reader-facing text (prose and list items). */
-    private static void exigerTexteLibre(String texte) {
+    /** Refuse clickable links and phone numbers in reader-facing text (title, prose and list items). */
+    public static void exigerTexteLibre(String texte) {
         if (ModerationPreventive.contientLienExterne(texte)) {
             throw new MessageInvalideException("Les liens ne sont pas autorisés dans la Communauté.");
         }

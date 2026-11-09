@@ -348,6 +348,8 @@ public class CommunauteService {
         if (net.indexOf('\0') >= 0) {
             throw new MessageInvalideException("Le titre contient un caractère invalide.");
         }
+        // The title is reader-facing free text too: block contact-sharing there, not just in the body.
+        CorpsCommunaute.exigerTexteLibre(net);
         return net;
     }
 
