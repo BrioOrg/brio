@@ -76,7 +76,12 @@ public final class CorpsCommunaute {
             }
         }
         switch (type) {
-            case "prose" -> exigerTexte(bloc.get("text"));
+            case "prose" -> {
+                exigerTexte(bloc.get("text"));
+                // Links and phone numbers are refused in readable prose only; formula/code keep
+                // their URLs and digits (maths are full of numbers), so they are left untouched.
+                exigerTexteLibre(bloc.get("text").textValue());
+            }
             case "formula" -> {
                 exigerTexte(bloc.get("latex"));
                 validerAffichage(bloc.get("display"));
@@ -92,6 +97,16 @@ public final class CorpsCommunaute {
     private static void exigerTexte(JsonNode valeur) {
         if (valeur == null || !valeur.isTextual() || valeur.textValue().isBlank()) {
             throw new MessageInvalideException("Le message contient un bloc vide.");
+        }
+    }
+
+    /** Refuse clickable links and phone numbers in reader-facing text (prose and list items). */
+    private static void exigerTexteLibre(String texte) {
+        if (ModerationPreventive.contientLienExterne(texte)) {
+            throw new MessageInvalideException("Les liens ne sont pas autorisés dans la Communauté.");
+        }
+        if (ModerationPreventive.contientNumeroFr(texte)) {
+            throw new MessageInvalideException("Les numéros de téléphone ne sont pas autorisés dans la Communauté.");
         }
     }
 
@@ -112,6 +127,9 @@ public final class CorpsCommunaute {
         if (elements == null || !elements.isArray() || elements.isEmpty() || elements.size() > MAX_ELEMENTS_LISTE) {
             throw new MessageInvalideException("Le message contient une liste invalide.");
         }
-        elements.forEach(CorpsCommunaute::exigerTexte);
+        for (JsonNode item : elements) {
+            exigerTexte(item);
+            exigerTexteLibre(item.textValue());
+        }
     }
 }

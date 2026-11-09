@@ -449,6 +449,59 @@ class CommunauteIntegrationTest {
         assertThat(avecPseudonyme).containsExactlyInAnyOrder("CompteInfo", "PseudonymeInfo", "AuteurCommunaute");
     }
 
+    // ---- filtres préventifs -----------------------------------------------------
+
+    @Test
+    void shouldRejectAClickableLinkInProseAndList() throws Exception {
+        String prose = "[{\"id\":\"p\",\"type\":\"prose\",\"text\":\"Regarde https://x.test/a\"}]";
+        String liste = "[{\"id\":\"l\",\"type\":\"list\",\"items\":[\"d'abord www.x.test\"]}]";
+
+        ecrire(post("/api/communaute/questions"), "{\"titre\":\"T\",\"corps\":" + prose + "}", auteur)
+                .andExpect(status().isUnprocessableEntity());
+        ecrire(post("/api/communaute/questions"), "{\"titre\":\"T\",\"corps\":" + liste + "}", auteur)
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void shouldRejectAPhoneNumberInProseAndList() throws Exception {
+        String prose = "[{\"id\":\"p\",\"type\":\"prose\",\"text\":\"Appelle-moi au 06 12 34 56 78\"}]";
+        String liste = "[{\"id\":\"l\",\"type\":\"list\",\"items\":[\"mon numéro +33 6 12 34 56 78\"]}]";
+
+        ecrire(post("/api/communaute/questions"), "{\"titre\":\"T\",\"corps\":" + prose + "}", auteur)
+                .andExpect(status().isUnprocessableEntity());
+        ecrire(post("/api/communaute/questions"), "{\"titre\":\"T\",\"corps\":" + liste + "}", auteur)
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void shouldAllowLinksAndDigitsInCodeAndFormula() throws Exception {
+        String corps = "[{\"id\":\"c\",\"type\":\"code\",\"code\":\"fetch('https://api.test/0612345678')\","
+                + "\"language\":\"js\"},"
+                + "{\"id\":\"f\",\"type\":\"formula\",\"latex\":\"0612345678 = 12 \\\\times 34\","
+                + "\"display\":\"block\"}]";
+
+        ecrire(post("/api/communaute/questions"), "{\"titre\":\"T\",\"corps\":" + corps + "}", auteur)
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldAllowDatesAndDecimalsInProse() throws Exception {
+        String corps =
+                "[{\"id\":\"p\",\"type\":\"prose\",\"text\":\"En 2024, 0,5 et 01.01.2024 restent corrects.\"}]";
+
+        ecrire(post("/api/communaute/questions"), "{\"titre\":\"T\",\"corps\":" + corps + "}", auteur)
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void shouldThrottleRapidPublicationsByTheSameAuthor() throws Exception {
+        // The window allows five writes per author per minute; the sixth is refused with 429.
+        for (int i = 0; i < 5; i++) {
+            ecrire(post("/api/communaute/questions"), QUESTION, auteur).andExpect(status().isCreated());
+        }
+        ecrire(post("/api/communaute/questions"), QUESTION, auteur).andExpect(status().isTooManyRequests());
+    }
+
     // ---- aides ------------------------------------------------------------------
 
     private static String resolution(UUID question, UUID reponse) {

@@ -2,6 +2,7 @@ package fr.brio.social.infrastructure;
 
 import fr.brio.social.domain.QuestionCommunaute;
 import jakarta.persistence.LockModeType;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
@@ -28,4 +29,7 @@ public interface QuestionCommunauteRepository extends JpaRepository<QuestionComm
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select q from QuestionCommunaute q where q.id = :id")
     Optional<QuestionCommunaute> verrouiller(@Param("id") UUID id);
+
+    /** Author's questions since the given instant — feeds the preventive rate-limit (every statut). */
+    long countByAuteurIdAndCreatedAtAfter(UUID auteurId, Instant depuis);
 }

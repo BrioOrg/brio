@@ -16,7 +16,23 @@ public final class ModerationPreventive {
     // Détecte un lien externe cliquable : http(s):// ou un www. en tête de mot.
     private static final Pattern LIEN = Pattern.compile("(?i)(https?://|\\bwww\\.)");
 
+    // French phone number: +33 / 0033 / a leading 0, then 9 significant digits with optional
+    // separators (space, non-breaking space, dot, dash). Requiring 9 digits after the trunk
+    // keeps years, dates and decimals (e.g. "2024", "0,5", "01.01.2024") from matching.
+    private static final Pattern TELEPHONE_FR =
+            Pattern.compile("(?:(?:\\+|00)33|0)\\s?[1-9](?:[ .\\u00A0-]?\\d){8}");
+
     private ModerationPreventive() {}
+
+    /** Whether the text carries a clickable external link (http(s):// or a leading {@code www.}). */
+    public static boolean contientLienExterne(String texte) {
+        return texte != null && LIEN.matcher(texte).find();
+    }
+
+    /** Whether the text carries a French phone number (0X…, +33, spaced/dotted variants). */
+    public static boolean contientNumeroFr(String texte) {
+        return texte != null && TELEPHONE_FR.matcher(texte).find();
+    }
 
     /**
      * Normalise et valide le corps d'un message. Renvoie le texte nettoyé (sans espaces
