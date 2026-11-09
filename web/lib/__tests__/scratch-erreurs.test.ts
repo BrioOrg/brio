@@ -152,6 +152,12 @@ const CAS: Array<[string, string, number, string]> = [
     3,
     '« fin » doit être aligné sur son « si » (ligne 1).',
   ],
+  [
+    'si non fermé avant une ligne',
+    'si (x > 0) alors\n    dire 1\n  dire 2\nfin',
+    3,
+    'Ferme le « si » de la ligne 1 par « fin » avant cette ligne.',
+  ],
 ]
 
 describe('messageScratch', () => {
