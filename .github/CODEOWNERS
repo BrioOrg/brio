@@ -1,0 +1,20 @@
+# CODEOWNERS — propriété humaine des surfaces sensibles du mesh d'agents.
+# Garde-fou non négociable (docs/mesh/PLAN-AGENT-MESH.md) : aucun agent ne modifie
+# ces chemins sans revue humaine. Remplacer @gabrielle-emity par le bon handle/équipe
+# si besoin (à confirmer).
+
+# Configuration des agents, règles, skills, hooks
+/.claude/**              @gabrielle-emity
+
+# Automatisation GitHub (workflows du mesh, actions, CODEOWNERS lui-même)
+/.github/**              @gabrielle-emity
+
+# Évaluations : tuteur et mesh (jeu de cas, dont la partie cachée)
+/evals/**                @gabrielle-emity
+/mesh/evals/**           @gabrielle-emity
+
+# Direction visuelle figée — référence normative, jamais éditée par un agent
+/docs/design/visuels/**  @gabrielle-emity
+
+# Le plan du mesh et ses contrats
+/docs/mesh/**            @gabrielle-emity
