@@ -17,6 +17,7 @@ import org.hibernate.type.SqlTypes;
 public class QuestionCommunaute {
 
     public static final String STATUT_PUBLIE = "publie";
+    public static final String STATUT_MASQUE = "masque";
     public static final String STATUT_SUPPRIME = "supprime";
 
     /** Ce qui reste d'un message supprimé : son auteur a demandé qu'il disparaisse. */
@@ -76,6 +77,16 @@ public class QuestionCommunaute {
         this.corps = CORPS_VIDE;
     }
 
+    /** Modération : masque le contenu sans l'effacer, pour pouvoir le restaurer après contestation. */
+    public void masquer() {
+        this.statut = STATUT_MASQUE;
+    }
+
+    /** Modération : remet un contenu masqué en ligne (restauration après contestation acceptée). */
+    public void restaurer() {
+        this.statut = STATUT_PUBLIE;
+    }
+
     public void resoudre(UUID reponseId) {
         this.reponseResolueId = reponseId;
     }
@@ -86,6 +97,10 @@ public class QuestionCommunaute {
 
     public boolean estVisible() {
         return STATUT_PUBLIE.equals(statut);
+    }
+
+    public String getStatut() {
+        return statut;
     }
 
     public UUID getId() {

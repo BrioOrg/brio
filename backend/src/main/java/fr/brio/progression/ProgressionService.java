@@ -10,6 +10,7 @@ import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.api.ParcoursChapitre;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.api.SerieInfo;
+import fr.brio.social.api.ReponseUtileRevoquee;
 import fr.brio.social.api.ReponseUtileValidee;
 import fr.brio.progression.domain.Chapitre;
 import fr.brio.progression.domain.EvenementXp;
@@ -179,6 +180,24 @@ public class ProgressionService {
         }
         attribuer(e.repondeurId(), SOURCE_ENTRAIDE, sourceRef,
                 MOTIF_ENTRAIDE_UTILE, XP_ENTRAIDE_UTILE, quand, false);
+    }
+
+    /**
+     * Retire l'XP « réponse utile » d'une réponse jugée non conforme (console de modération,
+     * suivi #338). Supprime l'attribution de même clé que {@link #onReponseUtileValidee} et
+     * recalcule le solde. Idempotent : sans attribution correspondante (jamais retenue, ou déjà
+     * révoquée), ne fait rien.
+     */
+    @Transactional
+    public void onReponseUtileRevoquee(ReponseUtileRevoquee e) {
+        Instant quand = e.survenuLe() != null ? e.survenuLe() : Instant.now();
+        evenements
+                .findByEleveIdAndSourceTypeAndSourceRef(
+                        e.repondeurId(), SOURCE_ENTRAIDE, e.reponseId().toString())
+                .ifPresent(evenement -> {
+                    evenements.delete(evenement);
+                    recalculerSolde(e.repondeurId(), quand);
+                });
     }
 
     /** Current XP and level for a student (0/0 if none yet). */

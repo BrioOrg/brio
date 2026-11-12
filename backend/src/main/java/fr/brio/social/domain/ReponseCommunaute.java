@@ -61,6 +61,20 @@ public class ReponseCommunaute {
         this.corps = QuestionCommunaute.CORPS_VIDE;
     }
 
+    /** Modération : masque la réponse sans l'effacer, pour pouvoir la restaurer après contestation. */
+    public void masquer() {
+        this.statut = QuestionCommunaute.STATUT_MASQUE;
+    }
+
+    /** Modération : remet une réponse masquée en ligne (restauration après contestation acceptée). */
+    public void restaurer() {
+        this.statut = QuestionCommunaute.STATUT_PUBLIE;
+    }
+
+    public String getStatut() {
+        return statut;
+    }
+
     public boolean estCommentaire() {
         return parentId != null;
     }
