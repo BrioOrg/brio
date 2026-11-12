@@ -67,7 +67,39 @@ renderer, and the teacher editor, show the text as before.
    rejects a `scratch` programme that does not parse. Content that does not go through CI (a
    teacher's course) falls back to the monospace text when it does not parse; it never breaks
    the page.
-7. **Teacher editor** (#233, amendment 2026-10-26). The code block of the course editor
+7. **Evaluator for "prévoir la valeur"** (#232, amendment 2026-11-12). `evaluateScratch` in
+   `packages/content` runs the parsed tree and returns what the sprite **says** (every `dire`,
+   in order) and the final value of each variable. `check-content` uses it to verify the answer
+   of an exercise that predicts a programme's output, so a wrong computation in the content is a
+   CI error. Decisions left open by #232:
+   - **Linking is explicit, not positional.** An exercise opts in with a `program` field,
+     `{ "ref": "<code block id>", "inputs"?: [ … ] }`. `ref` names a Scratch `code` block
+     anywhere in the chapter. An explicit id crosses sections ("le programme du début" is in an
+     earlier section than the exercise), survives a block being reordered, and never catches an
+     exercise that merely follows a programme but asks something else — a distance
+     (`avancer`/`tourner`), a shape, or a transformation of the programme. A positional rule
+     ("the preceding `code` block") was rejected for those false positives. The field lives on
+     the exercise, whose block schema is an open union (`additionalProperties` not closed), so no
+     schema migration; it is not a correction secret (the programme is already on the page) and
+     is not stripped by the `ExerciceExtractor`.
+   - **Input for `demander`** comes from `program.inputs`: the first `demander` stores
+     `inputs[0]` in `réponse`, the second `inputs[1]`, and so on. The statement's prose ("the
+     user types 5") is not parsed.
+   - **Motion is out of scope in v1.** `avancer`/`tourner` run as no-ops: they say nothing and
+     change no variable, so a "distance parcourue" exercise is not linked to a programme. The
+     evaluator keeps room for a later position/heading model.
+   - **Comparison.** The computed answer is the value of the **last** `dire`, coerced to a number
+     the way Scratch's arithmetic blocks coerce (a non-numeric string is 0). A `numeric` exercise
+     compares it to `answer` within `tolerance`; a `multiple-choice` whose single correct choice
+     is a number compares to that number. A linked programme that says nothing, or that fails at
+     runtime (a `demander` with no input, a negative/fractional `répéter` count, a runaway loop
+     caught by a step budget), is a CI error.
+   - **Extensibility for 4e (#234).** The evaluator is two exhaustive switches — one over
+     statements, one over value blocks. When the parser gains conditions, comparisons/booleans,
+     `répéter jusqu'à` and the pen, each new tree kind is flagged by TypeScript and added as a
+     new `case`, with no rewrite. Those blocks are **not evaluated yet** on `develop`; the
+     evaluator covers only today's catalogue.
+8. **Teacher editor** (#233, amendment 2026-10-26). The code block of the course editor
    (« Programme ») offers « Texte » (no `language`) or « Scratch » (`language: "scratch"`, the
    default for a new block). In Scratch it runs the same `parseScratch` on every keystroke, lists
    each error with its line number, translated into French in the web (the parser's messages
@@ -98,8 +130,8 @@ renderer, and the teacher editor, show the text as before.
 
 ### Follow-ups
 
-- An evaluator for "prévoir la valeur" exercises (#232).
-- Choosing "Scratch" as the language of a code block in the teacher editor (#233). Done: point 7.
+- An evaluator for "prévoir la valeur" exercises (#232). Done: point 7.
+- Choosing "Scratch" as the language of a code block in the teacher editor (#233). Done: point 8.
 - Conditions, comparisons and the pen for 4e (#234).
 
 ## Alternatives considered

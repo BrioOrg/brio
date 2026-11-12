@@ -38,7 +38,10 @@
  * 4. Scratch programmes (ADR 0031): a code block with language "scratch" must parse with the
  *    renderer's own parser (packages/content/src/scratch.ts), every faulty line reported. The
  *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
- *    Scratch's multiplication sign there.
+ *    Scratch's multiplication sign there. An exercise that carries a `program` field
+ *    ({ ref, inputs? }, #232) is evaluated with the renderer's own evaluator
+ *    (packages/content/src/scratch-eval.ts): what the sprite says must match the answer the
+ *    exercise expects, so a wrong computation in the content is a CI error.
  *
  * 5. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
@@ -58,11 +61,16 @@ import { join, relative } from 'node:path'
 
 let parseRichText
 let parseScratch
+let evaluateScratch
+let toScratchNumber
 let RESERVED_DIAPO_IDS
 let checkChart
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
+  ;({ evaluateScratch, toNumber: toScratchNumber } = await import(
+    '../packages/content/src/scratch-eval.ts'
+  ))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
 } catch (e) {
@@ -550,6 +558,107 @@ function checkScratchBlock(block, file, path) {
   }
 }
 
+// --- "Prévoir la valeur" exercises (ADR 0031 amendment, #232) ---
+//
+// An exercise opts in to evaluation with a `program` field: { ref, inputs? }. `ref` is the id
+// of a Scratch `code` block anywhere in the chapter; `inputs` feeds its `demander` blocks.
+// check-content runs the renderer's own evaluator on that programme and compares what the
+// sprite says (the last « dire ») to the answer the exercise expects, so a wrong computation
+// in the content is a CI error. Linking is explicit, not positional: a reference crosses
+// sections ("le programme du début"), survives a block being reordered, and never catches an
+// exercise that merely follows a programme but asks something else (a distance, a shape, a
+// transformation). Motion programmes (avancer/tourner) say nothing, so they are not evaluated
+// this way in v1.
+
+// The numeric answer an exercise expects, with its tolerance — or null when it carries none
+// a programme can be checked against.
+function expectedScratchAnswer(ex) {
+  if (ex.exerciseType === 'numeric' && typeof ex.answer === 'number') {
+    return { value: ex.answer, tolerance: typeof ex.tolerance === 'number' ? ex.tolerance : 0 }
+  }
+  if (ex.exerciseType === 'multiple-choice' && Array.isArray(ex.choices)) {
+    const correct = ex.choices.filter((c) => c && c.correct)
+    if (correct.length === 1) {
+      const n = Number(String(correct[0].text).trim().replace(',', '.'))
+      if (!Number.isNaN(n)) return { value: n, tolerance: 0 }
+    }
+  }
+  return null
+}
+
+function checkScratchExercises(doc, file) {
+  const programs = new Map()
+  for (const section of doc.sections ?? []) {
+    for (const block of section.blocks ?? []) {
+      if (block.type === 'code' && block.language === 'scratch') programs.set(block.id, block)
+    }
+  }
+  for (const section of doc.sections ?? []) {
+    for (let i = 0; i < (section.blocks ?? []).length; i++) {
+      const block = section.blocks[i]
+      if (block.type !== 'exercise' || block.program === undefined) continue
+      const path = `sections[id=${section.id}].blocks[${i}].program`
+      const link = block.program
+      if (typeof link !== 'object' || link === null || typeof link.ref !== 'string') {
+        fail(file, path, 'program must be an object with a string "ref" (the Scratch block id)')
+        continue
+      }
+      if (
+        link.inputs !== undefined &&
+        (!Array.isArray(link.inputs) ||
+          link.inputs.some((v) => typeof v !== 'string' && typeof v !== 'number'))
+      ) {
+        fail(file, path + '.inputs', 'inputs must be an array of strings or numbers')
+        continue
+      }
+      const program = programs.get(link.ref)
+      if (!program) {
+        fail(file, path + '.ref', `no Scratch programme with id "${link.ref}" in this chapter`)
+        continue
+      }
+      const parsed = parseScratch(program.code)
+      // A parse error on the programme is already reported by checkScratchBlock; don't repeat it.
+      if (!parsed.ok) continue
+      const expected = expectedScratchAnswer(block)
+      if (!expected) {
+        fail(
+          file,
+          path,
+          'an exercise linked to a programme must be numeric, or multiple-choice with a single ' +
+            'numeric correct answer, so the computed value can be compared',
+        )
+        continue
+      }
+      const result = evaluateScratch(parsed.script, { inputs: link.inputs ?? [] })
+      if (!result.ok) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" cannot be evaluated: ${result.error.message} (line ${result.error.line})`,
+        )
+        continue
+      }
+      if (result.says.length === 0) {
+        fail(
+          file,
+          path + '.ref',
+          `programme "${link.ref}" says nothing (no « dire »), so there is no value to check`,
+        )
+        continue
+      }
+      const computed = toScratchNumber(result.says[result.says.length - 1])
+      if (Math.abs(computed - expected.value) > expected.tolerance) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" makes the sprite say ${computed}, but the exercise expects ${expected.value}` +
+            (expected.tolerance ? ` (± ${expected.tolerance})` : ''),
+        )
+      }
+    }
+  }
+}
+
 function checkFigures(doc, file) {
   for (const section of doc.sections ?? []) {
     for (let i = 0; i < (section.blocks ?? []).length; i++) {
@@ -614,6 +723,7 @@ for (const file of contentFiles) {
     const doc = JSON.parse(readFileSync(file, 'utf8'))
     walkStrings(doc, file, '')
     checkFigures(doc, file)
+    checkScratchExercises(doc, file)
     checkBlockIds(doc, file)
     if (isChapterFile(file) && typeof doc.id === 'string') {
       filesById.set(doc.id, [...(filesById.get(doc.id) ?? []), file])

@@ -437,6 +437,22 @@ qui ne s'analyse pas, ligne par ligne.
   en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute (#234).
 - Un énoncé ou une option de QCM est du texte riche : un programme y reste écrit en texte, avec ×.
   Un exercice sur un programme suit le bloc `code`.
+- **« Prévoir la valeur » vérifié par la CI** (#232) : un exercice `numeric` (ou un QCM dont la
+  seule bonne réponse est un nombre) peut se relier au programme qu'il interroge avec un champ
+  `program`. `check:content` exécute alors le programme et refuse l'exercice si ce que dit le
+  lutin (le dernier `dire`) ne correspond pas à la réponse attendue — une erreur de calcul dans
+  le contenu devient une erreur de CI.
+
+  ```json
+  { "id": "ex-prevoir-cinq", "type": "exercise", "exerciseType": "numeric",
+    "prompt": "L'utilisateur tape 5. Quel nombre dit le lutin ?", "answer": 19,
+    "program": { "ref": "code-programme-calcul", "inputs": ["5"] } }
+  ```
+
+  `ref` = l'`id` d'un bloc `code` Scratch **n'importe où dans le chapitre** (il peut être dans une
+  section précédente : « le programme du début »). `inputs` (optionnel) alimente les `demander`
+  dans l'ordre. Les programmes de **mouvement** (`avancer`/`tourner`) ne disent rien : ils ne se
+  relient pas à un exercice (une distance parcourue n'est pas ce que dit le lutin).
 
 ### Formules
 

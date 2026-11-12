@@ -253,6 +253,23 @@
         "explanation": {
           "description": "Optional worked correction shown after answering. Grounds AI correction feedback.",
           "$ref": "#/$defs/richText"
+        },
+        "program": {
+          "description": "Optional link to a Scratch programme this exercise predicts (ADR 0031 §7, #232). check-content runs the evaluator on the referenced programme and verifies what the sprite says (the last « dire ») against the expected answer, so a wrong computation is a CI error. Only for a numeric exercise, or a multiple-choice whose single correct choice is a number.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ref"],
+          "properties": {
+            "ref": {
+              "description": "The id of a code block with language 'scratch', anywhere in the chapter (it may be in an earlier section).",
+              "$ref": "#/$defs/nodeId"
+            },
+            "inputs": {
+              "description": "Values fed to the programme's successive 'demander … et attendre' blocks, in order.",
+              "type": "array",
+              "items": { "type": ["string", "number"] }
+            }
+          }
         }
       },
       "allOf": [
