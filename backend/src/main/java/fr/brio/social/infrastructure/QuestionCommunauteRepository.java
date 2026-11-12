@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -32,4 +33,18 @@ public interface QuestionCommunauteRepository extends JpaRepository<QuestionComm
 
     /** Author's questions since the given instant — feeds the preventive rate-limit (every statut). */
     long countByAuteurIdAndCreatedAtAfter(UUID auteurId, Instant depuis);
+
+    /**
+     * Rétention (ADR 0023 §6) : au-delà de la fenêtre, la question reste (titre et corps)
+     * mais son auteur devient le compte anonyme. Idempotent, renvoie le nombre de lignes
+     * anonymisées.
+     */
+    @Modifying
+    @Query(
+            """
+            update QuestionCommunaute q
+               set q.auteurId = :anonyme
+             where q.createdAt < :seuil and q.auteurId <> :anonyme
+            """)
+    int anonymiserAvant(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
 }
