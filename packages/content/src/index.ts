@@ -91,5 +91,14 @@ export type {
 } from './scratch'
 export { parseScratch, buildScratchModel } from './scratch'
 
+export type {
+  ScratchRuntimeValue,
+  ScratchEvalError,
+  ScratchEvalErrorCode,
+  ScratchEvalResult,
+  ScratchEvalOptions,
+} from './scratch-eval'
+export { evaluateScratch, toNumber } from './scratch-eval'
+
 export type { DeckBlock, DeckSection, DeckInput, Diapo } from './deck'
 export { buildDeck, RESERVED_DIAPO_IDS } from './deck'

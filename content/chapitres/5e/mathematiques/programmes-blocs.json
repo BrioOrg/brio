@@ -184,6 +184,10 @@
           "estimatedDurationMinutes": 2,
           "answer": 19,
           "tolerance": 0,
+          "program": {
+            "ref": "code-programme-calcul",
+            "inputs": ["5"]
+          },
           "explanation": "x vaut 5. résultat = (5 × 3) + 4 = 15 + 4 = 19."
         },
         {
@@ -309,6 +313,9 @@
           "estimatedDurationMinutes": 2,
           "answer": 20,
           "tolerance": 0,
+          "program": {
+            "ref": "code-variable-a"
+          },
           "explanation": "a vaut 7. Puis a reçoit 7 + 3 = 10. Puis a reçoit 10 × 2 = 20. Le lutin dit 20. Une variable garde seulement sa dernière valeur."
         },
         {
@@ -328,6 +335,9 @@
           "difficulty": "standard",
           "estimatedDurationMinutes": 2,
           "multiple": false,
+          "program": {
+            "ref": "code-deux-variables"
+          },
           "choices": [
             {
               "id": "choix-10",
@@ -444,6 +454,9 @@
           "estimatedDurationMinutes": 2,
           "answer": 15,
           "tolerance": 0,
+          "program": {
+            "ref": "code-compteur"
+          },
           "explanation": "n vaut 0 au départ, puis la boucle lui ajoute 3 cinq fois : 3, 6, 9, 12, 15. Le lutin dit 15."
         }
       ]
