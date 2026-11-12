@@ -65,6 +65,21 @@ socle de modération minimal mais structurel.
    d'identification (LCEN) séparées du contenu. Mécanisme implémenté comme une tâche
    de purge ; branché au déploiement avec le reste de la rétention (aligné sur F5).
 
+   > **Précision de mise en œuvre (2026-11-12, #338).** « Anonymiser » = **couper le
+   > lien vers l'auteur** sans toucher au contenu : l'`auteur_id` (et le
+   > `marque_utile_par` d'un message d'entraide), seule donnée d'identification portée
+   > par ces lignes, est remplacé par un **compte anonyme** (l'UUID nul) ; le texte
+   > reste pour que le fil garde son sens. **Pas de suppression** (l'ADR dit
+   > « anonymisés »). La purge couvre les **contenus rédigés par des élèves** :
+   > `messages` (entraide), `salon_messages` (messagerie), `communaute_questions` et
+   > `communaute_reponses` (Communauté). Elle **ne touche pas** aux signalements,
+   > sanctions ni votes — enregistrements de modération / d'audit, pas des messages,
+   > dont la rétention propre reste à cadrer avec le socle de modération. **Fenêtre
+   > configurable** (`brio.social.retention.fenetre-mois`, défaut 12) ; tâche planifiée
+   > quotidienne (`…​.cron`), désactivable (`…​.active`) pour la brancher au
+   > déploiement. L'opération est **idempotente**. Code : `fr.brio.social.PurgeRetention`
+   > (+ `PurgeRetentionJob`).
+
 > **Amendement ADR 0035 (2026-10-31) :** la Communauté s'ouvre sans modération pendant
 > le développement, derrière le réglage `brio.communaute.active`, désactivé par défaut.
 > La règle reste entière pour de vrais élèves : le réglage ne s'active pour eux qu'une

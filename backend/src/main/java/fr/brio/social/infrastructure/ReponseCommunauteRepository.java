@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -29,4 +30,18 @@ public interface ReponseCommunauteRepository extends JpaRepository<ReponseCommun
 
     /** Author's answers and comments since the given instant — feeds the preventive rate-limit. */
     long countByAuteurIdAndCreatedAtAfter(UUID auteurId, Instant depuis);
+
+    /**
+     * Rétention (ADR 0023 §6) : au-delà de la fenêtre, la réponse (ou le commentaire) reste
+     * mais son auteur devient le compte anonyme. Idempotent, renvoie le nombre de lignes
+     * anonymisées.
+     */
+    @Modifying
+    @Query(
+            """
+            update ReponseCommunaute r
+               set r.auteurId = :anonyme
+             where r.createdAt < :seuil and r.auteurId <> :anonyme
+            """)
+    int anonymiserAvant(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
 }
