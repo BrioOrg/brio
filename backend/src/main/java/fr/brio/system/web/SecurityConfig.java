@@ -87,6 +87,8 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/classes/*/enseignant-principal").hasRole("ADMIN_BRIO")
                 .requestMatchers(HttpMethod.POST, "/api/classes/*/codes").hasRole("ADMIN_BRIO")
                 .requestMatchers("/api/admin/comptes/**").hasRole("ADMIN_BRIO")
+                // Console de modération de la Communauté : ADMIN_BRIO only (suivi #338, ADR 0035).
+                .requestMatchers("/api/admin/communaute/**").hasRole("ADMIN_BRIO")
                 .anyRequest().authenticated())
             .formLogin(form -> form
                 .loginProcessingUrl("/api/sessions")

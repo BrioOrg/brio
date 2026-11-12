@@ -2,8 +2,10 @@ package fr.brio.social.web;
 
 import fr.brio.social.AccesCommunauteRefuseException;
 import fr.brio.social.CommunauteService;
+import fr.brio.social.ModerationCommunauteService;
 import fr.brio.social.PageQuestionsCommunaute;
 import fr.brio.social.QuestionCommunauteDetail;
+import fr.brio.social.domain.CibleCommunaute;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,9 +43,11 @@ class CommunauteController {
     private static final String ROLE_ELEVE = "ROLE_ELEVE";
 
     private final CommunauteService communaute;
+    private final ModerationCommunauteService moderation;
 
-    CommunauteController(CommunauteService communaute) {
+    CommunauteController(CommunauteService communaute, ModerationCommunauteService moderation) {
         this.communaute = communaute;
+        this.moderation = moderation;
     }
 
     @GetMapping("/questions")
@@ -165,6 +169,50 @@ class CommunauteController {
             @PathVariable UUID reponseId, @AuthenticationPrincipal UserDetails principal) {
         communaute.retirerVoteReponse(reponseId, eleve(principal));
         return ResponseEntity.noContent().build();
+    }
+
+    // --------------------------------------------------------------- modération (côté membre)
+
+    @PostMapping("/questions/{questionId}/signalement")
+    @Operation(summary = "Signaler une question")
+    ResponseEntity<Void> signalerQuestion(
+            @PathVariable UUID questionId,
+            @RequestBody(required = false) SignalerRequest req,
+            @AuthenticationPrincipal UserDetails principal) {
+        moderation.signaler(CibleCommunaute.QUESTION, questionId, eleve(principal), motif(req));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reponses/{reponseId}/signalement")
+    @Operation(summary = "Signaler une réponse ou un commentaire")
+    ResponseEntity<Void> signalerReponse(
+            @PathVariable UUID reponseId,
+            @RequestBody(required = false) SignalerRequest req,
+            @AuthenticationPrincipal UserDetails principal) {
+        moderation.signaler(CibleCommunaute.REPONSE, reponseId, eleve(principal), motif(req));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/questions/{questionId}/contestation")
+    @Operation(summary = "Contester la décision de modération sur sa question")
+    ResponseEntity<Map<String, UUID>> contesterQuestion(
+            @PathVariable UUID questionId,
+            @Valid @RequestBody ContesterRequest req,
+            @AuthenticationPrincipal UserDetails principal) {
+        return cree(moderation.contester(CibleCommunaute.QUESTION, questionId, eleve(principal), req.message()));
+    }
+
+    @PostMapping("/reponses/{reponseId}/contestation")
+    @Operation(summary = "Contester la décision de modération sur sa réponse")
+    ResponseEntity<Map<String, UUID>> contesterReponse(
+            @PathVariable UUID reponseId,
+            @Valid @RequestBody ContesterRequest req,
+            @AuthenticationPrincipal UserDetails principal) {
+        return cree(moderation.contester(CibleCommunaute.REPONSE, reponseId, eleve(principal), req.message()));
+    }
+
+    private static String motif(SignalerRequest req) {
+        return req == null ? null : req.motif();
     }
 
     private static ResponseEntity<Map<String, UUID>> cree(UUID id) {

@@ -2,6 +2,7 @@ package fr.brio.progression;
 
 import fr.brio.exercices.api.SoumissionEnregistree;
 import fr.brio.progression.api.ProgressionInfo;
+import fr.brio.social.api.ReponseUtileRevoquee;
 import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.domain.Solde;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
@@ -151,5 +152,36 @@ class ProgressionServiceTest {
     void pourRetourneLeSoldeExistant() {
         when(soldes.findById(eleve)).thenReturn(Optional.of(new Solde(eleve, 400, (short) 2, Instant.now())));
         assertThat(service.pour(eleve)).isEqualTo(new ProgressionInfo(400, 2));
+    }
+
+    // ---- révocation de l'XP « réponse utile » (console de modération, #338) ------------------
+
+    @Test
+    void revoquerXpSupprimeLAttributionEtRecalculeLeSolde() {
+        UUID reponse = UUID.randomUUID();
+        EvenementXp attribution =
+                new EvenementXp(eleve, "entraide", reponse.toString(), "entraide_utile", (short) 15, Instant.now());
+        when(evenements.findByEleveIdAndSourceTypeAndSourceRef(eleve, "entraide", reponse.toString()))
+                .thenReturn(Optional.of(attribution));
+        when(evenements.sommePointsPourEleve(eleve)).thenReturn(0);
+
+        service.onReponseUtileRevoquee(new ReponseUtileRevoquee(eleve, reponse, Instant.now()));
+
+        verify(evenements).delete(attribution);
+        ArgumentCaptor<Solde> captor = ArgumentCaptor.forClass(Solde.class);
+        verify(soldes).save(captor.capture());
+        assertThat(captor.getValue().getXpTotal()).isEqualTo(0);
+    }
+
+    @Test
+    void revoquerXpSansAttributionNeFaitRien() {
+        UUID reponse = UUID.randomUUID();
+        when(evenements.findByEleveIdAndSourceTypeAndSourceRef(eleve, "entraide", reponse.toString()))
+                .thenReturn(Optional.empty());
+
+        service.onReponseUtileRevoquee(new ReponseUtileRevoquee(eleve, reponse, Instant.now()));
+
+        verify(evenements, never()).delete(any());
+        verify(soldes, never()).save(any());
     }
 }
