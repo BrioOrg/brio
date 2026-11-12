@@ -183,7 +183,10 @@ export function linksIn(src, routes) {
     if (raw === '/' && !LINK_CONTEXT.test(before)) continue
     const parsed = parsePath(raw)
     if (!parsed) continue
-    const route = parsed.segments.length === 0 ? routes.find((r) => r.pattern === '/') : matchRoute(parsed, routes)
+    const route =
+      parsed.segments.length === 0
+        ? routes.find((r) => r.pattern === '/')
+        : matchRoute(parsed, routes)
     if (!route) {
       // A path handed to href / push / redirect that no page serves: a dead link.
       if (!parsed.placeholders && DEAD_LINK_CONTEXT.test(before) && parsed.segments[0] !== 'api') {

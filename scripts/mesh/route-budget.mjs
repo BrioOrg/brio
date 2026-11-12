@@ -34,7 +34,11 @@ function parseArgs(argv) {
 
 function readBaseTasks(ref, tasksPath) {
   try {
-    const raw = execFileSync('git', ['show', `${ref}:${tasksPath}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+    const raw = execFileSync('git', ['show', `${ref}:${tasksPath}`], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
     return JSON.parse(raw)
   } catch {
     return null // the file does not exist on the base yet: first introduction
@@ -70,7 +74,8 @@ function main() {
 
   const summary = renderSummary(result, def)
   console.log(summary)
-  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n')
+  if (process.env.GITHUB_STEP_SUMMARY)
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n')
   return result.violations.length ? 1 : 0
 }
 

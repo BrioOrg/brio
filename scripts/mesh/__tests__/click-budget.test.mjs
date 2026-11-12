@@ -25,7 +25,8 @@ const APP = {
   'app/(app)/explorer/page.tsx': 'export default () => <a href={`/${n}/${m}`}>matière</a>',
   'app/(app)/ma-classe/page.tsx': `export default () => <a href="/ma-classe/salon">Salon</a>`,
   'app/(app)/ma-classe/salon/page.tsx': `export default () => <p>Salon</p>`,
-  'app/(app)/[niveau]/[matiere]/page.tsx': 'export default () => <a href={`/${n}/${m}/${s}`}>chapitre</a>',
+  'app/(app)/[niveau]/[matiere]/page.tsx':
+    'export default () => <a href={`/${n}/${m}/${s}`}>chapitre</a>',
   'app/(app)/[niveau]/[matiere]/[slug]/page.tsx': 'export default () => <p>chapitre</p>',
   'app/(app)/devoirs/page.tsx': `import { redirect } from 'next/navigation'\nexport default function P() { redirect('/ma-classe') }`,
   'app/(app)/profil/page.tsx': `export default function P() { if (!ok) redirect('/explorer'); return (<p>profil</p>) }`,
@@ -46,8 +47,14 @@ test('matchRoute: the most specific route wins, plain paths never hit dynamic ro
     { pattern: '/[niveau]/[matiere]', segments: ['[niveau]', '[matiere]'] },
   ]
   const placeholder = '\u0000'
-  assert.equal(matchRoute({ segments: ['ma-classe', 'salon'], placeholders: false }, routes).pattern, '/ma-classe/salon')
-  assert.equal(matchRoute({ segments: [placeholder, placeholder], placeholders: true }, routes).pattern, '/[niveau]/[matiere]')
+  assert.equal(
+    matchRoute({ segments: ['ma-classe', 'salon'], placeholders: false }, routes).pattern,
+    '/ma-classe/salon'
+  )
+  assert.equal(
+    matchRoute({ segments: [placeholder, placeholder], placeholders: true }, routes).pattern,
+    '/[niveau]/[matiere]'
+  )
   assert.equal(matchRoute({ segments: ['5e', 'maths'], placeholders: false }, routes), null)
   assert.equal(matchRoute({ segments: ['api', 'x'], placeholders: true }, routes), null)
 })
@@ -76,7 +83,10 @@ test('buildGraph: layout links reach every page below, a pure redirect is free, 
 })
 
 test('depthsFrom: a redirect adds no click', () => {
-  const files = { ...APP, 'app/(app)/page.tsx': 'export default () => <a href="/devoirs">Devoirs</a>' }
+  const files = {
+    ...APP,
+    'app/(app)/page.tsx': 'export default () => <a href="/devoirs">Devoirs</a>',
+  }
   const g = buildGraph(fixture(files))
   const { dist } = depthsFrom(g, '/')
   assert.equal(dist.get('/devoirs'), 1)
@@ -88,8 +98,25 @@ const DEF = {
   personas: { eleve: { entree: '/', exclut: ['/prof'] } },
   attendus: { horsNavigation: ['/orpheline'], liensMorts: [] },
   taches: [
-    { id: 'salon', label: 'Salon', persona: 'eleve', chaude: true, arrivee: '/ma-classe/salon', budget: 2, cible: 2 },
-    { id: 'chapitre', label: 'Chapitre', persona: 'eleve', chaude: true, via: ['/[niveau]/[matiere]'], arrivee: '/[niveau]/[matiere]/[slug]', budget: 3, cible: 2 },
+    {
+      id: 'salon',
+      label: 'Salon',
+      persona: 'eleve',
+      chaude: true,
+      arrivee: '/ma-classe/salon',
+      budget: 2,
+      cible: 2,
+    },
+    {
+      id: 'chapitre',
+      label: 'Chapitre',
+      persona: 'eleve',
+      chaude: true,
+      via: ['/[niveau]/[matiere]'],
+      arrivee: '/[niveau]/[matiere]/[slug]',
+      budget: 3,
+      cible: 2,
+    },
   ],
 }
 
@@ -108,13 +135,19 @@ test('evaluate: a lengthened route breaks the budget', () => {
 })
 
 test('evaluate: removing the only link makes an impasse', () => {
-  const files = { ...APP, 'app/(app)/ma-classe/page.tsx': 'export default () => <p>plus de lien</p>' }
+  const files = {
+    ...APP,
+    'app/(app)/ma-classe/page.tsx': 'export default () => <p>plus de lien</p>',
+  }
   const r = evaluate(fixture(files), DEF)
   assert.match(r.violations.join('\n'), /salon : impasse/)
 })
 
 test('evaluate: an unlisted orphan route and a dead link are violations', () => {
-  const r = evaluate(fixture({ ...APP, 'app/(app)/x/page.tsx': 'export default () => <a href="/mort">x</a>' }), DEF)
+  const r = evaluate(
+    fixture({ ...APP, 'app/(app)/x/page.tsx': 'export default () => <a href="/mort">x</a>' }),
+    DEF
+  )
   const text = r.violations.join('\n')
   assert.match(text, /route orpheline : « \/x »/)
   assert.match(text, /lien mort : « \/mort »/)

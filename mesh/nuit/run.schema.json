@@ -4,22 +4,66 @@
   "title": "Run de simulation (contrat « Rapport de simulation », brique élémentaire)",
   "description": "Un run = un persona (S2) ou une attaque du saboteur (S3) qui joue UNE tâche clé sur staging. Aucune donnée nominative : les personas sont fictifs. Validé aussi par scripts/mesh/lib/nightly-report.mjs (validateRun), qui fait foi en cas de divergence.",
   "type": "object",
-  "required": ["version", "kind", "run_id", "date", "commit", "env", "agent", "persona", "tache", "budget", "resultat", "etapes", "frictions"],
+  "required": [
+    "version",
+    "kind",
+    "run_id",
+    "date",
+    "commit",
+    "env",
+    "agent",
+    "persona",
+    "tache",
+    "budget",
+    "resultat",
+    "etapes",
+    "frictions"
+  ],
   "properties": {
     "version": { "const": 1 },
-    "synthetique": { "type": "boolean", "description": "true pour les fichiers d'exemple de mesh/nuit/exemple/ — jamais pour un vrai run." },
+    "synthetique": {
+      "type": "boolean",
+      "description": "true pour les fichiers d'exemple de mesh/nuit/exemple/ — jamais pour un vrai run."
+    },
     "kind": { "enum": ["persona", "sabotage"] },
     "run_id": { "type": "string" },
     "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
     "commit": { "type": "string", "description": "SHA court du code joué." },
-    "env": { "enum": ["staging", "ci"], "description": "Jamais la production, jamais des données d'élèves réels." },
+    "env": {
+      "enum": ["staging", "ci"],
+      "description": "Jamais la production, jamais des données d'élèves réels."
+    },
     "agent": { "enum": ["S2", "S3"] },
-    "persona": { "type": "string", "description": "Identifiant du fichier de mesh/personas/ (sans extension)." },
+    "persona": {
+      "type": "string",
+      "description": "Identifiant du fichier de mesh/personas/ (sans extension)."
+    },
     "tache": { "type": "string", "description": "id d'une tâche de mesh/routes/tasks.json." },
-    "budget": { "type": "integer", "minimum": 0, "description": "Budget de clics de la tâche au moment du run (copié de tasks.json)." },
-    "attaque": { "enum": ["retour-arriere", "double-clic", "session-expiree", "triche", "saisie-hostile", "connexion-lente"], "description": "Requis pour kind=sabotage." },
-    "resultat": { "enum": ["reussi", "echec", "abandon", "tenu", "casse"], "description": "persona : reussi | echec | abandon ; sabotage : tenu (l'appli résiste) | casse." },
-    "clics": { "type": "integer", "minimum": 0, "description": "Requis quand resultat = reussi (persona)." },
+    "budget": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Budget de clics de la tâche au moment du run (copié de tasks.json)."
+    },
+    "attaque": {
+      "enum": [
+        "retour-arriere",
+        "double-clic",
+        "session-expiree",
+        "triche",
+        "saisie-hostile",
+        "connexion-lente"
+      ],
+      "description": "Requis pour kind=sabotage."
+    },
+    "resultat": {
+      "enum": ["reussi", "echec", "abandon", "tenu", "casse"],
+      "description": "persona : reussi | echec | abandon ; sabotage : tenu (l'appli résiste) | casse."
+    },
+    "clics": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Requis quand resultat = reussi (persona)."
+    },
     "duree_s": { "type": "number", "minimum": 0 },
     "etapes": {
       "type": "array",
@@ -28,9 +72,18 @@
         "required": ["n", "action", "route"],
         "properties": {
           "n": { "type": "integer", "minimum": 1 },
-          "action": { "type": "string", "description": "clic, saisie, lecture, recherche, retour, rechargement, expiration…" },
-          "cible": { "type": "string", "description": "L'élément visé, nommé comme l'arbre d'accessibilité le nomme." },
-          "route": { "type": "string", "description": "Le motif de route où se trouve l'acteur à cet instant." },
+          "action": {
+            "type": "string",
+            "description": "clic, saisie, lecture, recherche, retour, rechargement, expiration…"
+          },
+          "cible": {
+            "type": "string",
+            "description": "L'élément visé, nommé comme l'arbre d'accessibilité le nomme."
+          },
+          "route": {
+            "type": "string",
+            "description": "Le motif de route où se trouve l'acteur à cet instant."
+          },
           "observation": { "type": "string" }
         }
       }
@@ -41,7 +94,9 @@
         "type": "object",
         "required": ["type", "route", "detail"],
         "properties": {
-          "type": { "enum": ["impasse", "triche-acceptee", "erreur", "a11y", "ambigu", "detour", "lent"] },
+          "type": {
+            "enum": ["impasse", "triche-acceptee", "erreur", "a11y", "ambigu", "detour", "lent"]
+          },
           "route": { "type": "string", "pattern": "^/" },
           "detail": { "type": "string" }
         }

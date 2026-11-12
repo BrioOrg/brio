@@ -9,7 +9,14 @@
  * into --out (default: <dir>) and prints the Markdown. Exit 1 on a red verdict, 2 on bad input.
  * Format and scoring: docs/mesh/RAPPORT-DE-NUIT.md.
  */
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs'
 import { join, resolve } from 'node:path'
 import { buildReport, renderReport, validateRun } from './lib/nightly-report.mjs'
 
@@ -17,7 +24,8 @@ function parseArgs(argv) {
   const o = {}
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
-    if (!['--runs', '--previous', '--out', '--tasks'].includes(a)) throw new Error(`option inconnue : ${a}`)
+    if (!['--runs', '--previous', '--out', '--tasks'].includes(a))
+      throw new Error(`option inconnue : ${a}`)
     o[a.slice(2)] = argv[++i]
     if (!o[a.slice(2)]) throw new Error(`${a} attend une valeur`)
   }
@@ -28,7 +36,9 @@ function parseArgs(argv) {
 function main() {
   const o = parseArgs(process.argv.slice(2))
   const dir = resolve(o.runs)
-  const files = readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 'rapport.json').sort()
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith('.json') && f !== 'rapport.json')
+    .sort()
   if (!files.length) throw new Error(`aucun run dans ${dir}`)
   const runs = []
   const problems = []
@@ -43,9 +53,11 @@ function main() {
   }
   const dates = new Set(runs.map((r) => r.date))
   const commits = new Set(runs.map((r) => r.commit))
-  if (dates.size > 1 || commits.size > 1) throw new Error('les runs mélangent plusieurs dates ou plusieurs commits')
+  if (dates.size > 1 || commits.size > 1)
+    throw new Error('les runs mélangent plusieurs dates ou plusieurs commits')
 
-  const previous = o.previous && existsSync(o.previous) ? JSON.parse(readFileSync(o.previous, 'utf8')) : null
+  const previous =
+    o.previous && existsSync(o.previous) ? JSON.parse(readFileSync(o.previous, 'utf8')) : null
   const expected = o.tasks ? JSON.parse(readFileSync(o.tasks, 'utf8')).taches.map((t) => t.id) : []
   const report = buildReport(runs, previous, expected)
   const md = renderReport(report)
