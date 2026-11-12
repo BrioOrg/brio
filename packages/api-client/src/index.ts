@@ -189,3 +189,21 @@ export type {
   CommentaireCommunaute,
   FiltresQuestions,
 } from './communaute.js'
+export {
+  signalerContenu,
+  contesterDecision,
+  fileSignalementsCommunaute,
+  deciderModeration,
+  fileContestationsCommunaute,
+  trancherContestation as trancherContestationCommunaute,
+  ModerationError,
+  CibleTypeSchema,
+  SignalementCommunauteVueSchema,
+  ContestationModerationVueSchema,
+} from './moderation.js'
+export type {
+  CibleType,
+  ActionModeration,
+  SignalementCommunauteVue,
+  ContestationModerationVue,
+} from './moderation.js'

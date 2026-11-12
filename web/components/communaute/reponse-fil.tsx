@@ -9,6 +9,7 @@ import {
 } from '@brio/api-client'
 import { useState } from 'react'
 
+import { BoutonSignaler } from '@/components/communaute/bouton-signaler'
 import { BoutonUtile } from '@/components/communaute/bouton-utile'
 import { EditeurMessage, type MessageEcrit } from '@/components/communaute/editeur-message'
 import { MessageCommunaute } from '@/components/communaute/message-communaute'
@@ -109,6 +110,7 @@ export function ReponseFil({ reponse, questionId, peutResoudre }: Props) {
                 Commenter
               </Button>
             )}
+            <BoutonSignaler cible="reponse" id={reponse.id} estAuteur={reponse.estAuteur} />
           </>
         }
       />
@@ -138,6 +140,13 @@ export function ReponseFil({ reponse, questionId, peutResoudre }: Props) {
                 modifie={commentaire.modifie}
                 corps={commentaire.corps}
                 estAuteur={commentaire.estAuteur}
+                actions={
+                  <BoutonSignaler
+                    cible="reponse"
+                    id={commentaire.id}
+                    estAuteur={commentaire.estAuteur}
+                  />
+                }
                 onModifier={(message) => modifier(commentaire.id, message)}
                 onSupprimer={() => supprimer(commentaire.id)}
               />
