@@ -52,6 +52,7 @@ describe('middleware', () => {
     '/inscription/enseignant',
     '/commencer',
     '/rejoindre',
+    '/mot-de-passe-oublie',
     '/consentement/t-1',
   ])('passe %s sans session, sans interroger le backend', async (path) => {
     const fetchMock = stubMoi(401)

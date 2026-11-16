@@ -16,6 +16,7 @@ const PUBLIC_PREFIXES = [
   '/inscription',
   '/commencer',
   '/rejoindre',
+  '/mot-de-passe-oublie',
   '/consentement',
   '/design',
   '/api',

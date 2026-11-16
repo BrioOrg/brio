@@ -47,7 +47,9 @@ describe('LoginForm', () => {
     expect(screen.getByRole('button', { name: 'Se connecter', exact: true })).toBeInTheDocument()
   })
 
-  it('propose le lien mot de passe oublié', async () => {
+  // AC1 (#364) : le lien n'est plus mort — il pointe vers `/mot-de-passe-oublie`, une route
+  // désormais vivante (voir la suite « MotDePasseOubliePage » plus bas, qui en prouve le rendu).
+  it('propose le lien vers l’écran de récupération d’accès', async () => {
     await setup()
     expect(screen.getByRole('link', { name: /mot de passe oublié/i })).toHaveAttribute(
       'href',
@@ -134,5 +136,35 @@ describe('LoginForm', () => {
     await user.click(screen.getByRole('button', { name: 'Se connecter', exact: true }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/la connexion a échoué/i)
+  })
+})
+
+// AC1/AC2/AC3 (#364, ADR 0036) : la cible du lien « Mot de passe oublié ? » est une page
+// vivante — un écran statique de consigne (200, pas 404) qui renvoie l'élève vers son prof,
+// sans demander ni identifiant ni e-mail.
+describe('MotDePasseOubliePage', () => {
+  it('rend la consigne « va voir ton prof » et le rebouclage, pas un 404', async () => {
+    const { default: Page } = await import('@/app/mot-de-passe-oublie/page')
+    render(<Page />)
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/récupérer ton accès/i)
+    expect(screen.getAllByText(/ton prof/i).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /rejoindre ma classe/i })).toHaveAttribute(
+      'href',
+      '/rejoindre'
+    )
+    expect(screen.getByRole('link', { name: /revenir à la connexion/i })).toHaveAttribute(
+      'href',
+      '/connexion'
+    )
+  })
+
+  it('ne demande aucun e-mail ni identifiant (zéro champ, zéro soumission)', async () => {
+    const { default: Page } = await import('@/app/mot-de-passe-oublie/page')
+    render(<Page />)
+
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.queryByRole('button')).toBeNull()
+    expect(document.querySelector('form')).toBeNull()
   })
 })
