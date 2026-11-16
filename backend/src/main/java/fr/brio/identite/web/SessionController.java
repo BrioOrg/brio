@@ -9,6 +9,7 @@ import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.RoleCompte;
 import fr.brio.identite.infrastructure.CompteInfoAssembler;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,12 +65,15 @@ class SessionController {
 
     /**
      * The student's own password, after a teacher-led reset (ADR 0036 §5). 409 when no change is
-     * pending, 422 when it is the provisional password.
+     * pending, 422 when it is the provisional password. Closes the account's other sessions.
      */
     @PostMapping("/moi/mot-de-passe")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void changerMotDePasse(@AuthenticationPrincipal UserDetails principal,
-                           @Valid @RequestBody ChangerMotDePasseRequest req) {
-        reinitialisations.changerMotDePasse(UUID.fromString(principal.getUsername()), req.nouveauMotDePasse());
+                           @Valid @RequestBody ChangerMotDePasseRequest req,
+                           HttpSession session) {
+        // This session stays signed in; every other one of the account is closed.
+        reinitialisations.changerMotDePasse(UUID.fromString(principal.getUsername()),
+                req.nouveauMotDePasse(), session.getId());
     }
 }

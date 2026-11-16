@@ -1,14 +1,23 @@
 package fr.brio.identite;
 
 import java.security.SecureRandom;
+import java.util.Locale;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Provisional password of a teacher-led access reset (ADR 0036 §2): 12 characters drawn from a
  * CSPRNG, in three groups of four joined by dashes ({@code k7m4-p9xa-3rtw}). The alphabet is the
- * login identifier's — lower case, without the characters a child confuses (0/o, 1/l/i) — and the
- * dashes are part of the password, so the student types exactly what they are shown.
+ * login identifier's — lower case, without the characters a child confuses (0/o, 1/l/i).
+ *
+ * <p>The student may type it without the dashes, with spaces, or in capitals (ADR 0036 §2): it is
+ * hashed in a canonical form, and its hash carries the {@link #PREFIXE} marker that tells
+ * {@link EncodeurMotsDePasse} to canonicalise the typed password the same way before comparing.
+ * Only a provisional hash bears the marker, so an account's own password stays exact.
  */
-final class MotDePasseProvisoire {
+public final class MotDePasseProvisoire {
+
+    /** Marks a provisional password's hash, ahead of the encoder's own {@code {bcrypt}} prefix. */
+    public static final String PREFIXE = "{provisoire}";
 
     static final String ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
     private static final int GROUPES = 3;
@@ -26,5 +35,21 @@ final class MotDePasseProvisoire {
             }
         }
         return sb.toString();
+    }
+
+    /** The canonical form both hashed and compared: no dashes, no spaces, lower case. */
+    static String normaliser(CharSequence saisi) {
+        if (saisi == null) return null;
+        var sb = new StringBuilder(saisi.length());
+        for (int i = 0; i < saisi.length(); i++) {
+            char c = saisi.charAt(i);
+            if (c != '-' && !Character.isWhitespace(c)) sb.append(c);
+        }
+        return sb.toString().toLowerCase(Locale.ROOT);
+    }
+
+    /** The stored hash of a provisional password: the marker, then the encoder's hash of its canonical form. */
+    static String hacher(PasswordEncoder encodeur, String provisoire) {
+        return PREFIXE + encodeur.encode(normaliser(provisoire));
     }
 }

@@ -2230,6 +2230,33 @@
         }
       }
     },
+    "/api/admin/comptes/{id}/reinitialisation-acces" : {
+      "post" : {
+        "tags" : [ "admin-comptes-controller" ],
+        "operationId" : "reinitialiserAccesHorsClasse",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReinitialisationAccesInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/comptes/{id}/pseudonyme" : {
       "post" : {
         "tags" : [ "admin-comptes-controller" ],
@@ -3851,6 +3878,18 @@
         },
         "required" : [ "email", "etablissementId", "motDePasse", "nom" ]
       },
+      "AvisReinitialisation" : {
+        "type" : "object",
+        "properties" : {
+          "le" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "par" : {
+            "type" : "string"
+          }
+        }
+      },
       "CompteInfo" : {
         "type" : "object",
         "properties" : {
@@ -3878,6 +3917,9 @@
           },
           "doitChangerMotDePasse" : {
             "type" : "boolean"
+          },
+          "accesReinitialise" : {
+            "$ref" : "#/components/schemas/AvisReinitialisation"
           }
         }
       },

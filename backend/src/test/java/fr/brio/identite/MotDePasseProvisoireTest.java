@@ -27,4 +27,29 @@ class MotDePasseProvisoireTest {
         }
         assertThat(vus).hasSize(1000);
     }
+
+    @Test
+    void shouldCanonicaliseWhatTheStudentTypes() {
+        assertThat(MotDePasseProvisoire.normaliser("K7M4-P9XA-3RTW")).isEqualTo("k7m4p9xa3rtw");
+        assertThat(MotDePasseProvisoire.normaliser(" k7m4 p9xa 3rtw ")).isEqualTo("k7m4p9xa3rtw");
+        assertThat(MotDePasseProvisoire.normaliser("k7m4p9xa3rtw")).isEqualTo("k7m4p9xa3rtw");
+    }
+
+    @Test
+    void shouldToleratePresentationOnlyForAProvisionalHash() {
+        var encodeur = new EncodeurMotsDePasse(
+                org.springframework.security.crypto.factory.PasswordEncoderFactories.createDelegatingPasswordEncoder());
+        String provisoire = MotDePasseProvisoire.hacher(encodeur, "k7m4-p9xa-3rtw");
+        assertThat(provisoire).startsWith(MotDePasseProvisoire.PREFIXE + "{bcrypt}");
+        assertThat(encodeur.matches("k7m4-p9xa-3rtw", provisoire)).isTrue();
+        assertThat(encodeur.matches("K7M4P9XA3RTW", provisoire)).isTrue();
+        assertThat(encodeur.matches("k7m4-p9xa-3rtx", provisoire)).isFalse();
+        assertThat(encodeur.upgradeEncoding(provisoire)).isFalse();
+
+        // An account's own password stays exact.
+        String sien = encodeur.encode("Mon-Secret");
+        assertThat(encodeur.matches("Mon-Secret", sien)).isTrue();
+        assertThat(encodeur.matches("mon-secret", sien)).isFalse();
+        assertThat(encodeur.matches("MonSecret", sien)).isFalse();
+    }
 }

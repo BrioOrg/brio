@@ -302,6 +302,211 @@ class ReinitialisationAccesIntegrationTest {
         assertThat(connexion(eleve.identifiantConnexion(), provisoire).getStatus()).isEqualTo(200);
     }
 
+    // ── Authorisation branches (V3) ─────────────────────────────────────────
+
+    @Test
+    void shouldForbidAResetThroughAnArchivedClass() throws Exception {
+        em.flush();
+        jdbc.update("UPDATE identite.classes SET statut = 'archivee' WHERE id = ?", classeId);
+        em.clear();
+        mockMvc.perform(post(url(classeId, eleve.id())).with(prof).with(csrf()))
+                .andExpect(status().isForbidden());
+        assertThat(traces.findByCompteId(eleve.id())).isEmpty();
+    }
+
+    @Test
+    void shouldRefuseToResetAnAccountThatIsNotActive() throws Exception {
+        em.flush();
+        jdbc.update("UPDATE identite.comptes SET statut = 'suspendu' WHERE id = ?", eleve.id());
+        em.clear();
+        mockMvc.perform(post(url(classeId, eleve.id())).with(prof).with(csrf()))
+                .andExpect(status().isConflict());
+        assertThat(traces.findByCompteId(eleve.id())).isEmpty();
+    }
+
+    @Test
+    void shouldNotFindAStudentWhoseEnrolmentHasEnded() throws Exception {
+        em.flush();
+        jdbc.update("UPDATE identite.inscriptions SET jusqua = current_date - 1 "
+                + "WHERE classe_id = ? AND compte_id = ?", classeId, eleve.id());
+        em.clear();
+        mockMvc.perform(post(url(classeId, eleve.id())).with(prof).with(csrf()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldNotFindAnAdultThroughTheClassRoute() throws Exception {
+        UUID collegue = creerProf();
+        mockMvc.perform(post(url(classeId, profId)).with(prof).with(csrf()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post(url(classeId, collegue)).with(prof).with(csrf()))
+                .andExpect(status().isNotFound());
+        assertThat(comptes.findById(profId).orElseThrow().isDoitChangerMotDePasse()).isFalse();
+    }
+
+    @Test
+    void shouldCapResetsAtFortyPerHourPerAdult() throws Exception {
+        Instant recemment = Instant.now().minus(Duration.ofMinutes(10));
+        for (int i = 0; i < 39; i++) {
+            traces.save(fr.brio.identite.domain.ReinitialisationAcces.tracer(
+                    UUID.randomUUID(), profId, classeId, recemment, recemment.plus(Duration.ofDays(7))));
+        }
+        reinitialiser(); // the 40th within the hour
+
+        EleveInscritInfo autre = classeService.rejoindreParCode(
+                classeService.genererCodePourEnseignant(classeId, profId).code(), MOT_DE_PASSE, "Léo");
+        mockMvc.perform(post(url(classeId, autre.id())).with(prof).with(csrf()))
+                .andExpect(status().isTooManyRequests());
+        assertThat(traces.findByCompteId(autre.id())).isEmpty();
+    }
+
+    // ── Provisional password typed loosely (ADR 0036 §2) ────────────────────
+
+    @Test
+    void shouldAcceptTheProvisionalPasswordWithoutDashesAndInCapitals() throws Exception {
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+        String tape = provisoire.replace("-", "").toUpperCase(java.util.Locale.ROOT);
+
+        assertThat(connexion(eleve.identifiantConnexion(), tape).getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void shouldAcceptTheProvisionalPasswordWithSpacesInsteadOfDashes() throws Exception {
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+
+        assertThat(connexion(eleve.identifiantConnexion(), provisoire.replace("-", " ")).getStatus())
+                .isEqualTo(200);
+    }
+
+    @Test
+    void shouldKeepTheStudentsOwnPasswordExact() throws Exception {
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+        Cookie cookie = session(connexion(eleve.identifiantConnexion(), provisoire));
+        // The provisional password in capitals is still the provisional one.
+        changer(cookie, provisoire.toUpperCase(java.util.Locale.ROOT)).andExpect(status().isUnprocessableEntity());
+        changer(cookie, NOUVEAU).andExpect(status().isNoContent());
+
+        assertThat(connexion(eleve.identifiantConnexion(), NOUVEAU.toUpperCase(java.util.Locale.ROOT)).getStatus())
+                .isEqualTo(401);
+        assertThat(connexion(eleve.identifiantConnexion(), NOUVEAU.replace("-", "")).getStatus())
+                .isEqualTo(401);
+    }
+
+    // ── What the adult holding the provisional password can see (ADR 0036 §9) ──
+
+    @Test
+    void shouldWithholdThePseudonymUntilTheStudentChoseTheirPassword() throws Exception {
+        String pseudonyme = comptes.findById(eleve.id()).orElseThrow().getPseudonyme();
+        assertThat(pseudonyme).isNotBlank();
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+
+        MockHttpServletResponse login = connexion(eleve.identifiantConnexion(), provisoire);
+        JsonNode corps = json.readTree(login.getContentAsString());
+        assertThat(corps.get("pseudonyme").isNull()).isTrue();
+        assertThat(corps.get("accesReinitialise").isNull()).isTrue();
+        Cookie cookie = session(login);
+        mockMvc.perform(get("/api/moi").cookie(cookie))
+                .andExpect(jsonPath("$.pseudonyme").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.accesReinitialise").value(org.hamcrest.Matchers.nullValue()));
+
+        changer(cookie, NOUVEAU).andExpect(status().isNoContent());
+
+        // Then the student gets their pseudonym back, and is told about the reset (§8).
+        mockMvc.perform(get("/api/moi").cookie(cookie))
+                .andExpect(jsonPath("$.pseudonyme").value(pseudonyme))
+                .andExpect(jsonPath("$.accesReinitialise.par").value("enseignant"))
+                .andExpect(jsonPath("$.accesReinitialise.le").exists());
+    }
+
+    @Test
+    void shouldNotTellAStudentWhoseAccessWasNeverReset() throws Exception {
+        Cookie cookie = session(connexion(eleve.identifiantConnexion(), MOT_DE_PASSE));
+        mockMvc.perform(get("/api/moi").cookie(cookie))
+                .andExpect(jsonPath("$.accesReinitialise").value(org.hamcrest.Matchers.nullValue()));
+    }
+
+    // ── admin_brio outside any class (ADR 0036 §1bis) ───────────────────────
+
+    private RequestPostProcessor admin() {
+        Compte admin = comptes.save(Compte.creerAdminBrio(
+                "admin-" + UUID.randomUUID(), "{noop}x", "Admin", "admin-" + UUID.randomUUID() + "@brio.fr"));
+        return user(admin.getId().toString()).roles("ADMIN_BRIO");
+    }
+
+    private String urlAdmin(UUID compte) {
+        return "/api/admin/comptes/" + compte + "/reinitialisation-acces";
+    }
+
+    @Test
+    void shouldLetAdminBrioResetAStudentWithNoClass() throws Exception {
+        // Signed up through /commencer (consent path), then validated: in no class at all.
+        var inscrit = compteService.inscrireEleve("5e", MOT_DE_PASSE, "parent-" + UUID.randomUUID() + "@example.fr");
+        Compte sansClasse = comptes.findById(inscrit.id()).orElseThrow();
+        sansClasse.activer();
+        comptes.saveAndFlush(sansClasse);
+
+        var res = mockMvc.perform(post(urlAdmin(inscrit.id())).with(admin()).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(jsonPath("$.identifiantConnexion").value(inscrit.identifiantConnexion()))
+                .andReturn().getResponse();
+        String provisoire = json.readTree(res.getContentAsString()).get("motDePasseProvisoire").asText();
+        assertThat(provisoire).matches(PROVISOIRE);
+
+        var trace = traces.findByCompteId(inscrit.id());
+        assertThat(trace).hasSize(1);
+        assertThat(trace.get(0).getClasseId()).isNull();
+
+        Cookie cookie = session(connexion(inscrit.identifiantConnexion(), provisoire));
+        changer(cookie, NOUVEAU).andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/moi").cookie(cookie))
+                .andExpect(jsonPath("$.accesReinitialise.par").value("admin_brio"));
+    }
+
+    @Test
+    void shouldLetAdminBrioResetAStudentWhoseClassWasArchived() throws Exception {
+        em.flush();
+        jdbc.update("UPDATE identite.classes SET statut = 'archivee' WHERE id = ?", classeId);
+        em.clear();
+        mockMvc.perform(post(urlAdmin(eleve.id())).with(admin()).with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReserveTheAdminResetToAdminBrio() throws Exception {
+        mockMvc.perform(post(urlAdmin(eleve.id())).with(prof).with(csrf()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post(urlAdmin(eleve.id()))
+                        .with(user(eleve.id().toString()).roles("ELEVE")).with(csrf()))
+                .andExpect(status().isForbidden());
+        assertThat(traces.findByCompteId(eleve.id())).isEmpty();
+    }
+
+    @Test
+    void shouldOnlyLetTheAdminResetAnActiveStudentAccount() throws Exception {
+        var admin = admin();
+        // An adult account, or no account at all: not found, nothing reset.
+        mockMvc.perform(post(urlAdmin(profId)).with(admin).with(csrf()))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post(urlAdmin(UUID.randomUUID())).with(admin).with(csrf()))
+                .andExpect(status().isNotFound());
+        assertThat(comptes.findById(profId).orElseThrow().isDoitChangerMotDePasse()).isFalse();
+
+        em.flush();
+        jdbc.update("UPDATE identite.comptes SET statut = 'suspendu' WHERE id = ?", eleve.id());
+        em.clear();
+        mockMvc.perform(post(urlAdmin(eleve.id())).with(admin).with(csrf()))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void shouldNeverPrintThePasswordsInLogs() {
+        var info = new fr.brio.identite.api.ReinitialisationAccesInfo("abcd", "k7m4-p9xa-3rtw", Instant.now());
+        assertThat(info.toString()).doesNotContain("k7m4-p9xa-3rtw").contains("abcd");
+        var req = new fr.brio.identite.api.ChangerMotDePasseRequest("mon-secret-a-moi");
+        assertThat(req.toString()).doesNotContain("mon-secret-a-moi");
+    }
+
     private org.springframework.test.web.servlet.ResultActions changer(Cookie cookie, String nouveau)
             throws Exception {
         return mockMvc.perform(post("/api/moi/mot-de-passe").cookie(cookie).with(csrf())

@@ -6,6 +6,8 @@ import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.domain.Compte;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -43,13 +45,19 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest req, HttpServletResponse res,
                                         Authentication auth) throws IOException {
         UUID compteId = UUID.fromString(auth.getName()); // Authentication.getName() returns the principal username
+        // A provisional password opens exactly one session (ADR 0036 §3). Consumed by one
+        // conditional UPDATE BEFORE the compte is loaded: two logins racing with it cannot both win.
+        boolean provisoireConsomme = comptes.consommerMotDePasseProvisoire(compteId, Instant.now()) == 1;
         Compte compte = comptes.findById(compteId)
                 .orElseThrow(() -> new IllegalStateException("Compte introuvable après authentification"));
+        if (compte.isDoitChangerMotDePasse() && !provisoireConsomme) {
+            // While a change is pending only the provisional password matches; it was just used
+            // by a concurrent login. Undo this session and answer exactly like a wrong password.
+            refuser(req, res);
+            return;
+        }
 
         compte.marquerDernierAcces();
-        // A provisional password opens exactly one session (ADR 0036 §3): this one, which must
-        // now choose the student's own password.
-        compte.marquerProvisoireUtilise(Instant.now());
 
         // A clean login clears any accumulated failures for the identifiant that was typed.
         protection.reinitialiser(req.getParameter("identifiant"));
@@ -64,6 +72,18 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
         res.setStatus(HttpServletResponse.SC_OK);
         res.setContentType("application/json;charset=UTF-8");
         json.writeValue(res.getWriter(), info);
+    }
+
+    private void refuser(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        SecurityContextHolder.clearContext();
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        protection.enregistrerEchec(req.getParameter("identifiant"));
+        res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        res.setContentType("application/json;charset=UTF-8");
+        res.getWriter().write(ProtectionConnexionService.CORPS_ECHEC_CONNEXION);
     }
 
     static String truncateIp(String ip) {

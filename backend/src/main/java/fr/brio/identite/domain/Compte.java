@@ -64,8 +64,18 @@ public class Compte {
     @Column(name = "mot_de_passe_provisoire_expire_le")
     private Instant motDePasseProvisoireExpireLe;
 
+    // Set at the first login with the provisional password, by a conditional UPDATE
+    // (CompteRepository.consommerMotDePasseProvisoire), never through this entity: single use.
     @Column(name = "mot_de_passe_provisoire_utilise_le")
     private Instant motDePasseProvisoireUtiliseLe;
+
+    // The last reset, kept after the change so the student is told about it (ADR 0036 §8):
+    // when, and by which kind of adult (enseignant or admin_brio). Never who by name.
+    @Column(name = "acces_reinitialise_le")
+    private Instant accesReinitialiseLe;
+
+    @Column(name = "acces_reinitialise_par")
+    private String accesReinitialisePar;
 
     protected Compte() {}
 
@@ -145,20 +155,16 @@ public class Compte {
     /**
      * Replaces the password with a provisional one (already hashed), valid until {@code expireLe},
      * and requires a password change at the next login (ADR 0036 §2-3). The old password stops
-     * working at once.
+     * working at once. {@code par} is the kind of adult who did it ({@code enseignant} or
+     * {@code admin_brio}), told to the student afterwards (§8).
      */
-    public void reinitialiserAcces(String hashProvisoire, Instant expireLe) {
+    public void reinitialiserAcces(String hashProvisoire, Instant expireLe, Instant le, String par) {
         this.motDePasseHash = hashProvisoire;
         this.doitChangerMotDePasse = true;
         this.motDePasseProvisoireExpireLe = expireLe;
         this.motDePasseProvisoireUtiliseLe = null;
-    }
-
-    /** Records the first login with the provisional password, which can then not be reused. */
-    public void marquerProvisoireUtilise(Instant maintenant) {
-        if (doitChangerMotDePasse && motDePasseProvisoireUtiliseLe == null) {
-            this.motDePasseProvisoireUtiliseLe = maintenant;
-        }
+        this.accesReinitialiseLe = le;
+        this.accesReinitialisePar = par;
     }
 
     /**
@@ -181,6 +187,9 @@ public class Compte {
 
     public boolean isDoitChangerMotDePasse() { return doitChangerMotDePasse; }
     public Instant getMotDePasseProvisoireExpireLe() { return motDePasseProvisoireExpireLe; }
+    public Instant getMotDePasseProvisoireUtiliseLe() { return motDePasseProvisoireUtiliseLe; }
+    public Instant getAccesReinitialiseLe() { return accesReinitialiseLe; }
+    public String getAccesReinitialisePar() { return accesReinitialisePar; }
 
     public void activer() {
         this.statut = StatutCompte.actif;

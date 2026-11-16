@@ -1,6 +1,7 @@
 package fr.brio.system.web;
 
 import fr.brio.identite.CompteService;
+import fr.brio.identite.EncodeurMotsDePasse;
 import fr.brio.identite.ProtectionConnexionService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -139,7 +140,8 @@ class SecurityConfig {
         // DelegatingPasswordEncoder stores the algorithm prefix ({bcrypt}) in the hash,
         // making future algorithm migration a config change with on-login rehashing.
         // Strength 12 intentionally higher than Spring's default 10 — override to 4 in tests.
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        // EncodeurMotsDePasse only adds the tolerance of a provisional password (ADR 0036 §2).
+        return new EncodeurMotsDePasse(PasswordEncoderFactories.createDelegatingPasswordEncoder());
     }
 
     @Bean
@@ -151,7 +153,7 @@ class SecurityConfig {
             protection.enregistrerEchec(req.getParameter("identifiant"));
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.setContentType("application/json;charset=UTF-8");
-            res.getWriter().write("{\"error\":\"Identifiant ou mot de passe incorrect\"}");
+            res.getWriter().write(ProtectionConnexionService.CORPS_ECHEC_CONNEXION);
         };
     }
 

@@ -3,7 +3,6 @@ package fr.brio.identite;
 import fr.brio.identite.api.ReinitialisationAccesInfo;
 import fr.brio.identite.domain.Classe;
 import fr.brio.identite.domain.Compte;
-import fr.brio.identite.domain.Inscription;
 import fr.brio.identite.domain.InscriptionId;
 import fr.brio.identite.domain.ReinitialisationAcces;
 import fr.brio.identite.domain.RoleCompte;
@@ -36,6 +35,10 @@ public class ReinitialisationAccesService {
 
     /** How long a provisional password opens a session (≤ 7 days, ADR 0036 §3). */
     static final Duration VALIDITE = Duration.ofDays(7);
+
+    /** Kinds of adult told to the student afterwards (ADR 0036 §8): never who by name. */
+    static final String PAR_ENSEIGNANT = "enseignant";
+    static final String PAR_ADMIN_BRIO = "admin_brio";
 
     private final ClasseRepository classes;
     private final InscriptionRepository inscriptions;
@@ -87,16 +90,38 @@ public class ReinitialisationAccesService {
         if (classe.getStatut() != StatutClasse.active) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cette classe est archivée");
         }
-
-        Inscription inscription = inscriptions.findById(new InscriptionId(classeId, eleveId))
+        inscriptions.findById(new InscriptionId(classeId, eleveId))
                 .filter(i -> "eleve".equals(i.getRoleDansClasse()))
                 .filter(i -> i.getJusqua() == null || !i.getJusqua().isBefore(LocalDate.now()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Élève non inscrit dans cette classe"));
-        Compte eleve = comptes.findById(inscription.getId().compteId())
+        return reinitialiserCompte(eleveId, demandePar, classeId,
+                isAdminBrio ? PAR_ADMIN_BRIO : PAR_ENSEIGNANT, "Élève non inscrit dans cette classe");
+    }
+
+    /**
+     * Resets the access of a student outside any class (ADR 0036 §1bis): one who signed up
+     * through {@code /commencer}, or whose class was archived. ADMIN_BRIO only (SecurityConfig),
+     * with the same guarantees as the class route.
+     *
+     * @throws ResponseStatusException 404 no student account with this id (an adult included)
+     * @throws ResponseStatusException 409 the student's account is not active
+     * @throws ResponseStatusException 429 too many resets
+     */
+    @Transactional
+    public ReinitialisationAccesInfo reinitialiserHorsClasse(UUID eleveId, UUID demandePar) {
+        return reinitialiserCompte(eleveId, demandePar, null, PAR_ADMIN_BRIO, "Élève introuvable");
+    }
+
+    private ReinitialisationAccesInfo reinitialiserCompte(UUID eleveId, UUID demandePar, UUID classeId,
+                                                          String par, String introuvable) {
+        // Row locks, adult first then student (always this order: no deadlock). Two resets by the
+        // same adult, or of the same student, then run one after the other, so each counts the
+        // trail the previous one committed: the rate limits hold under parallel requests (§6).
+        comptes.verrouiller(demandePar);
+        Compte eleve = comptes.verrouiller(eleveId)
                 .filter(c -> c.getRole() == RoleCompte.eleve)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Élève non inscrit dans cette classe"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, introuvable));
         if (eleve.getStatut() != StatutCompte.actif) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Le compte de cet élève n'est pas actif : une réinitialisation ne lui rendrait pas l'accès.");
@@ -113,11 +138,12 @@ public class ReinitialisationAccesService {
 
         String provisoire = MotDePasseProvisoire.generer();
         Instant expireLe = maintenant.plus(VALIDITE);
-        eleve.reinitialiserAcces(passwordEncoder.encode(provisoire), expireLe);
+        eleve.reinitialiserAcces(MotDePasseProvisoire.hacher(passwordEncoder, provisoire),
+                expireLe, maintenant, par);
         comptes.save(eleve);
         traces.save(ReinitialisationAcces.tracer(eleveId, demandePar, classeId, maintenant, expireLe));
 
-        // The teacher has just seen the student: clear a lockout so the first try works (§6, AC8).
+        // The adult has just seen the student: clear a lockout so the first try works (§6, AC8).
         protection.reinitialiser(eleve.getIdentifiantConnexion());
         // Close every open session of the account: one held by someone else must neither survive
         // nor be the one that chooses the new password (§6).
@@ -128,25 +154,30 @@ public class ReinitialisationAccesService {
 
     /**
      * The connected student chooses their own password after a reset (ADR 0036 §5). Accepted only
-     * while a change is pending: without the current password, it must not become a free change
-     * a stolen session could use.
+     * while a change is pending and once the provisional password has opened a session: without
+     * the current password, it must not become a free change a stolen session could use. Every
+     * other session of the account is then closed: only this one stays signed in.
      *
-     * @throws ResponseStatusException 409 no change pending
+     * @throws ResponseStatusException 409 no change pending, or the provisional password never served
      * @throws ResponseStatusException 422 the new password is the provisional one
      */
     @Transactional
-    public void changerMotDePasse(UUID compteId, String nouveauMotDePasse) {
-        Compte compte = comptes.findById(compteId)
+    public void changerMotDePasse(UUID compteId, String nouveauMotDePasse, String sessionCourante) {
+        Compte compte = comptes.verrouiller(compteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Compte introuvable"));
-        if (!compte.isDoitChangerMotDePasse()) {
+        if (!compte.isDoitChangerMotDePasse() || compte.getMotDePasseProvisoireUtiliseLe() == null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Aucun changement de mot de passe n'est demandé pour ce compte.");
         }
+        // Compared like a login would (dashes and case ignored): "K7M4P9XA3RTW" is the provisional too.
         if (passwordEncoder.matches(nouveauMotDePasse, compte.getMotDePasseHash())) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "Choisis un mot de passe différent du mot de passe provisoire.");
         }
         compte.changerMotDePasse(passwordEncoder.encode(nouveauMotDePasse));
         comptes.save(compte);
+        sessions.findByPrincipalName(compteId.toString()).keySet().stream()
+                .filter(id -> !id.equals(sessionCourante))
+                .forEach(sessions::deleteById);
     }
 }

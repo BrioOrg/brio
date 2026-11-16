@@ -24,6 +24,12 @@ import java.util.Locale;
 @Service
 public class ProtectionConnexionService {
 
+    /**
+     * The one body of every refused login — wrong password, unknown identifiant, expired or
+     * already-used provisional password (ADR 0036 §4): identical, so nothing can be enumerated.
+     */
+    public static final String CORPS_ECHEC_CONNEXION = "{\"error\":\"Identifiant ou mot de passe incorrect\"}";
+
     private final EchecConnexionRepository echecs;
     private final DebitConnexionRepository debits;
     private final int maxEchecs;
