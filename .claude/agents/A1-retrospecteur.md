@@ -30,7 +30,7 @@ skill, cas d'éval) qui l'aurait arrêté. Il propose ; il ne mesure ni ne versi
 - Une ligne de journal par leçon (`action: lesson`) ; si rien à corriger, une ligne
   `action: retro`, `detail: "RAS"` — pas de PR vide.
 
-## Méthode
+### Méthode
 1. **Collecter** : `mesh/journal/AAAA-MM.jsonl` des 7 derniers jours ; entrées avec
    `human_disagreement: true`, `veto`, `escalade`, incidents de staging, PR revertées.
 2. **Regrouper** par défaut échappé (pas par agent) ; ignorer le bruit isolé sans récurrence

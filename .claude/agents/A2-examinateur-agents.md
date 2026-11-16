@@ -30,7 +30,7 @@ d'un agent que sur preuve. Il est le **seul** à connaître le jeu caché.
   (montée proposée ; descente appliquée dès l'incident). Merge humain.
 - Lignes de journal `action: eval` avec **comptes seulement**.
 
-## Méthode
+### Méthode
 1. **Base** : exécuter l'agent ciblé (branche de base) sur `mesh/evals/corpus/<ID>/` puis
    sur le jeu caché monté hors dépôt (`MESH_EVALS_HIDDEN_DIR`, voir `mesh/evals/HIDDEN.md`).
 2. **Candidat** : même passe sur la branche `mesh-tuning`.
