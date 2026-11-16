@@ -74,6 +74,10 @@ class SecurityConfig {
                         .hasAnyRole("ADMIN_BRIO", "ADMIN_ETAB")
                 // Class code enrollment: public (convention gate enforced in the service)
                 .requestMatchers(HttpMethod.POST, "/api/classes/rejoindre").permitAll()
+                // Teacher-led access reset of a student (ADR 0036): adults only; the service
+                // further requires the class's own teacher (or ADMIN_BRIO).
+                .requestMatchers(HttpMethod.POST, "/api/classes/*/inscriptions/*/reinitialisation-acces")
+                        .hasAnyRole("ENSEIGNANT", "ADMIN_BRIO")
                 // Teacher course authoring (create/save/scope/publish): ENSEIGNANT only.
                 .requestMatchers("/api/prof/**").hasRole("ENSEIGNANT")
                 // The signup pick-list of établissements: names and types only (ADR 0029 §1).

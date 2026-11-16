@@ -47,6 +47,9 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
                 .orElseThrow(() -> new IllegalStateException("Compte introuvable après authentification"));
 
         compte.marquerDernierAcces();
+        // A provisional password opens exactly one session (ADR 0036 §3): this one, which must
+        // now choose the student's own password.
+        compte.marquerProvisoireUtilise(Instant.now());
 
         // A clean login clears any accumulated failures for the identifiant that was typed.
         protection.reinitialiser(req.getParameter("identifiant"));

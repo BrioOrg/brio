@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -36,6 +37,10 @@ class BrioUserDetailsService implements UserDetailsService {
                 .disabled(compte.getStatut() == StatutCompte.en_attente_consentement
                         || compte.getStatut() == StatutCompte.clos)
                 .accountLocked(compte.getStatut() == StatutCompte.suspendu)
+                // An expired or already-used provisional password (ADR 0036 §3). Spring checks this
+                // only AFTER the password matched, and the single failure handler answers it exactly
+                // like a wrong password (same 401 body, same lockout count): no enumeration (§4).
+                .credentialsExpired(compte.provisoireInutilisable(Instant.now()))
                 .build();
     }
 }

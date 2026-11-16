@@ -56,6 +56,17 @@ public class Compte {
     @Column(name = "dernier_acces_at")
     private Instant dernierAccesAt;
 
+    // Teacher-led access reset (ADR 0036): while set, the student must choose their own
+    // password before anything else; the provisional one expires and is single-use.
+    @Column(name = "doit_changer_mot_de_passe", nullable = false)
+    private boolean doitChangerMotDePasse;
+
+    @Column(name = "mot_de_passe_provisoire_expire_le")
+    private Instant motDePasseProvisoireExpireLe;
+
+    @Column(name = "mot_de_passe_provisoire_utilise_le")
+    private Instant motDePasseProvisoireUtiliseLe;
+
     protected Compte() {}
 
     /** Path B (consent): account starts pending, parent must validate email (ADR 0016 §5). */
@@ -130,6 +141,46 @@ public class Compte {
     public void marquerDernierAcces() {
         this.dernierAccesAt = Instant.now();
     }
+
+    /**
+     * Replaces the password with a provisional one (already hashed), valid until {@code expireLe},
+     * and requires a password change at the next login (ADR 0036 §2-3). The old password stops
+     * working at once.
+     */
+    public void reinitialiserAcces(String hashProvisoire, Instant expireLe) {
+        this.motDePasseHash = hashProvisoire;
+        this.doitChangerMotDePasse = true;
+        this.motDePasseProvisoireExpireLe = expireLe;
+        this.motDePasseProvisoireUtiliseLe = null;
+    }
+
+    /** Records the first login with the provisional password, which can then not be reused. */
+    public void marquerProvisoireUtilise(Instant maintenant) {
+        if (doitChangerMotDePasse && motDePasseProvisoireUtiliseLe == null) {
+            this.motDePasseProvisoireUtiliseLe = maintenant;
+        }
+    }
+
+    /**
+     * Whether the provisional password can no longer open a session: expired, or already used
+     * once. False for an account with no pending change.
+     */
+    public boolean provisoireInutilisable(Instant maintenant) {
+        return doitChangerMotDePasse
+                && (motDePasseProvisoireUtiliseLe != null
+                        || !maintenant.isBefore(motDePasseProvisoireExpireLe));
+    }
+
+    /** The student's own new password (already hashed) replaces the provisional one. */
+    public void changerMotDePasse(String nouveauHash) {
+        this.motDePasseHash = nouveauHash;
+        this.doitChangerMotDePasse = false;
+        this.motDePasseProvisoireExpireLe = null;
+        this.motDePasseProvisoireUtiliseLe = null;
+    }
+
+    public boolean isDoitChangerMotDePasse() { return doitChangerMotDePasse; }
+    public Instant getMotDePasseProvisoireExpireLe() { return motDePasseProvisoireExpireLe; }
 
     public void activer() {
         this.statut = StatutCompte.actif;

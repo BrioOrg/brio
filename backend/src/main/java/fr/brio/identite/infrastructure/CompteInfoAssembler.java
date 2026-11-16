@@ -23,7 +23,8 @@ public class CompteInfoAssembler {
                 compte.getNom(),
                 compte.getEmail(),
                 compte.getPseudonyme(),
-                niveau(compte));
+                niveau(compte),
+                compte.isDoitChangerMotDePasse());
     }
 
     /** The active class's level; a student in no class falls back on the level they declared. */
