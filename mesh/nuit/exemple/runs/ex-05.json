@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "synthetique": true,
+  "date": "2026-11-13",
+  "commit": "0000000",
+  "env": "staging",
+  "budget": 1,
+  "run_id": "ex-05",
+  "kind": "sabotage",
+  "agent": "S3",
+  "persona": "03-saboteur",
+  "tache": "eleve-devoirs-a-faire",
+  "resultat": "tenu",
+  "attaque": "session-expiree",
+  "duree_s": 10,
+  "etapes": [
+    {
+      "n": 1,
+      "action": "clic",
+      "cible": "onglet « Ma classe »",
+      "route": "/"
+    },
+    {
+      "n": 2,
+      "action": "expiration",
+      "cible": "session supprimée côté serveur",
+      "route": "/ma-classe",
+      "observation": "redirigé vers /connexion?from=/ma-classe"
+    }
+  ],
+  "frictions": []
+}

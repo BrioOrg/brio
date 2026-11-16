@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "synthetique": true,
+  "date": "2026-11-13",
+  "commit": "0000000",
+  "env": "staging",
+  "budget": 2,
+  "run_id": "ex-03",
+  "kind": "persona",
+  "agent": "S2",
+  "persona": "01-eleve-reel",
+  "tache": "eleve-poser-question",
+  "resultat": "reussi",
+  "clics": 3,
+  "duree_s": 41,
+  "etapes": [
+    {
+      "n": 1,
+      "action": "clic",
+      "cible": "onglet « Communauté »",
+      "route": "/"
+    },
+    {
+      "n": 2,
+      "action": "clic",
+      "cible": "bouton « Poser une question »",
+      "route": "/communaute"
+    },
+    {
+      "n": 3,
+      "action": "recherche",
+      "cible": "bouton de validation",
+      "route": "/communaute/nouvelle",
+      "observation": "[exemple] le libellé « Publier » n'est pas celui attendu"
+    },
+    {
+      "n": 4,
+      "action": "clic",
+      "cible": "bouton « Publier »",
+      "route": "/communaute/nouvelle"
+    }
+  ],
+  "frictions": [
+    {
+      "type": "ambigu",
+      "route": "/communaute/nouvelle",
+      "detail": "[exemple] Le persona ne reconnaît pas « Publier » comme l'envoi de sa question."
+    }
+  ]
+}

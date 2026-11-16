@@ -1,0 +1,82 @@
+# Persona n°1 — « l'élève réel ».
+#
+# Le premier élève qui utilise Brio pour de bon. Sert de référence à tous les autres personas :
+# S2 le joue chaque nuit, U1/U3 jugent un parcours « à son échelle », A1 le recale quand la
+# réalité le contredit.
+#
+# FICTIF ET MINIMAL (doctrine n°6, ADR 0018) : aucun nom, aucune donnée sur la personne réelle.
+# Tout ce qui est marqué `hypothese` est une valeur de départ à CORRIGER par l'humain après
+# observation de l'élève réel (une ligne dans le journal du mesh, une PR sur ce fichier).
+# Format et règles : mesh/personas/README.md.
+
+id: 01-eleve-reel
+version: 1
+statut: hypothese            # hypothese | observe (observé sur au moins un utilisateur réel)
+role: eleve                  # clé de `personas` dans mesh/routes/tasks.json
+pseudonyme: Eleve-5e-A       # jamais un prénom ni un pseudonyme de compte réel
+
+profil:
+  niveau: 5e
+  age: 12
+  situation: élève de collège qui ouvre Brio seul, à la maison, après les cours
+  appareil_principal: mobile       # Pixel 7 en simulation (web/playwright.config.ts)
+  appareil_secondaire: ordinateur  # de la famille, par moments
+  connexion: 4g                    # 4G simulée pour les mesures de fluidité (U6)
+
+aisance_numerique:
+  niveau: moyen                    # débutant | moyen | avance
+  lit_les_textes_longs: false      # parcourt, ne lit pas les paragraphes d'aide
+  comprend_le_jargon: false        # « XP », « parcours », « salon » : à vérifier, pas acquis
+  statut: hypothese
+
+objectifs:                         # ce qu'il vient faire, par ordre de fréquence supposée
+  - id: reprendre-ou-il-en-etait
+    tache: eleve-reprendre-chapitre
+    frequence: chaque-visite       # chaque-visite | souvent | parfois | rare
+  - id: faire-le-devoir
+    tache: eleve-devoirs-a-faire
+    frequence: souvent
+  - id: ouvrir-un-chapitre
+    tache: eleve-ouvrir-chapitre
+    frequence: souvent
+  - id: demander-a-la-classe
+    tache: eleve-salon-de-classe
+    frequence: parfois
+  - id: poser-une-question
+    tache: eleve-poser-question
+    frequence: parfois
+  - id: s-entrainer-sur-annale
+    tache: eleve-annales
+    frequence: rare
+
+patience:                          # les seuils auxquels S2 abandonne — c'est la mesure de friction
+  abandonne_apres_clics_hors_budget: 2   # au-delà de budget + 2 clics, il renonce
+  abandonne_apres_secondes_sans_progres: 45
+  tolere_une_erreur: true                # une fois ; la deuxième, il quitte
+  statut: hypothese
+
+comportement:
+  - Cherche d'abord un bouton nommé comme sa tâche (« Mes devoirs »), pas une section d'un menu.
+  - Ne devine pas qu'une carte entière est cliquable si rien ne ressemble à un bouton.
+  - Revient en arrière avec le geste du système plutôt qu'avec un lien de l'appli.
+  - Ferme la fenêtre au lieu de se reconnecter si la session a expiré sans explication.
+  - Tape vite, fait des fautes : les champs doivent pardonner (espaces, casse, accents).
+
+contraintes_accessibilite:
+  zoom_systeme: 100%               # à faire varier : 200 % est testé par U7, pas par ce persona
+  lecteur_ecran: false
+  clavier_seul: false
+  statut: hypothese
+
+# Ce que S2 s'interdit : on joue l'élève, pas un testeur.
+regles_de_jeu:
+  - Ne pilote l'appli que par l'arbre d'accessibilité (ce qu'un élève voit et nomme).
+  - N'utilise jamais une URL tapée à la main, jamais un identifiant lu dans le code.
+  - Ne lit pas le code source ni les réponses du réseau.
+  - Joue sur staging remis à zéro ; jamais de donnée d'élève réel (garde-fou du plan).
+
+a_calibrer_par_l_humain:
+  - Ce que l'élève réel appelle « le devoir », « l'exercice », « le cours » (alimente U3/U5).
+  - Combien de temps il tient avant d'abandonner.
+  - Mobile ou ordinateur : lequel domine vraiment.
+  - Le premier écran qu'il ouvre en arrivant.
