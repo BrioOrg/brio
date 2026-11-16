@@ -1,0 +1,102 @@
+# SQUELETTE — boucle hebdomadaire `mesh-tuning` (A1 → A2 → A3).
+#
+# Ce fichier est un EXEMPLE : il ne tourne pas, il vit hors de `.github/`.
+# `.github/**` est à propriétaire humain (CODEOWNERS) : un humain le relit et le copie en
+# `.github/workflows/mesh-tuning.yml` quand les prérequis sont réunis :
+#   - app GitHub Claude installée sur BrioOrg (secret ANTHROPIC_API_KEY ou équivalent)
+#   - dépôt privé du jeu caché + secret MESH_EVALS_HIDDEN_TOKEN (voir mesh/evals/HIDDEN.md)
+#   - runner d'évals `scripts/mesh/run-evals.sh` (À ÉCRIRE : n'existe pas encore)
+# Voir docs/mesh/TUNING.md. Aucun chemin absolu ici (règle du dépôt).
+
+name: mesh-tuning-weekly
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"        # lundi 05:00 UTC ; l'interrupteur global court-circuite
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mesh-tuning
+  cancel-in-progress: false
+
+env:
+  MESH_ENABLED: ${{ vars.MESH_ENABLED }}   # interrupteur global : != "true" => rien ne tourne
+
+jobs:
+  # ── 1 · A1 Rétrospecteur ────────────────────────────────────────────────────
+  # N'a PAS le secret du jeu caché, ni le montage : il ne peut pas le lire.
+  retro:
+    if: ${{ vars.MESH_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # pousse la branche mesh-tuning/*, jamais develop/main
+      pull-requests: write
+      issues: write
+    outputs:
+      pr_number: ${{ steps.retro.outputs.pr_number }}   # vide si « RAS »
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - id: retro
+        name: A1 lit le journal des 7 derniers jours et ouvre la PR mesh-tuning
+        run: |
+          # TODO : lancer l'agent .claude/agents/A1-retrospecteur.md (app GitHub Claude).
+          # Entrée : mesh/journal/AAAA-MM.jsonl (7 jours). Sortie : PR label mesh:tuning
+          # (branche mesh-tuning/AAAA-Wss-<slug>) + une ligne de journal `retro`/`lesson`.
+          # Si rien à corriger : pas de PR, ligne `retro` detail "RAS".
+          echo "pr_number=" >> "$GITHUB_OUTPUT"
+
+  # ── 2 · A2 Examinateur ──────────────────────────────────────────────────────
+  # SEUL job qui reçoit le secret du jeu caché. Sort des agrégats uniquement.
+  exam:
+    needs: retro
+    if: ${{ needs.retro.outputs.pr_number != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write      # commentaire d'agrégats seulement
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "refs/pull/${{ needs.retro.outputs.pr_number }}/head" }
+      - name: Monter le jeu caché HORS de l'espace de travail
+        env:
+          MESH_EVALS_HIDDEN_TOKEN: ${{ secrets.MESH_EVALS_HIDDEN_TOKEN }}
+        run: |
+          # TODO : cloner BrioOrg/brio-mesh-evals-hidden dans "$RUNNER_TEMP/hidden"
+          #        puis exporter MESH_EVALS_HIDDEN_DIR="$RUNNER_TEMP/hidden".
+          #        Supprimer le dossier en fin de job (étape `if: always()`).
+          echo "MESH_EVALS_HIDDEN_DIR=$RUNNER_TEMP/hidden" >> "$GITHUB_ENV"
+      - name: Structure du corpus et absence de fuite
+        run: scripts/mesh/check-evals.sh
+      - id: exam
+        name: base vs candidat, public + caché, canaris
+        run: |
+          # TODO : scripts/mesh/run-evals.sh --agent <ID> --base origin/develop --candidate HEAD
+          # Sortie autorisée : verdict (gain|neutre|régression|non mesurable), scores
+          # publics, score caché AGRÉGÉ, non-régression. JAMAIS d'ID ni de contenu de cas
+          # caché dans un log, un artefact, un commentaire ou le journal.
+          echo "verdict=non mesurable" >> "$GITHUB_OUTPUT"
+    outputs:
+      verdict: ${{ steps.exam.outputs.verdict }}
+
+  # ── 3 · A3 Bibliothécaire ───────────────────────────────────────────────────
+  # Versionne UNIQUEMENT une leçon au verdict `gain`. N'a aucun accès au jeu caché.
+  version:
+    needs: [retro, exam]
+    if: ${{ needs.exam.outputs.verdict == 'gain' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "refs/pull/${{ needs.retro.outputs.pr_number }}/head" }
+      - name: A3 versionne le garde-fou (règle, skill, test ou cas public)
+        run: |
+          # TODO : lancer l'agent .claude/agents/A3-bibliothecaire.md sur la leçon ratifiée.
+          # Commit sur la branche de la PR, ligne de journal `lesson`. Le MERGE reste humain
+          # (N3, CODEOWNERS) : aucun auto-merge, aucune action sur develop/main.
+          echo "À écrire"
