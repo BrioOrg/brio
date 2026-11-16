@@ -14,6 +14,8 @@ import { ensureCsrfToken, csrfHeaders } from './csrf.js'
  *                          200 -> CompteInfo · 401 -> { error }
  *   DELETE /api/sessions   204 (with or without a session) · 403 without a CSRF token
  *   GET    /api/moi        200 -> CompteInfo · 401 when no session
+ *   POST   /api/moi/mot-de-passe  { nouveauMotDePasse }  204 · 400 too short · 409 no change
+ *                          pending · 422 same as the provisional password (ADR 0036 §5)
  *
  * CSRF: the backend uses CookieCsrfTokenRepository (XSRF-TOKEN cookie, readable
  * by JS) and expects the token echoed in the X-XSRF-TOKEN header on mutating
@@ -35,6 +37,9 @@ export const CompteInfoSchema = z.object({
   // Student accounts only: the out-of-class identity (#325) and the school level.
   pseudonyme: z.string().nullish(),
   niveau: z.string().nullish(),
+  // After a teacher-led reset (ADR 0036): the student must choose their own password first.
+  // Absent from a backend that predates it: read as "nothing to change".
+  doitChangerMotDePasse: z.boolean().optional(),
 })
 
 export type CompteInfo = z.infer<typeof CompteInfoSchema>
@@ -110,4 +115,44 @@ export async function getMoi(baseUrl: string): Promise<CompteInfo | null> {
   if (res.status === 401) return null
   if (!res.ok) throw new Error('Impossible de récupérer le compte connecté.')
   return CompteInfoSchema.parse(await res.json())
+}
+
+/** Thrown when the forced password change fails; carries the HTTP status. */
+export class ChangerMotDePasseError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    super(message)
+    this.name = 'ChangerMotDePasseError'
+  }
+}
+
+/** Minimum length of a password chosen by the student (ChangerMotDePasseRequest). */
+export const MOT_DE_PASSE_MIN = 8
+
+/**
+ * The student's own password, chosen right after logging in with the provisional password a
+ * teacher gave them (ADR 0036 §5). The server accepts it only while that change is pending.
+ */
+export async function changerMotDePasse(baseUrl: string, nouveauMotDePasse: string): Promise<void> {
+  const token = await ensureCsrfToken(baseUrl)
+  const res = await fetch(`${baseUrl}/api/moi/mot-de-passe`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...csrfHeaders(token) },
+    body: JSON.stringify({ nouveauMotDePasse }),
+  })
+  if (res.ok) return
+  const message =
+    res.status === 400
+      ? `Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`
+      : res.status === 422
+        ? 'Choisis un mot de passe différent du mot de passe provisoire.'
+        : res.status === 401
+          ? 'Ta session a expiré. Demande un nouveau mot de passe provisoire à ton prof.'
+          : res.status === 409
+            ? 'Ton mot de passe est déjà choisi : tu peux continuer.'
+            : 'Le changement a échoué. Réessaie dans un instant.'
+  throw new ChangerMotDePasseError(res.status, message)
 }

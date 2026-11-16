@@ -112,6 +112,18 @@ describe('LoginForm', () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith('/prof/classes'))
   })
 
+  // ADR 0036 §5 : connecté avec le mot de passe provisoire du prof, l'élève choisit d'abord le
+  // sien — avant le chemin de retour demandé, quel qu'il soit.
+  it('envoie un élève au mot de passe provisoire vers le choix de son mot de passe', async () => {
+    const { login } = await setup('/devoirs')
+    login.mockResolvedValue({ ...ELEVE, doitChangerMotDePasse: true })
+
+    await submit()
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/changer-mot-de-passe'))
+    expect(push).toHaveBeenCalledTimes(1)
+  })
+
   it('affiche un message d’erreur quand les identifiants sont invalides', async () => {
     const { login } = await setup()
     login.mockRejectedValue(new LoginError(401, 'Identifiant ou mot de passe incorrect.'))
@@ -139,32 +151,62 @@ describe('LoginForm', () => {
   })
 })
 
-// AC1/AC2/AC3 (#364, ADR 0036) : la cible du lien « Mot de passe oublié ? » est une page
-// vivante — un écran statique de consigne (200, pas 404) qui renvoie l'élève vers son prof,
-// sans demander ni identifiant ni e-mail.
+// AC1-AC4 (#364, ADR 0036) : la cible du lien « Mot de passe oublié ? » est une page vivante
+// qui dit la vérité — le prof réinitialise l'accès du compte EXISTANT de l'élève (identifiant +
+// mot de passe provisoire, 7 jours), puis l'élève choisit son propre mot de passe. Rien n'y est
+// demandé ni soumis, et plus aucun renvoi vers /rejoindre (qui créerait un autre compte).
 describe('MotDePasseOubliePage', () => {
-  it('rend la consigne « va voir ton prof » et le rebouclage, pas un 404', async () => {
+  async function renderPage() {
     const { default: Page } = await import('@/app/mot-de-passe-oublie/page')
     render(<Page />)
+  }
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/récupérer ton accès/i)
-    expect(screen.getAllByText(/ton prof/i).length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: /rejoindre ma classe/i })).toHaveAttribute(
-      'href',
-      '/rejoindre'
-    )
-    expect(screen.getByRole('link', { name: /revenir à la connexion/i })).toHaveAttribute(
-      'href',
-      '/connexion'
-    )
+  it('donne la consigne « va voir ton prof » en premier, juste sous le titre', async () => {
+    await renderPage()
+    const titre = screen.getByRole('heading', { level: 1 })
+    expect(titre).toHaveTextContent(/récupérer ton accès/i)
+    const consigne = titre.nextElementSibling
+    expect(consigne).toHaveTextContent(/va voir ton prof/i)
+    expect(consigne).toHaveTextContent(/ton identifiant et un mot de passe provisoire/i)
+    expect(consigne).toHaveTextContent(/ton compte/i)
+    expect(consigne).toHaveTextContent(/tu choisiras ensuite ton propre mot de passe/i)
+    expect(consigne).toHaveTextContent(/expire au bout de 7\s*jours/i)
+  })
+
+  // AC3/AC4 : mot de passe oublié, identifiant oublié, ou les deux — une seule sortie, qui rend
+  // les deux (le prof redonne l'identifiant ET un mot de passe), pour le même compte.
+  it('couvre l’oubli du mot de passe, de l’identifiant et des deux', async () => {
+    await renderPage()
+    expect(
+      screen.getByText(/mot de passe oublié, identifiant oublié, ou les deux/i)
+    ).toBeInTheDocument()
+    expect(screen.getByText(/il te redonne ton/i)).toHaveTextContent(/identifiant/i)
+    expect(screen.getByText(/il te redonne ton/i)).toHaveTextContent(/mot de passe provisoire/i)
+    expect(
+      screen.getByText(/tu gardes ton compte, ta classe et ta progression/i)
+    ).toBeInTheDocument()
+  })
+
+  it('ne renvoie plus vers /rejoindre, qui créerait un nouveau compte', async () => {
+    await renderPage()
+    for (const lien of screen.getAllByRole('link')) {
+      expect(lien).not.toHaveAttribute('href', '/rejoindre')
+    }
+    expect(screen.queryByText(/rejoindre ma classe/i)).toBeNull()
+  })
+
+  it('garde le retour à la connexion, flèche décorative masquée', async () => {
+    await renderPage()
+    const retour = screen.getByRole('link', { name: 'Revenir à la connexion' })
+    expect(retour).toHaveAttribute('href', '/connexion')
+    expect(retour.querySelector('[aria-hidden="true"]')).toHaveTextContent('←')
   })
 
   it('ne demande aucun e-mail ni identifiant (zéro champ, zéro soumission)', async () => {
-    const { default: Page } = await import('@/app/mot-de-passe-oublie/page')
-    render(<Page />)
-
+    await renderPage()
     expect(screen.queryByRole('textbox')).toBeNull()
     expect(screen.queryByRole('button')).toBeNull()
     expect(document.querySelector('form')).toBeNull()
+    expect(screen.queryByText(/ton e-mail/i)).toBeNull()
   })
 })

@@ -3,7 +3,9 @@
   "clientPaths": [
     { "value": "/api/sessions", "reason": "POST/DELETE gérés par Spring Security (loginProcessingUrl, logout) : springdoc ne les documente pas — voir l'en-tête de packages/api-client/src/session.ts." }
   ],
-  "fakeBackendPaths": [],
+  "fakeBackendPaths": [
+    { "value": "/api/sessions", "reason": "Connexion par formulaire (loginProcessingUrl de Spring Security), non documentée par springdoc ; le faux backend la sert pour l'e2e de réinitialisation d'accès (ADR 0036), avec le même corps 401 que le vrai." }
+  ],
   "zodFields": [
     { "value": "error", "reason": "Corps d'erreur `{ error }` de GlobalExceptionHandler : non décrit dans la spec." },
     { "value": "violations", "reason": "Corps du refus de publication (ProblemeContenu / ContentViolation) : réponse non typée dans la spec." },

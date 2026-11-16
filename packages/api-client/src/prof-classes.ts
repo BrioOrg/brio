@@ -21,6 +21,9 @@ import type { EtablissementPublic } from './enrollment.js'
  *   GET   /api/classes/{id}/codes/actif                200 -> CodeClasseInfo · 404 no active code
  *   GET   /api/classes/{id}/inscriptions               200 -> InscriptionInfo[] · 403
  *   PATCH /api/classes/{id}/inscriptions/{compteId}    200 -> InscriptionInfo · 403 · 404
+ *   POST  /api/classes/{id}/inscriptions/{compteId}/reinitialisation-acces
+ *                                                     200 -> ReinitialisationAcces · 403 · 404
+ *                                                     · 409 inactive account · 429 (ADR 0036)
  */
 
 /** The teacher's active classes, with labels. Empty when the teacher runs no class. */
@@ -77,6 +80,18 @@ export const InscriptionInfoSchema = z.object({
   homonyme: z.boolean(),
 })
 export type InscriptionInfo = z.infer<typeof InscriptionInfoSchema>
+
+/**
+ * Returned once, when a teacher resets a student's access (ADR 0036): the student's login
+ * identifier and a provisional password, valid until `expireLe` and usable once. The server
+ * cannot show it again.
+ */
+export const ReinitialisationAccesSchema = z.object({
+  identifiantConnexion: z.string(),
+  motDePasseProvisoire: z.string(),
+  expireLe: z.string(),
+})
+export type ReinitialisationAcces = z.infer<typeof ReinitialisationAccesSchema>
 
 export type CreerMaClasseInput = {
   etablissementId: string
@@ -223,4 +238,33 @@ export async function renommerEleve(
     )
   }
   return InscriptionInfoSchema.parse(await res.json())
+}
+
+/**
+ * Reset a student's access to their existing account (ADR 0036): their old password stops
+ * working, they keep their account and progression. The result is shown once.
+ */
+export async function reinitialiserAccesEleve(
+  baseUrl: string,
+  classeId: string,
+  compteId: string
+): Promise<ReinitialisationAcces> {
+  const res = await mutation(
+    baseUrl,
+    'POST',
+    `/api/classes/${encodeURIComponent(classeId)}/inscriptions/${encodeURIComponent(compteId)}/reinitialisation-acces`
+  )
+  if (!res.ok) {
+    throw new CoursApiError(
+      res.status,
+      res.status === 404
+        ? "Cet élève n'est plus dans la classe."
+        : res.status === 409
+          ? "Le compte de cet élève n'est pas actif : une réinitialisation ne lui rendrait pas l'accès."
+          : res.status === 429
+            ? 'Trop de réinitialisations en peu de temps. Réessayez plus tard.'
+            : classeError(res.status, "Impossible de réinitialiser l'accès de cet élève.").message
+    )
+  }
+  return ReinitialisationAccesSchema.parse(await res.json())
 }

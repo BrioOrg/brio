@@ -117,4 +117,58 @@ describe('middleware', () => {
     expect(res.status).toBe(302)
     expect(locationOf(res)).toContain('from=%2Fprofil%2Fparametres')
   })
+
+  // ADR 0036 §5 : après une réinitialisation par le prof, l'élève choisit son mot de passe avant
+  // toute autre page (le backend refuse de toute façon les autres appels).
+  describe('mot de passe à changer', () => {
+    function stubMoiJson(body: unknown) {
+      const fetchMock = vi.fn(() =>
+        Promise.resolve(
+          new Response(JSON.stringify(body), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      )
+      vi.stubGlobal('fetch', fetchMock)
+      return fetchMock
+    }
+
+    it.each(['/', '/ma-classe', '/3e/mathematiques', '/prof'])(
+      'envoie %s vers /changer-mot-de-passe',
+      async (path) => {
+        stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: true })
+        const res = await middleware(makeRequest(path, true))
+        expect(res.status).toBe(302)
+        expect(new URL(locationOf(res)).pathname).toBe('/changer-mot-de-passe')
+      }
+    )
+
+    it('laisse /changer-mot-de-passe s’afficher', async () => {
+      stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: true })
+      const res = await middleware(makeRequest('/changer-mot-de-passe', true))
+      expect(res.status).not.toBe(302)
+    })
+
+    it('n’est pas une page publique : sans session, retour à la connexion', async () => {
+      const fetchMock = stubMoi(401)
+      const res = await middleware(makeRequest('/changer-mot-de-passe'))
+      expect(res.status).toBe(302)
+      expect(locationOf(res)).toContain('/connexion')
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it('renvoie à l’accueil quand plus rien n’est à changer', async () => {
+      stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: false })
+      const res = await middleware(makeRequest('/changer-mot-de-passe', true))
+      expect(res.status).toBe(302)
+      expect(new URL(locationOf(res)).pathname).toBe('/')
+    })
+
+    it('laisse passer une session normale', async () => {
+      stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: false })
+      const res = await middleware(makeRequest('/ma-classe', true))
+      expect(res.status).not.toBe(302)
+    })
+  })
 })

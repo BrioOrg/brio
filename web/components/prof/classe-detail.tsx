@@ -11,10 +11,12 @@ import {
   listerInscrits,
   listerMesClasses,
   listerSalons,
+  reinitialiserAccesEleve,
   renommerEleve,
   type ClasseInfo,
   type CodeClasseInfo,
   type InscriptionInfo,
+  type ReinitialisationAcces,
   type SalonVue,
 } from '@brio/api-client'
 
@@ -39,6 +41,16 @@ function dateLongue(iso: string): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+  }).format(new Date(iso))
+}
+
+function dateEtHeure(iso: string): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(new Date(iso))
 }
 
@@ -294,6 +306,9 @@ function Eleves({ classeId }: { classeId: string }) {
   const [eleves, setEleves] = useState<InscriptionInfo[] | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [enEdition, setEnEdition] = useState<string | null>(null)
+  // The student whose access reset awaits confirmation, and the one-time result (ADR 0036).
+  const [aConfirmer, setAConfirmer] = useState<string | null>(null)
+  const [acces, setAcces] = useState<{ compteId: string; info: ReinitialisationAcces } | null>(null)
 
   const charger = useCallback(async () => {
     try {
@@ -369,7 +384,36 @@ function Eleves({ classeId }: { classeId: string }) {
                   >
                     Renommer
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Réinitialiser l’accès de ${eleve.nomAffiche}`}
+                    onClick={() => {
+                      setAcces(null)
+                      setAConfirmer(eleve.compteId)
+                    }}
+                  >
+                    Réinitialiser l’accès
+                  </Button>
                 </div>
+              )}
+              {aConfirmer === eleve.compteId && (
+                <ConfirmerReinitialisation
+                  classeId={classeId}
+                  eleve={eleve}
+                  onAnnuler={() => setAConfirmer(null)}
+                  onReinitialise={(info) => {
+                    setAConfirmer(null)
+                    setAcces({ compteId: eleve.compteId, info })
+                  }}
+                />
+              )}
+              {acces?.compteId === eleve.compteId && (
+                <AccesReinitialise
+                  nomAffiche={eleve.nomAffiche}
+                  info={acces.info}
+                  onMasquer={() => setAcces(null)}
+                />
               )}
             </li>
           ))}
@@ -430,5 +474,114 @@ function Renommer({
         Enregistrer
       </Button>
     </form>
+  )
+}
+
+function ConfirmerReinitialisation({
+  classeId,
+  eleve,
+  onAnnuler,
+  onReinitialise,
+}: {
+  classeId: string
+  eleve: InscriptionInfo
+  onAnnuler: () => void
+  onReinitialise: (info: ReinitialisationAcces) => void
+}) {
+  const [erreur, setErreur] = useState<string | null>(null)
+  const [enCours, setEnCours] = useState(false)
+
+  async function confirmer() {
+    if (enCours) return
+    setEnCours(true)
+    setErreur(null)
+    try {
+      onReinitialise(await reinitialiserAccesEleve(apiBaseUrl(), classeId, eleve.compteId))
+    } catch (e) {
+      setErreur(message(e, 'La réinitialisation a échoué. Réessayez.'))
+      setEnCours(false)
+    }
+  }
+
+  return (
+    <div
+      role="group"
+      aria-label={`Confirmer la réinitialisation de l’accès de ${eleve.nomAffiche}`}
+      className="mt-3 flex flex-col gap-3 rounded-lg border border-line bg-surface-raised p-4"
+    >
+      <p className="font-prose text-sm text-ink">
+        Réinitialiser l’accès de <span className="font-semibold">{eleve.nomAffiche}</span>&nbsp;?
+        Son mot de passe actuel cessera de fonctionner. {eleve.nomAffiche} garde son compte, ses
+        classes et sa progression.
+      </p>
+      <p className="font-prose text-sm text-ink-muted">
+        Vous obtiendrez son identifiant et un mot de passe provisoire, valable 7&nbsp;jours et
+        utilisable une seule fois. À sa connexion, l’élève choisira son propre mot de passe.
+      </p>
+      {erreur && (
+        <p role="alert" className="font-prose text-sm text-danger">
+          {erreur}
+        </p>
+      )}
+      <div className="flex flex-wrap justify-end gap-3">
+        <Button type="button" variant="ghost" size="sm" onClick={onAnnuler}>
+          Annuler
+        </Button>
+        <Button type="button" size="sm" loading={enCours} onClick={() => void confirmer()}>
+          Réinitialiser l’accès
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/** The one-time display of a reset: nothing here can be shown again (ADR 0036 §2). */
+function AccesReinitialise({
+  nomAffiche,
+  info,
+  onMasquer,
+}: {
+  nomAffiche: string
+  info: ReinitialisationAcces
+  onMasquer: () => void
+}) {
+  return (
+    <div
+      role="status"
+      aria-label={`Nouvel accès de ${nomAffiche}`}
+      className="mt-3 flex flex-col gap-3 rounded-lg border-2 border-accent bg-accent-soft p-4"
+    >
+      <p className="font-prose text-sm font-semibold text-ink">
+        Accès de {nomAffiche} réinitialisé. Affiché une seule fois&nbsp;: notez-le maintenant et
+        remettez-le à l’élève en main propre.
+      </p>
+      <dl className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">
+        <dt className="font-prose text-sm text-ink-muted">Identifiant</dt>
+        <dd
+          data-testid="identifiant-connexion"
+          className="font-display text-xl font-black tracking-widest text-ink"
+        >
+          {info.identifiantConnexion}
+        </dd>
+        <dt className="font-prose text-sm text-ink-muted">Mot de passe provisoire</dt>
+        <dd
+          data-testid="mot-de-passe-provisoire"
+          className="font-display text-xl font-black tracking-widest text-ink"
+        >
+          {info.motDePasseProvisoire}
+        </dd>
+        <dt className="font-prose text-sm text-ink-muted">Valable jusqu’au</dt>
+        <dd className="font-prose text-sm text-ink">{dateEtHeure(info.expireLe)}</dd>
+      </dl>
+      <p className="font-prose text-sm text-ink">
+        Le mot de passe provisoire ne sert qu’une fois&nbsp;: à sa première connexion, l’élève
+        choisit son propre mot de passe. S’il est perdu ou expiré, réinitialisez à nouveau.
+      </p>
+      <div>
+        <Button type="button" variant="secondary" size="sm" onClick={onMasquer}>
+          J’ai noté, masquer
+        </Button>
+      </div>
+    </div>
   )
 }

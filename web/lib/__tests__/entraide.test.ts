@@ -65,7 +65,9 @@ describe('mesClasses', () => {
         ])
       )
     )
-    expect(await mesClasses(BASE)).toEqual([{ id: 'c1', libelle: '6e B', niveauCode: '6e', anneeScolaire: '2026-2027' }])
+    expect(await mesClasses(BASE)).toEqual([
+      { id: 'c1', libelle: '6e B', niveauCode: '6e', anneeScolaire: '2026-2027' },
+    ])
   })
 
   it('returns no class when logged out', async () => {

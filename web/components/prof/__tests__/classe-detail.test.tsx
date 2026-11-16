@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -11,6 +11,7 @@ vi.mock('@brio/api-client', async () => {
     genererCodeClasse: vi.fn(),
     listerInscrits: vi.fn(),
     renommerEleve: vi.fn(),
+    reinitialiserAccesEleve: vi.fn(),
   }
 })
 
@@ -33,6 +34,7 @@ async function api() {
     genererCodeClasse: vi.mocked(client.genererCodeClasse),
     listerInscrits: vi.mocked(client.listerInscrits),
     renommerEleve: vi.mocked(client.renommerEleve),
+    reinitialiserAccesEleve: vi.mocked(client.reinitialiserAccesEleve),
   }
 }
 
@@ -127,5 +129,80 @@ describe('ClasseDetail', () => {
       expect(a.renommerEleve).toHaveBeenCalledWith(expect.any(String), 'cl1', 'a1', 'Léa B.')
     )
     expect(await screen.findByText('Léa B.')).toBeInTheDocument()
+  })
+
+  // ADR 0036 : le prof réinitialise l'accès du compte EXISTANT d'un élève ; il voit une seule
+  // fois l'identifiant (AC4 : identifiant oublié) et le mot de passe provisoire.
+  describe('réinitialisation de l’accès', () => {
+    const ACCES = {
+      identifiantConnexion: 'k7m4p9xa3r',
+      motDePasseProvisoire: 'abcd-efgh-jkmn',
+      expireLe: '2026-11-23T10:00:00Z',
+    }
+
+    it('demande confirmation, puis affiche une seule fois identifiant, provisoire et expiration', async () => {
+      const a = await api()
+      a.listerInscrits.mockResolvedValue([LEA])
+      a.reinitialiserAccesEleve.mockResolvedValue(ACCES)
+      const user = userEvent.setup()
+      await renderClasse()
+
+      await user.click(await screen.findByRole('button', { name: 'Réinitialiser l’accès de Léa' }))
+      const confirmation = screen.getByRole('group', {
+        name: 'Confirmer la réinitialisation de l’accès de Léa',
+      })
+      expect(confirmation).toHaveTextContent(/garde son compte, ses classes et sa progression/i)
+      expect(confirmation).toHaveTextContent(/7\s*jours/)
+      expect(a.reinitialiserAccesEleve).not.toHaveBeenCalled()
+
+      await user.click(within(confirmation).getByRole('button', { name: 'Réinitialiser l’accès' }))
+
+      expect(a.reinitialiserAccesEleve).toHaveBeenCalledWith(expect.any(String), 'cl1', 'a1')
+      const acces = await screen.findByRole('status', { name: 'Nouvel accès de Léa' })
+      expect(within(acces).getByTestId('identifiant-connexion')).toHaveTextContent('k7m4p9xa3r')
+      expect(within(acces).getByTestId('mot-de-passe-provisoire')).toHaveTextContent(
+        'abcd-efgh-jkmn'
+      )
+      expect(acces).toHaveTextContent(/23 novembre 2026/)
+      expect(acces).toHaveTextContent(/affiché une seule fois/i)
+
+      // Once hidden, nothing can show it again.
+      await user.click(within(acces).getByRole('button', { name: 'J’ai noté, masquer' }))
+      expect(screen.queryByText('abcd-efgh-jkmn')).toBeNull()
+      expect(screen.queryByRole('status', { name: 'Nouvel accès de Léa' })).toBeNull()
+    })
+
+    it('n’appelle rien quand le prof annule', async () => {
+      const a = await api()
+      a.listerInscrits.mockResolvedValue([LEA])
+      const user = userEvent.setup()
+      await renderClasse()
+
+      await user.click(await screen.findByRole('button', { name: 'Réinitialiser l’accès de Léa' }))
+      await user.click(screen.getByRole('button', { name: 'Annuler' }))
+
+      expect(a.reinitialiserAccesEleve).not.toHaveBeenCalled()
+      expect(screen.queryByRole('group', { name: /confirmer la réinitialisation/i })).toBeNull()
+    })
+
+    it('affiche le refus du serveur sans rien montrer d’autre', async () => {
+      const a = await api()
+      const { CoursApiError } = await import('@brio/api-client')
+      a.listerInscrits.mockResolvedValue([LEA])
+      a.reinitialiserAccesEleve.mockRejectedValue(
+        new CoursApiError(429, 'Trop de réinitialisations en peu de temps. Réessayez plus tard.')
+      )
+      const user = userEvent.setup()
+      await renderClasse()
+
+      await user.click(await screen.findByRole('button', { name: 'Réinitialiser l’accès de Léa' }))
+      await user.click(
+        within(screen.getByRole('group')).getByRole('button', { name: 'Réinitialiser l’accès' })
+      )
+
+      // The class salon (not mocked here) may raise its own alert: find this one by its text.
+      expect(await screen.findByText(/trop de réinitialisations/i)).toHaveAttribute('role', 'alert')
+      expect(screen.queryByTestId('mot-de-passe-provisoire')).toBeNull()
+    })
   })
 })

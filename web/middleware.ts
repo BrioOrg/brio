@@ -29,21 +29,39 @@ function estPublic(pathname: string): boolean {
 }
 
 /**
- * Whether the backend says the session cookie no longer opens a session. A cookie alone proves
- * nothing: an expired session still carries one. Only a 401 counts — if the backend cannot be
- * reached, the page renders and shows its own error rather than a misleading login.
+ * The student's forced password choice after a teacher-led reset (ADR 0036). It needs the session
+ * opened by the provisional password, so it is NOT public: without a session, the visitor goes to
+ * /connexion like for any page.
+ */
+const CHANGER_MOT_DE_PASSE = '/changer-mot-de-passe'
+
+type EtatSession = 'expiree' | 'ouverte' | 'mot-de-passe-a-changer'
+
+/**
+ * What the backend says of the session cookie. A cookie alone proves nothing: an expired session
+ * still carries one. Only a 401 counts as expired — if the backend cannot be reached, the page
+ * renders and shows its own error rather than a misleading login. A session whose password must
+ * be changed (ADR 0036 §5) is reported so the visitor lands on the change, not on pages the
+ * backend would refuse.
  *
  * The call also renews the session's idle timeout: opening a page is activity.
  */
-async function sessionExpiree(request: NextRequest): Promise<boolean> {
+async function etatSession(request: NextRequest): Promise<EtatSession> {
   try {
     const res = await fetch(`${apiBaseUrl()}/api/moi`, {
       headers: { cookie: request.headers.get('cookie') ?? '' },
       cache: 'no-store',
     })
-    return res.status === 401
+    if (res.status === 401) return 'expiree'
+    if (!res.ok) return 'ouverte'
+    const moi: unknown = await res.json().catch(() => null)
+    const aChanger =
+      typeof moi === 'object' &&
+      moi !== null &&
+      (moi as { doitChangerMotDePasse?: unknown }).doitChangerMotDePasse === true
+    return aChanger ? 'mot-de-passe-a-changer' : 'ouverte'
   } catch {
-    return false
+    return 'ouverte'
   }
 }
 
@@ -51,8 +69,16 @@ export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
   if (estPublic(pathname)) return NextResponse.next()
 
-  if (request.cookies.has(SESSION_COOKIE) && !(await sessionExpiree(request))) {
-    return NextResponse.next()
+  if (request.cookies.has(SESSION_COOKIE)) {
+    const etat = await etatSession(request)
+    if (etat === 'mot-de-passe-a-changer' && pathname !== CHANGER_MOT_DE_PASSE) {
+      return NextResponse.redirect(new URL(CHANGER_MOT_DE_PASSE, request.url), 302)
+    }
+    // Nothing to change any more: the page has no purpose, home is where the student goes next.
+    if (etat === 'ouverte' && pathname === CHANGER_MOT_DE_PASSE) {
+      return NextResponse.redirect(new URL('/', request.url), 302)
+    }
+    if (etat !== 'expiree') return NextResponse.next()
   }
 
   // Back to this very page (slide included) once logged in again.

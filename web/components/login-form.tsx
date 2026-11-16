@@ -14,7 +14,8 @@ import { Icon } from '@/components/ui/icon'
  * where their class and matières are shown — except a teacher, whose home is
  * the teacher space. A specific return path (`redirectTo`) wins for everyone;
  * `/` does not count as one, since the middleware sets it for any logged-out
- * visit to the home page.
+ * visit to the home page. A student who has just logged in with the provisional
+ * password a teacher gave them (ADR 0036) goes first to choosing their own.
  */
 export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
   const router = useRouter()
@@ -30,7 +31,13 @@ export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
     setSubmitting(true)
     try {
       const compte = await login(identifiant, motDePasse)
-      router.push(compte.role === 'enseignant' && redirectTo === '/' ? '/prof' : redirectTo)
+      router.push(
+        compte.doitChangerMotDePasse
+          ? '/changer-mot-de-passe'
+          : compte.role === 'enseignant' && redirectTo === '/'
+            ? '/prof'
+            : redirectTo
+      )
       router.refresh()
     } catch (err) {
       setError(
