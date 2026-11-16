@@ -1,0 +1,15 @@
+{
+  "_doc": "Exceptions assumées au contrôle de dérive des contrats (scripts/mesh/verification/check-contract-drift.mjs). Chaque entrée = { value, reason } ; une entrée sans raison est refusée. Une exception qui n'a plus lieu d'être se retire. Les zodFields ci-dessous sont des corps de réponse que springdoc ne décrit pas (réponses non typées) : ce sont aussi des trous de la spec à combler un jour.",
+  "clientPaths": [
+    { "value": "/api/sessions", "reason": "POST/DELETE gérés par Spring Security (loginProcessingUrl, logout) : springdoc ne les documente pas — voir l'en-tête de packages/api-client/src/session.ts." }
+  ],
+  "fakeBackendPaths": [],
+  "zodFields": [
+    { "value": "error", "reason": "Corps d'erreur `{ error }` de GlobalExceptionHandler : non décrit dans la spec." },
+    { "value": "violations", "reason": "Corps du refus de publication (ProblemeContenu / ContentViolation) : réponse non typée dans la spec." },
+    { "value": "sectionId", "reason": "Localisant d'une ContentViolation : réponse non typée dans la spec." },
+    { "value": "blockId", "reason": "Localisant d'une ContentViolation : réponse non typée dans la spec." },
+    { "value": "field", "reason": "Localisant d'une ContentViolation : réponse non typée dans la spec." },
+    { "value": "sections", "reason": "Réponse de publication d'un chapitre (ChapitrePublie) : non typée dans la spec." }
+  ]
+}

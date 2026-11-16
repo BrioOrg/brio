@@ -1,0 +1,19 @@
+{
+  "_doc": "Configuration de la vérification (mesh Phase 3, #358). Les niveaux d'autonomie et les seuils sont une DÉCISION HUMAINE : un agent ne les modifie jamais (le détecteur de tests affaiblis signale toute baisse d'un seuil).",
+  "guardians": {
+    "V1": { "name": "Relecteur de code", "autonomy": 0 },
+    "V2": { "name": "Gardien des contrats", "autonomy": 0 },
+    "V3": { "name": "Contrôleur des tests", "autonomy": 0 },
+    "V4": { "name": "Correcteur pédagogique", "autonomy": 0 },
+    "V5": { "name": "Gardien sûreté et mineurs", "autonomy": 0 },
+    "V6": { "name": "Contrôleur visuel", "autonomy": 0 }
+  },
+  "enforceFromAutonomy": 2,
+  "mutation": {
+    "backend": { "threshold": 50, "baseline": null, "tolerance": 2 },
+    "web": { "threshold": 50, "baseline": null, "tolerance": 2 }
+  },
+  "contracts": {
+    "failOn": "blocking"
+  }
+}
