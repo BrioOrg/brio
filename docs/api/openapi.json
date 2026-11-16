@@ -27,6 +27,9 @@
     "name" : "Devoirs",
     "description" : "Devoirs assignés par un enseignant à sa classe (F4)"
   }, {
+    "name" : "Communauté — modération",
+    "description" : "File de signalements, décisions, contestations, révocation d'XP"
+  }, {
     "name" : "Devoirs",
     "description" : "Les devoirs de l'élève connecté (F4)"
   }, {
@@ -1694,6 +1697,78 @@
         }
       }
     },
+    "/api/communaute/reponses/{reponseId}/signalement" : {
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Signaler une réponse ou un commentaire",
+        "operationId" : "signalerReponse",
+        "parameters" : [ {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SignalerRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/communaute/reponses/{reponseId}/contestation" : {
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Contester la décision de modération sur sa réponse",
+        "operationId" : "contesterReponse",
+        "parameters" : [ {
+          "name" : "reponseId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ContesterRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/communaute/reponses/{reponseId}/commentaires" : {
       "post" : {
         "tags" : [ "Communauté" ],
@@ -1819,6 +1894,36 @@
         }
       }
     },
+    "/api/communaute/questions/{questionId}/signalement" : {
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Signaler une question",
+        "operationId" : "signalerQuestion",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SignalerRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
     "/api/communaute/questions/{questionId}/reponses" : {
       "post" : {
         "tags" : [ "Communauté" ],
@@ -1886,6 +1991,48 @@
         "responses" : {
           "200" : {
             "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/communaute/questions/{questionId}/contestation" : {
+      "post" : {
+        "tags" : [ "Communauté" ],
+        "summary" : "Contester la décision de modération sur sa question",
+        "operationId" : "contesterQuestion",
+        "parameters" : [ {
+          "name" : "questionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ContesterRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -2197,6 +2344,86 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/admin/communaute/{cibleType}/{cibleId}/decision" : {
+      "post" : {
+        "tags" : [ "Communauté — modération" ],
+        "summary" : "Décider sur un contenu : masquer, supprimer, rejeter, restaurer, révoquer l'XP",
+        "operationId" : "decider",
+        "parameters" : [ {
+          "name" : "cibleType",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "cibleId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeciderRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string",
+                    "format" : "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/communaute/contestations/{id}" : {
+      "post" : {
+        "tags" : [ "Communauté — modération" ],
+        "summary" : "Trancher une contestation (accepter = restaurer le contenu)",
+        "operationId" : "trancher",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TrancherContestationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
           }
         }
       }
@@ -3216,6 +3443,50 @@
         }
       }
     },
+    "/api/admin/communaute/signalements" : {
+      "get" : {
+        "tags" : [ "Communauté — modération" ],
+        "summary" : "File des contenus signalés, agrégés par cible",
+        "operationId" : "signalements_2",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SignalementCommunauteVue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/communaute/contestations" : {
+      "get" : {
+        "tags" : [ "Communauté — modération" ],
+        "summary" : "File des contestations à trancher",
+        "operationId" : "contestations",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ContestationModerationVue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/comptes/{id}/consentement" : {
       "delete" : {
         "tags" : [ "consentement-controller" ],
@@ -3848,6 +4119,14 @@
           }
         }
       },
+      "ContesterRequest" : {
+        "type" : "object",
+        "properties" : {
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "PoserQuestionRequest" : {
         "type" : "object",
         "properties" : {
@@ -3965,6 +4244,28 @@
         "type" : "object",
         "properties" : {
           "pseudonyme" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DeciderRequest" : {
+        "type" : "object",
+        "properties" : {
+          "action" : {
+            "type" : "string"
+          },
+          "motif" : {
+            "type" : "string"
+          }
+        }
+      },
+      "TrancherContestationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "accepter" : {
+            "type" : "boolean"
+          },
+          "reponse" : {
             "type" : "string"
           }
         }
@@ -5053,6 +5354,93 @@
           },
           "annaleTitre" : {
             "type" : "string"
+          }
+        }
+      },
+      "SignalementCommunauteVue" : {
+        "type" : "object",
+        "properties" : {
+          "cibleType" : {
+            "type" : "string"
+          },
+          "cibleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "questionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurPseudonyme" : {
+            "type" : "string"
+          },
+          "extrait" : {
+            "type" : "string"
+          },
+          "statutContenu" : {
+            "type" : "string"
+          },
+          "estReponseResolue" : {
+            "type" : "boolean"
+          },
+          "xpDejaRevoquee" : {
+            "type" : "boolean"
+          },
+          "nombreSignalements" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "motifs" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "premierSignalementAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "ContestationModerationVue" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "cibleType" : {
+            "type" : "string"
+          },
+          "cibleId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "questionId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "auteurPseudonyme" : {
+            "type" : "string"
+          },
+          "extrait" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "decisionAction" : {
+            "type" : "string"
+          },
+          "decisionMotif" : {
+            "type" : "string"
+          },
+          "statutContenu" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       }
