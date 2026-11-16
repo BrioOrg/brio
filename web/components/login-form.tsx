@@ -66,6 +66,10 @@ export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
         type="text"
         name="identifiant"
         autoComplete="username"
+        // An identifier is typed exactly: no capital, correction or underline from a phone keyboard.
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
         placeholder="lea.martin"
         value={identifiant}
         onChange={(e) => setIdentifiant(e.target.value)}
@@ -89,7 +93,7 @@ export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
           href="/mot-de-passe-oublie"
           className="rounded-sm font-prose text-sm text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          Mot de passe oublié ?
+          Identifiant ou mot de passe oublié ?
         </Link>
       </div>
 

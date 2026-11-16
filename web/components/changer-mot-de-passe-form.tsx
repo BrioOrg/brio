@@ -2,7 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChangerMotDePasseError, MOT_DE_PASSE_MIN, changerMotDePasse } from '@brio/api-client'
+import {
+  ChangerMotDePasseError,
+  MOT_DE_PASSE_MAX,
+  MOT_DE_PASSE_MIN,
+  changerMotDePasse,
+} from '@brio/api-client'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { TextInput } from '@/components/ui/text-input'
@@ -14,6 +19,9 @@ import { apiBaseUrl } from '@/lib/api-base-url'
  * gave them (ADR 0036 §5). On success they land on the home page, where their class and
  * progression are waiting — the account is the same one.
  */
+const CHAMP = 'nouveau-mot-de-passe'
+const AIDE = 'nouveau-mot-de-passe-aide'
+
 export function ChangerMotDePasseForm() {
   const router = useRouter()
   const [motDePasse, setMotDePasse] = useState('')
@@ -29,6 +37,10 @@ export function ChangerMotDePasseForm() {
     setErreurConfirmation(null)
     if (motDePasse.length < MOT_DE_PASSE_MIN) {
       setErreur(`Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`)
+      return
+    }
+    if (motDePasse.length > MOT_DE_PASSE_MAX) {
+      setErreur(`Ton mot de passe est trop long : ${MOT_DE_PASSE_MAX} caractères au maximum.`)
       return
     }
     if (confirmation !== motDePasse) {
@@ -59,9 +71,12 @@ export function ChangerMotDePasseForm() {
   return (
     <form onSubmit={soumettre} noValidate className="flex flex-col gap-4">
       <TextInput
+        id={CHAMP}
         label="Ton nouveau mot de passe"
         type="password"
         name="nouveau_mot_de_passe"
+        // The hint is read with the field, and so is the error when there is one.
+        aria-describedby={erreur ? `${AIDE} ${CHAMP}-error` : AIDE}
         autoComplete="new-password"
         value={motDePasse}
         onChange={(e) => setMotDePasse(e.target.value)}
@@ -69,7 +84,7 @@ export function ChangerMotDePasseForm() {
         required
         autoFocus
       />
-      <p className="-mt-2 font-prose text-xs text-ink-muted">
+      <p id={AIDE} className="-mt-2 font-prose text-xs text-ink-muted">
         Au moins {MOT_DE_PASSE_MIN} caractères. Une phrase courte que toi seul connais, c’est
         parfait.
       </p>

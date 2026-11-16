@@ -82,4 +82,40 @@ describe('ChangerMotDePasseForm', () => {
       screen.getByText(/redemander un mot de passe provisoire à ton prof/i)
     ).toBeInTheDocument()
   })
+
+  it('lit l’aide « au moins 8 caractères » avec le champ', async () => {
+    await setup()
+    const champ = screen.getByLabelText('Ton nouveau mot de passe')
+    expect(champ).toHaveAccessibleDescription(/au moins 8 caractères/i)
+  })
+
+  it('garde l’aide et ajoute l’erreur à la description du champ', async () => {
+    await setup()
+    await saisir('court')
+    const champ = screen.getByLabelText('Ton nouveau mot de passe')
+    expect(champ).toHaveAccessibleDescription(/au moins 8 caractères.*au moins 8 caractères/i)
+  })
+
+  it('dit « trop long » au-delà de 128 caractères, sans appeler le serveur', async () => {
+    const { changer } = await setup()
+    const user = userEvent.setup()
+    const long = 'a'.repeat(129)
+    await user.click(screen.getByLabelText('Ton nouveau mot de passe'))
+    await user.paste(long)
+    await user.click(screen.getByLabelText('Retape-le pour vérifier'))
+    await user.paste(long)
+    await user.click(screen.getByRole('button', { name: /enregistrer mon mot de passe/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/trop long.*128 caractères/i)
+    expect(changer).not.toHaveBeenCalled()
+  })
+})
+
+describe('ChangerMotDePassePage', () => {
+  it('avertit de le faire maintenant, avant de fermer le navigateur', async () => {
+    const { default: Page } = await import('@/app/changer-mot-de-passe/page')
+    render(<Page />)
+    const note = screen.getByRole('note')
+    expect(note).toHaveTextContent(/fais-le maintenant/i)
+    expect(note).toHaveTextContent(/si tu fermes le navigateur, il faudra redemander à ton prof/i)
+  })
 })

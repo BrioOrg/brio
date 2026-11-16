@@ -152,24 +152,98 @@ describe('ClasseDetail', () => {
         name: 'Confirmer la réinitialisation de l’accès de Léa',
       })
       expect(confirmation).toHaveTextContent(/garde son compte, ses classes et sa progression/i)
+      expect(confirmation).toHaveTextContent(/sessions seront fermées sur tous ses appareils/i)
       expect(confirmation).toHaveTextContent(/7\s*jours/)
+      // WCAG 2.4.3: focus moves into the confirmation it opened.
+      expect(confirmation).toHaveFocus()
       expect(a.reinitialiserAccesEleve).not.toHaveBeenCalled()
 
       await user.click(within(confirmation).getByRole('button', { name: 'Réinitialiser l’accès' }))
 
       expect(a.reinitialiserAccesEleve).toHaveBeenCalledWith(expect.any(String), 'cl1', 'a1')
-      const acces = await screen.findByRole('status', { name: 'Nouvel accès de Léa' })
+      const acces = await screen.findByRole('region', { name: 'Nouvel accès de Léa' })
+      // Then onto the result.
+      expect(within(acces).getByText(/accès de léa réinitialisé/i)).toHaveFocus()
       expect(within(acces).getByTestId('identifiant-connexion')).toHaveTextContent('k7m4p9xa3r')
+      expect(acces).toHaveTextContent(/23 novembre 2026/)
+      expect(acces).toHaveTextContent(/affiché une seule fois/i)
+      expect(acces).toHaveTextContent(/n’affichez pas cet écran au tableau/i)
+
+      // Masked by default: a classroom screen is often projected.
+      expect(within(acces).queryByTestId('mot-de-passe-provisoire')).toBeNull()
+      expect(acces).not.toHaveTextContent('abcd-efgh-jkmn')
+      await user.click(within(acces).getByRole('button', { name: 'Afficher' }))
       expect(within(acces).getByTestId('mot-de-passe-provisoire')).toHaveTextContent(
         'abcd-efgh-jkmn'
       )
-      expect(acces).toHaveTextContent(/23 novembre 2026/)
-      expect(acces).toHaveTextContent(/affiché une seule fois/i)
+      await user.click(within(acces).getByRole('button', { name: 'Masquer' }))
+      expect(acces).not.toHaveTextContent('abcd-efgh-jkmn')
 
-      // Once hidden, nothing can show it again.
-      await user.click(within(acces).getByRole('button', { name: 'J’ai noté, masquer' }))
+      // Once closed, nothing can show it again; focus goes back to the student's button.
+      await user.click(within(acces).getByRole('button', { name: 'J’ai noté, fermer' }))
       expect(screen.queryByText('abcd-efgh-jkmn')).toBeNull()
-      expect(screen.queryByRole('status', { name: 'Nouvel accès de Léa' })).toBeNull()
+      expect(screen.queryByRole('region', { name: 'Nouvel accès de Léa' })).toBeNull()
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'Réinitialiser l’accès de Léa' })).toHaveFocus()
+      )
+    })
+
+    it('groupe l’identifiant par quatre sans changer ce qui est copié', async () => {
+      const a = await api()
+      a.listerInscrits.mockResolvedValue([LEA])
+      a.reinitialiserAccesEleve.mockResolvedValue(ACCES)
+      const writeText = vi.fn(() => Promise.resolve())
+      const user = userEvent.setup()
+      // userEvent installs its own clipboard: replace it after setup.
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+      await renderClasse()
+
+      await user.click(await screen.findByRole('button', { name: 'Réinitialiser l’accès de Léa' }))
+      await user.click(
+        within(screen.getByRole('group')).getByRole('button', { name: 'Réinitialiser l’accès' })
+      )
+      const acces = await screen.findByRole('region', { name: 'Nouvel accès de Léa' })
+      const groupes = within(acces)
+        .getByTestId('identifiant-connexion')
+        .querySelectorAll('span > span')
+      expect(Array.from(groupes, (g) => g.textContent)).toEqual(['k7m4', 'p9xa', '3r'])
+
+      await user.click(within(acces).getByRole('button', { name: 'Copier l’identifiant' }))
+      expect(writeText).toHaveBeenLastCalledWith('k7m4p9xa3r')
+      // The provisional password copies without being shown.
+      await user.click(
+        within(acces).getByRole('button', { name: 'Copier le mot de passe provisoire' })
+      )
+      expect(writeText).toHaveBeenLastCalledWith('abcd-efgh-jkmn')
+      expect(within(acces).queryByTestId('mot-de-passe-provisoire')).toBeNull()
+      expect(await within(acces).findAllByText('Copié')).not.toHaveLength(0)
+    })
+
+    it('garde le résultat du premier élève quand on en réinitialise un second', async () => {
+      const a = await api()
+      const TOM = { compteId: 'b2', nomAffiche: 'Tom', depuis: '2026-09-30', homonyme: false }
+      a.listerInscrits.mockResolvedValue([LEA, TOM])
+      a.reinitialiserAccesEleve
+        .mockResolvedValueOnce(ACCES)
+        .mockResolvedValueOnce({ ...ACCES, identifiantConnexion: 'tomtomtomt' })
+      const user = userEvent.setup()
+      await renderClasse()
+
+      await user.click(await screen.findByRole('button', { name: 'Réinitialiser l’accès de Léa' }))
+      await user.click(
+        within(screen.getByRole('group')).getByRole('button', { name: 'Réinitialiser l’accès' })
+      )
+      await screen.findByRole('region', { name: 'Nouvel accès de Léa' })
+
+      await user.click(screen.getByRole('button', { name: 'Réinitialiser l’accès de Tom' }))
+      await user.click(
+        within(
+          screen.getByRole('group', { name: 'Confirmer la réinitialisation de l’accès de Tom' })
+        ).getByRole('button', { name: 'Réinitialiser l’accès' })
+      )
+
+      expect(await screen.findByRole('region', { name: 'Nouvel accès de Tom' })).toBeInTheDocument()
+      expect(screen.getByRole('region', { name: 'Nouvel accès de Léa' })).toBeInTheDocument()
     })
 
     it('n’appelle rien quand le prof annule', async () => {
@@ -183,6 +257,9 @@ describe('ClasseDetail', () => {
 
       expect(a.reinitialiserAccesEleve).not.toHaveBeenCalled()
       expect(screen.queryByRole('group', { name: /confirmer la réinitialisation/i })).toBeNull()
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'Réinitialiser l’accès de Léa' })).toHaveFocus()
+      )
     })
 
     it('affiche le refus du serveur sans rien montrer d’autre', async () => {
@@ -190,7 +267,10 @@ describe('ClasseDetail', () => {
       const { CoursApiError } = await import('@brio/api-client')
       a.listerInscrits.mockResolvedValue([LEA])
       a.reinitialiserAccesEleve.mockRejectedValue(
-        new CoursApiError(429, 'Trop de réinitialisations en peu de temps. Réessayez plus tard.')
+        new CoursApiError(
+          429,
+          'Trop de réinitialisations en peu de temps. Réessayez plus tard : l’attente peut aller jusqu’à 24 h pour un même élève.'
+        )
       )
       const user = userEvent.setup()
       await renderClasse()
@@ -202,6 +282,7 @@ describe('ClasseDetail', () => {
 
       // The class salon (not mocked here) may raise its own alert: find this one by its text.
       expect(await screen.findByText(/trop de réinitialisations/i)).toHaveAttribute('role', 'alert')
+      expect(screen.getByText(/trop de réinitialisations/i)).toHaveTextContent(/jusqu’à 24 h/)
       expect(screen.queryByTestId('mot-de-passe-provisoire')).toBeNull()
     })
   })

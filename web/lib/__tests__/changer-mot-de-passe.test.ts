@@ -71,7 +71,7 @@ describe('parcours de réinitialisation d’accès', () => {
     [403, /accès à cette classe/i],
     [404, /n'est plus dans la classe/i],
     [409, /n'est pas actif/i],
-    [429, /trop de réinitialisations/i],
+    [429, /trop de réinitialisations.*jusqu’à 24 h/i],
   ])('traduit un refus %i en français', async (status, message) => {
     stub(status, { error: 'x' })
     await expect(reinitialiserAccesEleve('', 'c', 'e')).rejects.toThrow(message)
@@ -103,5 +103,26 @@ describe('parcours de réinitialisation d’accès', () => {
     expect(erreur).toBeInstanceOf(ChangerMotDePasseError)
     expect((erreur as ChangerMotDePasseError).status).toBe(status)
     expect((erreur as Error).message).toMatch(message)
+  })
+
+  it('dit « trop long » pour un 400 au-delà de 128 caractères', async () => {
+    stub(400, { error: 'x' })
+    await expect(changerMotDePasse('', 'a'.repeat(129))).rejects.toThrow(/trop long.*128/i)
+  })
+
+  // ADR 0036 §8-9 : le pseudonyme est retenu pendant le changement ; l'avis de réinitialisation
+  // arrive ensuite.
+  it('lit l’avis de réinitialisation et accepte un pseudonyme retenu', () => {
+    const compte = CompteInfoSchema.parse({
+      id: 'e1',
+      role: 'eleve',
+      statut: 'actif',
+      nom: null,
+      email: null,
+      pseudonyme: null,
+      doitChangerMotDePasse: false,
+      accesReinitialise: { le: '2026-11-16T09:00:00Z', par: 'enseignant' },
+    })
+    expect(compte.accesReinitialise).toEqual({ le: '2026-11-16T09:00:00Z', par: 'enseignant' })
   })
 })

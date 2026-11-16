@@ -165,6 +165,43 @@ describe('middleware', () => {
       expect(new URL(locationOf(res)).pathname).toBe('/')
     })
 
+    it.each([
+      '/connexion',
+      '/connexion?from=%2Fma-classe',
+      '/inscription/enseignant',
+      '/commencer',
+      '/rejoindre',
+    ])('renvoie %s vers /changer-mot-de-passe quand un changement est en attente', async (path) => {
+      stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: true })
+      const res = await middleware(makeRequest(path, true))
+      expect(res.status).toBe(302)
+      expect(new URL(locationOf(res)).pathname).toBe('/changer-mot-de-passe')
+    })
+
+    it('laisse /connexion s’afficher pour une session normale ou expirée', async () => {
+      stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: false })
+      expect((await middleware(makeRequest('/connexion', true))).status).not.toBe(302)
+      stubMoi(401)
+      expect((await middleware(makeRequest('/connexion', true))).status).not.toBe(302)
+    })
+
+    it('n’interroge pas le backend pour une page publique qui n’est pas de connexion', async () => {
+      const fetchMock = stubMoi(200)
+      await middleware(makeRequest('/mot-de-passe-oublie', true))
+      await middleware(makeRequest('/consentement/t-1', true))
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it.each([500, new Error('ECONNREFUSED')])(
+      'ne prend pas une erreur de /api/moi (%s) pour une session ouverte',
+      async (reponse) => {
+        stubMoi(reponse)
+        // Not sent home on a guess: the change page renders and handles its own error.
+        const res = await middleware(makeRequest('/changer-mot-de-passe', true))
+        expect(res.status).not.toBe(302)
+      }
+    )
+
     it('laisse passer une session normale', async () => {
       stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: false })
       const res = await middleware(makeRequest('/ma-classe', true))

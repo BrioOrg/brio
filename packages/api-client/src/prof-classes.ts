@@ -262,7 +262,7 @@ export async function reinitialiserAccesEleve(
         : res.status === 409
           ? "Le compte de cet élève n'est pas actif : une réinitialisation ne lui rendrait pas l'accès."
           : res.status === 429
-            ? 'Trop de réinitialisations en peu de temps. Réessayez plus tard.'
+            ? 'Trop de réinitialisations en peu de temps. Réessayez plus tard : l’attente peut aller jusqu’à 24 h pour un même élève.'
             : classeError(res.status, "Impossible de réinitialiser l'accès de cet élève.").message
     )
   }

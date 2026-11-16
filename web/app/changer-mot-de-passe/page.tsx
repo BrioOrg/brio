@@ -23,9 +23,17 @@ export default function ChangerMotDePassePage() {
           <h1 className="font-display text-2xl font-black leading-tight tracking-tight text-ink">
             Choisis ton <span className="text-accent">mot de passe</span>
           </h1>
-          <p className="mt-2 mb-6 font-prose text-sm text-ink-muted">
-            Le mot de passe provisoire de ton prof ne marche qu’une fois. Choisis maintenant le tien
-            : c’est lui que tu taperas les prochaines fois. Ne le donne à personne.
+          <p
+            role="note"
+            className="mt-4 rounded-md border-2 border-accent bg-surface-raised px-4 py-3 font-prose text-sm text-ink"
+          >
+            <strong className="font-extrabold">Fais-le maintenant.</strong> Le mot de passe
+            provisoire ne marche qu’une fois&nbsp;: si tu fermes le navigateur, il faudra redemander
+            à ton prof.
+          </p>
+          <p className="mt-3 mb-6 font-prose text-sm text-ink-muted">
+            Choisis le tien&nbsp;: c’est lui que tu taperas les prochaines fois. Ne le donne à
+            personne.
           </p>
 
           <ChangerMotDePasseForm />

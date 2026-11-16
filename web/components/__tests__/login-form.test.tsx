@@ -51,10 +51,18 @@ describe('LoginForm', () => {
   // désormais vivante (voir la suite « MotDePasseOubliePage » plus bas, qui en prouve le rendu).
   it('propose le lien vers l’écran de récupération d’accès', async () => {
     await setup()
-    expect(screen.getByRole('link', { name: /mot de passe oublié/i })).toHaveAttribute(
-      'href',
-      '/mot-de-passe-oublie'
-    )
+    expect(
+      screen.getByRole('link', { name: 'Identifiant ou mot de passe oublié ?' })
+    ).toHaveAttribute('href', '/mot-de-passe-oublie')
+  })
+
+  // Simulation porte 6 : sur téléphone, le clavier mettait une majuscule à l'identifiant.
+  it('ne laisse pas le clavier corriger l’identifiant', async () => {
+    await setup()
+    const identifiant = screen.getByLabelText(/identifiant ou e-mail/i)
+    expect(identifiant).toHaveAttribute('autocapitalize', 'off')
+    expect(identifiant).toHaveAttribute('autocorrect', 'off')
+    expect(identifiant).toHaveAttribute('spellcheck', 'false')
   })
 
   it('affiche le SSO établissement désactivé (aucun endpoint back)', async () => {
@@ -151,7 +159,7 @@ describe('LoginForm', () => {
   })
 })
 
-// AC1-AC4 (#364, ADR 0036) : la cible du lien « Mot de passe oublié ? » est une page vivante
+// AC1-AC4 (#364, ADR 0036) : la cible du lien « Identifiant ou mot de passe oublié ? » est une page vivante
 // qui dit la vérité — le prof réinitialise l'accès du compte EXISTANT de l'élève (identifiant +
 // mot de passe provisoire, 7 jours), puis l'élève choisit son propre mot de passe. Rien n'y est
 // demandé ni soumis, et plus aucun renvoi vers /rejoindre (qui créerait un autre compte).
@@ -169,8 +177,18 @@ describe('MotDePasseOubliePage', () => {
     expect(consigne).toHaveTextContent(/va voir ton prof/i)
     expect(consigne).toHaveTextContent(/ton identifiant et un mot de passe provisoire/i)
     expect(consigne).toHaveTextContent(/ton compte/i)
-    expect(consigne).toHaveTextContent(/tu choisiras ensuite ton propre mot de passe/i)
-    expect(consigne).toHaveTextContent(/expire au bout de 7\s*jours/i)
+    expect(consigne).toHaveTextContent(/ensuite, tu choisis ton propre mot de passe/i)
+    expect(screen.getByText(/il expire au bout de 7\s*jours/i)).toBeInTheDocument()
+  })
+
+  // Arbitrage N3 (porte 6) : pas d'autre solution que le prof, ne pas créer de nouveau compte,
+  // la progression attend. Aucun canal de contact n'existe : la page n'en invente pas.
+  it('dit qu’il n’y a pas d’autre solution et de ne pas créer de nouveau compte', async () => {
+    await renderPage()
+    expect(screen.getByText(/il n’y a pas d’autre solution/i)).toBeInTheDocument()
+    expect(screen.getByText(/ne crée pas de nouveau compte/i)).toBeInTheDocument()
+    expect(screen.getByText(/ta progression t’attend/i, { exact: false })).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/@|mailto/)
   })
 
   // AC3/AC4 : mot de passe oublié, identifiant oublié, ou les deux — une seule sortie, qui rend
@@ -207,6 +225,7 @@ describe('MotDePasseOubliePage', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
     expect(screen.queryByRole('button')).toBeNull()
     expect(document.querySelector('form')).toBeNull()
-    expect(screen.queryByText(/ton e-mail/i)).toBeNull()
+    // The page says the opposite: no e-mail is ever needed.
+    expect(screen.getByText(/pas besoin de ton e-mail/i)).toBeInTheDocument()
   })
 })

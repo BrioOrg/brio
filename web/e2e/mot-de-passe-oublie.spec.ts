@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-// PL-4 (#364, ADR 0036) : le lien « Mot de passe oublié ? » de /connexion mène à un écran vivant
+// PL-4 (#364, ADR 0036) : le lien « Identifiant ou mot de passe oublié ? » de /connexion mène à un écran vivant
 // (200, pas 404) qui dit la vérité : le prof réinitialise l'accès du compte EXISTANT de l'élève.
 // La page ne soumet rien. Vérifié sur les deux projets (desktop + mobile).
 test.describe('récupération d’accès de l’élève', () => {
@@ -12,7 +12,7 @@ test.describe('récupération d’accès de l’élève', () => {
   test('depuis /connexion, le lien mène à la consigne « va voir ton prof »', async ({ page }) => {
     await page.goto('/connexion')
 
-    await page.getByRole('link', { name: /mot de passe oublié/i }).click()
+    await page.getByRole('link', { name: 'Identifiant ou mot de passe oublié ?' }).click()
 
     // next dev compile la route à sa première visite.
     await expect(page).toHaveURL('/mot-de-passe-oublie', { timeout: 20_000 })
@@ -24,7 +24,10 @@ test.describe('récupération d’accès de l’élève', () => {
     await expect(consigne).toContainText(/va voir ton prof/i)
     await expect(consigne).toBeVisible()
     await expect(consigne).toContainText(/ton identifiant et un mot de passe provisoire/i)
-    await expect(consigne).toContainText(/expire au bout de 7\s*jours/i)
+    await expect(page.getByText(/il expire au bout de 7\s*jours/i)).toBeVisible()
+    // Pas d'autre solution, pas de nouveau compte (arbitrage N3).
+    await expect(page.getByText(/il n’y a pas d’autre solution/i)).toBeVisible()
+    await expect(page.getByText(/ne crée pas de nouveau compte/i)).toBeVisible()
 
     // Aucun champ, rien à soumettre (AC2/AC5), et plus de renvoi vers /rejoindre.
     await expect(page.getByRole('textbox')).toHaveCount(0)

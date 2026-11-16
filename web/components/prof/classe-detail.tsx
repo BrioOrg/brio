@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   CoursApiError,
@@ -306,9 +306,10 @@ function Eleves({ classeId }: { classeId: string }) {
   const [eleves, setEleves] = useState<InscriptionInfo[] | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [enEdition, setEnEdition] = useState<string | null>(null)
-  // The student whose access reset awaits confirmation, and the one-time result (ADR 0036).
+  // The student whose access reset awaits confirmation, and the one-time results (ADR 0036):
+  // one per student, so resetting a second one does not wipe what the first one still needs.
   const [aConfirmer, setAConfirmer] = useState<string | null>(null)
-  const [acces, setAcces] = useState<{ compteId: string; info: ReinitialisationAcces } | null>(null)
+  const [acces, setAcces] = useState<Record<string, ReinitialisationAcces>>({})
 
   const charger = useCallback(async () => {
     try {
@@ -385,13 +386,11 @@ function Eleves({ classeId }: { classeId: string }) {
                     Renommer
                   </Button>
                   <Button
+                    id={idDeclencheur(eleve.compteId)}
                     variant="ghost"
                     size="sm"
                     aria-label={`Réinitialiser l’accès de ${eleve.nomAffiche}`}
-                    onClick={() => {
-                      setAcces(null)
-                      setAConfirmer(eleve.compteId)
-                    }}
+                    onClick={() => setAConfirmer(eleve.compteId)}
                   >
                     Réinitialiser l’accès
                   </Button>
@@ -401,18 +400,28 @@ function Eleves({ classeId }: { classeId: string }) {
                 <ConfirmerReinitialisation
                   classeId={classeId}
                   eleve={eleve}
-                  onAnnuler={() => setAConfirmer(null)}
+                  onAnnuler={() => {
+                    setAConfirmer(null)
+                    rendreLeFocus(eleve.compteId)
+                  }}
                   onReinitialise={(info) => {
                     setAConfirmer(null)
-                    setAcces({ compteId: eleve.compteId, info })
+                    setAcces((avant) => ({ ...avant, [eleve.compteId]: info }))
                   }}
                 />
               )}
-              {acces?.compteId === eleve.compteId && (
+              {acces[eleve.compteId] && (
                 <AccesReinitialise
                   nomAffiche={eleve.nomAffiche}
-                  info={acces.info}
-                  onMasquer={() => setAcces(null)}
+                  info={acces[eleve.compteId]!}
+                  onFermer={() => {
+                    setAcces((avant) => {
+                      const reste = { ...avant }
+                      delete reste[eleve.compteId]
+                      return reste
+                    })
+                    rendreLeFocus(eleve.compteId)
+                  }}
                 />
               )}
             </li>
@@ -477,6 +486,16 @@ function Renommer({
   )
 }
 
+/** The id of a student's "Réinitialiser l'accès" button, where focus returns when a panel closes. */
+function idDeclencheur(compteId: string): string {
+  return `reinitialiser-${compteId}`
+}
+
+function rendreLeFocus(compteId: string) {
+  // After React has removed the panel: the button is then the natural next stop (WCAG 2.4.3).
+  requestAnimationFrame(() => document.getElementById(idDeclencheur(compteId))?.focus())
+}
+
 function ConfirmerReinitialisation({
   classeId,
   eleve,
@@ -490,6 +509,12 @@ function ConfirmerReinitialisation({
 }) {
   const [erreur, setErreur] = useState<string | null>(null)
   const [enCours, setEnCours] = useState(false)
+  const panneau = useRef<HTMLDivElement>(null)
+
+  // Focus moves into the confirmation it opens (WCAG 2.4.3).
+  useEffect(() => {
+    panneau.current?.focus()
+  }, [])
 
   async function confirmer() {
     if (enCours) return
@@ -505,14 +530,16 @@ function ConfirmerReinitialisation({
 
   return (
     <div
+      ref={panneau}
+      tabIndex={-1}
       role="group"
       aria-label={`Confirmer la réinitialisation de l’accès de ${eleve.nomAffiche}`}
-      className="mt-3 flex flex-col gap-3 rounded-lg border border-line bg-surface-raised p-4"
+      className="mt-3 flex flex-col gap-3 rounded-lg border border-line bg-surface-raised p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <p className="font-prose text-sm text-ink">
         Réinitialiser l’accès de <span className="font-semibold">{eleve.nomAffiche}</span>&nbsp;?
-        Son mot de passe actuel cessera de fonctionner. {eleve.nomAffiche} garde son compte, ses
-        classes et sa progression.
+        Son mot de passe actuel cessera de fonctionner et ses sessions seront fermées sur tous ses
+        appareils. {eleve.nomAffiche} garde son compte, ses classes et sa progression.
       </p>
       <p className="font-prose text-sm text-ink-muted">
         Vous obtiendrez son identifiant et un mot de passe provisoire, valable 7&nbsp;jours et
@@ -535,51 +562,139 @@ function ConfirmerReinitialisation({
   )
 }
 
-/** The one-time display of a reset: nothing here can be shown again (ADR 0036 §2). */
+/** Groups of four, as visual spacing only: copying or reading it out gives the exact identifier. */
+function IdentifiantGroupe({ valeur }: { valeur: string }) {
+  return (
+    <span className="inline-flex flex-wrap gap-x-2">
+      {(valeur.match(/.{1,4}/g) ?? [valeur]).map((groupe, i) => (
+        <span key={i}>{groupe}</span>
+      ))}
+    </span>
+  )
+}
+
+function BoutonCopier({ valeur, quoi }: { valeur: string; quoi: string }) {
+  const [etat, setEtat] = useState<'pret' | 'copie' | 'echec'>('pret')
+
+  async function copier() {
+    try {
+      await navigator.clipboard.writeText(valeur)
+      setEtat('copie')
+    } catch {
+      setEtat('echec')
+    }
+  }
+
+  return (
+    <span className="inline-flex items-center gap-2">
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        aria-label={`Copier ${quoi}`}
+        onClick={() => void copier()}
+      >
+        <Icon name="copy" size={16} />
+        Copier
+      </Button>
+      <span aria-live="polite" className="font-prose text-xs text-ink-muted">
+        {etat === 'copie' ? 'Copié' : etat === 'echec' ? 'Copie impossible : notez-le.' : ''}
+      </span>
+    </span>
+  )
+}
+
+/**
+ * The one-time display of a reset: nothing here can be shown again (ADR 0036 §2). The provisional
+ * password is masked until the teacher asks for it — a classroom screen is often projected.
+ */
 function AccesReinitialise({
   nomAffiche,
   info,
-  onMasquer,
+  onFermer,
 }: {
   nomAffiche: string
   info: ReinitialisationAcces
-  onMasquer: () => void
+  onFermer: () => void
 }) {
+  const [visible, setVisible] = useState(false)
+  const titre = useRef<HTMLParagraphElement>(null)
+
+  // Focus moves to the result that replaced the confirmation (WCAG 2.4.3).
+  useEffect(() => {
+    titre.current?.focus()
+  }, [])
+
   return (
     <div
-      role="status"
+      role="region"
       aria-label={`Nouvel accès de ${nomAffiche}`}
       className="mt-3 flex flex-col gap-3 rounded-lg border-2 border-accent bg-accent-soft p-4"
     >
-      <p className="font-prose text-sm font-semibold text-ink">
+      <p
+        ref={titre}
+        tabIndex={-1}
+        className="rounded-sm font-prose text-sm font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
         Accès de {nomAffiche} réinitialisé. Affiché une seule fois&nbsp;: notez-le maintenant et
         remettez-le à l’élève en main propre.
       </p>
-      <dl className="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-[auto_1fr]">
+      <p className="flex items-start gap-2 font-prose text-sm font-semibold text-ink">
+        <Icon name="warning-circle" weight="bold" size={18} className="mt-0.5 shrink-0" />
+        <span>N’affichez pas cet écran au tableau.</span>
+      </p>
+      <dl className="grid grid-cols-1 items-center gap-x-4 gap-y-2 sm:grid-cols-[auto_1fr_auto]">
         <dt className="font-prose text-sm text-ink-muted">Identifiant</dt>
         <dd
           data-testid="identifiant-connexion"
           className="font-display text-xl font-black tracking-widest text-ink"
         >
-          {info.identifiantConnexion}
+          <IdentifiantGroupe valeur={info.identifiantConnexion} />
+        </dd>
+        <dd>
+          <BoutonCopier valeur={info.identifiantConnexion} quoi="l’identifiant" />
         </dd>
         <dt className="font-prose text-sm text-ink-muted">Mot de passe provisoire</dt>
-        <dd
-          data-testid="mot-de-passe-provisoire"
-          className="font-display text-xl font-black tracking-widest text-ink"
-        >
-          {info.motDePasseProvisoire}
+        <dd className="flex flex-wrap items-center gap-3">
+          {visible ? (
+            <span
+              data-testid="mot-de-passe-provisoire"
+              className="font-display text-xl font-black tracking-widest text-ink"
+            >
+              {info.motDePasseProvisoire}
+            </span>
+          ) : (
+            <span
+              aria-label="Mot de passe provisoire masqué"
+              className="font-display text-xl font-black tracking-widest text-ink-muted"
+            >
+              {info.motDePasseProvisoire.replace(/[^-]/g, '•')}
+            </span>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-pressed={visible}
+            onClick={() => setVisible((v) => !v)}
+          >
+            {visible ? 'Masquer' : 'Afficher'}
+          </Button>
+        </dd>
+        <dd>
+          <BoutonCopier valeur={info.motDePasseProvisoire} quoi="le mot de passe provisoire" />
         </dd>
         <dt className="font-prose text-sm text-ink-muted">Valable jusqu’au</dt>
-        <dd className="font-prose text-sm text-ink">{dateEtHeure(info.expireLe)}</dd>
+        <dd className="font-prose text-sm text-ink sm:col-span-2">{dateEtHeure(info.expireLe)}</dd>
       </dl>
       <p className="font-prose text-sm text-ink">
         Le mot de passe provisoire ne sert qu’une fois&nbsp;: à sa première connexion, l’élève
-        choisit son propre mot de passe. S’il est perdu ou expiré, réinitialisez à nouveau.
+        choisit son propre mot de passe. Il peut le taper sans les tirets. S’il est perdu ou expiré,
+        réinitialisez à nouveau.
       </p>
       <div>
-        <Button type="button" variant="secondary" size="sm" onClick={onMasquer}>
-          J’ai noté, masquer
+        <Button type="button" variant="secondary" size="sm" onClick={onFermer}>
+          J’ai noté, fermer
         </Button>
       </div>
     </div>

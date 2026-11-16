@@ -7,6 +7,7 @@ export {
   changerMotDePasse,
   ChangerMotDePasseError,
   MOT_DE_PASSE_MIN,
+  MOT_DE_PASSE_MAX,
   LoginError,
   LogoutError,
   CompteInfoSchema,

@@ -35,7 +35,27 @@ function estPublic(pathname: string): boolean {
  */
 const CHANGER_MOT_DE_PASSE = '/changer-mot-de-passe'
 
-type EtatSession = 'expiree' | 'ouverte' | 'mot-de-passe-a-changer'
+/**
+ * Public pages that log in or create an account. A session whose password change is pending
+ * (ADR 0036 §5) is sent back to the change from them too: logging in again or signing up would
+ * otherwise leave the provisional session — the only one that can choose the password — behind.
+ */
+const PAGES_DE_CONNEXION = ['/connexion', '/inscription', '/commencer', '/rejoindre']
+
+function estPageDeConnexion(pathname: string): boolean {
+  return PAGES_DE_CONNEXION.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}
+
+/**
+ * - `expiree`: the backend answered 401 — no live session behind the cookie.
+ * - `ouverte`: a live session with nothing pending.
+ * - `mot-de-passe-a-changer`: a live session that must choose its password first (ADR 0036 §5).
+ * - `inconnue`: the backend could not say (unreachable, 5xx). Not treated as an open session:
+ *   nothing is redirected on a guess, the page renders and shows its own error.
+ */
+type EtatSession = 'expiree' | 'ouverte' | 'mot-de-passe-a-changer' | 'inconnue'
 
 /**
  * What the backend says of the session cookie. A cookie alone proves nothing: an expired session
@@ -53,7 +73,7 @@ async function etatSession(request: NextRequest): Promise<EtatSession> {
       cache: 'no-store',
     })
     if (res.status === 401) return 'expiree'
-    if (!res.ok) return 'ouverte'
+    if (!res.ok) return 'inconnue'
     const moi: unknown = await res.json().catch(() => null)
     const aChanger =
       typeof moi === 'object' &&
@@ -61,13 +81,21 @@ async function etatSession(request: NextRequest): Promise<EtatSession> {
       (moi as { doitChangerMotDePasse?: unknown }).doitChangerMotDePasse === true
     return aChanger ? 'mot-de-passe-a-changer' : 'ouverte'
   } catch {
-    return 'ouverte'
+    return 'inconnue'
   }
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
-  if (estPublic(pathname)) return NextResponse.next()
+
+  if (estPublic(pathname)) {
+    if (estPageDeConnexion(pathname) && request.cookies.has(SESSION_COOKIE)) {
+      if ((await etatSession(request)) === 'mot-de-passe-a-changer') {
+        return NextResponse.redirect(new URL(CHANGER_MOT_DE_PASSE, request.url), 302)
+      }
+    }
+    return NextResponse.next()
+  }
 
   if (request.cookies.has(SESSION_COOKIE)) {
     const etat = await etatSession(request)
@@ -75,6 +103,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(CHANGER_MOT_DE_PASSE, request.url), 302)
     }
     // Nothing to change any more: the page has no purpose, home is where the student goes next.
+    // Only on a confirmed open session — never on a backend error.
     if (etat === 'ouverte' && pathname === CHANGER_MOT_DE_PASSE) {
       return NextResponse.redirect(new URL('/', request.url), 302)
     }

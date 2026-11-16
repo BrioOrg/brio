@@ -14,8 +14,9 @@ import { ensureCsrfToken, csrfHeaders } from './csrf.js'
  *                          200 -> CompteInfo · 401 -> { error }
  *   DELETE /api/sessions   204 (with or without a session) · 403 without a CSRF token
  *   GET    /api/moi        200 -> CompteInfo · 401 when no session
- *   POST   /api/moi/mot-de-passe  { nouveauMotDePasse }  204 · 400 too short · 409 no change
- *                          pending · 422 same as the provisional password (ADR 0036 §5)
+ *   POST   /api/moi/mot-de-passe  { nouveauMotDePasse }  204 · 400 shorter than 8 or longer
+ *                          than 128 · 409 no change pending · 422 same as the provisional
+ *                          password (ADR 0036 §5)
  *
  * CSRF: the backend uses CookieCsrfTokenRepository (XSRF-TOKEN cookie, readable
  * by JS) and expects the token echoed in the X-XSRF-TOKEN header on mutating
@@ -34,12 +35,21 @@ export const CompteInfoSchema = z.object({
   statut: z.string(),
   nom: z.string().nullable(),
   email: z.string().nullable(),
-  // Student accounts only: the out-of-class identity (#325) and the school level.
+  // Student accounts only: the out-of-class identity (#325) and the school level. The pseudonym
+  // is withheld while a password change is pending (ADR 0036 §9).
   pseudonyme: z.string().nullish(),
   niveau: z.string().nullish(),
   // After a teacher-led reset (ADR 0036): the student must choose their own password first.
   // Absent from a backend that predates it: read as "nothing to change".
   doitChangerMotDePasse: z.boolean().optional(),
+  // The last reset of this account (ADR 0036 §8), once the student chose their own password:
+  // when, and by which kind of adult (`enseignant` or `admin_brio`). Null otherwise.
+  accesReinitialise: z
+    .object({
+      le: z.string(),
+      par: z.string(),
+    })
+    .nullish(),
 })
 
 export type CompteInfo = z.infer<typeof CompteInfoSchema>
@@ -128,8 +138,9 @@ export class ChangerMotDePasseError extends Error {
   }
 }
 
-/** Minimum length of a password chosen by the student (ChangerMotDePasseRequest). */
+/** Length bounds of a password chosen by the student (ChangerMotDePasseRequest). */
 export const MOT_DE_PASSE_MIN = 8
+export const MOT_DE_PASSE_MAX = 128
 
 /**
  * The student's own password, chosen right after logging in with the provisional password a
@@ -146,7 +157,9 @@ export async function changerMotDePasse(baseUrl: string, nouveauMotDePasse: stri
   if (res.ok) return
   const message =
     res.status === 400
-      ? `Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`
+      ? nouveauMotDePasse.length > MOT_DE_PASSE_MAX
+        ? `Ton mot de passe est trop long : ${MOT_DE_PASSE_MAX} caractères au maximum.`
+        : `Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`
       : res.status === 422
         ? 'Choisis un mot de passe différent du mot de passe provisoire.'
         : res.status === 401
