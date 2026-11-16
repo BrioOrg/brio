@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rapport de vérification (contrat du mesh, Phase 3)",
+  "description": "Un fichier verdict-<ID>.json par gardien (V1–V6, U6, U7). Consolidé en un seul commentaire de PR par scripts/mesh/verification/aggregate-verdicts.mjs.",
+  "type": "object",
+  "required": ["guardian", "verdict", "findings"],
+  "additionalProperties": false,
+  "properties": {
+    "guardian": { "type": "string", "pattern": "^(V[1-6]|U[67])$" },
+    "name": { "type": "string" },
+    "verdict": {
+      "enum": ["pass", "advisory", "veto"],
+      "description": "pass = rien à signaler ; advisory = constats sans veto ; veto = au moins un constat blocking. Recalculé par l'agrégateur à partir des constats : un verdict incohérent est signalé."
+    },
+    "summary": { "type": "string", "description": "Une à trois phrases lisibles par l'humain." },
+    "head_sha": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "severity": { "enum": ["blocking", "important", "suggestion"] },
+          "file": { "type": "string", "description": "Chemin relatif à la racine du dépôt." },
+          "line": { "type": "integer", "minimum": 1 },
+          "rule": { "type": "string", "description": "Règle ou ADR enfreint, ex. backend-java.md, ADR 0015." },
+          "message": { "type": "string" },
+          "fix": { "type": "string", "description": "Correction proposée." }
+        }
+      }
+    }
+  }
+}
