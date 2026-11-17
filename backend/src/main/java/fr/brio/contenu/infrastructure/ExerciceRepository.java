@@ -1,5 +1,6 @@
 package fr.brio.contenu.infrastructure;
 
+import fr.brio.contenu.domain.Chapitre;
 import fr.brio.contenu.domain.Exercice;
 import java.util.List;
 import java.util.Optional;
@@ -26,4 +27,21 @@ public interface ExerciceRepository extends JpaRepository<Exercice, UUID> {
             WHERE :code = ANY (e.competencies) AND e.retired_at IS NULL
             """, nativeQuery = true)
     List<Exercice> findAnnaleExercicesByCompetence(@Param("code") String code);
+
+    /**
+     * Published catalogue chapters (annales excluded) holding a non-retired exercise that carries
+     * the competency, in catalogue order (niveau, matière, chapter order). Teacher courses are
+     * excluded by the join on {@code chapitre_id}. Feeds the competency-to-lesson lookup (ADR 0037).
+     */
+    @Query(value = """
+            SELECT c.* FROM contenu.chapitres c
+            JOIN contenu.niveaux n ON n.code = c.niveau_code
+            WHERE c.statut = 'published'
+              AND NOT EXISTS (SELECT 1 FROM contenu.annales a WHERE a.chapitre_id = c.id)
+              AND EXISTS (
+                  SELECT 1 FROM contenu.exercices e
+                  WHERE e.chapitre_id = c.id AND :code = ANY (e.competencies) AND e.retired_at IS NULL)
+            ORDER BY n.ordre, c.matiere_code, c."ordre"
+            """, nativeQuery = true)
+    List<Chapitre> findPublishedChapitresByCompetence(@Param("code") String code);
 }

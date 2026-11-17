@@ -2406,6 +2406,54 @@
         }
       }
     },
+    "/api/referentiel/lecon" : {
+      "get" : {
+        "tags" : [ "Référentiel de compétences" ],
+        "summary" : "Trouve la leçon qui enseigne une compétence",
+        "description" : "Première section de leçon portant la compétence ; les chapitres du niveau demandé passent d'abord (ADR 0037).",
+        "operationId" : "lecon",
+        "parameters" : [ {
+          "name" : "competence",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "niveau",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Leçon à revoir",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LeconCompetence"
+                }
+              }
+            }
+          },
+          "204" : {
+            "description" : "Aucune leçon rattachable à cette compétence"
+          },
+          "401" : {
+            "description" : "Authentification requise",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LeconCompetence"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/progression/serie" : {
       "get" : {
         "tags" : [ "progression-controller" ],
@@ -4198,6 +4246,26 @@
             "type" : "string"
           },
           "intitule" : {
+            "type" : "string"
+          }
+        }
+      },
+      "LeconCompetence" : {
+        "type" : "object",
+        "properties" : {
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "chapitreId" : {
+            "type" : "string"
+          },
+          "sectionId" : {
+            "type" : "string"
+          },
+          "sectionTitre" : {
             "type" : "string"
           }
         }

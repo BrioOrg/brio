@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { createApiClient } from './client.js'
 import { CoursApiError } from './cours-edition.js'
 import type { components } from './generated/schema.js'
@@ -20,3 +21,16 @@ export async function listerCompetences(baseUrl: string): Promise<Competence[]> 
   }
   return data
 }
+
+/**
+ * The lesson section that teaches a competency (`GET /api/referentiel/lecon`, ADR 0037). The
+ * endpoint answers 204 when no lesson is attachable; callers treat that as "nothing to show".
+ */
+export const LeconCompetenceSchema = z.object({
+  niveauCode: z.string(),
+  matiereCode: z.string(),
+  chapitreId: z.string(),
+  sectionId: z.string(),
+  sectionTitre: z.string(),
+})
+export type LeconCompetence = z.infer<typeof LeconCompetenceSchema>

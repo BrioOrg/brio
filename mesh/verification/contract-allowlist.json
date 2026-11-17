@@ -9,7 +9,6 @@
   "zodFields": [
     { "value": "error", "reason": "Corps d'erreur `{ error }` de GlobalExceptionHandler : non décrit dans la spec." },
     { "value": "violations", "reason": "Corps du refus de publication (ProblemeContenu / ContentViolation) : réponse non typée dans la spec." },
-    { "value": "sectionId", "reason": "Localisant d'une ContentViolation : réponse non typée dans la spec." },
     { "value": "blockId", "reason": "Localisant d'une ContentViolation : réponse non typée dans la spec." },
     { "value": "field", "reason": "Localisant d'une ContentViolation : réponse non typée dans la spec." },
     { "value": "sections", "reason": "Réponse de publication d'un chapitre (ChapitrePublie) : non typée dans la spec." }
