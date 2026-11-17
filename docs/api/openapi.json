@@ -3652,7 +3652,7 @@
         "properties" : {
           "nouveauMotDePasse" : {
             "type" : "string",
-            "maxLength" : 128,
+            "maxLength" : 72,
             "minLength" : 8
           }
         },
@@ -3886,7 +3886,8 @@
             "format" : "date-time"
           },
           "par" : {
-            "type" : "string"
+            "type" : "string",
+            "enum" : [ "enseignant", "admin_brio" ]
           }
         }
       },

@@ -33,16 +33,22 @@ public interface CompteRepository extends JpaRepository<Compte, UUID> {
 
     /**
      * Marks the provisional password used, in ONE conditional statement (ADR 0036 §3): 1 when this
-     * call consumed it, 0 when it was already used (or expired, or no change is pending). Two
+     * call consumed it, 0 when it was already used (or expired, or no change is pending, or it is
+     * no longer the reset {@code reinitialiseLe} the login checked its password against). Two
      * logins racing with the same provisional password cannot both get 1: Postgres re-evaluates the
-     * {@code utilise_le IS NULL} condition after the first commit. Clears the persistence context,
-     * so the compte is re-read afterwards with the new value.
+     * {@code utilise_le IS NULL} condition after the first commit. A login checked against the
+     * account as it was BEFORE a reset (old password, or an older provisional one) carries an
+     * older {@code reinitialiseLe} (null if never reset), so it can never consume the provisional
+     * password issued since. Clears the persistence context, so the compte is re-read afterwards.
      */
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""
             UPDATE Compte c SET c.motDePasseProvisoireUtiliseLe = :maintenant
             WHERE c.id = :id AND c.doitChangerMotDePasse = true
               AND c.motDePasseProvisoireUtiliseLe IS NULL
-              AND c.motDePasseProvisoireExpireLe > :maintenant""")
-    int consommerMotDePasseProvisoire(@Param("id") UUID id, @Param("maintenant") Instant maintenant);
+              AND c.motDePasseProvisoireExpireLe > :maintenant
+              AND c.accesReinitialiseLe = :reinitialiseLe""")
+    int consommerMotDePasseProvisoire(@Param("id") UUID id,
+                                      @Param("reinitialiseLe") Instant reinitialiseLe,
+                                      @Param("maintenant") Instant maintenant);
 }

@@ -37,6 +37,14 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import fr.brio.identite.ProtectionConnexionService;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -66,6 +74,10 @@ class ReinitialisationAccesIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired EntityManager em;
     @Autowired ObjectMapper json;
+    @Autowired UserDetailsService userDetails;
+    @Autowired AuthenticationSuccessHandler loginSuccess;
+    @Autowired PasswordEncoder passwordEncoder;
+    @Autowired FindByIndexNameSessionRepository<? extends org.springframework.session.Session> sessionStore;
 
     private String ip;
     private UUID etabId;
@@ -219,6 +231,96 @@ class ReinitialisationAccesIntegrationTest {
         mockMvc.perform(get("/api/moi").cookie(avant)).andExpect(status().isUnauthorized());
     }
 
+    // ── A login racing a reset (ADR 0036 §3, I1) ────────────────────────────
+
+    /**
+     * What Spring does for a login, split in two around a reset: the account is loaded and the
+     * typed password checked against it, then — after the reset — the success handler runs with
+     * that principal (credentials erased, as ProviderManager does).
+     */
+    private MockHttpServletResponse finirConnexion(UserDetails charge) throws Exception {
+        var auth = UsernamePasswordAuthenticationToken.authenticated(charge, null, charge.getAuthorities());
+        auth.eraseCredentials();
+        var req = new MockHttpServletRequest("POST", "/api/sessions");
+        req.setParameter("identifiant", eleve.identifiantConnexion());
+        req.setRemoteAddr(ip);
+        var res = new MockHttpServletResponse();
+        loginSuccess.onAuthenticationSuccess(req, res, auth);
+        return res;
+    }
+
+    private Integer echecs() {
+        return jdbc.query("SELECT nb_echecs FROM identite.echecs_connexion WHERE identifiant = ?",
+                rs -> rs.next() ? rs.getInt(1) : 0, eleve.identifiantConnexion());
+    }
+
+    @Test
+    void shouldNeverLetTheOldPasswordUseUpAProvisionalOneIssuedDuringItsLogin() throws Exception {
+        // The login loads the account and checks the OLD password: it matches.
+        UserDetails charge = userDetails.loadUserByUsername(eleve.identifiantConnexion());
+        assertThat(passwordEncoder.matches(MOT_DE_PASSE, charge.getPassword())).isTrue();
+
+        // Meanwhile, the teacher resets the access.
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+
+        // The login then finishes: refused exactly like a wrong password, and counted as one.
+        MockHttpServletResponse res = finirConnexion(charge);
+        assertThat(res.getStatus()).isEqualTo(401);
+        assertThat(res.getContentAsString()).isEqualTo(ProtectionConnexionService.CORPS_ECHEC_CONNEXION);
+        assertThat(echecs()).isEqualTo(1);
+
+        // The new provisional password was not used up: it still opens the student's session.
+        MockHttpServletResponse eleveSeConnecte = connexion(eleve.identifiantConnexion(), provisoire);
+        assertThat(eleveSeConnecte.getStatus()).isEqualTo(200);
+        assertThat(json.readTree(eleveSeConnecte.getContentAsString()).get("doitChangerMotDePasse").asBoolean())
+                .isTrue();
+    }
+
+    @Test
+    void shouldNeverLetAnOlderProvisionalPasswordUseUpTheNewOne() throws Exception {
+        String ancien = reinitialiser().get("motDePasseProvisoire").asText();
+        UserDetails charge = userDetails.loadUserByUsername(eleve.identifiantConnexion());
+        assertThat(passwordEncoder.matches(ancien, charge.getPassword())).isTrue();
+
+        String nouveau = reinitialiser().get("motDePasseProvisoire").asText();
+
+        assertThat(finirConnexion(charge).getStatus()).isEqualTo(401);
+        assertThat(connexion(eleve.identifiantConnexion(), nouveau).getStatus()).isEqualTo(200);
+    }
+
+    // ── The identifier typed loosely (R1) ───────────────────────────────────
+
+    @Test
+    void shouldOpenTheAccountWithTheIdentifierGroupedOrInCapitals() throws Exception {
+        String id = eleve.identifiantConnexion();
+        String groupe = " " + id.substring(0, 4).toUpperCase(java.util.Locale.ROOT) + " "
+                + id.substring(4, 8) + "\u00a0" + id.substring(8) + " ";
+
+        MockHttpServletResponse res = connexion(groupe, MOT_DE_PASSE);
+
+        assertThat(res.getStatus()).isEqualTo(200);
+        assertThat(json.readTree(res.getContentAsString()).get("id").asText()).isEqualTo(eleve.id().toString());
+    }
+
+    @Test
+    void shouldCountFailuresOfEveryVariantOfTheIdentifierTogether() throws Exception {
+        String id = eleve.identifiantConnexion();
+        connexion(id, "pas-le-bon");
+        connexion(id.toUpperCase(java.util.Locale.ROOT), "pas-le-bon");
+        connexion(id.substring(0, 4) + " " + id.substring(4), "pas-le-bon");
+
+        assertThat(echecs()).isEqualTo(3);
+    }
+
+    @Test
+    void shouldKeepTheTeachersLoginByEmailUnchanged() throws Exception {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        compteService.creerEnseignant(MOT_DE_PASSE, "Prof", "Prof.Mail-" + suffix + "@Example.fr", etabId);
+
+        assertThat(connexion("  prof.mail-" + suffix + "@example.fr ", MOT_DE_PASSE).getStatus()).isEqualTo(200);
+        assertThat(connexion("PROF.MAIL-" + suffix + "@EXAMPLE.FR", MOT_DE_PASSE).getStatus()).isEqualTo(200);
+    }
+
     // ── Single use, expiry, no enumeration ──────────────────────────────────
 
     @Test
@@ -281,6 +383,58 @@ class ReinitialisationAccesIntegrationTest {
         // Only the student's own password opens the account now.
         assertThat(connexion(eleve.identifiantConnexion(), provisoire).getStatus()).isEqualTo(401);
         assertThat(connexion(eleve.identifiantConnexion(), NOUVEAU).getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void shouldRefuseAPasswordLongerThanBcryptCanHashWithA400() throws Exception {
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+        Cookie cookie = session(connexion(eleve.identifiantConnexion(), provisoire));
+
+        // 40 characters, but 80 bytes of UTF-8: bcrypt stops at 72 bytes.
+        changer(cookie, "é".repeat(40))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value(org.hamcrest.Matchers.containsString("trop long")));
+        // 73 characters: refused by the request's own bound.
+        changer(cookie, "a".repeat(73)).andExpect(status().isBadRequest());
+        // Exactly 72 bytes is fine.
+        changer(cookie, "é".repeat(36)).andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldRefuseAPasswordChangeBeforeTheProvisionalPasswordServed() throws Exception {
+        reinitialiser();
+        // A session of this account that the provisional password did NOT open (none can exist
+        // after the reset closed them all; built here directly): no free change.
+        mockMvc.perform(post("/api/moi/mot-de-passe")
+                        .with(user(eleve.id().toString()).roles("ELEVE")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(java.util.Map.of("nouveauMotDePasse", NOUVEAU))))
+                .andExpect(status().isConflict());
+        assertThat(comptes.findById(eleve.id()).orElseThrow().isDoitChangerMotDePasse()).isTrue();
+    }
+
+    private static <S extends org.springframework.session.Session> String ouvrirUneAutreSession(
+            FindByIndexNameSessionRepository<S> store, String principal) {
+        S autre = store.createSession();
+        autre.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, principal);
+        store.save(autre);
+        return autre.getId();
+    }
+
+    @Test
+    void shouldCloseEveryOtherSessionOfTheAccountOnceThePasswordIsChosen() throws Exception {
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+        Cookie cookie = session(connexion(eleve.identifiantConnexion(), provisoire));
+        // Another session of the same account, stored as a login would store it.
+        String autre = ouvrirUneAutreSession(sessionStore, eleve.id().toString());
+        assertThat(sessionStore.findByPrincipalName(eleve.id().toString())).containsKey(autre);
+
+        changer(cookie, NOUVEAU).andExpect(status().isNoContent());
+
+        var restantes = sessionStore.findByPrincipalName(eleve.id().toString());
+        assertThat(restantes).doesNotContainKey(autre).hasSize(1);
+        // The session that chose the password stays signed in.
+        mockMvc.perform(get("/api/moi").cookie(cookie)).andExpect(status().isOk());
     }
 
     @Test

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Locale;
 
 /**
  * Server-side protection of the login endpoint (ADR 0017 §7), stored in Postgres (not Redis,
@@ -85,10 +84,10 @@ public class ProtectionConnexionService {
     }
 
     // Key lockout on a stable form of what the user typed, so trivial case/space variations
-    // do not sidestep the counter. The per-IP limit covers variation beyond that.
+    // do not sidestep the counter. The per-IP limit covers variation beyond that. The same form
+    // the login reads (IdentifiantConnexion, #364): inner spaces dropped too, since
+    // "k7m4 p9xa 3r" now opens the same account as "k7m4p9xa3r".
     private static String normaliser(String identifiant) {
-        if (identifiant == null) return null;
-        String t = identifiant.trim().toLowerCase(Locale.ROOT);
-        return t.isEmpty() ? null : t;
+        return IdentifiantConnexion.normaliser(identifiant);
     }
 }

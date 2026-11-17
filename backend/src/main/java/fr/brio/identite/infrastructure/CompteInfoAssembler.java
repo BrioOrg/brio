@@ -2,6 +2,7 @@ package fr.brio.identite.infrastructure;
 
 import fr.brio.identite.api.AvisReinitialisation;
 import fr.brio.identite.api.CompteInfo;
+import fr.brio.identite.api.ReinitialisePar;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.RoleCompte;
 import org.springframework.stereotype.Component;
@@ -47,7 +48,7 @@ public class CompteInfoAssembler {
                 || Instant.now().isAfter(le.plus(HORIZON_AVIS))) {
             return null;
         }
-        return new AvisReinitialisation(le, compte.getAccesReinitialisePar());
+        return new AvisReinitialisation(le, ReinitialisePar.valueOf(compte.getAccesReinitialisePar()));
     }
 
     /** The active class's level; a student in no class falls back on the level they declared. */

@@ -33,10 +33,11 @@ class AdminComptesController {
     }
 
     /**
-     * Resets the access of a student who has no active class to go through (ADR 0036 §1bis):
-     * signed up via /commencer, or class archived. Only an active student account can be the
-     * target (404 otherwise, an adult included; 409 when not active). Never cached: the
-     * provisional password is in the body.
+     * Resets the access of any active student account, whether or not it is in a class (ADR 0036
+     * §1bis). Meant for the students no teacher can reach — signed up via /commencer, or whose
+     * class was archived — but not restricted to them: the brio team may reset any student.
+     * Only a student account can be the target (404 otherwise, an adult included; 409 when it is
+     * not active). Never cached: the provisional password is in the body.
      */
     @PostMapping("/{id}/reinitialisation-acces")
     ResponseEntity<ReinitialisationAccesInfo> reinitialiserAccesHorsClasse(@PathVariable UUID id, Authentication auth) {

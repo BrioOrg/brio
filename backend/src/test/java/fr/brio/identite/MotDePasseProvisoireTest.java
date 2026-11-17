@@ -33,6 +33,16 @@ class MotDePasseProvisoireTest {
         assertThat(MotDePasseProvisoire.normaliser("K7M4-P9XA-3RTW")).isEqualTo("k7m4p9xa3rtw");
         assertThat(MotDePasseProvisoire.normaliser(" k7m4 p9xa 3rtw ")).isEqualTo("k7m4p9xa3rtw");
         assertThat(MotDePasseProvisoire.normaliser("k7m4p9xa3rtw")).isEqualTo("k7m4p9xa3rtw");
+        // Non-breaking spaces, as a copy from a French page brings them (U+00A0, U+202F).
+        assertThat(MotDePasseProvisoire.normaliser("k7m4\u00a0p9xa\u202f3rtw")).isEqualTo("k7m4p9xa3rtw");
+    }
+
+    @Test
+    void shouldReadTheIdentifierWithoutSpacesNorCapitals() {
+        assertThat(IdentifiantConnexion.normaliser(" K7M4 p9xa\u00a03R ")).isEqualTo("k7m4p9xa3r");
+        assertThat(IdentifiantConnexion.normaliser("k7m4p9xa3r")).isEqualTo("k7m4p9xa3r");
+        assertThat(IdentifiantConnexion.normaliser("   ")).isNull();
+        assertThat(IdentifiantConnexion.normaliser(null)).isNull();
     }
 
     @Test

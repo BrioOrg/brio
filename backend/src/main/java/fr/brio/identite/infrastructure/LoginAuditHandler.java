@@ -45,14 +45,23 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest req, HttpServletResponse res,
                                         Authentication auth) throws IOException {
         UUID compteId = UUID.fromString(auth.getName()); // Authentication.getName() returns the principal username
+        // The reset the typed password was checked against (CompteUserDetails). Any other
+        // principal carries none, so it can never consume a provisional password.
+        Instant reinitialiseLe = auth.getPrincipal() instanceof CompteUserDetails details
+                ? details.getAccesReinitialiseLe() : null;
         // A provisional password opens exactly one session (ADR 0036 §3). Consumed by one
-        // conditional UPDATE BEFORE the compte is loaded: two logins racing with it cannot both win.
-        boolean provisoireConsomme = comptes.consommerMotDePasseProvisoire(compteId, Instant.now()) == 1;
+        // conditional UPDATE BEFORE the compte is loaded: two logins racing with it cannot both
+        // win, and only the provisional password this login was checked against can be consumed.
+        boolean provisoireConsomme = reinitialiseLe != null
+                && comptes.consommerMotDePasseProvisoire(compteId, reinitialiseLe, Instant.now()) == 1;
         Compte compte = comptes.findById(compteId)
                 .orElseThrow(() -> new IllegalStateException("Compte introuvable après authentification"));
         if (compte.isDoitChangerMotDePasse() && !provisoireConsomme) {
-            // While a change is pending only the provisional password matches; it was just used
-            // by a concurrent login. Undo this session and answer exactly like a wrong password.
+            // While a change is pending only the provisional password opens a session. Either it
+            // was just used by a concurrent login, or a reset happened after this login loaded the
+            // account: the password that matched was the old one (or an older provisional one),
+            // which no longer opens anything — and must not use up the new one (ADR 0036 §3).
+            // Undo this session and answer exactly like a wrong password, with the same count.
             refuser(req, res);
             return;
         }

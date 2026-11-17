@@ -1,6 +1,7 @@
 package fr.brio.identite;
 
 import fr.brio.identite.api.ReinitialisationAccesInfo;
+import fr.brio.identite.api.ReinitialisePar;
 import fr.brio.identite.domain.Classe;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.InscriptionId;
@@ -12,9 +13,11 @@ import fr.brio.identite.infrastructure.ClasseRepository;
 import fr.brio.identite.infrastructure.CompteRepository;
 import fr.brio.identite.infrastructure.InscriptionRepository;
 import fr.brio.identite.infrastructure.ReinitialisationAccesRepository;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -36,9 +39,13 @@ public class ReinitialisationAccesService {
     /** How long a provisional password opens a session (≤ 7 days, ADR 0036 §3). */
     static final Duration VALIDITE = Duration.ofDays(7);
 
-    /** Kinds of adult told to the student afterwards (ADR 0036 §8): never who by name. */
-    static final String PAR_ENSEIGNANT = "enseignant";
-    static final String PAR_ADMIN_BRIO = "admin_brio";
+    /**
+     * Longest password bcrypt can hash: 72 BYTES of UTF-8, not characters (#364). An accented
+     * letter takes two, an emoji four. Beyond it the encoder throws: refused first with a 400.
+     */
+    public static final int MOT_DE_PASSE_MAX_OCTETS = 72;
+    static final String MESSAGE_TROP_LONG = "Ton mot de passe est trop long. Raccourcis-le : "
+            + "les lettres accentuées et les emojis comptent pour plusieurs caractères.";
 
     private final ClasseRepository classes;
     private final InscriptionRepository inscriptions;
@@ -96,13 +103,15 @@ public class ReinitialisationAccesService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Élève non inscrit dans cette classe"));
         return reinitialiserCompte(eleveId, demandePar, classeId,
-                isAdminBrio ? PAR_ADMIN_BRIO : PAR_ENSEIGNANT, "Élève non inscrit dans cette classe");
+                isAdminBrio ? ReinitialisePar.admin_brio : ReinitialisePar.enseignant,
+                "Élève non inscrit dans cette classe");
     }
 
     /**
-     * Resets the access of a student outside any class (ADR 0036 §1bis): one who signed up
-     * through {@code /commencer}, or whose class was archived. ADMIN_BRIO only (SecurityConfig),
-     * with the same guarantees as the class route.
+     * Resets the access of any active student, without going through a class (ADR 0036 §1bis):
+     * meant for one who signed up through {@code /commencer}, or whose class was archived, but
+     * open to every student account. ADMIN_BRIO only (SecurityConfig), with the same guarantees
+     * as the class route.
      *
      * @throws ResponseStatusException 404 no student account with this id (an adult included)
      * @throws ResponseStatusException 409 the student's account is not active
@@ -110,24 +119,31 @@ public class ReinitialisationAccesService {
      */
     @Transactional
     public ReinitialisationAccesInfo reinitialiserHorsClasse(UUID eleveId, UUID demandePar) {
-        return reinitialiserCompte(eleveId, demandePar, null, PAR_ADMIN_BRIO, "Élève introuvable");
+        return reinitialiserCompte(eleveId, demandePar, null, ReinitialisePar.admin_brio, "Élève introuvable");
     }
 
     private ReinitialisationAccesInfo reinitialiserCompte(UUID eleveId, UUID demandePar, UUID classeId,
-                                                          String par, String introuvable) {
-        // Row locks, adult first then student (always this order: no deadlock). Two resets by the
-        // same adult, or of the same student, then run one after the other, so each counts the
-        // trail the previous one committed: the rate limits hold under parallel requests (§6).
+                                                          ReinitialisePar par, String introuvable) {
+        // The target must be a student BEFORE any lock is taken (a role never changes): an adult
+        // is never locked as a target, so the order below — adult first, then student — holds for
+        // every reset, and two of them can never wait on each other's rows (no deadlock).
+        if (comptes.findById(eleveId).filter(c -> c.getRole() == RoleCompte.eleve).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, introuvable);
+        }
+        // Row locks, adult first then student. Two resets by the same adult, or of the same
+        // student, then run one after the other, so each counts the trail the previous one
+        // committed: the rate limits hold under parallel requests (§6).
         comptes.verrouiller(demandePar);
         Compte eleve = comptes.verrouiller(eleveId)
-                .filter(c -> c.getRole() == RoleCompte.eleve)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, introuvable));
         if (eleve.getStatut() != StatutCompte.actif) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Le compte de cet élève n'est pas actif : une réinitialisation ne lui rendrait pas l'accès.");
         }
 
-        Instant maintenant = Instant.now();
+        // At the database's precision (microseconds): this instant is also the version a login
+        // compares to consume the provisional password (CompteRepository.consommerMotDePasseProvisoire).
+        Instant maintenant = Instant.now().truncatedTo(ChronoUnit.MICROS);
         if (traces.countByParCompteIdAndCreeLeAfter(demandePar, maintenant.minus(Duration.ofHours(1)))
                         >= maxParHeureParAdulte
                 || traces.countByCompteIdAndCreeLeAfter(eleveId, maintenant.minus(Duration.ofDays(1)))
@@ -139,7 +155,7 @@ public class ReinitialisationAccesService {
         String provisoire = MotDePasseProvisoire.generer();
         Instant expireLe = maintenant.plus(VALIDITE);
         eleve.reinitialiserAcces(MotDePasseProvisoire.hacher(passwordEncoder, provisoire),
-                expireLe, maintenant, par);
+                expireLe, maintenant, par.name());
         comptes.save(eleve);
         traces.save(ReinitialisationAcces.tracer(eleveId, demandePar, classeId, maintenant, expireLe));
 
@@ -158,11 +174,15 @@ public class ReinitialisationAccesService {
      * the current password, it must not become a free change a stolen session could use. Every
      * other session of the account is then closed: only this one stays signed in.
      *
+     * @throws ResponseStatusException 400 longer than {@link #MOT_DE_PASSE_MAX_OCTETS} bytes of UTF-8
      * @throws ResponseStatusException 409 no change pending, or the provisional password never served
      * @throws ResponseStatusException 422 the new password is the provisional one
      */
     @Transactional
     public void changerMotDePasse(UUID compteId, String nouveauMotDePasse, String sessionCourante) {
+        if (nouveauMotDePasse.getBytes(StandardCharsets.UTF_8).length > MOT_DE_PASSE_MAX_OCTETS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, MESSAGE_TROP_LONG);
+        }
         Compte compte = comptes.verrouiller(compteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Compte introuvable"));
         if (!compte.isDoitChangerMotDePasse() || compte.getMotDePasseProvisoireUtiliseLe() == null) {

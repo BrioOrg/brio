@@ -37,13 +37,16 @@ public final class MotDePasseProvisoire {
         return sb.toString();
     }
 
-    /** The canonical form both hashed and compared: no dashes, no spaces, lower case. */
+    /**
+     * The canonical form both hashed and compared: no dashes, no spaces — non-breaking ones
+     * (U+00A0, U+202F) included, which a copy from a French page can bring — lower case.
+     */
     static String normaliser(CharSequence saisi) {
         if (saisi == null) return null;
         var sb = new StringBuilder(saisi.length());
         for (int i = 0; i < saisi.length(); i++) {
             char c = saisi.charAt(i);
-            if (c != '-' && !Character.isWhitespace(c)) sb.append(c);
+            if (c != '-' && !IdentifiantConnexion.estEspace(c)) sb.append(c);
         }
         return sb.toString().toLowerCase(Locale.ROOT);
     }

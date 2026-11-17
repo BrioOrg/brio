@@ -68,12 +68,30 @@ class ReinitialisationAccesConcurrenceIntegrationTest {
     void shouldConsumeTheProvisionalPasswordOnlyOnceAtTheDatabase() {
         Eleve eleve = eleveReinitialise();
         Instant maintenant = Instant.now();
+        Instant reinitialiseLe = comptes.findById(eleve.info().id()).orElseThrow().getAccesReinitialiseLe();
 
-        Integer premier = transactions.execute(s -> comptes.consommerMotDePasseProvisoire(eleve.info().id(), maintenant));
-        Integer second = transactions.execute(s -> comptes.consommerMotDePasseProvisoire(eleve.info().id(), maintenant));
+        Integer premier = transactions.execute(
+                s -> comptes.consommerMotDePasseProvisoire(eleve.info().id(), reinitialiseLe, maintenant));
+        Integer second = transactions.execute(
+                s -> comptes.consommerMotDePasseProvisoire(eleve.info().id(), reinitialiseLe, maintenant));
 
         assertThat(premier).isEqualTo(1);
         assertThat(second).isZero();
+    }
+
+    @Test
+    void shouldNotConsumeAProvisionalPasswordIssuedAfterTheAccountWasLoaded() {
+        Eleve eleve = eleveReinitialise();
+        Instant avant = comptes.findById(eleve.info().id()).orElseThrow().getAccesReinitialiseLe();
+
+        // An older reset state (or none at all): never the provisional password pending now.
+        Integer ancien = transactions.execute(s -> comptes.consommerMotDePasseProvisoire(
+                eleve.info().id(), avant.minusSeconds(1), Instant.now()));
+        Integer aucun = transactions.execute(s -> comptes.consommerMotDePasseProvisoire(
+                eleve.info().id(), null, Instant.now()));
+
+        assertThat(ancien).isZero();
+        assertThat(aucun).isZero();
     }
 
     @Test
