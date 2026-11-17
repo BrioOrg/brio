@@ -26,6 +26,7 @@ const figure = (id: string) => block(id, 'figure')
 const table = (id: string) => block(id, 'table')
 const formula = (id: string) => block(id, 'formula')
 const chart = (id: string) => block(id, 'chart')
+const tree = (id: string) => block(id, 'tree')
 const image = (id: string) => block(id, 'image')
 const exercise = (id: string) => block(id, 'exercise')
 
@@ -149,7 +150,7 @@ describe('buildDeck', () => {
       ).toEqual(['exercice:x1', 'exercice:f+x2'])
     })
 
-    it('should also hold for an image or a chart', () => {
+    it('should also hold for an image, a chart or a tree', () => {
       expect(
         middle({
           sections: [
@@ -157,6 +158,9 @@ describe('buildDeck', () => {
           ],
         })
       ).toEqual(['lecon:d', 'exercice:i+x1', 'exercice:c+x2'])
+      expect(
+        middle({ sections: [section('s1', definition('d'), tree('a'), exercise('x'))] })
+      ).toEqual(['lecon:d', 'exercice:a+x'])
     })
 
     it('should bring along every support in the same run', () => {

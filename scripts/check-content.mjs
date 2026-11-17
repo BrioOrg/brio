@@ -35,6 +35,13 @@
  *    yMax not below the largest value; yStep positive and at most 20 graduations; no axis
  *    field (xLabel, yLabel, yMax, yStep, showValues) on a pie.
  *
+ * 3b. Tree blocks (ADR 0040): at least one branch; depth ≤ 3, ≤ 6 branches per node, ≤ 12
+ *    leaves; sibling labels not blank and not duplicated; probabilities written 3/5, 0,4, 25 %,
+ *    an integer, ? or LaTeX between $, none above 1; numeric siblings summing exactly to 1
+ *    (rationals), given ones never above 1; products only with a number on every branch; an
+ *    outcome on leaves only; highlightPath leading to a leaf. Siblings with only some probabilities
+ *    given are a warning, printed without failing.
+ *
  * 4. Scratch programmes (ADR 0031): a code block with language "scratch" must parse with the
  *    renderer's own parser (packages/content/src/scratch.ts), every faulty line reported. The
  *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
@@ -73,6 +80,7 @@ let RESERVED_DIAPO_IDS
 let checkChart
 let checkTones
 let checkCalcul
+let checkTree
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
@@ -80,6 +88,7 @@ try {
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
   ;({ checkTones } = await import('../packages/content/src/tone.ts'))
   ;({ checkCalcul } = await import('../packages/content/src/calcul.ts'))
+  ;({ checkTree } = await import('../packages/content/src/tree-rules.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -600,6 +609,55 @@ function checkCalculBlock(block, file, path) {
   for (const issue of checkCalcul(block)) fail(file, `${path}.${issue.path}`, calculMessage(issue))
 }
 
+// The rules live in packages/content/src/tree-rules.ts, shared with the teacher editor (ADR 0040);
+// only their English wording is here.
+function treeMessage(issue) {
+  switch (issue.code) {
+    case 'NO_BRANCH':
+      return 'a tree needs at least one branch'
+    case 'TOO_DEEP':
+      return `a tree is at most ${issue.max} levels deep`
+    case 'TOO_MANY_CHILDREN':
+      return `${issue.count} branches from one node; at most ${issue.max}`
+    case 'TOO_MANY_LEAVES':
+      return `${issue.count} leaves; at most ${issue.max}`
+    case 'BLANK_LABEL':
+      return 'blank branch label'
+    case 'DUPLICATE_LABEL':
+      return `two sibling branches are labelled "${issue.label}"`
+    case 'INVALID_PROBABILITY':
+      return issue.reason === 'decimal-point'
+        ? `probability "${issue.value}" uses a decimal point; write a decimal comma`
+        : issue.reason === 'zero-denominator'
+          ? `probability "${issue.value}" has a zero denominator`
+          : `probability "${issue.value}" is not 3/5, 0,4, 25 %, an integer, ? or $LaTeX$`
+    case 'PROBABILITY_ABOVE_ONE':
+      return `probability "${issue.value}" is above 1`
+    case 'SUM_NOT_ONE':
+      return `sibling probabilities sum to ${issue.sum}, not 1`
+    case 'SUM_ABOVE_ONE':
+      return `the given sibling probabilities already sum to ${issue.sum}, above 1`
+    case 'PARTIAL_PROBABILITIES':
+      return `only ${issue.given} of ${issue.count} sibling branches carry a probability`
+    case 'OUTCOME_ON_BRANCH':
+      return 'only a leaf has an outcome'
+    case 'PRODUCT_NEEDS_PROBABILITIES':
+      return 'products need a numeric probability on every branch'
+    case 'HIGHLIGHT_NOT_A_PATH':
+      return 'highlightPath does not lead from the root to a leaf'
+    default:
+      return issue.code
+  }
+}
+
+function checkTreeBlock(block, file, path) {
+  for (const issue of checkTree(block)) {
+    const where = `${relative(repoRoot, file)} (${path}.${issue.path})`
+    if (issue.severity === 'warning') warnings.push(`${where}: ${treeMessage(issue)}`)
+    else fail(file, `${path}.${issue.path}`, treeMessage(issue))
+  }
+}
+
 // --- Scratch programmes (ADR 0031) ---
 
 function checkScratchBlock(block, file, path) {
@@ -618,6 +676,7 @@ function checkFigures(doc, file) {
       if (block.type === 'figure') checkFigureBlock(block, file, path)
       else if (block.type === 'chart') checkChartBlock(block, file, path)
       else if (block.type === 'calcul') checkCalculBlock(block, file, path)
+      else if (block.type === 'tree') checkTreeBlock(block, file, path)
       else if (block.type === 'code' && block.language === 'scratch') checkScratchBlock(block, file, path)
     }
   }
@@ -721,10 +780,15 @@ if (warnings.length > 0) {
   for (const warning of warnings) console.warn(`  - ${warning}`)
 }
 
+if (warnings.length > 0) {
+  console.warn(`! ${warnings.length} warning(s):`)
+  for (const warning of warnings) console.warn(`  - ${warning}`)
+}
+
 if (errors.length > 0) {
   console.error(`✗ Content check failed (${errors.length} problem(s)):`)
   for (const error of errors) console.error(`  - ${error}`)
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + Scratch programmes + maths tones + unique chapter and block ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + trees + Scratch programmes + maths tones + unique chapter and block ids).`)
