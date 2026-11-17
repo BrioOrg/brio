@@ -56,11 +56,16 @@ test('the course homework banner is in the first paint', async ({ page }) => {
   const reponse = await page.request.get(url, COMPILATION)
   expect(reponse.status()).toBe(200)
   // The markup only: no script (the RSC payload repeats the props), no React text separators.
-  const balisage = (await reponse.text())
+  const html = await reponse.text()
+  const balisage = html
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
     .replace(/<!--[\s\S]*?-->/g, '')
   expect(balisage).toContain(TITRE_DU_COURS)
   expect(balisage).toContain(BANDEAU)
+  // V1, V5: the banner gets only the teacher and the due date. The homework's own title shows
+  // nowhere on the course page (its header names the course), so it is in neither the markup nor
+  // the RSC payload the scripts carry.
+  expect(html).not.toContain('Relire le cours sur les fractions')
 
   const appelsDevoirs: string[] = []
   page.on('request', (requete) => {
@@ -147,6 +152,17 @@ test('an unknown course says so, and leads back to the homework in one click', a
 // critère 5: without a homework in the URL, the unavailable course offers no way back to one.
 test('an unavailable course opened directly offers no homework link', async ({ page }) => {
   await page.goto(`/cours/${COURS_HORS_PORTEE}`)
+
+  await expect(indisponible(page)).toBeVisible(COMPILATION)
+  await expect(page.getByRole('link', { name: 'Retour à mes devoirs' })).toHaveCount(0)
+})
+
+// V5 (S3): a forged ?devoir= that names none of the student's homework gets no misleading way
+// back; the navigation bar stays the way out.
+test('an unavailable course with a forged homework id offers no homework link', async ({
+  page,
+}) => {
+  await page.goto(`/cours/${COURS_HORS_PORTEE}?devoir=00000000-0000-4000-8000-00000000dfff`)
 
   await expect(indisponible(page)).toBeVisible(COMPILATION)
   await expect(page.getByRole('link', { name: 'Retour à mes devoirs' })).toHaveCount(0)

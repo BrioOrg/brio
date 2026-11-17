@@ -264,6 +264,34 @@ describe('AccueilPage', () => {
       const { getCatalogue } = await import('@/lib/api')
       expect(getCatalogue).toHaveBeenCalled()
     })
+
+    // U6: the catalogue is asked for as soon as the cards are known, alongside the other reads,
+    // not once they have all come back.
+    it('demande le catalogue sans attendre la fin des autres lectures', async () => {
+      let livrerReprendre: (valeur: unknown) => void = () => {}
+      let livrerMaitrises: (valeur: unknown) => void = () => {}
+      const enCours = afficher({
+        devoirs: [devoirChapitre('ch', '2026-11-01T16:00:00Z', 'a')],
+        // Still pending until the catalogue has been asked for.
+        reprendre: new Promise((resolve) => {
+          livrerReprendre = resolve
+        }),
+        maitrises: new Promise((resolve) => {
+          livrerMaitrises = resolve
+        }),
+      })
+
+      const { getCatalogue } = await import('@/lib/api')
+      await vi.waitFor(() => expect(getCatalogue).toHaveBeenCalled())
+      livrerReprendre(null)
+      livrerMaitrises([])
+      render(await enCours)
+
+      expect(screen.getByRole('link', { name: /Devoir ch/ })).toHaveAttribute(
+        'href',
+        '/5e/mathematiques/a?devoir=ch'
+      )
+    })
   })
 
   // critère 6

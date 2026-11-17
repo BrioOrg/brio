@@ -98,14 +98,14 @@ describe('BandeauDevoir (a catalogue chapter, loaded in the browser)', () => {
 describe('BandeauDevoirVue (a teacher course, the homework already found)', () => {
   // critère 2
   it('names the teacher and the due date, without loading anything', () => {
-    render(<BandeauDevoirVue devoir={devoirCours} />)
+    render(<BandeauDevoirVue enseignant="M. Dubois" echeanceAt="2026-10-03T10:00:00Z" />)
 
     expect(screen.getByText('Devoir de M. Dubois · à rendre le 3 octobre')).toBeInTheDocument()
     expect(listerMesDevoirs).not.toHaveBeenCalled()
   })
 
   it('omits a teacher the backend has no name for', () => {
-    render(<BandeauDevoirVue devoir={{ ...devoirCours, enseignant: null }} />)
+    render(<BandeauDevoirVue enseignant={null} echeanceAt="2026-10-03T10:00:00Z" />)
 
     expect(screen.getByText('Devoir · à rendre le 3 octobre')).toBeInTheDocument()
     expect(screen.queryByText(/M\. Dubois/)).toBeNull()
