@@ -370,6 +370,46 @@ Recette — dessiner l'assemblage dont le plan coté est « fond 2, 1, 0 ; devan
   montre déjà la réponse. Le plan coté seul fait travailler le raisonnement.
 - Les **vues** (dessus, face, côté) ne sont pas dessinées par le renderer.
 
+#### Transformations, vecteurs et droites
+
+Une image par symétrie, translation, rotation ou homothétie ne se calcule **jamais** à la main
+(ADR 0041) : on écrit la figure de départ et la transformation, le renderer place les images,
+les nomme A′, B′, C′ (vrai prime) et trace la figure image en couleur.
+
+```json
+"spec": {
+  "points": [
+    { "name": "P", "x": 0, "y": -2, "dot": false, "showName": false },
+    { "name": "Q", "x": 0, "y": 5, "dot": false, "showName": false },
+    { "name": "A", "x": -5, "y": -1 }, { "name": "B", "x": -2, "y": 1 }, { "name": "C", "x": -3, "y": 4 }
+  ],
+  "polygons": [{ "vertices": ["A", "B", "C"] }],
+  "lines": [{ "through": ["P", "Q"], "label": "(d)" }],
+  "transformations": [
+    { "kind": "symetrie-axiale", "axis": ["P", "Q"], "source": ["A", "B", "C"],
+      "show": { "construction": true } }
+  ]
+}
+```
+
+1. `kind` et ses paramètres : `symetrie-axiale` (`axis`), `symetrie-centrale` (`center`),
+   `translation` (`from`, `to`), `rotation` (`center`, `angle` en degrés, sens direct si positif),
+   `homothetie` (`center`, `ratio`, négatif possible).
+2. `source` : les points à transformer. Tout polygone, segment, ligne brisée ou cercle dont les
+   points sont tous dans la source a son image.
+3. `show.construction` : `true` (ou une liste de points de la source) ajoute les tracés du
+   manuel (perpendiculaire codée, milieu codé, arc de compas…). Sur un polygone chargé, n'en
+   construire qu'un ou deux points.
+4. Les images sont des points : un segment `[AA′]` ou une transformation suivante peut les
+   nommer. Un nom d'image ne doit pas déjà exister.
+5. L'axe d'une symétrie axiale doit être tracé : une entrée `lines` (ou un segment).
+- `lines` : la droite (AB) traverse toute la figure ; `label` la nomme « (d) ».
+  `rays` : la demi-droite [AB), de A jusqu'au bord.
+- `vectors` : une flèche de `from` à `to`, `label` en LaTeX (`\\vec{u}`, `\\overrightarrow{AB}`).
+- En mode interactif, l'image arrive sur une étape : la figure de départ glisse, tourne ou se
+  retourne jusqu'à elle. Rien à écrire pour cela.
+- Dans le texte, écrire les images avec le même prime : `A′` (ou `$A'$` en formule).
+
 ### Diagrammes statistiques
 
 Un diagramme en barres, circulaire ou une courbe à abscisses catégorielles est un bloc `chart`,

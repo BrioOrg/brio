@@ -91,7 +91,7 @@ export function TransformationLayers({ layers, blockId }: Props) {
         if (i >= revealed) return null
         if (i === moving) {
           return (
-            <g key={`mouvement-${i}`} ref={ghost} className="text-accent-ink" data-transformation="mouvement">
+            <g key={`mouvement-${i}`} ref={ghost} className="text-tone-1" data-transformation="mouvement">
               <FigureLayer model={layer.ghost} fixedStroke />
             </g>
           )
@@ -102,7 +102,7 @@ export function TransformationLayers({ layers, blockId }: Props) {
             <g className="text-ink-muted">
               <FigureLayer model={layer.construction} />
             </g>
-            <g className="text-accent-ink">
+            <g className="text-tone-1">
               <FigureLayer model={layer.image} />
             </g>
           </g>
