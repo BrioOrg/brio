@@ -97,8 +97,11 @@ export const SOLID_INITIAL_VIEW: SolidView = { yaw: -22, pitch: 20 }
 const PADDING = 30
 const CURVE_SEGMENTS = 64
 const SPHERE_SEGMENTS = 96
-const LABEL_OFFSET = 9
-const DOT_LABEL_OFFSET = 11
+/** From a point to the centre of its name: about the size of a capital, plus a gap. */
+const LABEL_OFFSET = 11
+const DOT_LABEL_OFFSET = 12
+/** A name this far from every stroke reads cleanly; beyond, the side away from the solid wins. */
+const LABEL_CLEARANCE = 9
 const DOT_RADIUS = 2.2
 const DRAG_DEGREES_PER_PX = 0.5
 const KEY_STEP_DEGREES = 15
@@ -142,8 +145,7 @@ const rad = (deg: number) => (deg * Math.PI) / 180
 // --- Geometry (view-independent, built once per spec) ---
 
 /** When a stroke is seen: through one of its faces, by the outward normal of a sphere, or never. */
-type Visibility =
-  { kind: 'faces'; faces: number[] } | { kind: 'normal'; normal: Vec3 } | { kind: 'inside' }
+type Visibility = { kind: 'faces'; faces: number[] } | { kind: 'inside' }
 
 type Stroke = {
   a: number
@@ -164,10 +166,14 @@ type NamedPoint = {
   onSphere: boolean
 }
 
+/** A curve drawn on a sphere, as point indices; split at the outline in each view. */
+type SphereCurve = { ids: number[]; closed: boolean; layer: 'edge' | 'section' }
+
 export type SolidGeometry = {
   points: Vec3[]
   faces: Face[]
   strokes: Stroke[]
+  sphereCurves: SphereCurve[]
   /** Section polygon, as point indices in order around it. */
   section: number[] | null
   sphereRadius: number | null
@@ -370,10 +376,10 @@ function meshSection(
 
 function sphereFromSpec(
   spec: Extract<SolidSpec, { kind: 'boule' }>
-): Pick<SolidGeometry, 'points' | 'strokes' | 'section' | 'named'> {
+): Pick<SolidGeometry, 'points' | 'sphereCurves' | 'section' | 'named'> {
   const r = spec.radius
   const points: Vec3[] = [v3(0, 0, 0)]
-  const strokes: Stroke[] = []
+  const sphereCurves: SphereCurve[] = []
   // Longitude 0 faces the viewer at yaw 0; east is to the viewer's right.
   const onSphere = (lat: number, lon: number) =>
     v3(
@@ -381,35 +387,26 @@ function sphereFromSpec(
       -r * Math.cos(rad(lat)) * Math.cos(rad(lon)),
       r * Math.sin(rad(lat))
     )
-  const curve = (
-    pts: Vec3[],
-    closed: boolean,
-    layer: Stroke['layer'],
-    normalOf: (m: Vec3) => Vec3
-  ) => {
+  const curve = (pts: Vec3[], layer: SphereCurve['layer']) => {
     const first = points.length
     points.push(...pts)
-    const count = closed ? pts.length : pts.length - 1
-    for (let i = 0; i < count; i++) {
-      const a = first + i
-      const b = first + ((i + 1) % pts.length)
-      const mid = lerp(points[a], points[b], 0.5)
-      strokes.push({ a, b, vis: { kind: 'normal', normal: normalOf(mid) }, layer })
-    }
-    return first
+    const ids = range(pts.length).map((i) => first + i)
+    sphereCurves.push({ ids, closed: true, layer })
+    return ids
   }
-  const radial = (m: Vec3) => normalize(m)
   const parallel = (lat: number) =>
     range(SPHERE_SEGMENTS).map((i) => onSphere(lat, (i * 360) / SPHERE_SEGMENTS))
-  if (spec.equator) curve(parallel(0), true, 'edge', radial)
-  for (const lat of spec.parallels ?? []) curve(parallel(lat), true, 'edge', radial)
+  if (spec.equator) curve(parallel(0), 'edge')
+  for (const lat of spec.parallels ?? []) curve(parallel(lat), 'edge')
+  // A meridian is drawn with the opposite one, as the whole great circle through the poles: its
+  // far half is dashed like the far half of the equator.
   for (const lon of spec.meridians ?? []) {
-    const half = SPHERE_SEGMENTS / 2
     curve(
-      range(half + 1).map((i) => onSphere(-90 + (i * 180) / half, lon)),
-      false,
-      'edge',
-      radial
+      range(SPHERE_SEGMENTS).map((i) => {
+        const t = -90 + (i * 360) / SPHERE_SEGMENTS
+        return t <= 90 ? onSphere(t, lon) : onSphere(180 - t, lon + 180)
+      }),
+      'edge'
     )
   }
 
@@ -417,12 +414,13 @@ function sphereFromSpec(
   if (spec.section) {
     const d = spec.section.at
     const rho = Math.sqrt(Math.max(0, r * r - d * d))
-    const circle = range(SPHERE_SEGMENTS).map((i) => {
-      const t = (i * 2 * Math.PI) / SPHERE_SEGMENTS
-      return v3(rho * Math.cos(t), rho * Math.sin(t), d)
-    })
-    const first = curve(circle, true, 'section', radial)
-    section = range(circle.length).map((i) => first + i)
+    section = curve(
+      range(SPHERE_SEGMENTS).map((i) => {
+        const t = (i * 2 * Math.PI) / SPHERE_SEGMENTS
+        return v3(rho * Math.cos(t), rho * Math.sin(t), d)
+      }),
+      'section'
+    )
   }
 
   const named: NamedPoint[] = []
@@ -431,7 +429,7 @@ function sphereFromSpec(
     points.push(onSphere(p.latitude, p.longitude))
     named.push({ name: p.name, point: points.length - 1, dot: true, onSphere: true })
   }
-  return { points, strokes, section, named }
+  return { points, sphereCurves, section, named }
 }
 
 function planeToWorld(p: SolidPlanePoint, z = 0): Vec3 {
@@ -449,6 +447,7 @@ export function buildSolidGeometry(spec: SolidSpec): SolidGeometry {
     return {
       ...sphere,
       faces: [],
+      strokes: [],
       sphereRadius: spec.radius,
       center: v3(0, 0, 0),
       scale: (SOLID_SIZE / 2 - PADDING) / spec.radius,
@@ -556,6 +555,7 @@ export function buildSolidGeometry(spec: SolidSpec): SolidGeometry {
     points: mesh.points,
     faces: mesh.faces,
     strokes,
+    sphereCurves: [],
     section: cut?.polygon ?? null,
     sphereRadius: null,
     named,
@@ -696,7 +696,6 @@ function facingFaces(g: SolidGeometry, cam: Camera): boolean[] {
 function strokesSeen(g: SolidGeometry, cam: Camera, facing: boolean[]): SolidStrokeState[] {
   const seen = (vis: Visibility): boolean => {
     if (vis.kind === 'inside') return false
-    if (vis.kind === 'normal') return dot(vis.normal, cam.look) < 0
     return vis.faces.some((f) => facing[f])
   }
   const states: SolidStrokeState[] = []
@@ -715,6 +714,86 @@ function strokesSeen(g: SolidGeometry, cam: Camera, facing: boolean[]): SolidStr
 export function solidStrokes(g: SolidGeometry, view: SolidView): SolidStrokeState[] {
   const cam = camera(g, view)
   return strokesSeen(g, cam, facingFaces(g, cam))
+}
+
+type ScreenPoint = { x: number; y: number }
+
+export type SolidRun = {
+  layer: 'edge' | 'section'
+  visible: boolean
+  points: ScreenPoint[]
+  /** A closed loop, entirely on one side of the outline. */
+  closed: boolean
+  /** Whether each end is where the curve crosses the outline. */
+  cutAtStart: boolean
+  cutAtEnd: boolean
+}
+
+/**
+ * The curves on a sphere, cut exactly where they cross the outline (where the sphere's normal is
+ * perpendicular to the eye's direction): the near part is seen, the far part dashed.
+ */
+function sphereRuns(g: SolidGeometry, cam: Camera): SolidRun[] {
+  const runs: SolidRun[] = []
+  for (const curve of g.sphereCurves) {
+    const pts = curve.ids.map((i) => g.points[i])
+    const side = pts.map((p) => dot(p, cam.look))
+    // Samples along the loop, with a cut inserted wherever the side changes.
+    const samples: Array<{ p: Vec3; cut: boolean }> = []
+    pts.forEach((a, i) => {
+      const j = (i + 1) % pts.length
+      samples.push({ p: a, cut: false })
+      if (side[i] < 0 !== side[j] < 0) {
+        const t = side[i] / (side[i] - side[j])
+        samples.push({ p: lerp(a, pts[j], t), cut: true })
+      }
+    })
+    const firstCut = samples.findIndex((x) => x.cut)
+    if (firstCut < 0) {
+      runs.push({
+        layer: curve.layer,
+        visible: side[0] < 0,
+        points: pts.map(cam.toScreen),
+        closed: true,
+        cutAtStart: false,
+        cutAtEnd: false,
+      })
+      continue
+    }
+    const loop = [...samples.slice(firstCut), ...samples.slice(0, firstCut), samples[firstCut]]
+    let current: Vec3[] = [loop[0].p]
+    let visible = false
+    for (let k = 1; k < loop.length; k++) {
+      const x = loop[k]
+      if (!x.cut) visible = dot(x.p, cam.look) < 0
+      current.push(x.p)
+      if (x.cut) {
+        runs.push({
+          layer: curve.layer,
+          visible,
+          points: current.map(cam.toScreen),
+          closed: false,
+          cutAtStart: true,
+          cutAtEnd: true,
+        })
+        current = [x.p]
+      }
+    }
+  }
+  return runs
+}
+
+/** The curves of a sphere in a view, cut at its outline. For tests. */
+export function solidSphereRuns(g: SolidGeometry, view: SolidView): SolidRun[] {
+  return sphereRuns(g, camera(g, view))
+}
+
+function runPath(runs: SolidRun[]): string {
+  return runs
+    .map(
+      (r) => 'M' + r.points.map((p) => `${f1(p.x)} ${f1(p.y)}`).join('L') + (r.closed ? 'Z' : '')
+    )
+    .join('')
 }
 
 /** Projects the geometry for one view: what is seen, what is hidden, where each name goes. */
@@ -736,17 +815,22 @@ export function projectSolid(g: SolidGeometry, view: SolidView): SolidFrame {
     edge: { visible: [] as Array<[number, number]>, hidden: [] as Array<[number, number]> },
     section: { visible: [] as Array<[number, number]>, hidden: [] as Array<[number, number]> },
   }
-  const neighbours = new Map<number, number[]>()
+  // Every stroke drawn, on screen: a name keeps clear of all of them.
+  const obstacles: Array<[ScreenPoint, ScreenPoint]> = []
   for (const s of strokesSeen(g, cam, facing)) {
     buckets[s.layer][s.visible ? 'visible' : 'hidden'].push([s.a, s.b])
-    if (s.layer === 'edge') {
-      neighbours.set(s.a, [...(neighbours.get(s.a) ?? []), s.b])
-      neighbours.set(s.b, [...(neighbours.get(s.b) ?? []), s.a])
-    }
+    obstacles.push([screen[s.a], screen[s.b]])
   }
+  const runs = sphereRuns(g, cam)
+  for (const run of runs) {
+    for (let i = 1; i < run.points.length; i++) obstacles.push([run.points[i - 1], run.points[i]])
+  }
+  const pick = (layer: SolidRun['layer'], visible: boolean) =>
+    runPath(runs.filter((r) => r.layer === layer && r.visible === visible))
 
-  let visible = polylinePath(chain(buckets.edge.visible), screen)
+  let visible = polylinePath(chain(buckets.edge.visible), screen) + pick('edge', true)
   const center = cam.toScreen(g.center)
+  const outline = g.sphereRadius !== null ? { c: center, r: g.sphereRadius * g.scale } : null
   if (g.sphereRadius !== null) {
     // The outline of a ball is always a circle, always seen.
     const r = g.sphereRadius * g.scale
@@ -757,25 +841,33 @@ export function projectSolid(g: SolidGeometry, view: SolidView): SolidFrame {
 
   const dots: Array<{ x: number; y: number }> = []
   const hiddenDots: Array<{ x: number; y: number }> = []
+  const placed: ScreenPoint[] = []
   const labels = g.named.map((n) => {
     const at = screen[n.point]
     if (n.dot) {
       const behind = n.onSphere && dot(normalize(g.points[n.point]), cam.look) > 0
       ;(behind ? hiddenDots : dots).push(at)
     }
-    const around = (neighbours.get(n.point) ?? []).map((i) => screen[i])
-    return placeLabel(n.name, at, around, sub2(at, center), n.dot ? DOT_LABEL_OFFSET : LABEL_OFFSET)
+    const label = placeLabel(n.name, at, {
+      strokes: obstacles,
+      outline,
+      labels: placed,
+      away: sub2(at, center),
+      offset: n.dot ? DOT_LABEL_OFFSET : LABEL_OFFSET,
+    })
+    placed.push(label)
+    return label
   })
 
   return {
     fills: { top: fills.top.join(''), front: fills.front.join(''), side: fills.side.join('') },
-    hidden: polylinePath(chain(buckets.edge.hidden), screen),
+    hidden: polylinePath(chain(buckets.edge.hidden), screen) + pick('edge', false),
     visible,
     sectionFill: g.section
       ? 'M' + g.section.map((i) => `${f1(screen[i].x)} ${f1(screen[i].y)}`).join('L') + 'Z'
       : '',
-    sectionHidden: polylinePath(chain(buckets.section.hidden), screen),
-    sectionVisible: polylinePath(chain(buckets.section.visible), screen),
+    sectionHidden: polylinePath(chain(buckets.section.hidden), screen) + pick('section', false),
+    sectionVisible: polylinePath(chain(buckets.section.visible), screen) + pick('section', true),
     dots: dotPath(dots),
     hiddenDots: dotPath(hiddenDots),
     labels,
@@ -786,46 +878,64 @@ function sub2(a: { x: number; y: number }, b: { x: number; y: number }) {
   return { x: a.x - b.x, y: a.y - b.y }
 }
 
-function angularDistance(a: number, b: number): number {
-  const d = Math.abs(a - b) % (2 * Math.PI)
-  return d > Math.PI ? 2 * Math.PI - d : d
+function distanceToSegment(p: ScreenPoint, a: ScreenPoint, b: ScreenPoint): number {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const l2 = dx * dx + dy * dy
+  const t = l2 < EPS ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2))
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy))
 }
 
+/** The eight places a name can take around its point, clockwise from the right. */
+const LABEL_DIRECTIONS = range(8).map((k) => ({
+  x: Math.cos((k * Math.PI) / 4),
+  y: Math.sin((k * Math.PI) / 4),
+}))
+
 /**
- * A name sits in the widest free angle between the strokes that meet at its point, so it never
- * lies on an edge; between two equal angles, the one facing away from the solid wins. A point
- * no stroke reaches (a point of a sphere) takes the direction away from the centre.
+ * A name is centred on one of eight places around its point: the one farthest from every stroke
+ * drawn in this view (seen or dashed), from the outline of a ball and from the names already
+ * placed. Once a place is clear enough, the side facing away from the solid wins.
  */
 function placeLabel(
   text: string,
-  at: { x: number; y: number },
-  around: Array<{ x: number; y: number }>,
-  awayVector: { x: number; y: number },
-  offset: number
+  at: ScreenPoint,
+  around: {
+    strokes: Array<[ScreenPoint, ScreenPoint]>
+    outline: { c: ScreenPoint; r: number } | null
+    labels: ScreenPoint[]
+    away: ScreenPoint
+    offset: number
+  }
 ): SolidLabel {
+  const awayLength = Math.hypot(around.away.x, around.away.y)
   const away =
-    Math.hypot(awayVector.x, awayVector.y) < 1
-      ? -Math.PI / 4
-      : Math.atan2(awayVector.y, awayVector.x)
-  const directions = around
-    .filter((w) => Math.hypot(w.x - at.x, w.y - at.y) > 0.5)
-    .map((w) => Math.atan2(w.y - at.y, w.x - at.x))
-    .sort((a, b) => a - b)
-  let best = { gap: -1, mid: away }
-  directions.forEach((a, k) => {
-    const b = k + 1 < directions.length ? directions[k + 1] : directions[0] + 2 * Math.PI
-    const gap = b - a
-    const mid = a + gap / 2
-    const closer = angularDistance(mid, away) < angularDistance(best.mid, away)
-    if (gap > best.gap + 1e-6 || (Math.abs(gap - best.gap) <= 1e-6 && closer)) best = { gap, mid }
-  })
-  const u = { x: Math.cos(best.mid), y: Math.sin(best.mid) }
+    awayLength < 1
+      ? { x: Math.SQRT1_2, y: -Math.SQRT1_2 }
+      : {
+          x: around.away.x / awayLength,
+          y: around.away.y / awayLength,
+        }
+  let best = { score: -Infinity, c: at }
+  for (const u of LABEL_DIRECTIONS) {
+    const c = { x: at.x + u.x * around.offset, y: at.y + u.y * around.offset }
+    let clearance = Infinity
+    for (const [a, b] of around.strokes) clearance = Math.min(clearance, distanceToSegment(c, a, b))
+    if (around.outline) {
+      const d = Math.hypot(c.x - around.outline.c.x, c.y - around.outline.c.y)
+      clearance = Math.min(clearance, Math.abs(d - around.outline.r))
+    }
+    for (const l of around.labels)
+      clearance = Math.min(clearance, Math.hypot(c.x - l.x, c.y - l.y) - 8)
+    const score = Math.min(clearance, LABEL_CLEARANCE) + (u.x * away.x + u.y * away.y)
+    if (score > best.score + 1e-9) best = { score, c }
+  }
   return {
     text,
-    x: Math.round((at.x + u.x * offset) * 10) / 10,
-    y: Math.round((at.y + u.y * offset) * 10) / 10,
-    anchor: u.x > 0.38 ? 'start' : u.x < -0.38 ? 'end' : 'middle',
-    baseline: u.y > 0.38 ? 'hanging' : u.y < -0.38 ? 'auto' : 'middle',
+    x: Math.round(best.c.x * 10) / 10,
+    y: Math.round(best.c.y * 10) / 10,
+    anchor: 'middle',
+    baseline: 'middle',
   }
 }
 

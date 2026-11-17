@@ -202,11 +202,13 @@ export type {
   SolidGeometry,
   SolidKey,
   SolidStrokeState,
+  SolidRun,
 } from './solid'
 export {
   buildSolidGeometry,
   projectSolid,
   solidStrokes,
+  solidSphereRuns,
   clampView,
   dragView,
   stepView,

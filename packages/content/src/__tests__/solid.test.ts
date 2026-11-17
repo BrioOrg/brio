@@ -8,6 +8,7 @@ import {
   projectSolid,
   sameView,
   solidStrokes,
+  solidSphereRuns,
   stepView,
   SOLID_INITIAL_VIEW,
   SOLID_SIZE,
@@ -175,8 +176,50 @@ describe('buildSolidGeometry and solidStrokes', () => {
       height: 4,
       names: ['A', 'B', 'C', 'S'],
     })
-    const s = projectSolid(g, SOLID_INITIAL_VIEW).labels[3]
-    expect(s.baseline).toBe('auto')
+    const frame = projectSolid(g, SOLID_INITIAL_VIEW)
+    const apexY = Math.min(...frame.visible.match(/ (\d+(\.\d+)?)/g)!.map(Number))
+    expect(frame.labels[3].y).toBeLessThan(apexY)
+  })
+
+  it('should keep every name clear of every stroke, in any view', () => {
+    const pyramide = buildSolidGeometry({
+      kind: 'pyramide',
+      base: [
+        { x: 0, y: 0 },
+        { x: 4, y: 0 },
+        { x: 4, y: 4 },
+        { x: 0, y: 4 },
+      ],
+      height: 4,
+      names: ['A', 'B', 'C', 'D', 'S'],
+      section: { at: 2 },
+    })
+    for (const view of [SOLID_INITIAL_VIEW, { yaw: 40, pitch: 30 }, { yaw: -130, pitch: -25 }]) {
+      const frame = projectSolid(pyramide, view)
+      const strokes = (frame.visible + frame.hidden + frame.sectionVisible + frame.sectionHidden)
+        .split('M')
+        .filter(Boolean)
+        .flatMap((sub) => {
+          const pts = sub
+            .replace('Z', '')
+            .split('L')
+            .map((p) => p.split(' ').map(Number))
+          return pts.slice(1).map((p, i) => [pts[i], p])
+        })
+      for (const label of frame.labels) {
+        const clearance = Math.min(
+          ...strokes.map(([a, b]) => {
+            const dx = b[0] - a[0]
+            const dy = b[1] - a[1]
+            const l2 = dx * dx + dy * dy || 1
+            const t = Math.max(0, Math.min(1, ((label.x - a[0]) * dx + (label.y - a[1]) * dy) / l2))
+            return Math.hypot(label.x - a[0] - t * dx, label.y - a[1] - t * dy)
+          })
+        )
+        // The centre of a 13 px capital: half its height clear of any stroke.
+        expect(clearance, `${label.text} at yaw ${view.yaw}`).toBeGreaterThan(5)
+      }
+    }
   })
 
   it('should draw the axis of a named cylinder dashed, from O to O′', () => {
@@ -188,6 +231,74 @@ describe('buildSolidGeometry and solidStrokes', () => {
 
   it('should fail with a readable message on an impossible solid', () => {
     expect(() => buildSolidGeometry({ kind: 'cone', radius: 0, height: 2 })).toThrow(/rayon/)
+  })
+})
+
+describe('curves on a sphere', () => {
+  const sphere = buildSolidGeometry({
+    kind: 'boule',
+    radius: 3,
+    equator: true,
+    parallels: [45, -60],
+    meridians: [0, 60],
+    section: { at: 1.5 },
+  })
+  const views = [
+    SOLID_INITIAL_VIEW,
+    { yaw: -7, pitch: 35 },
+    { yaw: 70, pitch: -40 },
+    { yaw: 0, pitch: 90 },
+    { yaw: 150, pitch: -89 },
+  ]
+
+  it('should draw each meridian as a whole great circle, its far half dashed', () => {
+    const runs = solidSphereRuns(sphere, SOLID_INITIAL_VIEW).filter((r) => r.layer === 'edge')
+    // Equator, two parallels, two meridians: seen from a little above, each crosses the outline
+    // twice, so each has one seen and one dashed part.
+    expect(runs.filter((r) => r.visible)).toHaveLength(5)
+    expect(runs.filter((r) => !r.visible)).toHaveLength(5)
+    expect(runs.every((r) => r.cutAtStart && r.cutAtEnd)).toBe(true)
+  })
+
+  it('should cut every curve exactly on the outline, never leaving a short stray piece', () => {
+    const half = SOLID_SIZE / 2
+    const r = 3 * sphere.scale
+    for (const view of views) {
+      for (const run of solidSphereRuns(sphere, view)) {
+        const ends = [
+          run.cutAtStart ? run.points[0] : null,
+          run.cutAtEnd ? run.points[run.points.length - 1] : null,
+        ]
+        for (const p of ends) {
+          if (p) expect(Math.abs(Math.hypot(p.x - half, p.y - half) - r)).toBeLessThan(0.5)
+        }
+        let length = 0
+        for (let i = 1; i < run.points.length; i++) {
+          length += Math.hypot(
+            run.points[i].x - run.points[i - 1].x,
+            run.points[i].y - run.points[i - 1].y
+          )
+        }
+        expect(length, `run at ${JSON.stringify(view)}`).toBeGreaterThan(1)
+      }
+    }
+  })
+
+  it('should never turn sharply along a curve (no cusp)', () => {
+    for (const view of views) {
+      for (const run of solidSphereRuns(sphere, view)) {
+        const p = run.points
+        for (let i = 2; i < p.length; i++) {
+          const u = { x: p[i - 1].x - p[i - 2].x, y: p[i - 1].y - p[i - 2].y }
+          const v = { x: p[i].x - p[i - 1].x, y: p[i].y - p[i - 1].y }
+          const lu = Math.hypot(u.x, u.y)
+          const lv = Math.hypot(v.x, v.y)
+          if (lu < 0.05 || lv < 0.05) continue
+          // Consecutive pieces of a projected circle never fold back on each other.
+          expect((u.x * v.x + u.y * v.y) / (lu * lv)).toBeGreaterThan(-0.5)
+        }
+      }
+    }
   })
 })
 
