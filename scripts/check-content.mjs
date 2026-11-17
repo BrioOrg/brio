@@ -53,6 +53,12 @@
  *    outcome on leaves only; highlightPath leading to a leaf. Siblings with only some probabilities
  *    given are a warning, printed without failing.
  *
+ * 3 bis. Solid blocks (ADR 0039): positive dimensions; a convex prism or pyramid base of 3 to 12
+ *    vertices; the right number of names, none blank or repeated (sphere points included); the
+ *    sphere fields only on a ball, latitudes and longitudes in range, at most 12 parallels or
+ *    meridians; a section on a plane the kind has, strictly inside the solid. The rules live in
+ *    packages/content/src/solid-rules.ts, shared with the teacher editor.
+ *
  * 4. Scratch programmes (ADR 0031): a code block with language "scratch" must parse with the
  *    renderer's own parser (packages/content/src/scratch.ts), every faulty line reported. The
  *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
@@ -93,6 +99,7 @@ let checkChart
 let checkTones
 let checkCalcul
 let checkTree
+let checkSolidRules
 let checkFigureGeometry
 let expandTransformations
 let checkFunctionPlot
@@ -115,6 +122,7 @@ try {
   ;({ checkTones } = await import('../packages/content/src/tone.ts'))
   ;({ checkCalcul } = await import('../packages/content/src/calcul.ts'))
   ;({ checkTree } = await import('../packages/content/src/tree-rules.ts'))
+  ;({ checkSolid: checkSolidRules } = await import('../packages/content/src/solid-rules.ts'))
   ;({ checkFigureGeometry, expandTransformations } = await import(
     '../packages/content/src/transformations.ts'
   ))
@@ -735,6 +743,47 @@ function checkTreeBlock(block, file, path) {
   }
 }
 
+// --- Solid blocks (ADR 0039): rules in packages/content/src/solid-rules.ts ---
+
+function solidMessage(issue) {
+  switch (issue.code) {
+    case 'UNKNOWN_KIND':
+      return `unknown solid kind "${issue.kind}"`
+    case 'DIMENSION_NOT_POSITIVE':
+      return `${issue.field} must be > 0`
+    case 'BASE_SIZE':
+      return `a base has 3 to ${issue.max} vertices, found ${issue.count}`
+    case 'BASE_NOT_CONVEX':
+      return 'the base must be a convex polygon with no three consecutive collinear vertices'
+    case 'NAMES_COUNT':
+      return `a ${issue.kind} takes ${issue.expected} names, found ${issue.count}`
+    case 'BLANK_NAME':
+      return 'blank name: omit names to draw none'
+    case 'DUPLICATE_NAME':
+      return `duplicate name "${issue.name}"`
+    case 'SECTION_PLANE':
+      return issue.kind === 'boule'
+        ? 'a ball section is parallel to the equator: remove parallelTo'
+        : `a ${issue.kind} has no section parallel to "${issue.plane}"`
+    case 'SECTION_OUT_OF_RANGE':
+      return `the section must lie strictly inside the solid: ${issue.minIncluded ? '' : 'more than '}${issue.min} ${issue.minIncluded ? '≤' : '<'} at < ${issue.max}, got ${issue.at}`
+    case 'SPHERE_ONLY_FIELD':
+      return `${issue.field} is for a ball only`
+    case 'LATITUDE_OUT_OF_RANGE':
+      return `latitude out of range, got ${issue.value}`
+    case 'LONGITUDE_OUT_OF_RANGE':
+      return `longitude must be between −180 and 180, got ${issue.value}`
+    case 'TOO_MANY_LINES':
+      return `${issue.count} lines; at most ${issue.max}`
+    default:
+      return issue.code
+  }
+}
+
+function checkSolidBlock(block, file, path) {
+  for (const issue of checkSolidRules(block)) fail(file, `${path}.${issue.path}`, solidMessage(issue))
+}
+
 // --- Scratch programmes (ADR 0031) ---
 
 function checkScratchBlock(block, file, path) {
@@ -754,6 +803,7 @@ function checkFigures(doc, file) {
       else if (block.type === 'chart') checkChartBlock(block, file, path)
       else if (block.type === 'calcul') checkCalculBlock(block, file, path)
       else if (block.type === 'tree') checkTreeBlock(block, file, path)
+      else if (block.type === 'solid') checkSolidBlock(block, file, path)
       else if (block.type === 'code' && block.language === 'scratch') checkScratchBlock(block, file, path)
     }
   }
@@ -868,4 +918,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + trees + Scratch programmes + maths tones + unique chapter and block ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + trees + solids + Scratch programmes + maths tones + unique chapter and block ids).`)
