@@ -3,10 +3,12 @@ import type { Catalogue } from '@/lib/api'
 // Where a homework opens (#370). Pure functions, shared by the server home page and the client
 // Ma classe list.
 //
-// Keep every link a template literal that starts with `/`: `scripts/mesh/lib/route-graph.mjs`
-// reads route links statically from the source, and only sees those. A path held in a variable
-// (`${chemin}?…`) or built by concatenation is invisible to it, and the hot task
-// `eleve-ouvrir-devoir-cours` (1 click from the home page) would then fail.
+// `scripts/mesh/lib/route-graph.mjs` reads route links statically from the source, and only sees
+// template literals that start with `/`. The course link must stay one: a path held in a variable
+// or built by concatenation is invisible to it, and the hot task `eleve-ouvrir-devoir-cours`
+// (1 click from the home page) would then fail. A chapter link is `${chemins[slug]}?…` on purpose:
+// the edge the graph sees for it is the `/${niveauCode}/${matiereCode}/${slug}` literal of
+// `cheminsChapitres`.
 
 /** The fields of a homework that say what it points to. */
 type SourceDevoir = { id: string; sourceType: string; sourceRef: string }

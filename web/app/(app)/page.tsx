@@ -40,21 +40,29 @@ export default async function AccueilPage() {
   const moi = await lireMoi(cookie)
   if (moi?.role !== 'eleve') redirect('/explorer')
 
-  const [classes, devoirs, reprendre, maitrises, libelles] = await Promise.all([
-    lireClasses(cookie),
-    lireDevoirs(cookie),
-    lireReprendre(cookie),
-    lireMaitrise(cookie),
-    lireLibelles(cookie),
-  ])
-
-  const aRendre = prochainsDevoirs(devoirs ?? [], 3)
-  const aRevoir = competenceARevoir(maitrises ?? [], libelles, new Date())
-  const rienAFaire = aRendre.length === 0 && !reprendre && !aRevoir
   // The catalogue gives a chapter homework its URL, and the first steps their subjects: only load
   // it when one of them is on the page. A failure leaves the cards on their Ma classe fallback.
-  const besoinCatalogue = rienAFaire || aRendre.some((d) => d.sourceType === 'chapitre')
-  const catalogue = besoinCatalogue ? await getCatalogue().catch(() => []) : []
+  const [classes, { aRendre, catalogueDevoirs }, reprendre, maitrises, libelles] =
+    await Promise.all([
+      lireClasses(cookie),
+      // Chained on the homework, alongside the other reads: a chapter card waits for no one else.
+      lireDevoirs(cookie).then(async (devoirs) => {
+        const cartes = prochainsDevoirs(devoirs ?? [], 3)
+        const besoin = cartes.some((d) => d.sourceType === 'chapitre')
+        return {
+          aRendre: cartes,
+          catalogueDevoirs: besoin ? await getCatalogue().catch(() => []) : null,
+        }
+      }),
+      lireReprendre(cookie),
+      lireMaitrise(cookie),
+      lireLibelles(cookie),
+    ])
+
+  const aRevoir = competenceARevoir(maitrises ?? [], libelles, new Date())
+  const rienAFaire = aRendre.length === 0 && !reprendre && !aRevoir
+  // The first steps depend on every read (resume, mastery), so that case still loads it after them.
+  const catalogue = catalogueDevoirs ?? (rienAFaire ? await getCatalogue().catch(() => []) : [])
 
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">

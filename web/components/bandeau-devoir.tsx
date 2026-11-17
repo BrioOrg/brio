@@ -8,19 +8,13 @@ import { Icon } from '@/components/ui/icon'
 import { apiBaseUrl } from '@/lib/api-base-url'
 import { formatEcheance } from '@/lib/echeance'
 
-/** The page the banner sits on: a catalogue chapter (by slug) or a teacher course (by id). */
-type BandeauDevoirProps = { devoirId: string; slug: string } | { devoirId: string; coursId: string }
-
 /**
- * The reminder above a chapter or a course opened from a homework (`?devoir=` on its URL).
- * Everything comes from the student's own homework list: an id that isn't theirs, or that points
- * to another chapter or course, shows nothing. A failed load shows nothing either: the page stays
- * readable.
+ * The reminder above a catalogue chapter opened from a homework (`?devoir=` on its URL), loaded in
+ * the browser. Everything comes from the student's own homework list: an id that isn't theirs, or
+ * that points to another chapter, shows nothing. A failed load shows nothing either: the page stays
+ * readable. A teacher course finds its homework on the server and renders `BandeauDevoirVue`.
  */
-export function BandeauDevoir(props: BandeauDevoirProps) {
-  const { devoirId } = props
-  const [sourceType, sourceRef] =
-    'coursId' in props ? ['cours', props.coursId] : ['chapitre', props.slug]
+export function BandeauDevoir({ devoirId, slug }: { devoirId: string; slug: string }) {
   const [devoir, setDevoir] = useState<DevoirEleveVue | null>(null)
 
   useEffect(() => {
@@ -28,7 +22,7 @@ export function BandeauDevoir(props: BandeauDevoirProps) {
     listerMesDevoirs(apiBaseUrl())
       .then((liste) => {
         const trouve = liste?.find(
-          (d) => d.id === devoirId && d.sourceType === sourceType && d.sourceRef === sourceRef
+          (d) => d.id === devoirId && d.sourceType === 'chapitre' && d.sourceRef === slug
         )
         if (vivant) setDevoir(trouve ?? null)
       })
@@ -36,10 +30,14 @@ export function BandeauDevoir(props: BandeauDevoirProps) {
     return () => {
       vivant = false
     }
-  }, [devoirId, sourceType, sourceRef])
+  }, [devoirId, slug])
 
   if (!devoir) return null
+  return <BandeauDevoirVue devoir={devoir} />
+}
 
+/** The banner itself, for a homework already found: no data loading, so the server can render it. */
+export function BandeauDevoirVue({ devoir }: { devoir: DevoirEleveVue }) {
   const qui = devoir.enseignant ? `Devoir de ${devoir.enseignant}` : 'Devoir'
   return (
     <p className="mb-4 flex items-center gap-2 rounded-lg border border-accent bg-accent-soft px-4 py-2 font-prose text-sm font-semibold text-accent-ink">

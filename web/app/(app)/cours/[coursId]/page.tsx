@@ -1,11 +1,12 @@
 import { cookies } from 'next/headers'
 import Link from 'next/link'
 
-import { BandeauDevoir } from '@/components/bandeau-devoir'
+import { BandeauDevoirVue } from '@/components/bandeau-devoir'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { ChapterView, type ChapitreResponse } from '@/components/chapter-view'
 import { getCoursPublie } from '@/lib/api'
+import { lireDevoirs } from '@/lib/espace-eleve'
 import { SiteHeader } from '@/components/site-header'
 import { ChapterRail } from '@/components/chapter-rail'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
@@ -27,14 +28,23 @@ export default async function CoursPage({
   const { devoir } = await searchParams
   const devoirId = typeof devoir === 'string' ? devoir : undefined
 
-  // The course is scoped to classes: relay the student's session to the API.
-  const cookieStore = await cookies()
-  let cours: ChapitreResponse | null = null
-  try {
-    cours = await getCoursPublie(coursId, cookieStore.toString())
-  } catch {
-    cours = null
-  }
+  // The course is scoped to classes: relay the student's session to the API. The homework banner
+  // is found on the server, alongside the course, so it is in the first paint (no layout shift).
+  // Only the student's own homework pointing to this course shows one; a failed read shows none.
+  const cookie = (await cookies()).toString()
+  const [cours, devoirAffiche] = await Promise.all([
+    getCoursPublie(coursId, cookie).catch((): ChapitreResponse | null => null),
+    devoirId === undefined
+      ? null
+      : lireDevoirs(cookie)
+          .then(
+            (liste) =>
+              liste?.find(
+                (d) => d.id === devoirId && d.sourceType === 'cours' && d.sourceRef === coursId
+              ) ?? null
+          )
+          .catch(() => null),
+  ])
 
   if (!cours) {
     return (
@@ -77,7 +87,7 @@ export default async function CoursPage({
         <div className="mx-auto max-w-5xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
           <main className="min-w-0">
             <div className="mx-auto max-w-[68ch]">
-              {devoirId !== undefined && <BandeauDevoir devoirId={devoirId} coursId={coursId} />}
+              {devoirAffiche && <BandeauDevoirVue devoir={devoirAffiche} />}
               <ChapterView chapitre={cours} />
             </div>
           </main>
