@@ -33,16 +33,23 @@ export function BandeauDevoir({ devoirId, slug }: { devoirId: string; slug: stri
   }, [devoirId, slug])
 
   if (!devoir) return null
-  return <BandeauDevoirVue devoir={devoir} />
+  return <BandeauDevoirVue enseignant={devoir.enseignant} echeanceAt={devoir.echeanceAt} />
 }
 
-/** The banner itself, for a homework already found: no data loading, so the server can render it. */
-export function BandeauDevoirVue({ devoir }: { devoir: DevoirEleveVue }) {
-  const qui = devoir.enseignant ? `Devoir de ${devoir.enseignant}` : 'Devoir'
+/**
+ * The banner itself, for a homework already found: no data loading, so the server can render it.
+ * It takes only the two fields it shows: a server page passing it props serializes them into the
+ * RSC payload, so the homework's title, instructions and class never reach the browser that way.
+ */
+export function BandeauDevoirVue({
+  enseignant,
+  echeanceAt,
+}: Pick<DevoirEleveVue, 'enseignant' | 'echeanceAt'>) {
+  const qui = enseignant ? `Devoir de ${enseignant}` : 'Devoir'
   return (
     <p className="mb-4 flex items-center gap-2 rounded-lg border border-accent bg-accent-soft px-4 py-2 font-prose text-sm font-semibold text-accent-ink">
       <Icon name="check" size={16} aria-hidden="true" />
-      {qui} · à rendre le {formatEcheance(devoir.echeanceAt)}
+      {qui} · à rendre le {formatEcheance(echeanceAt)}
     </p>
   )
 }

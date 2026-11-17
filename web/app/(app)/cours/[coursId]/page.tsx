@@ -28,23 +28,20 @@ export default async function CoursPage({
   const { devoir } = await searchParams
   const devoirId = typeof devoir === 'string' ? devoir : undefined
 
-  // The course is scoped to classes: relay the student's session to the API. The homework banner
-  // is found on the server, alongside the course, so it is in the first paint (no layout shift).
-  // Only the student's own homework pointing to this course shows one; a failed read shows none.
+  // The course is scoped to classes: relay the student's session to the API. The homework is
+  // found on the server, alongside the course, so the banner is in the first paint (no layout
+  // shift). A failed read finds none.
   const cookie = (await cookies()).toString()
-  const [cours, devoirAffiche] = await Promise.all([
+  const [cours, devoirs] = await Promise.all([
     getCoursPublie(coursId, cookie).catch((): ChapitreResponse | null => null),
-    devoirId === undefined
-      ? null
-      : lireDevoirs(cookie)
-          .then(
-            (liste) =>
-              liste?.find(
-                (d) => d.id === devoirId && d.sourceType === 'cours' && d.sourceRef === coursId
-              ) ?? null
-          )
-          .catch(() => null),
+    devoirId === undefined ? null : lireDevoirs(cookie).catch(() => null),
   ])
+  // One of the student's own homework, whatever it points to: it keeps its way back even when
+  // its course is unavailable. A teacher, a student without a class or a forged id has none.
+  const devoirEleve = devoirs?.find((d) => d.id === devoirId) ?? null
+  // The banner only for a homework pointing to this very course.
+  const devoirAffiche =
+    devoirEleve?.sourceType === 'cours' && devoirEleve.sourceRef === coursId ? devoirEleve : null
 
   if (!cours) {
     return (
@@ -61,7 +58,7 @@ export default async function CoursPage({
             </p>
           </div>
           {/* Below the alert, not inside it: the link colour lacks contrast on the warning tint. */}
-          {devoirId !== undefined && (
+          {devoirEleve && (
             <div className="mt-4">
               <Link href="/ma-classe">
                 <Button variant="secondary" size="sm" tabIndex={-1}>
@@ -87,7 +84,12 @@ export default async function CoursPage({
         <div className="mx-auto max-w-5xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">
           <main className="min-w-0">
             <div className="mx-auto max-w-[68ch]">
-              {devoirAffiche && <BandeauDevoirVue devoir={devoirAffiche} />}
+              {devoirAffiche && (
+                <BandeauDevoirVue
+                  enseignant={devoirAffiche.enseignant}
+                  echeanceAt={devoirAffiche.echeanceAt}
+                />
+              )}
               <ChapterView chapitre={cours} />
             </div>
           </main>
