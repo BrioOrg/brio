@@ -207,6 +207,15 @@ class LeconCompetenceIntegrationTest {
                         .toString());
         annaleIngestor.ingestAll(contentDir);
 
+        // Garde-fou : l'annale est bien ingérée et publiée, sinon le 204 passerait pour une autre raison.
+        assertThat(jdbc.queryForObject(
+                        "SELECT count(*) FROM contenu.annales WHERE chapitre_id = 'lc-annale'", Integer.class))
+                .isEqualTo(1);
+        assertThat(jdbc.queryForObject(
+                        "SELECT count(*) FROM contenu.chapitres WHERE id = 'lc-annale' AND statut = 'published'",
+                        Integer.class))
+                .isEqualTo(1);
+
         mockMvc.perform(get(URL).param("competence", code).param("niveau", "3e").with(eleve))
                 .andExpect(status().isNoContent());
     }
@@ -251,6 +260,14 @@ class LeconCompetenceIntegrationTest {
     @Test
     void shouldRejectARequestWithoutCompetence() throws Exception {
         mockMvc.perform(get(URL).param("niveau", "5e").with(eleve)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldRejectABlankCompetence() throws Exception {
+        mockMvc.perform(get(URL).param("competence", "").param("niveau", "5e").with(eleve))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL).param("competence", "  ").param("niveau", "5e").with(eleve))
+                .andExpect(status().isBadRequest());
     }
 
     // --- fixtures ---------------------------------------------------------------------------
