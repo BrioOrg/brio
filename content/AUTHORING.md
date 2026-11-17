@@ -403,6 +403,35 @@ Recette — un diagramme en barres :
   « quel diagramme correspond à ce tableau ? », un `table`, puis des `chart` titrés
   « Diagramme A », « Diagramme B »…, puis un QCM sur ces titres.
 
+### Arbres de probabilités
+
+Un arbre des possibles ou un arbre pondéré est un bloc `tree` (ADR 0040). On donne les branches,
+niveau par niveau ; le renderer place les nœuds, les probabilités et les issues.
+
+```json
+{ "id": "arbre-urne", "type": "tree", "outcomes": true, "products": true,
+  "highlightPath": ["R", "B"],
+  "root": { "children": [
+    { "label": "R", "probability": "3/5", "children": [
+      { "label": "R", "probability": "2/4" }, { "label": "B", "probability": "2/4" } ] },
+    { "label": "B", "probability": "2/5", "children": [
+      { "label": "R", "probability": "3/4" }, { "label": "B", "probability": "1/4" } ] } ] },
+  "alt": "Deux tirages sans remise dans une urne de 3 boules rouges et 2 bleues." }
+```
+
+- Sans `probability`, c'est un arbre des possibles (5e). Une probabilité s'écrit `3/5` (dessinée
+  en vraie fraction, jamais simplifiée), `0,4` (virgule), `25 %`, `?` (case à compléter) ou une
+  formule entre `$` (`$p$`, `$1-p$`). `label` accepte `$\overline{A}$`.
+- Au plus 3 niveaux, 6 branches par nœud, 12 issues. Les probabilités de branches sœurs toutes
+  chiffrées font **exactement 1** (check-content calcule en fractions).
+- `outcomes: true` écrit les issues, `(R ; B)` ; une feuille peut donner la sienne avec `outcome`
+  (`$A \cap B$`). `products: true` écrit leur probabilité : à éviter dans un exercice, elle
+  donnerait la réponse.
+- `highlightPath` (les noms du chemin, de la racine à une feuille) colore un chemin : la règle
+  du produit.
+- Horizontal par défaut ; `orientation: "vertical"` pour un petit arbre. Sur téléphone, tout
+  arbre est dessiné horizontalement.
+
 ### Programmes Scratch
 
 Un programme Scratch est un bloc `code` en `"language": "scratch"` (ADR 0031). Il s'écrit en

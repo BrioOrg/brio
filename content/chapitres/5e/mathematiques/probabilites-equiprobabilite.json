@@ -5,7 +5,7 @@
   "subject": "mathematiques",
   "level": "5e",
   "difficulty": "standard",
-  "estimatedDurationMinutes": 53,
+  "estimatedDurationMinutes": 58,
   "status": "published",
   "sections": [
     {
@@ -219,7 +219,7 @@
       "id": "equiprobabilite",
       "title": "Calculer une probabilité",
       "kind": "lesson",
-      "estimatedDurationMinutes": 14,
+      "estimatedDurationMinutes": 19,
       "blocks": [
         {
           "id": "def-equiprobabilite",
@@ -354,6 +354,81 @@
             }
           ],
           "explanation": "Une chance sur quatre se traduit par $\\frac{1}{4}$ = 0,25 = 25 %. 0,4 confond $\\frac{1}{4}$ avec un nombre où l'on lirait le 4. 4 % est bien plus petit."
+        },
+        {
+          "id": "intro-deux-pieces",
+          "type": "prose",
+          "text": "On lance deux fois de suite une pièce équilibrée. Pour lister toutes les issues sans en oublier, on dessine un **arbre des possibles** : une branche par résultat du premier lancer, puis, au bout de chacune, une branche par résultat du second lancer."
+        },
+        {
+          "id": "arbre-deux-pieces",
+          "type": "tree",
+          "outcomes": true,
+          "root": {
+            "children": [
+              {
+                "label": "P",
+                "children": [
+                  {
+                    "label": "P"
+                  },
+                  {
+                    "label": "F"
+                  }
+                ]
+              },
+              {
+                "label": "F",
+                "children": [
+                  {
+                    "label": "P"
+                  },
+                  {
+                    "label": "F"
+                  }
+                ]
+              }
+            ]
+          },
+          "alt": "Arbre des possibles de deux lancers d'une pièce. Premier lancer : P ou F ; au bout de chaque branche, second lancer : P ou F. Les quatre issues sont (P ; P), (P ; F), (F ; P) et (F ; F).",
+          "caption": "P : pile ; F : face. Chaque chemin de la racine à une extrémité est une issue."
+        },
+        {
+          "id": "exemple-deux-pieces",
+          "type": "callout",
+          "variant": "example",
+          "title": "Deux lancers d'une pièce",
+          "text": "L'arbre donne 4 issues : (P ; P), (P ; F), (F ; P) et (F ; F). Comme la pièce est équilibrée, elles ont toutes la même chance. L'évènement « obtenir une fois pile et une fois face » est réalisé par 2 issues sur 4 : sa probabilité est $\\frac{2}{4} = \\frac{1}{2}$."
+        },
+        {
+          "id": "ex-deux-piles",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "On lance deux fois de suite une pièce équilibrée. Quelle est la probabilité d'obtenir deux fois pile ?",
+          "competencies": [
+            "c4.ogd.probabilites.attribuer-equiprobabilite"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-frac-1-4",
+              "text": "$\\frac{1}{4}$",
+              "correct": true
+            },
+            {
+              "id": "choix-frac-1-3",
+              "text": "$\\frac{1}{3}$",
+              "correct": false
+            },
+            {
+              "id": "choix-frac-1-2",
+              "text": "$\\frac{1}{2}$",
+              "correct": false
+            }
+          ],
+          "explanation": "Une seule issue, (P ; P), sur les 4 issues équiprobables de l'arbre : $\\frac{1}{4}$. $\\frac{1}{3}$ vient de l'erreur qui compte trois résultats (deux piles, un pile, aucun pile) qui n'ont pas la même chance. $\\frac{1}{2}$ est la probabilité d'obtenir pile en un seul lancer."
         }
       ]
     },
