@@ -20,9 +20,11 @@ export function ARevoir({
         <span className="font-display text-lg font-extrabold tracking-tight text-ink">
           {intitule}
         </span>
-        <span className="flex items-center justify-between font-prose text-sm text-ink-muted">
-          {titre ? `Revois : ${titre}` : 'Revois cette leçon'}
-          <Fleche />
+        <span className="flex items-center justify-between gap-2 font-prose text-sm text-ink-muted">
+          <span className="min-w-0">{titre ? `Revois : ${titre}` : 'Revois cette leçon'}</span>
+          <span className="shrink-0">
+            <Fleche />
+          </span>
         </span>
       </CarteLien>
     </section>

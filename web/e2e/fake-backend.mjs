@@ -836,7 +836,7 @@ const server = createServer(async (req, res) => {
     if (pathname === '/api/referentiel/lecon') {
       if (!connecte(req)) return send(res, 401)
       const code = searchParams.get('competence')
-      if (!code) return send(res, 400)
+      if (!code?.trim()) return send(res, 400)
       const lecon = await leconDe(code, searchParams.get('niveau'))
       return lecon ? send(res, 200, lecon) : send(res, 204)
     }

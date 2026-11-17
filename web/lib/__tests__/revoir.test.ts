@@ -68,6 +68,19 @@ describe('lireLecon', () => {
     expect(await lireLecon('c4.x', '5e', 'c')).toBeNull()
   })
 
+  it.each(['TimeoutError', 'AbortError'])(
+    'should return null when the request exceeds its time limit (%s)',
+    async (name) => {
+      const fetchMock = vi.fn().mockRejectedValue(new DOMException('délai dépassé', name))
+      vi.stubGlobal('fetch', fetchMock)
+      const { lireLecon } = await import('../revoir')
+
+      expect(await lireLecon('c4.x', '5e', 'c')).toBeNull()
+      const init = fetchMock.mock.calls[0][1] as RequestInit
+      expect(init.signal).toBeInstanceOf(AbortSignal)
+    }
+  )
+
   it('should return null when the body does not match the contract', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ niveauCode: '5e' })))
     const { lireLecon } = await import('../revoir')

@@ -16,19 +16,21 @@ type Chapitre = DeckInput & { id: string; sections: { id: string; kind: string }
 function chapitres(): { fichier: string; chapitre: Chapitre }[] {
   const resultat: { fichier: string; chapitre: Chapitre }[] = []
   for (const niveau of readdirSync(CHAPITRES)) {
-    const dossier = join(CHAPITRES, niveau, 'mathematiques')
-    let fichiers: string[]
-    try {
-      fichiers = readdirSync(dossier)
-    } catch {
-      continue
-    }
-    for (const f of fichiers) {
-      if (!f.endsWith('.json') || f.startsWith('_')) continue
-      resultat.push({
-        fichier: `${niveau}/${f}`,
-        chapitre: JSON.parse(readFileSync(join(dossier, f), 'utf8')) as Chapitre,
-      })
+    for (const matiere of readdirSync(join(CHAPITRES, niveau))) {
+      const dossier = join(CHAPITRES, niveau, matiere)
+      let fichiers: string[]
+      try {
+        fichiers = readdirSync(dossier)
+      } catch {
+        continue
+      }
+      for (const f of fichiers) {
+        if (!f.endsWith('.json') || f.startsWith('_')) continue
+        resultat.push({
+          fichier: `${niveau}/${matiere}/${f}`,
+          chapitre: JSON.parse(readFileSync(join(dossier, f), 'utf8')) as Chapitre,
+        })
+      }
     }
   }
   return resultat
