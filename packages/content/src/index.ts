@@ -189,6 +189,49 @@ export {
 } from './tree-rules'
 
 export type {
+  SolidKind,
+  SolidPlanePoint,
+  SolidSectionPlane,
+  SolidSection,
+  SpherePoint,
+  SolidSpec,
+  SolidView,
+  SolidShade,
+  SolidLabel,
+  SolidFrame,
+  SolidGeometry,
+  SolidKey,
+  SolidStrokeState,
+} from './solid'
+export {
+  buildSolidGeometry,
+  projectSolid,
+  solidStrokes,
+  clampView,
+  dragView,
+  stepView,
+  dragVelocity,
+  coastView,
+  interpolateView,
+  sameView,
+  SOLID_INITIAL_VIEW,
+  SOLID_SIZE,
+  SOLID_VIEWBOX,
+} from './solid'
+
+export type { SolidIssue, SolidIssueCode } from './solid-rules'
+export {
+  checkSolid,
+  solidNameCount,
+  SOLID_KINDS,
+  SOLID_DIMENSIONS,
+  SOLID_SECTION_PLANES,
+  SOLID_MAX_BASE_VERTICES,
+  SOLID_MAX_SPHERE_LINES,
+  SPHERE_ONLY_FIELDS,
+} from './solid-rules'
+
+export type {
   ScratchOperator,
   ScratchValue,
   ScratchStatement,
