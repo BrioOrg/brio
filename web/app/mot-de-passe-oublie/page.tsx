@@ -9,8 +9,10 @@ export const metadata: Metadata = {
 // nothing can tell whether an account exists. Short sentences, the instruction first: the teacher
 // resets access to the student's OWN account (identifier + a provisional password, 7 days, single
 // use), then the student chooses their own password. There is no other way in — no contact
-// channel exists yet (ADR 0036 §1bis) — and a new account would lose the class and progression,
-// so the page says to wait for the teacher. No link to /rejoindre: that creates another account.
+// channel exists yet (ADR 0036 §1bis, #367) — and a new account would lose the class and
+// progression, so the page says to wait for the teacher. A student with no active class (signed
+// up through /commencer, or class archived) has no teacher to ask: the page says so honestly,
+// without inventing a channel (N3, 2026-11-17). No link to /rejoindre: that creates another account.
 export default function MotDePasseOubliePage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-surface-page px-4 py-12">
@@ -49,6 +51,15 @@ export default function MotDePasseOubliePage() {
             </li>
             <li>Pas besoin de ton e-mail&nbsp;: brio ne t’en demande jamais.</li>
           </ul>
+
+          {/* Décision N3 du 2026-11-17 : sans classe active, pas de prof pour réinitialiser, et
+              aucun canal de contact n'existe encore (#367). La page le dit, sans en inventer un. */}
+          <p className="mt-4 border-t border-line pt-4 font-prose text-sm text-ink-muted">
+            <strong className="font-semibold text-ink">
+              Tu t’es inscrit sans classe, ou ta classe est fermée&nbsp;?
+            </strong>{' '}
+            Ton accès ne peut pas encore être récupéré en ligne.
+          </p>
         </div>
 
         <p className="mt-6 text-center font-prose text-sm text-ink-muted">

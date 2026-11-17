@@ -41,10 +41,12 @@
  *                                                 identifier + a fresh provisional password, 7 days
  *   POST /api/sessions                            form login, only with a provisional password above
  *                                                 (dashes, spaces and case ignored, as the backend
- *                                                 does): usable once, opens a session that must choose
+ *                                                 does — the identifier's spaces and case too):
+ *                                                 usable once, opens a session that must choose
  *                                                 its password (doitChangerMotDePasse, pseudonym
  *                                                 withheld); 401 otherwise, with the backend's body
- *   POST /api/moi/mot-de-passe                    204 lifts that flag; 400 outside 8-128 chars; 422
+ *   POST /api/moi/mot-de-passe                    204 lifts that flag; 400 under 8 chars or over 72
+ *                                                 bytes of UTF-8 (what bcrypt hashes); 422
  *                                                 the provisional password again; 409 when nothing is
  *                                                 pending. While pending, every other call of that
  *                                                 session is a 403, as StatutCheckFilter does — except
@@ -128,9 +130,17 @@ const provisoiresValides = new Map()
 /** cookie value -> { aChanger, provisoire, le } for a session opened with a provisional password */
 const sessionsReinit = new Map()
 
-/** The backend's canonical form of a provisional password (MotDePasseProvisoire.normaliser). */
+/**
+ * The backend's canonical form of a provisional password (MotDePasseProvisoire.normaliser). JS's
+ * \s covers the non-breaking spaces (U+00A0, U+202F) the backend drops too.
+ */
 function canonique(motDePasse) {
   return motDePasse.replace(/[-\s]/g, '').toLowerCase()
+}
+
+/** The backend's tolerant reading of a typed identifier (IdentifiantConnexion.normaliser). */
+function identifiantCanonique(identifiant) {
+  return identifiant.replace(/\s/g, '').toLowerCase()
 }
 
 function provisoire() {
@@ -648,8 +658,12 @@ const server = createServer(async (req, res) => {
     }
     if (req.method === 'POST' && pathname === '/api/moi/mot-de-passe') {
       const nouveau = (await corps(req))?.nouveauMotDePasse
-      if (typeof nouveau !== 'string' || nouveau.length < 8 || nouveau.length > 128) {
-        return send(res, 400, { error: 'nouveauMotDePasse: size must be between 8 and 128' })
+      if (
+        typeof nouveau !== 'string' ||
+        nouveau.length < 8 ||
+        Buffer.byteLength(nouveau, 'utf8') > 72
+      ) {
+        return send(res, 400, { error: 'Ton mot de passe est trop long.' })
       }
       if (canonique(nouveau) === etatReinit.provisoire) {
         return send(res, 422, {
@@ -779,7 +793,10 @@ const server = createServer(async (req, res) => {
     if (pathname === '/api/sessions') {
       const form = new URLSearchParams(await texte(req))
       const motDePasse = canonique(form.get('mot_de_passe') ?? '')
-      if (form.get('identifiant') !== IDENTIFIANT_REINIT || !provisoiresValides.has(motDePasse)) {
+      if (
+        identifiantCanonique(form.get('identifiant') ?? '') !== IDENTIFIANT_REINIT ||
+        !provisoiresValides.has(motDePasse)
+      ) {
         return send(res, 401, { error: 'Identifiant ou mot de passe incorrect' })
       }
       const le = provisoiresValides.get(motDePasse)

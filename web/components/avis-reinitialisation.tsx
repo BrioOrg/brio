@@ -7,20 +7,25 @@ import { getMoi } from '@/lib/session'
 
 type Avis = NonNullable<CompteInfo['accesReinitialise']>
 
-/** Per-device memory of a closed notice, keyed by the reset's date: a new reset shows again. */
-const CLE = 'brio.avis-reinitialisation.ferme'
+/**
+ * Per-device memory of a closed notice, one key per account (a shared computer serves several
+ * students), holding the reset's date: a new reset shows again.
+ */
+function cle(compteId: string): string {
+  return `brio.avis-reinitialisation.ferme.${compteId}`
+}
 
-function dejaFerme(le: string): boolean {
+function dejaFerme(compteId: string, le: string): boolean {
   try {
-    return window.localStorage.getItem(CLE) === le
+    return window.localStorage.getItem(cle(compteId)) === le
   } catch {
     return false
   }
 }
 
-function retenirFermeture(le: string) {
+function retenirFermeture(compteId: string, le: string) {
   try {
-    window.localStorage.setItem(CLE, le)
+    window.localStorage.setItem(cle(compteId), le)
   } catch {
     // Storage refused (private mode): the notice simply closes for this page view.
   }
@@ -42,14 +47,14 @@ function dateLongue(iso: string): string {
  * cannot hide the notice from the student's own device.
  */
 export function AvisReinitialisation() {
-  const [avis, setAvis] = useState<Avis | null>(null)
+  const [avis, setAvis] = useState<(Avis & { compteId: string }) | null>(null)
 
   useEffect(() => {
     let vivant = true
     getMoi()
       .then((moi) => {
         const a = moi?.accesReinitialise
-        if (vivant && a && !dejaFerme(a.le)) setAvis(a)
+        if (vivant && moi && a && !dejaFerme(moi.id, a.le)) setAvis({ ...a, compteId: moi.id })
       })
       .catch(() => {})
     return () => {
@@ -59,26 +64,30 @@ export function AvisReinitialisation() {
 
   if (!avis) return null
 
-  const par = avis.par === 'admin_brio' ? 'par l’équipe brio' : 'par ton prof'
+  // Whole sentences per case (ready for i18n): a student reset by the brio team may have no
+  // class, hence no teacher to warn.
+  const message =
+    avis.par === 'admin_brio'
+      ? `Ton accès a été réinitialisé le ${dateLongue(avis.le)} par l’équipe brio. Si ce n’est pas toi qui as choisi ton mot de passe, préviens un adulte de confiance : un parent ou un prof.`
+      : `Ton accès a été réinitialisé le ${dateLongue(avis.le)} par ton prof. Si ce n’est pas toi qui as choisi ton mot de passe, préviens ton prof.`
 
   return (
     <div
       role="status"
       className="flex items-start gap-3 border-b border-line bg-surface-raised px-4 py-3 font-prose text-sm text-ink"
     >
-      <Icon name="warning-circle" weight="bold" size={18} className="mt-0.5 shrink-0" />
-      <p className="min-w-0 flex-1">
-        Ton accès a été réinitialisé le {dateLongue(avis.le)} {par}. Si ce n’est pas toi qui as
-        choisi ton mot de passe, préviens ton prof.
-      </p>
+      {/* Information, not an alarm: the reset was most likely the student's own request. */}
+      <Icon name="info" weight="bold" size={18} className="mt-0.5 shrink-0" />
+      <p className="min-w-0 flex-1">{message}</p>
       <button
         type="button"
         aria-label="Fermer ce message"
         onClick={() => {
-          retenirFermeture(avis.le)
+          retenirFermeture(avis.compteId, avis.le)
           setAvis(null)
         }}
-        className="shrink-0 rounded-sm text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        // At least 24 × 24 px to tap (WCAG 2.5.8); the negative margin keeps the row's height.
+        className="-my-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <Icon name="x" weight="bold" size={18} />
       </button>

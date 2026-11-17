@@ -105,9 +105,9 @@ describe('parcours de réinitialisation d’accès', () => {
     expect((erreur as Error).message).toMatch(message)
   })
 
-  it('dit « trop long » pour un 400 au-delà de 128 caractères', async () => {
+  it('dit « trop long » pour un 400 au-delà de 72 octets, accents comptés', async () => {
     stub(400, { error: 'x' })
-    await expect(changerMotDePasse('', 'a'.repeat(129))).rejects.toThrow(/trop long.*128/i)
+    await expect(changerMotDePasse('', 'é'.repeat(37))).rejects.toThrow(/trop long/i)
   })
 
   // ADR 0036 §8-9 : le pseudonyme est retenu pendant le changement ; l'avis de réinitialisation

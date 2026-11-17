@@ -171,6 +171,8 @@ describe('middleware', () => {
       '/inscription/enseignant',
       '/commencer',
       '/rejoindre',
+      // D2 : la page « oublié » renverrait l'élève vers son prof alors qu'il est déjà connecté.
+      '/mot-de-passe-oublie',
     ])('renvoie %s vers /changer-mot-de-passe quand un changement est en attente', async (path) => {
       stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: true })
       const res = await middleware(makeRequest(path, true))
@@ -185,9 +187,14 @@ describe('middleware', () => {
       expect((await middleware(makeRequest('/connexion', true))).status).not.toBe(302)
     })
 
+    it('laisse /mot-de-passe-oublie s’afficher sans session ou pour une session normale', async () => {
+      expect((await middleware(makeRequest('/mot-de-passe-oublie', false))).status).not.toBe(302)
+      stubMoiJson({ id: 'e1', role: 'eleve', doitChangerMotDePasse: false })
+      expect((await middleware(makeRequest('/mot-de-passe-oublie', true))).status).not.toBe(302)
+    })
+
     it('n’interroge pas le backend pour une page publique qui n’est pas de connexion', async () => {
       const fetchMock = stubMoi(200)
-      await middleware(makeRequest('/mot-de-passe-oublie', true))
       await middleware(makeRequest('/consentement/t-1', true))
       expect(fetchMock).not.toHaveBeenCalled()
     })

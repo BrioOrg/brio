@@ -36,11 +36,18 @@ function estPublic(pathname: string): boolean {
 const CHANGER_MOT_DE_PASSE = '/changer-mot-de-passe'
 
 /**
- * Public pages that log in or create an account. A session whose password change is pending
- * (ADR 0036 §5) is sent back to the change from them too: logging in again or signing up would
- * otherwise leave the provisional session — the only one that can choose the password — behind.
+ * Public pages that log in, create an account or recover access. A session whose password change
+ * is pending (ADR 0036 §5) is sent back to the change from them too: logging in again or signing
+ * up would otherwise leave the provisional session — the only one that can choose the password —
+ * behind, and /mot-de-passe-oublie would send the student back to a teacher for nothing.
  */
-const PAGES_DE_CONNEXION = ['/connexion', '/inscription', '/commencer', '/rejoindre']
+const PAGES_DE_CONNEXION = [
+  '/connexion',
+  '/inscription',
+  '/commencer',
+  '/rejoindre',
+  '/mot-de-passe-oublie',
+]
 
 function estPageDeConnexion(pathname: string): boolean {
   return PAGES_DE_CONNEXION.some(

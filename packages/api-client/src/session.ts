@@ -14,9 +14,9 @@ import { ensureCsrfToken, csrfHeaders } from './csrf.js'
  *                          200 -> CompteInfo · 401 -> { error }
  *   DELETE /api/sessions   204 (with or without a session) · 403 without a CSRF token
  *   GET    /api/moi        200 -> CompteInfo · 401 when no session
- *   POST   /api/moi/mot-de-passe  { nouveauMotDePasse }  204 · 400 shorter than 8 or longer
- *                          than 128 · 409 no change pending · 422 same as the provisional
- *                          password (ADR 0036 §5)
+ *   POST   /api/moi/mot-de-passe  { nouveauMotDePasse }  204 · 400 shorter than 8 characters
+ *                          or longer than 72 bytes of UTF-8 · 409 no change pending · 422 same
+ *                          as the provisional password (ADR 0036 §5)
  *
  * CSRF: the backend uses CookieCsrfTokenRepository (XSRF-TOKEN cookie, readable
  * by JS) and expects the token echoed in the X-XSRF-TOKEN header on mutating
@@ -47,7 +47,7 @@ export const CompteInfoSchema = z.object({
   accesReinitialise: z
     .object({
       le: z.string(),
-      par: z.string(),
+      par: z.enum(['enseignant', 'admin_brio']),
     })
     .nullish(),
 })
@@ -138,9 +138,22 @@ export class ChangerMotDePasseError extends Error {
   }
 }
 
-/** Length bounds of a password chosen by the student (ChangerMotDePasseRequest). */
+/**
+ * Length bounds of a password chosen by the student (ChangerMotDePasseRequest): at least 8
+ * characters, at most 72 BYTES of UTF-8 — what bcrypt can hash. An accented letter takes two
+ * bytes, an emoji four: count with {@link octetsUtf8}, not `length`.
+ */
 export const MOT_DE_PASSE_MIN = 8
-export const MOT_DE_PASSE_MAX = 128
+export const MOT_DE_PASSE_MAX_OCTETS = 72
+
+/** The size of a string once encoded in UTF-8, as the server measures a password. */
+export function octetsUtf8(texte: string): number {
+  return new TextEncoder().encode(texte).length
+}
+
+/** The message of a password longer than the server accepts. */
+export const MESSAGE_MOT_DE_PASSE_TROP_LONG =
+  'Ton mot de passe est trop long. Raccourcis-le : les lettres accentuées et les emojis comptent pour plusieurs caractères.'
 
 /**
  * The student's own password, chosen right after logging in with the provisional password a
@@ -157,8 +170,8 @@ export async function changerMotDePasse(baseUrl: string, nouveauMotDePasse: stri
   if (res.ok) return
   const message =
     res.status === 400
-      ? nouveauMotDePasse.length > MOT_DE_PASSE_MAX
-        ? `Ton mot de passe est trop long : ${MOT_DE_PASSE_MAX} caractères au maximum.`
+      ? octetsUtf8(nouveauMotDePasse) > MOT_DE_PASSE_MAX_OCTETS
+        ? MESSAGE_MOT_DE_PASSE_TROP_LONG
         : `Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`
       : res.status === 422
         ? 'Choisis un mot de passe différent du mot de passe provisoire.'

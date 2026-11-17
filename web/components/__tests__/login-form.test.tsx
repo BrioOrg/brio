@@ -31,7 +31,7 @@ const ENSEIGNANT = { id: '2', role: 'enseignant', statut: 'actif', nom: 'P', ema
 async function submit() {
   const user = userEvent.setup()
   await user.type(screen.getByLabelText(/identifiant ou e-mail/i), 'lea.martin')
-  await user.type(screen.getByLabelText(/mot de passe/i), 'motdepasse')
+  await user.type(screen.getByLabelText('Mot de passe'), 'motdepasse')
   await user.click(screen.getByRole('button', { name: 'Se connecter', exact: true }))
 }
 
@@ -43,7 +43,7 @@ describe('LoginForm', () => {
   it('rend les champs identifiant et mot de passe', async () => {
     await setup()
     expect(screen.getByLabelText(/identifiant ou e-mail/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/mot de passe/i)).toBeInTheDocument()
+    expect(screen.getByLabelText('Mot de passe')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Se connecter', exact: true })).toBeInTheDocument()
   })
 
@@ -65,6 +65,34 @@ describe('LoginForm', () => {
     expect(identifiant).toHaveAttribute('spellcheck', 'false')
   })
 
+  // D7 : l'exemple ressemble aux vrais identifiants générés (10 lettres et chiffres minuscules).
+  it('donne un exemple d’identifiant à la forme des identifiants générés', async () => {
+    await setup()
+    expect(screen.getByLabelText(/identifiant ou e-mail/i)).toHaveAttribute(
+      'placeholder',
+      expect.stringMatching(/^[23456789a-hjkmnp-z]{10}$/)
+    )
+  })
+
+  // R5 : un bouton à bascule, au libellé fixe, montre le mot de passe tapé.
+  it('affiche le mot de passe à la demande, libellé fixe et aria-pressed', async () => {
+    await setup()
+    const user = userEvent.setup()
+    const champ = screen.getByLabelText('Mot de passe')
+    const afficher = screen.getByRole('button', { name: 'Afficher le mot de passe' })
+    expect(champ).toHaveAttribute('type', 'password')
+    expect(afficher).toHaveAttribute('aria-pressed', 'false')
+    expect(afficher).toHaveAttribute('type', 'button')
+
+    await user.click(afficher)
+    expect(champ).toHaveAttribute('type', 'text')
+    expect(afficher).toHaveAttribute('aria-pressed', 'true')
+    expect(afficher).toHaveAccessibleName('Afficher le mot de passe')
+
+    await user.click(afficher)
+    expect(champ).toHaveAttribute('type', 'password')
+  })
+
   it('affiche le SSO établissement désactivé (aucun endpoint back)', async () => {
     await setup()
     const sso = screen.getByRole('button', { name: /se connecter avec mon établissement/i })
@@ -77,7 +105,7 @@ describe('LoginForm', () => {
 
     const user = userEvent.setup()
     await user.type(screen.getByLabelText(/identifiant ou e-mail/i), 'lea.martin')
-    await user.type(screen.getByLabelText(/mot de passe/i), 'motdepasse')
+    await user.type(screen.getByLabelText('Mot de passe'), 'motdepasse')
     await user.click(screen.getByRole('button', { name: 'Se connecter', exact: true }))
 
     await waitFor(() => expect(login).toHaveBeenCalledWith('lea.martin', 'motdepasse'))
@@ -138,7 +166,7 @@ describe('LoginForm', () => {
 
     const user = userEvent.setup()
     await user.type(screen.getByLabelText(/identifiant ou e-mail/i), 'lea.martin')
-    await user.type(screen.getByLabelText(/mot de passe/i), 'faux')
+    await user.type(screen.getByLabelText('Mot de passe'), 'faux')
     await user.click(screen.getByRole('button', { name: 'Se connecter', exact: true }))
 
     const alert = await screen.findByRole('alert')
@@ -152,7 +180,7 @@ describe('LoginForm', () => {
 
     const user = userEvent.setup()
     await user.type(screen.getByLabelText(/identifiant ou e-mail/i), 'lea.martin')
-    await user.type(screen.getByLabelText(/mot de passe/i), 'motdepasse')
+    await user.type(screen.getByLabelText('Mot de passe'), 'motdepasse')
     await user.click(screen.getByRole('button', { name: 'Se connecter', exact: true }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/la connexion a échoué/i)
@@ -203,6 +231,19 @@ describe('MotDePasseOubliePage', () => {
     expect(
       screen.getByText(/tu gardes ton compte, ta classe et ta progression/i)
     ).toBeInTheDocument()
+  })
+
+  // Décision N3 du 2026-11-17 : sans classe active, l'élève n'a pas de prof pour réinitialiser.
+  // La page le dit sans inventer de canal de contact (ticket #367).
+  it('dit honnêtement qu’un élève sans classe active ne peut pas encore récupérer son accès', async () => {
+    await renderPage()
+    expect(
+      screen.getByText(/tu t’es inscrit sans classe, ou ta classe est fermée/i)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/ton accès ne peut pas encore être récupéré en ligne/i)
+    ).toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/@|mailto/)
   })
 
   it('ne renvoie plus vers /rejoindre, qui créerait un nouveau compte', async () => {

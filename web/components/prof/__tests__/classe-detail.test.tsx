@@ -172,11 +172,20 @@ describe('ClasseDetail', () => {
       // Masked by default: a classroom screen is often projected.
       expect(within(acces).queryByTestId('mot-de-passe-provisoire')).toBeNull()
       expect(acces).not.toHaveTextContent('abcd-efgh-jkmn')
-      await user.click(within(acces).getByRole('button', { name: 'Afficher' }))
+      // Read as « masqué », not as a row of dots; no aria-label on a bare span.
+      expect(acces).toHaveTextContent(/masqué/)
+      // A toggle with a fixed name, contextualised with the student: aria-pressed says the state.
+      const afficher = within(acces).getByRole('button', {
+        name: 'Afficher le mot de passe provisoire de Léa',
+      })
+      expect(afficher).toHaveAttribute('aria-pressed', 'false')
+      await user.click(afficher)
       expect(within(acces).getByTestId('mot-de-passe-provisoire')).toHaveTextContent(
         'abcd-efgh-jkmn'
       )
-      await user.click(within(acces).getByRole('button', { name: 'Masquer' }))
+      expect(afficher).toHaveAttribute('aria-pressed', 'true')
+      expect(afficher).toHaveAccessibleName('Afficher le mot de passe provisoire de Léa')
+      await user.click(afficher)
       expect(acces).not.toHaveTextContent('abcd-efgh-jkmn')
 
       // Once closed, nothing can show it again; focus goes back to the student's button.
@@ -208,15 +217,68 @@ describe('ClasseDetail', () => {
         .querySelectorAll('span > span')
       expect(Array.from(groupes, (g) => g.textContent)).toEqual(['k7m4', 'p9xa', '3r'])
 
-      await user.click(within(acces).getByRole('button', { name: 'Copier l’identifiant' }))
+      await user.click(within(acces).getByRole('button', { name: 'Copier l’identifiant de Léa' }))
       expect(writeText).toHaveBeenLastCalledWith('k7m4p9xa3r')
       // The provisional password copies without being shown.
       await user.click(
-        within(acces).getByRole('button', { name: 'Copier le mot de passe provisoire' })
+        within(acces).getByRole('button', { name: 'Copier le mot de passe provisoire de Léa' })
       )
       expect(writeText).toHaveBeenLastCalledWith('abcd-efgh-jkmn')
       expect(within(acces).queryByTestId('mot-de-passe-provisoire')).toBeNull()
       expect(await within(acces).findAllByText('Copié')).not.toHaveLength(0)
+    })
+
+    // I4/R4 : une nouvelle réinitialisation du même élève repart d'un panneau neuf — masqué, sans
+    // « Copié » périmé, focus sur le nouveau résultat — et la confirmation prévient que le
+    // provisoire encore affiché cessera de marcher.
+    it('repart masqué, sans « Copié », focus sur le résultat, quand on réinitialise à nouveau', async () => {
+      const a = await api()
+      a.listerInscrits.mockResolvedValue([LEA])
+      a.reinitialiserAccesEleve.mockResolvedValueOnce(ACCES).mockResolvedValueOnce({
+        ...ACCES,
+        motDePasseProvisoire: 'pqrs-tuvw-xyz2',
+        expireLe: '2026-11-23T10:05:00Z',
+      })
+      const writeText = vi.fn(() => Promise.resolve())
+      const user = userEvent.setup()
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+      await renderClasse()
+
+      await user.click(await screen.findByRole('button', { name: 'Réinitialiser l’accès de Léa' }))
+      // No provisional password shown yet: nothing to warn about.
+      expect(screen.getByRole('group')).not.toHaveTextContent(/affiché plus bas/i)
+      await user.click(
+        within(screen.getByRole('group')).getByRole('button', { name: 'Réinitialiser l’accès' })
+      )
+      const premier = await screen.findByRole('region', { name: 'Nouvel accès de Léa' })
+      await user.click(
+        within(premier).getByRole('button', { name: 'Afficher le mot de passe provisoire de Léa' })
+      )
+      await user.click(
+        within(premier).getByRole('button', { name: 'Copier le mot de passe provisoire de Léa' })
+      )
+      expect(await within(premier).findByText('Copié')).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Réinitialiser l’accès de Léa' }))
+      const confirmation = screen.getByRole('group', {
+        name: 'Confirmer la réinitialisation de l’accès de Léa',
+      })
+      expect(confirmation).toHaveTextContent(
+        /le mot de passe provisoire affiché plus bas cessera de fonctionner/i
+      )
+      await user.click(within(confirmation).getByRole('button', { name: 'Réinitialiser l’accès' }))
+
+      const second = await screen.findByRole('region', { name: 'Nouvel accès de Léa' })
+      await waitFor(() =>
+        expect(within(second).getByText(/accès de léa réinitialisé/i)).toHaveFocus()
+      )
+      expect(within(second).queryByTestId('mot-de-passe-provisoire')).toBeNull()
+      expect(second).not.toHaveTextContent('pqrs-tuvw-xyz2')
+      expect(second).not.toHaveTextContent('abcd-efgh-jkmn')
+      expect(within(second).queryByText('Copié')).toBeNull()
+      expect(
+        within(second).getByRole('button', { name: 'Afficher le mot de passe provisoire de Léa' })
+      ).toHaveAttribute('aria-pressed', 'false')
     })
 
     it('garde le résultat du premier élève quand on en réinitialise un second', async () => {

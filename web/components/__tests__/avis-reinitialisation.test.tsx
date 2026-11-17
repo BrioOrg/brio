@@ -30,9 +30,30 @@ describe('AvisReinitialisation', () => {
     )
   })
 
-  it('nomme l’équipe brio quand c’est elle qui a réinitialisé', async () => {
+  it('nomme l’équipe brio quand c’est elle qui a réinitialisé, sans renvoyer à un prof', async () => {
     await setup({ ...ELEVE, accesReinitialise: { le: '2026-11-16T09:00:00Z', par: 'admin_brio' } })
-    expect(await screen.findByRole('status')).toHaveTextContent(/par l’équipe brio/i)
+    const avis = await screen.findByRole('status')
+    expect(avis).toHaveTextContent(/par l’équipe brio/i)
+    // A student reset outside any class may have no teacher: an adult they trust instead.
+    expect(avis).toHaveTextContent(/préviens un adulte de confiance/i)
+    expect(avis).not.toHaveTextContent(/préviens ton prof/i)
+  })
+
+  it('offre une croix d’au moins 24 px (WCAG 2.5.8)', async () => {
+    await setup({ ...ELEVE, accesReinitialise: { le: '2026-11-16T09:00:00Z', par: 'enseignant' } })
+    const fermer = await screen.findByRole('button', { name: 'Fermer ce message' })
+    // h-8 w-8 = 2rem = 32 px with the tokens' root size.
+    expect(fermer).toHaveClass('h-8', 'w-8')
+  })
+
+  it('retient la fermeture par compte : un autre élève du même appareil est prévenu', async () => {
+    const le = '2026-11-16T09:00:00Z'
+    const { unmount } = await setup({ ...ELEVE, accesReinitialise: { le, par: 'enseignant' } })
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Fermer ce message' }))
+    unmount()
+
+    await setup({ ...ELEVE, id: 'e2', accesReinitialise: { le, par: 'enseignant' } })
+    expect(await screen.findByRole('status')).toHaveTextContent(/16 novembre 2026/)
   })
 
   it('ne montre rien sans réinitialisation', async () => {

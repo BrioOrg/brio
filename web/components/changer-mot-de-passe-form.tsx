@@ -4,13 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChangerMotDePasseError,
-  MOT_DE_PASSE_MAX,
+  MESSAGE_MOT_DE_PASSE_TROP_LONG,
+  MOT_DE_PASSE_MAX_OCTETS,
   MOT_DE_PASSE_MIN,
   changerMotDePasse,
+  octetsUtf8,
 } from '@brio/api-client'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
-import { TextInput } from '@/components/ui/text-input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { LogoutButton } from '@/components/logout-button'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
@@ -39,8 +41,9 @@ export function ChangerMotDePasseForm() {
       setErreur(`Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`)
       return
     }
-    if (motDePasse.length > MOT_DE_PASSE_MAX) {
-      setErreur(`Ton mot de passe est trop long : ${MOT_DE_PASSE_MAX} caractères au maximum.`)
+    // Bytes, not characters: what the server (bcrypt) can hash. « é » counts two, an emoji four.
+    if (octetsUtf8(motDePasse) > MOT_DE_PASSE_MAX_OCTETS) {
+      setErreur(MESSAGE_MOT_DE_PASSE_TROP_LONG)
       return
     }
     if (confirmation !== motDePasse) {
@@ -70,10 +73,10 @@ export function ChangerMotDePasseForm() {
 
   return (
     <form onSubmit={soumettre} noValidate className="flex flex-col gap-4">
-      <TextInput
+      <PasswordInput
         id={CHAMP}
         label="Ton nouveau mot de passe"
-        type="password"
+        libelleAfficher="Afficher le nouveau mot de passe"
         name="nouveau_mot_de_passe"
         // The hint is read with the field, and so is the error when there is one.
         aria-describedby={erreur ? `${AIDE} ${CHAMP}-error` : AIDE}
@@ -88,9 +91,9 @@ export function ChangerMotDePasseForm() {
         Au moins {MOT_DE_PASSE_MIN} caractères. Une phrase courte que toi seul connais, c’est
         parfait.
       </p>
-      <TextInput
+      <PasswordInput
         label="Retape-le pour vérifier"
-        type="password"
+        libelleAfficher="Afficher le mot de passe retapé"
         name="confirmation_mot_de_passe"
         autoComplete="new-password"
         value={confirmation}

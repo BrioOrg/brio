@@ -96,17 +96,53 @@ describe('ChangerMotDePasseForm', () => {
     expect(champ).toHaveAccessibleDescription(/au moins 8 caractères.*au moins 8 caractères/i)
   })
 
-  it('dit « trop long » au-delà de 128 caractères, sans appeler le serveur', async () => {
+  it('dit « trop long » au-delà de 72 octets (accents comptés), sans appeler le serveur', async () => {
     const { changer } = await setup()
     const user = userEvent.setup()
-    const long = 'a'.repeat(129)
+    // 37 characters, but 74 bytes of UTF-8: what bcrypt cannot hash.
+    const long = 'é'.repeat(37)
     await user.click(screen.getByLabelText('Ton nouveau mot de passe'))
     await user.paste(long)
     await user.click(screen.getByLabelText('Retape-le pour vérifier'))
     await user.paste(long)
     await user.click(screen.getByRole('button', { name: /enregistrer mon mot de passe/i }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(/trop long.*128 caractères/i)
+    expect(await screen.findByRole('alert')).toHaveTextContent(/trop long.*accentuées/i)
     expect(changer).not.toHaveBeenCalled()
+  })
+
+  it('accepte 72 octets tout juste', async () => {
+    const { changer } = await setup()
+    changer.mockResolvedValue()
+    const user = userEvent.setup()
+    const juste = 'é'.repeat(36)
+    await user.click(screen.getByLabelText('Ton nouveau mot de passe'))
+    await user.paste(juste)
+    await user.click(screen.getByLabelText('Retape-le pour vérifier'))
+    await user.paste(juste)
+    await user.click(screen.getByRole('button', { name: /enregistrer mon mot de passe/i }))
+    await waitFor(() => expect(changer).toHaveBeenCalledWith(expect.any(String), juste))
+  })
+
+  it('affiche chaque mot de passe à la demande, sans changer le libellé du bouton', async () => {
+    await setup()
+    const user = userEvent.setup()
+    const champ = screen.getByLabelText('Ton nouveau mot de passe')
+    const retape = screen.getByLabelText('Retape-le pour vérifier')
+    const afficher = screen.getByRole('button', { name: 'Afficher le nouveau mot de passe' })
+    expect(champ).toHaveAttribute('type', 'password')
+    expect(afficher).toHaveAttribute('aria-pressed', 'false')
+
+    await user.click(afficher)
+
+    expect(champ).toHaveAttribute('type', 'text')
+    expect(afficher).toHaveAttribute('aria-pressed', 'true')
+    expect(afficher).toHaveAccessibleName('Afficher le nouveau mot de passe')
+    // Each field has its own button: the second stays masked.
+    expect(retape).toHaveAttribute('type', 'password')
+    const afficherRetape = screen.getByRole('button', { name: 'Afficher le mot de passe retapé' })
+    expect(afficherRetape).toHaveAttribute('aria-pressed', 'false')
+    // Showing never submits the form.
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 })
 

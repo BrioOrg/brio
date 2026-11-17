@@ -400,6 +400,7 @@ function Eleves({ classeId }: { classeId: string }) {
                 <ConfirmerReinitialisation
                   classeId={classeId}
                   eleve={eleve}
+                  remplaceUnProvisoireAffiche={!!acces[eleve.compteId]}
                   onAnnuler={() => {
                     setAConfirmer(null)
                     rendreLeFocus(eleve.compteId)
@@ -412,6 +413,8 @@ function Eleves({ classeId }: { classeId: string }) {
               )}
               {acces[eleve.compteId] && (
                 <AccesReinitialise
+                  // A new reset is a new panel: masked again, no stale « Copié », focus on it.
+                  key={acces[eleve.compteId]!.expireLe}
                   nomAffiche={eleve.nomAffiche}
                   info={acces[eleve.compteId]!}
                   onFermer={() => {
@@ -499,11 +502,14 @@ function rendreLeFocus(compteId: string) {
 function ConfirmerReinitialisation({
   classeId,
   eleve,
+  remplaceUnProvisoireAffiche,
   onAnnuler,
   onReinitialise,
 }: {
   classeId: string
   eleve: InscriptionInfo
+  /** A provisional password of this student is still shown below: it is about to stop working. */
+  remplaceUnProvisoireAffiche: boolean
   onAnnuler: () => void
   onReinitialise: (info: ReinitialisationAcces) => void
 }) {
@@ -545,6 +551,12 @@ function ConfirmerReinitialisation({
         Vous obtiendrez son identifiant et un mot de passe provisoire, valable 7&nbsp;jours et
         utilisable une seule fois. À sa connexion, l’élève choisira son propre mot de passe.
       </p>
+      {remplaceUnProvisoireAffiche && (
+        <p className="font-prose text-sm font-semibold text-ink">
+          Le mot de passe provisoire affiché plus bas cessera de fonctionner&nbsp;: seul le nouveau
+          marchera.
+        </p>
+      )}
       {erreur && (
         <p role="alert" className="font-prose text-sm text-danger">
           {erreur}
@@ -573,6 +585,7 @@ function IdentifiantGroupe({ valeur }: { valeur: string }) {
   )
 }
 
+/** `quoi` completes the button's name for a screen reader: « Copier l’identifiant de Léa ». */
 function BoutonCopier({ valeur, quoi }: { valeur: string; quoi: string }) {
   const [etat, setEtat] = useState<'pret' | 'copie' | 'echec'>('pret')
 
@@ -587,15 +600,9 @@ function BoutonCopier({ valeur, quoi }: { valeur: string; quoi: string }) {
 
   return (
     <span className="inline-flex items-center gap-2">
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        aria-label={`Copier ${quoi}`}
-        onClick={() => void copier()}
-      >
+      <Button type="button" variant="secondary" size="sm" onClick={() => void copier()}>
         <Icon name="copy" size={16} />
-        Copier
+        Copier<span className="sr-only"> {quoi}</span>
       </Button>
       <span aria-live="polite" className="font-prose text-xs text-ink-muted">
         {etat === 'copie' ? 'Copié' : etat === 'echec' ? 'Copie impossible : notez-le.' : ''}
@@ -652,7 +659,10 @@ function AccesReinitialise({
           <IdentifiantGroupe valeur={info.identifiantConnexion} />
         </dd>
         <dd>
-          <BoutonCopier valeur={info.identifiantConnexion} quoi="l’identifiant" />
+          <BoutonCopier
+            valeur={info.identifiantConnexion}
+            quoi={`l’identifiant de ${nomAffiche}`}
+          />
         </dd>
         <dt className="font-prose text-sm text-ink-muted">Mot de passe provisoire</dt>
         <dd className="flex flex-wrap items-center gap-3">
@@ -664,13 +674,13 @@ function AccesReinitialise({
               {info.motDePasseProvisoire}
             </span>
           ) : (
-            <span
-              aria-label="Mot de passe provisoire masqué"
-              className="font-display text-xl font-black tracking-widest text-ink-muted"
-            >
-              {info.motDePasseProvisoire.replace(/[^-]/g, '•')}
+            <span className="font-display text-xl font-black tracking-widest text-ink-muted">
+              {/* The dots mean nothing read aloud: a screen reader hears « masqué » instead. */}
+              <span aria-hidden="true">{info.motDePasseProvisoire.replace(/[^-]/g, '•')}</span>
+              <span className="sr-only">masqué</span>
             </span>
           )}
+          {/* A toggle with a fixed name: aria-pressed alone says whether it is shown. */}
           <Button
             type="button"
             variant="ghost"
@@ -678,11 +688,15 @@ function AccesReinitialise({
             aria-pressed={visible}
             onClick={() => setVisible((v) => !v)}
           >
-            {visible ? 'Masquer' : 'Afficher'}
+            <Icon name={visible ? 'eye-slash' : 'eye'} size={16} />
+            Afficher<span className="sr-only"> le mot de passe provisoire de {nomAffiche}</span>
           </Button>
         </dd>
         <dd>
-          <BoutonCopier valeur={info.motDePasseProvisoire} quoi="le mot de passe provisoire" />
+          <BoutonCopier
+            valeur={info.motDePasseProvisoire}
+            quoi={`le mot de passe provisoire de ${nomAffiche}`}
+          />
         </dd>
         <dt className="font-prose text-sm text-ink-muted">Valable jusqu’au</dt>
         <dd className="font-prose text-sm text-ink sm:col-span-2">{dateEtHeure(info.expireLe)}</dd>

@@ -12,7 +12,7 @@ async function lireAcces(page: Page) {
   await expect(acces).toContainText(/n’affichez pas cet écran au tableau/i)
   // Masked by default.
   await expect(acces.getByTestId('mot-de-passe-provisoire')).toHaveCount(0)
-  await acces.getByRole('button', { name: 'Afficher' }).click()
+  await acces.getByRole('button', { name: 'Afficher le mot de passe provisoire de Inès' }).click()
   const identifiant = (await acces.getByTestId('identifiant-connexion').textContent())?.trim() ?? ''
   const provisoire =
     (await acces.getByTestId('mot-de-passe-provisoire').textContent())?.trim() ?? ''
@@ -52,7 +52,12 @@ test('le prof réinitialise l’accès, l’élève choisit son mot de passe et 
   // ── L'élève, sur un autre poste : aucune session ──
   await context.clearCookies()
   await page.goto('/connexion')
-  await page.getByLabel(/identifiant ou e-mail/i).fill(identifiant)
+  // Tapé groupé avec des espaces et une majuscule, comme le prof l'a lu : accepté (R1).
+  await page
+    .getByLabel(/identifiant ou e-mail/i)
+    .fill(
+      ` ${identifiant.slice(0, 4).toUpperCase()} ${identifiant.slice(4, 8)} ${identifiant.slice(8)}`
+    )
   // Tapé sans les tirets et en majuscules : accepté quand même (ADR 0036 §2).
   await page
     .getByLabel('Mot de passe', { exact: true })
@@ -132,4 +137,39 @@ test('l’élève peut se déconnecter pendant le changement, au prix du proviso
 
   await page.getByRole('button', { name: /se déconnecter/i }).click()
   await expect(page).toHaveURL(/\/connexion/, { timeout: 20_000 })
+})
+
+// R3 : le bouton Retour du navigateur depuis /changer-mot-de-passe ne sort pas du changement —
+// ni vers la connexion, ni vers une page que le backend refuserait. Desktop et mobile.
+test('le bouton Retour du navigateur ramène au choix du mot de passe', async ({
+  context,
+  page,
+  baseURL,
+}) => {
+  await context.clearCookies()
+  await context.addCookies([{ name: 'JSESSIONID', value: 'e2e-enseignant', url: baseURL ?? '' }])
+  const { identifiant, provisoire } = await reinitialiserInes(page)
+
+  await context.clearCookies()
+  await page.goto('/mot-de-passe-oublie')
+  await page.goto('/connexion')
+  await page.getByLabel(/identifiant ou e-mail/i).fill(identifiant)
+  await page.getByLabel('Mot de passe', { exact: true }).fill(provisoire)
+  await page.getByRole('button', { name: 'Se connecter', exact: true }).click()
+  await expect(page).toHaveURL('/changer-mot-de-passe', { timeout: 20_000 })
+
+  // Back once: towards /connexion — sent back to the change.
+  await page.goBack()
+  await expect(page).toHaveURL('/changer-mot-de-passe', { timeout: 20_000 })
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/choisis ton mot de passe/i)
+
+  // Back again: towards /mot-de-passe-oublie — sent back to the change too (D2).
+  await page.goBack()
+  await expect(page).toHaveURL('/changer-mot-de-passe', { timeout: 20_000 })
+
+  // The change still works from there.
+  await page.getByLabel('Ton nouveau mot de passe').fill('ma-phrase-a-moi')
+  await page.getByLabel('Retape-le pour vérifier').fill('ma-phrase-a-moi')
+  await page.getByRole('button', { name: /enregistrer mon mot de passe/i }).click()
+  await expect(page).toHaveURL('/', { timeout: 20_000 })
 })

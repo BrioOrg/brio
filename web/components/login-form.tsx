@@ -7,6 +7,7 @@ import { login, LoginError } from '@/lib/session'
 import { Button } from '@/components/ui/button'
 import { TextInput } from '@/components/ui/text-input'
 import { Icon } from '@/components/ui/icon'
+import { PasswordInput } from '@/components/ui/password-input'
 
 /**
  * Login form for the /connexion page. Client component: owns form state and
@@ -66,20 +67,21 @@ export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
         type="text"
         name="identifiant"
         autoComplete="username"
-        // An identifier is typed exactly: no capital, correction or underline from a phone keyboard.
+        // No capital, correction or underline from a phone keyboard (the server also ignores case
+        // and spaces in an identifier, #364).
         autoCapitalize="off"
         autoCorrect="off"
         spellCheck={false}
-        placeholder="lea.martin"
+        // Shaped like the identifiers brio generates: 10 lower-case letters and digits.
+        placeholder="h3tq8wb2ne"
         value={identifiant}
         onChange={(e) => setIdentifiant(e.target.value)}
         required
         autoFocus
       />
 
-      <TextInput
+      <PasswordInput
         label="Mot de passe"
-        type="password"
         name="mot_de_passe"
         autoComplete="current-password"
         placeholder="••••••••"
