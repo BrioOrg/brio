@@ -670,7 +670,11 @@
         "numberLines": { "type": "array", "items": { "$ref": "#/$defs/figureNumberLine" } },
         "polylines":   { "type": "array", "items": { "$ref": "#/$defs/figurePolyline" } },
         "axes":        { "$ref": "#/$defs/figureAxes" },
-        "solids":      { "type": "array", "items": { "$ref": "#/$defs/figureSolid" } }
+        "solids":      { "type": "array", "items": { "$ref": "#/$defs/figureSolid" } },
+        "transformations": { "type": "array", "items": { "$ref": "#/$defs/figureTransformation" } },
+        "vectors":     { "type": "array", "items": { "$ref": "#/$defs/figureVector" } },
+        "lines":       { "type": "array", "items": { "$ref": "#/$defs/figureLine" } },
+        "rays":        { "type": "array", "items": { "$ref": "#/$defs/figureRay" } }
       }
     },
 
@@ -934,6 +938,112 @@
         "step":       { "type": "number", "exclusiveMinimum": 0 },
         "labelEvery": { "type": "number", "exclusiveMinimum": 0 },
         "title":      { "description": "What the axis measures, e.g. \"Heure (h)\".", "type": "string", "minLength": 1 }
+      }
+    },
+    "figureTransformation": {
+      "description": "A plane transformation applied to the named source points (ADR 0041). The renderer computes each image, names it with the suffix (default a prime, U+2032: A → A′) and draws the image figure: every polygon, segment, polyline and circle whose points are all in the source. Later transformations may take earlier images as their source. show.construction adds the textbook construction marks, for every source point (true) or for those listed. CI checks the points exist, the transformation is not the identity and the image names are free.",
+      "type": "object",
+      "required": ["kind", "source"],
+      "properties": {
+        "kind":   { "enum": ["symetrie-axiale", "symetrie-centrale", "translation", "rotation", "homothetie"] },
+        "source": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "suffix": { "type": "string", "minLength": 1 },
+        "show": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "construction": {
+              "oneOf": [
+                { "type": "boolean" },
+                { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+              ]
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "kind": { "const": "symetrie-axiale" },
+            "axis": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "minLength": 1 } },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["axis"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "symetrie-centrale" },
+            "center": { "type": "string", "minLength": 1 },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["center"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "translation" },
+            "from": { "type": "string", "minLength": 1 },
+            "to":   { "type": "string", "minLength": 1 },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["from", "to"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "rotation" },
+            "center": { "type": "string", "minLength": 1 },
+            "angle":  { "description": "Degrees, counter-clockwise when positive; strictly between −360 and 360, not 0.", "type": "number", "exclusiveMinimum": -360, "exclusiveMaximum": 360 },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["center", "angle"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "homothetie" },
+            "center": { "type": "string", "minLength": 1 },
+            "ratio":  { "description": "Not 0 nor 1; negative puts the image on the other side of the centre.", "type": "number" },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["center", "ratio"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "figureVector": {
+      "description": "An arrow from one named point to another (ADR 0041). label is TeX rendered by KaTeX beside the arrow, e.g. \\vec{u}.",
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from":  { "type": "string", "minLength": 1 },
+        "to":    { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "style": { "$ref": "#/$defs/figureLineStyle" }
+      }
+    },
+    "figureLine": {
+      "description": "A line (droite) through two named points, drawn across the whole frame (ADR 0041). label names it near one end, e.g. \"(d)\".",
+      "type": "object",
+      "required": ["through"],
+      "additionalProperties": false,
+      "properties": {
+        "through": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "minLength": 1 } },
+        "label":   { "type": "string", "minLength": 1 },
+        "style":   { "$ref": "#/$defs/figureLineStyle" }
+      }
+    },
+    "figureRay": {
+      "description": "A ray (demi-droite) from a named point through another, to the edge of the frame (ADR 0041).",
+      "type": "object",
+      "required": ["from", "through"],
+      "additionalProperties": false,
+      "properties": {
+        "from":    { "type": "string", "minLength": 1 },
+        "through": { "type": "string", "minLength": 1 },
+        "style":   { "$ref": "#/$defs/figureLineStyle" }
       }
     },
     "figureNumberLine": {

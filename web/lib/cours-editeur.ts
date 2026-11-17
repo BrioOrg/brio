@@ -25,6 +25,7 @@ import {
 } from '@brio/content'
 
 import type { ChapitreResponse } from '@/components/chapter-view'
+import { problemesGeometrieFigure } from '@/lib/figure-geometrie'
 
 // Les types de blocs que l'afficheur élève sait rendre AUJOURD'HUI (chapter-view.tsx). On s'y
 // limite volontairement : inutile de laisser écrire des blocs qui n'apparaîtraient pas.
@@ -735,6 +736,7 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       break
     case 'figure':
       if (!texteRempli(b.alt)) p.push({ code: 'MISSING_ALT', champ: 'alt' })
+      p.push(...problemesGeometrieFigure(b.spec))
       break
     case 'chart':
       p.push(...problemesGraphique(b))

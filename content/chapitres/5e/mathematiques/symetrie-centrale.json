@@ -197,7 +197,7 @@
         {
           "id": "fig-triangle-symetrique",
           "type": "figure",
-          "alt": "Le triangle ABC et son symétrique A'B'C' par le demi-tour de centre O. Le triangle A'B'C' est le triangle ABC retourné tête en bas.",
+          "alt": "Le triangle ABC et son symétrique A′B′C′ par le demi-tour de centre O. O est le milieu de [AA′], de [BB′] et de [CC′]. Le triangle A′B′C′ est le triangle ABC retourné tête en bas.",
           "caption": "Un demi-tour fait « tourner » la figure : elle se retrouve tête en bas.",
           "spec": {
             "points": [
@@ -232,30 +232,6 @@
                 "label": {
                   "placement": "below"
                 }
-              },
-              {
-                "name": "A'",
-                "x": 7,
-                "y": 3,
-                "label": {
-                  "placement": "above-right"
-                }
-              },
-              {
-                "name": "B'",
-                "x": 5,
-                "y": 3,
-                "label": {
-                  "placement": "above-left"
-                }
-              },
-              {
-                "name": "C'",
-                "x": 6,
-                "y": 1,
-                "label": {
-                  "placement": "below"
-                }
               }
             ],
             "polygons": [
@@ -265,13 +241,20 @@
                   "B",
                   "C"
                 ]
-              },
+              }
+            ],
+            "transformations": [
               {
-                "vertices": [
-                  "A'",
-                  "B'",
-                  "C'"
-                ]
+                "kind": "symetrie-centrale",
+                "center": "O",
+                "source": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "show": {
+                  "construction": true
+                }
               }
             ]
           }

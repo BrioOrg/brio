@@ -43,6 +43,7 @@ export type {
   SolidFace,
   CubeShade,
   DrawingCubeFace,
+  DrawingTransformation,
 } from './figure'
 export {
   buildDrawingModel,
@@ -52,6 +53,34 @@ export {
   euclideanLength,
   isCollinear,
 } from './figure'
+
+export type {
+  TransformationKind,
+  FigureTransformation,
+  FigureVector,
+  FigureLine,
+  FigureRay,
+  TransformationMotion,
+  Affine,
+  SvgFrame,
+  SvgBox,
+  DrawingVector,
+  FigureGeometryIssue,
+  FigureGeometryIssueCode,
+} from './transformations'
+export {
+  PRIME,
+  affineAt,
+  applyAffine,
+  checkFigureGeometry,
+  expandTransformations,
+  imageName,
+  imageOf,
+  motionOf,
+  placementToward,
+  svgAffineAt,
+  svgMatrix,
+} from './transformations'
 
 export type {
   ChartKind,

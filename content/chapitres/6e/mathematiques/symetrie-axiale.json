@@ -262,30 +262,28 @@
         {
           "id": "fig-triangle-symetrique",
           "type": "figure",
-          "alt": "Triangle ABC à gauche d'une droite verticale (d), et son symétrique A'B'C' à droite.",
-          "caption": "A'B'C' est le symétrique de ABC par rapport à (d).",
+          "alt": "Triangle ABC à gauche d'une droite verticale (d), et son symétrique A′B′C′ à droite. Pour chaque sommet, le segment qui le joint à son symétrique est perpendiculaire à (d) et coupé en deux longueurs égales par (d).",
+          "caption": "A′B′C′ est le symétrique de ABC par rapport à (d).",
           "spec": {
             "points": [
               {
-                "name": "(d)",
+                "name": "P",
                 "x": 0,
-                "y": 5,
-                "label": {
-                  "placement": "above"
-                },
-                "dot": false
+                "y": -2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "dbas",
+                "name": "Q",
                 "x": 0,
-                "y": -1,
+                "y": 5,
                 "dot": false,
                 "showName": false
               },
               {
                 "name": "A",
                 "x": -5,
-                "y": 0,
+                "y": -1,
                 "label": {
                   "placement": "below-left"
                 }
@@ -305,36 +303,6 @@
                 "label": {
                   "placement": "above"
                 }
-              },
-              {
-                "name": "A'",
-                "x": 5,
-                "y": 0,
-                "label": {
-                  "placement": "below-right"
-                }
-              },
-              {
-                "name": "B'",
-                "x": 2,
-                "y": 1,
-                "label": {
-                  "placement": "below"
-                }
-              },
-              {
-                "name": "C'",
-                "x": 3,
-                "y": 4,
-                "label": {
-                  "placement": "above"
-                }
-              }
-            ],
-            "segments": [
-              {
-                "from": "dbas",
-                "to": "(d)"
               }
             ],
             "polygons": [
@@ -344,13 +312,32 @@
                   "B",
                   "C"
                 ]
-              },
+              }
+            ],
+            "lines": [
               {
-                "vertices": [
-                  "A'",
-                  "B'",
-                  "C'"
-                ]
+                "through": [
+                  "P",
+                  "Q"
+                ],
+                "label": "(d)"
+              }
+            ],
+            "transformations": [
+              {
+                "kind": "symetrie-axiale",
+                "axis": [
+                  "P",
+                  "Q"
+                ],
+                "source": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "show": {
+                  "construction": true
+                }
               }
             ]
           }

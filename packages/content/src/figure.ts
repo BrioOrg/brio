@@ -1,4 +1,17 @@
 import type { Tone } from './tone'
+import {
+  drawLines,
+  drawVectors,
+  expandTransformations,
+  frameOf,
+  type DrawingVector,
+  type FigureLine,
+  type FigureRay,
+  type FigureTransformation,
+  type FigureVector,
+  type SvgFrame,
+  type TransformationMotion,
+} from './transformations'
 
 // --- Spec types (mirror the JSON schema) ---
 
@@ -171,6 +184,11 @@ export type FigureSpec = {
   polylines?: FigurePolyline[]
   axes?: FigureAxes
   solids?: FigureSolid[]
+  // ADR 0041
+  transformations?: FigureTransformation[]
+  vectors?: FigureVector[]
+  lines?: FigureLine[]
+  rays?: FigureRay[]
 }
 
 // --- Drawing model (SVG-ready, all coordinates in SVG pixels) ---
@@ -246,6 +264,17 @@ export type DrawingModel = {
   polylines: DrawingPolyline[]
   cubeFaces: DrawingCubeFace[]
   axes: DrawingAxes | null
+  vectors: DrawingVector[]
+  transformations: DrawingTransformation[]
+}
+
+/** One transformation's layers (ADR 0041), drawn over the figure and revealed as a step. */
+export type DrawingTransformation = {
+  image: DrawingModel
+  construction: DrawingModel
+  ghost: DrawingModel
+  motion: TransformationMotion
+  frame: SvgFrame
 }
 
 // SVG canvas constants (pixels)
@@ -264,6 +293,8 @@ const ARROW_LEN_PX = 8
 const ARROW_HALF_WIDTH_PX = 4
 const AXIS_TICK_HALF_LEN_PX = 4
 const AXIS_LABEL_GAP_PX = 6
+// Lines and rays stop this short of the canvas edge (ADR 0041).
+const LINE_INSET = 4
 
 type Pt2 = { x: number; y: number }
 
@@ -417,7 +448,18 @@ function toned(tone: Tone | undefined): Toned {
   return tone === undefined ? {} : { tone }
 }
 
-export function buildDrawingModel(spec: FigureSpec): DrawingModel {
+/**
+ * `frame` draws a layer of another figure (ADR 0041) in that figure's viewport and scales.
+ */
+export function buildDrawingModel(
+  authored: FigureSpec,
+  frame?: { viewport: CoordinateSpace; repere: boolean }
+): DrawingModel {
+  // Image points join the figure, hidden: other elements may name them, the frame fits them.
+  const extension = expandTransformations(authored)
+  const spec: FigureSpec = extension.points.length
+    ? { ...authored, points: [...(authored.points ?? []), ...extension.points] }
+    : authored
   const pointMap = new Map<string, Pt2>(
     (spec.points ?? []).map((p) => [p.name, { x: p.x, y: p.y }])
   )
@@ -426,8 +468,9 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     assertDrawableAxis(spec.axes.x, 'des abscisses')
     assertDrawableAxis(spec.axes.y, 'des ordonnées')
   }
-  const viewport = computeViewport(spec, pointMap)
-  const toSvg = spec.axes ? makeAxesTransform(viewport) : makeTransform(viewport)
+  const viewport = frame?.viewport ?? computeViewport(spec, pointMap)
+  const repere = frame?.repere ?? spec.axes !== undefined
+  const toSvg = repere ? makeAxesTransform(viewport) : makeTransform(viewport)
 
   // Segments
   const segments: DrawingStroke[] = (spec.segments ?? []).map((seg) => {
@@ -661,6 +704,30 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
   )
   const axes = spec.axes ? buildAxes(spec.axes, toSvg, originNamed) : null
 
+  // Lines and rays (ADR 0041) join the segments, cut to the plot area of a repère or the canvas.
+  const corner1 = toSvg(viewport.xMin, viewport.yMax)
+  const corner2 = toSvg(viewport.xMax, viewport.yMin)
+  const lines = drawLines(
+    spec,
+    pointMap,
+    toSvg,
+    repere
+      ? { x1: corner1.x, y1: corner1.y, x2: corner2.x, y2: corner2.y }
+      : { x1: LINE_INSET, y1: LINE_INSET, x2: CANVAS_SIZE - LINE_INSET, y2: CANVAS_SIZE - LINE_INSET }
+  )
+  segments.push(...lines.strokes)
+  pointLabels.push(...lines.labels)
+  const centre = toSvg((viewport.xMin + viewport.xMax) / 2, (viewport.yMin + viewport.yMax) / 2)
+  const vectors = drawVectors(spec.vectors ?? [], pointMap, toSvg, centre)
+  const layerFrame = { viewport, repere }
+  const transformations = extension.layers.map((layer) => ({
+    image: buildDrawingModel(layer.image, layerFrame),
+    construction: buildDrawingModel(layer.construction, layerFrame),
+    ghost: buildDrawingModel(layer.ghost, layerFrame),
+    motion: layer.motion,
+    frame: frameOf(toSvg),
+  }))
+
   return {
     viewBox: `0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`,
     segments,
@@ -677,6 +744,8 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     polylines,
     cubeFaces,
     axes,
+    vectors,
+    transformations,
   }
 }
 

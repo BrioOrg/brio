@@ -79,6 +79,7 @@ export function BlockRenderer({
             spec={block.spec as FigureSpec}
             alt={block.alt as string}
             caption={block.caption as string | undefined}
+            blockId={block.id}
           />
         </div>
       )

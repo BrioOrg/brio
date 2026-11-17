@@ -29,6 +29,12 @@
  *      the right number (front face then back face), unique, not blank and not shared with a
  *      point; no solid in a repère or next to a number line. An assemblage (amendment #226):
  *      a rectangular plan coté of whole heights ≥ 0, with at least one cube.
+ *    - transformations, vectors, lines and rays (ADR 0041; rules shared with the editor in
+ *      packages/content/src/transformations.ts): named points exist, two points defining a
+ *      direction are distinct, no identity (null vector, angle 0, ratio 1) nor ratio 0, rotation
+ *      angle within ]−360°, 360°[, image names (A′) free, a symmetry axis drawn as a line or
+ *      segment, no construction marks in a repère with unequal scales. Image points count as
+ *      defined points for the other primitives.
  *
  * 3. Chart blocks (ADR 0030): exactly one series; 2 to 12 categories (6 for a pie), labels not
  *    blank and not duplicated; finite values, none negative in a bar, all positive in a pie;
@@ -81,6 +87,8 @@ let checkChart
 let checkTones
 let checkCalcul
 let checkTree
+let checkFigureGeometry
+let expandTransformations
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
@@ -89,6 +97,9 @@ try {
   ;({ checkTones } = await import('../packages/content/src/tone.ts'))
   ;({ checkCalcul } = await import('../packages/content/src/calcul.ts'))
   ;({ checkTree } = await import('../packages/content/src/tree-rules.ts'))
+  ;({ checkFigureGeometry, expandTransformations } = await import(
+    '../packages/content/src/transformations.ts'
+  ))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -243,6 +254,19 @@ function checkFigureBlock(block, file, blockPath) {
     pointMap.set(p.name, { x: p.x, y: p.y })
   }
 
+  // ADR 0041: images (A′) are points other primitives may name. A faulty transformation is
+  // reported by checkFigureGeometry below; its images are then simply not known.
+  for (const issue of checkFigureGeometry(spec)) {
+    fail(file, `${blockPath}.spec.${issue.path}`, figureGeometryMessage(issue))
+  }
+  try {
+    for (const p of expandTransformations(spec).points) {
+      if (!pointMap.has(p.name)) pointMap.set(p.name, { x: p.x, y: p.y })
+    }
+  } catch {
+    // Already reported.
+  }
+
   function requirePt(name, path) {
     if (!pointMap.has(name)) {
       fail(file, path, `point "${name}" is not defined in spec.points`)
@@ -387,6 +411,37 @@ function checkFigureBlock(block, file, blockPath) {
         }
       }
     }
+  }
+}
+
+function figureGeometryMessage(issue) {
+  switch (issue.code) {
+    case 'UNKNOWN_POINT':
+      return `point "${issue.name}" is not defined in spec.points (nor an image)`
+    case 'SAME_POINTS':
+      return `"${issue.names[0]}" and "${issue.names[1]}" are the same point: they define no direction`
+    case 'EMPTY_SOURCE':
+      return 'a transformation needs at least one source point'
+    case 'DUPLICATE_SOURCE':
+      return `source point "${issue.name}" is listed twice`
+    case 'IDENTITY':
+      return `this ${issue.kind} leaves every point in place: there is no image to draw`
+    case 'ZERO_RATIO':
+      return 'a homothety of ratio 0 sends every point to its centre'
+    case 'ANGLE_RANGE':
+      return `rotation angle ${issue.angle}° must lie strictly between −360° and 360°`
+    case 'IMAGE_NAME_TAKEN':
+      return `image "${issue.name}" would take the name of an existing point`
+    case 'CONSTRUCTION_NOT_IN_SOURCE':
+      return `construction point "${issue.name}" is not in the source`
+    case 'AXIS_NOT_DRAWN':
+      return `the axis (${issue.names.join('')}) is not drawn: add a line or a segment through these points`
+    case 'UNEQUAL_SCALES':
+      return 'construction marks need equal scales on both axes (right angles, equal lengths)'
+    case 'BLANK_LABEL':
+      return 'blank label: remove it or write one'
+    default:
+      return issue.code
   }
 }
 

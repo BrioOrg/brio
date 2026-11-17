@@ -6,6 +6,8 @@ import {
 } from '@brio/content'
 
 import { TONE_FILL, TONE_STROKE, toneClass, tonedShapeClass } from '@/lib/math-tones'
+import { TransformationLayers } from '@/components/figure/transformation-layers'
+import { VectorArrows } from '@/components/figure/vector-arrows'
 
 // Hidden edges and construction lines, in viewBox units like the stroke widths (ADR 0013, #215).
 const DASH = '5 4'
@@ -21,10 +23,13 @@ export function FigureRenderer({
   spec,
   alt,
   caption,
+  blockId,
 }: {
   spec: FigureSpec
   alt: string
   caption?: string
+  /** The block's id: the interactive mode reveals the images of its transformations as steps. */
+  blockId?: string
 }) {
   const model = buildDrawingModel(spec)
 
@@ -181,6 +186,9 @@ export function FigureRenderer({
             ))
           )}
 
+          {/* Vectors (ADR 0041) */}
+          <VectorArrows vectors={model.vectors} />
+
           {/* Point dots */}
           {model.dots.map((dot, i) => (
             <circle
@@ -263,6 +271,11 @@ export function FigureRenderer({
               ))}
             </g>
           ))}
+
+          {/* Images of the transformations, over everything else (ADR 0041) */}
+          {model.transformations.length > 0 && (
+            <TransformationLayers layers={model.transformations} blockId={blockId} />
+          )}
         </svg>
       </div>
 

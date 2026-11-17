@@ -6,6 +6,7 @@ import { EditeurMessageDemo } from './editeur-message-demo'
 import { CalculDemo } from './calcul-demo'
 import { MotionDemo } from './motion-demo'
 import { SoundDemo } from './sound-demo'
+import { TransformationsDemo } from './transformations-demo'
 import { BlocsCommunaute } from '@/components/blocs/blocs-communaute'
 import { CalculRenderer } from '@/components/calcul-renderer'
 import { Button } from '@/components/ui/button'
@@ -427,6 +428,14 @@ export default function DesignPage() {
               alt="Arbre vertical des événements A, non A, B et non B."
             />
           </div>
+        </Section>
+
+        <Section title="Transformations, vecteurs et droites" id="transformations">
+          <Label>
+            Source en ink, image en tone-1, construction en ink-muted · images et codages
+            calculés (ADR 0041)
+          </Label>
+          <TransformationsDemo />
         </Section>
 
         {/* ── Typography ────────────────────────────────────────────────────── */}
