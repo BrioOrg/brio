@@ -49,7 +49,8 @@ public class PublicationValidator {
                 } else if ("image".equals(type)
                         || "figure".equals(type)
                         || "chart".equals(type)
-                        || "tree".equals(type)) {
+                        || "tree".equals(type)
+                        || "solid".equals(type)) {
                     assertAltPresent(sectionId, block);
                 } else if ("exercise".equals(type)
                         && "fill-blank".equals(block.path("exerciseType").asText())) {

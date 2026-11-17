@@ -649,6 +649,60 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptEachKindOfSolid() {
+        List<String> blocks = List.of(
+                """
+                { "id": "s1", "type": "solid", "kind": "pave", "width": 4, "height": 3, "depth": 2,
+                  "names": ["A", "B", "C", "D", "E", "F", "G", "H"],
+                  "section": { "parallelTo": "front", "at": 1 }, "alt": "Un pavé" }
+                """,
+                """
+                { "id": "s2", "type": "solid", "kind": "pyramide", "height": 4, "apex": { "x": 0, "y": 0 },
+                  "base": [ { "x": 0, "y": 0 }, { "x": 4, "y": 0 }, { "x": 4, "y": 4 } ], "alt": "Une pyramide" }
+                """,
+                """
+                { "id": "s3", "type": "solid", "kind": "cone", "radius": 2, "height": 4,
+                  "names": ["O", "S"], "section": { "at": 1.5 }, "alt": "Un cône" }
+                """,
+                """
+                { "id": "s4", "type": "solid", "kind": "boule", "radius": 3, "equator": true,
+                  "parallels": [45], "meridians": [0, 60],
+                  "points": [ { "name": "M", "latitude": 45, "longitude": 60 } ],
+                  "section": { "at": 1 }, "alt": "Une sphère" }
+                """);
+        for (String block : blocks) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectASolidWithoutItsDimensions() {
+        String block = """
+                { "id": "s1", "type": "solid", "kind": "cylindre", "radius": 2, "alt": "Un cylindre" }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectSphereFieldsOnAnotherSolid() {
+        String block = """
+                { "id": "s1", "type": "solid", "kind": "cube", "edge": 2, "equator": true, "alt": "Un cube" }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectASolidWithoutAlt() {
+        String block = """
+                { "id": "s1", "type": "solid", "kind": "cube", "edge": 2 }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldLocateAMissingExerciseFieldByItsName() {
         String block = """
                 { "id": "ex1", "type": "exercise", "exerciseType": "numeric", "prompt": "Combien ?" }

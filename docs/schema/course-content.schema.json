@@ -118,6 +118,7 @@
         { "$ref": "#/$defs/figureBlock" },
         { "$ref": "#/$defs/chartBlock" },
         { "$ref": "#/$defs/treeBlock" },
+        { "$ref": "#/$defs/solidBlock" },
         { "$ref": "#/$defs/calloutBlock" },
         { "$ref": "#/$defs/codeBlock" },
         { "$ref": "#/$defs/exerciseBlock" },
@@ -651,6 +652,101 @@
           }
         }
       }
+    },
+
+    "solidBlock": {
+      "description": "A solid the student can turn: pavé, cube, prisme, cylindre, pyramide, cône or boule, drawn with its hidden edges dashed, an optional plane section and, for a ball, lines and points of latitude and longitude. Dimensions in the chapter's units. See ADR 0039.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "kind", "alt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "solid" },
+        "kind": { "enum": ["pave", "cube", "prisme", "cylindre", "pyramide", "cone", "boule"] },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 },
+        "depth": { "type": "number", "exclusiveMinimum": 0 },
+        "edge": { "type": "number", "exclusiveMinimum": 0 },
+        "radius": { "type": "number", "exclusiveMinimum": 0 },
+        "base": {
+          "description": "prisme: its front face in true size (x to the right, y up). pyramide: its base seen from above (x to the right, y away from the viewer). Convex, 3 to 12 vertices.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/solidPlanePoint" }
+        },
+        "apex": {
+          "description": "pyramide only: the foot of the apex in the plane of the base (seen from above). Defaults to the centre of the base.",
+          "$ref": "#/$defs/solidPlanePoint"
+        },
+        "names": {
+          "description": "pavé, cube, prisme: vertices, front face then back face in the same order. pyramide: base vertices then apex. cylindre: centres of the lower and upper bases. cône: base centre then apex. boule: centre. Naming the centres of a cylinder or cone draws its axis.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "section": {
+          "description": "A plane section, computed by the renderer. parallelTo: base (default; a prism's base is its front face), front or side (pavé, cube), axis (cylindre: a plane at distance `at` from the axis). at: distance from that face or axis, or, for a ball (no parallelTo), from the centre to a plane parallel to the equator.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["at"],
+          "properties": {
+            "parallelTo": { "enum": ["base", "front", "side", "axis"] },
+            "at": { "type": "number" }
+          }
+        },
+        "equator": { "description": "boule only: draws the equator.", "type": "boolean" },
+        "parallels": {
+          "description": "boule only: latitudes in degrees, north positive, strictly between −90 and 90.",
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "number" }
+        },
+        "meridians": {
+          "description": "boule only: longitudes in degrees, east positive, each drawn from pole to pole. Longitude 0 faces the viewer at the starting view.",
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "number" }
+        },
+        "points": {
+          "description": "boule only: named points on the sphere by latitude and longitude, in degrees.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "latitude", "longitude"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+              "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+            }
+          }
+        },
+        "alt": {
+          "description": "Accessibility text describing the solid at its starting view. Required, as for a figure.",
+          "$ref": "#/$defs/plainText"
+        },
+        "caption": { "$ref": "#/$defs/richText" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "pave" } } }, "then": { "required": ["width", "height", "depth"] } },
+        { "if": { "properties": { "kind": { "const": "cube" } } }, "then": { "required": ["edge"] } },
+        { "if": { "properties": { "kind": { "const": "prisme" } } }, "then": { "required": ["base", "depth"] } },
+        { "if": { "properties": { "kind": { "const": "cylindre" } } }, "then": { "required": ["radius", "height"] } },
+        { "if": { "properties": { "kind": { "const": "pyramide" } } }, "then": { "required": ["base", "height"] }, "else": { "properties": { "apex": false } } },
+        { "if": { "properties": { "kind": { "const": "cone" } } }, "then": { "required": ["radius", "height"] } },
+        {
+          "if": { "properties": { "kind": { "const": "boule" } } },
+          "then": { "required": ["radius"] },
+          "else": { "properties": { "equator": false, "parallels": false, "meridians": false, "points": false } }
+        }
+      ]
+    },
+
+    "solidPlanePoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
     },
 
     "figureSpec": {
@@ -1331,6 +1427,7 @@
               "figure",
               "chart",
               "tree",
+              "solid",
               "callout",
               "code",
               "exercise",
