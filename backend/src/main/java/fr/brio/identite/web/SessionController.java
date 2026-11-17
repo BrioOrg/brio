@@ -72,8 +72,12 @@ class SessionController {
     void changerMotDePasse(@AuthenticationPrincipal UserDetails principal,
                            @Valid @RequestBody ChangerMotDePasseRequest req,
                            HttpSession session) {
-        // This session stays signed in; every other one of the account is closed.
+        // This session stays signed in; every other one of the account is closed. Only the
+        // session the provisional password opened carries the reset it consumed.
+        java.time.Instant reinitialisationDeLaSession =
+                session.getAttribute(ReinitialisationAccesService.ATTRIBUT_SESSION_REINITIALISATION)
+                        instanceof java.time.Instant i ? i : null;
         reinitialisations.changerMotDePasse(UUID.fromString(principal.getUsername()),
-                req.nouveauMotDePasse(), session.getId());
+                req.nouveauMotDePasse(), session.getId(), reinitialisationDeLaSession);
     }
 }

@@ -47,6 +47,14 @@ public class ReinitialisationAccesService {
     static final String MESSAGE_TROP_LONG = "Ton mot de passe est trop long. Raccourcis-le : "
             + "les lettres accentuées et les emojis comptent pour plusieurs caractères.";
 
+    /**
+     * HTTP-session attribute set on the ONE session the provisional password opened: the
+     * {@code acces_reinitialise_le} it consumed (an {@link java.time.Instant}). Only that session
+     * may choose the new password (ADR 0036 §3): any other session of the account — one that
+     * outlived the reset by racing it — carries none and is refused.
+     */
+    public static final String ATTRIBUT_SESSION_REINITIALISATION = "brio.identite.reinitialisationConsommee";
+
     private final ClasseRepository classes;
     private final InscriptionRepository inscriptions;
     private final CompteRepository comptes;
@@ -171,15 +179,19 @@ public class ReinitialisationAccesService {
     /**
      * The connected student chooses their own password after a reset (ADR 0036 §5). Accepted only
      * while a change is pending and once the provisional password has opened a session: without
-     * the current password, it must not become a free change a stolen session could use. Every
-     * other session of the account is then closed: only this one stays signed in.
+     * the current password, it must not become a free change a stolen session could use. And only
+     * by the session that provisional password opened ({@code reinitialisationDeLaSession}, see
+     * {@link #ATTRIBUT_SESSION_REINITIALISATION}). Every other session of the account is then
+     * closed: only this one stays signed in.
      *
      * @throws ResponseStatusException 400 longer than {@link #MOT_DE_PASSE_MAX_OCTETS} bytes of UTF-8
-     * @throws ResponseStatusException 409 no change pending, or the provisional password never served
+     * @throws ResponseStatusException 409 no change pending, the provisional password never served,
+     *                                 or this session is not the one it opened
      * @throws ResponseStatusException 422 the new password is the provisional one
      */
     @Transactional
-    public void changerMotDePasse(UUID compteId, String nouveauMotDePasse, String sessionCourante) {
+    public void changerMotDePasse(UUID compteId, String nouveauMotDePasse, String sessionCourante,
+                                  java.time.Instant reinitialisationDeLaSession) {
         if (nouveauMotDePasse.getBytes(StandardCharsets.UTF_8).length > MOT_DE_PASSE_MAX_OCTETS) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, MESSAGE_TROP_LONG);
         }
@@ -188,6 +200,14 @@ public class ReinitialisationAccesService {
         if (!compte.isDoitChangerMotDePasse() || compte.getMotDePasseProvisoireUtiliseLe() == null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Aucun changement de mot de passe n'est demandé pour ce compte.");
+        }
+        // Only the session the pending provisional password opened: a session that outlived the
+        // reset (a login with the old password racing it) carries none, or an older one.
+        if (reinitialisationDeLaSession == null
+                || !reinitialisationDeLaSession.equals(compte.getAccesReinitialiseLe())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Cette session n'a pas été ouverte avec le mot de passe provisoire : "
+                            + "reconnecte-toi avec celui que ton prof t'a donné.");
         }
         // Compared like a login would (dashes and case ignored): "K7M4P9XA3RTW" is the provisional too.
         if (passwordEncoder.matches(nouveauMotDePasse, compte.getMotDePasseHash())) {

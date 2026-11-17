@@ -2,6 +2,7 @@ package fr.brio.identite.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.identite.ProtectionConnexionService;
+import fr.brio.identite.ReinitialisationAccesService;
 import fr.brio.identite.api.CompteInfo;
 import fr.brio.identite.domain.Compte;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,7 +55,11 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
         // win, and only the provisional password this login was checked against can be consumed.
         boolean provisoireConsomme = reinitialiseLe != null
                 && comptes.consommerMotDePasseProvisoire(compteId, reinitialiseLe, Instant.now()) == 1;
-        Compte compte = comptes.findById(compteId)
+        // LOCKED, not a plain read: a reset in progress holds this row. A plain read would see the
+        // account as it was before the reset, and this transaction would then write that old state
+        // back over it (old password, no change pending) — undoing the reset. Locked, the login
+        // waits for the reset to commit, sees the change pending, and is refused below (ADR 0036 §3).
+        Compte compte = comptes.verrouiller(compteId)
                 .orElseThrow(() -> new IllegalStateException("Compte introuvable après authentification"));
         if (compte.isDoitChangerMotDePasse() && !provisoireConsomme) {
             // While a change is pending only the provisional password opens a session. Either it
@@ -64,6 +69,13 @@ class LoginAuditHandler implements AuthenticationSuccessHandler {
             // Undo this session and answer exactly like a wrong password, with the same count.
             refuser(req, res);
             return;
+        }
+
+        if (provisoireConsomme) {
+            // The one session the provisional password opened: the only one allowed to choose the
+            // new password (ReinitialisationAccesService#changerMotDePasse).
+            req.getSession().setAttribute(
+                    ReinitialisationAccesService.ATTRIBUT_SESSION_REINITIALISATION, reinitialiseLe);
         }
 
         compte.marquerDernierAcces();

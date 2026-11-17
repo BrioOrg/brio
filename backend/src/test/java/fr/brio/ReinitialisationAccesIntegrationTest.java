@@ -413,6 +413,25 @@ class ReinitialisationAccesIntegrationTest {
         assertThat(comptes.findById(eleve.id()).orElseThrow().isDoitChangerMotDePasse()).isTrue();
     }
 
+    @Test
+    void shouldOnlyLetTheSessionTheProvisionalPasswordOpenedChooseTheNewOne() throws Exception {
+        String provisoire = reinitialiser().get("motDePasseProvisoire").asText();
+        Cookie ouverteParLeProvisoire = session(connexion(eleve.identifiantConnexion(), provisoire));
+
+        // The provisional password has served. Another session of the same account — one that
+        // outlived the reset by racing it — carries no consumed reset: it may not choose.
+        mockMvc.perform(post("/api/moi/mot-de-passe")
+                        .with(user(eleve.id().toString()).roles("ELEVE")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(java.util.Map.of("nouveauMotDePasse", NOUVEAU))))
+                .andExpect(status().isConflict());
+        assertThat(comptes.findById(eleve.id()).orElseThrow().isDoitChangerMotDePasse()).isTrue();
+
+        // The session the provisional password opened still can.
+        changer(ouverteParLeProvisoire, NOUVEAU).andExpect(status().isNoContent());
+        assertThat(comptes.findById(eleve.id()).orElseThrow().isDoitChangerMotDePasse()).isFalse();
+    }
+
     private static <S extends org.springframework.session.Session> String ouvrirUneAutreSession(
             FindByIndexNameSessionRepository<S> store, String principal) {
         S autre = store.createSession();

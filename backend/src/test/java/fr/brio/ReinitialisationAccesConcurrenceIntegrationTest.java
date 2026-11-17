@@ -14,11 +14,18 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,10 +55,14 @@ class ReinitialisationAccesConcurrenceIntegrationTest {
     @Autowired ReinitialisationAccesService reinitialisations;
     @Autowired CompteRepository comptes;
     @Autowired TransactionTemplate transactions;
+    @Autowired UserDetailsService userDetails;
+    @Autowired AuthenticationSuccessHandler loginSuccess;
 
     private record Eleve(EleveInscritInfo info, String provisoire) {}
 
-    private Eleve eleveReinitialise() {
+    private record Inscrit(EleveInscritInfo eleve, UUID classe, UUID prof) {}
+
+    private Inscrit eleveInscrit() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
         UUID etab = classeService.creerEtablissement(
                 "Collège Course " + suffix, null, "college", LocalDate.now().minusYears(1), "CONV-" + suffix).id();
@@ -60,8 +71,87 @@ class ReinitialisationAccesConcurrenceIntegrationTest {
         UUID classe = classeService.creerClassePourEnseignant(prof, etab, "5e", "5e R").id();
         EleveInscritInfo eleve = classeService.rejoindreParCode(
                 classeService.genererCodePourEnseignant(classe, prof).code(), MOT_DE_PASSE, "Inès");
-        String provisoire = reinitialisations.reinitialiser(classe, eleve.id(), prof, false).motDePasseProvisoire();
-        return new Eleve(eleve, provisoire);
+        return new Inscrit(eleve, classe, prof);
+    }
+
+    private Eleve eleveReinitialise() {
+        Inscrit inscrit = eleveInscrit();
+        String provisoire = reinitialisations.reinitialiser(
+                inscrit.classe(), inscrit.eleve().id(), inscrit.prof(), false).motDePasseProvisoire();
+        return new Eleve(inscrit.eleve(), provisoire);
+    }
+
+    private MockHttpServletResponse connexion(String identifiant, String motDePasse, String ip) throws Exception {
+        return mockMvc.perform(post("/api/sessions")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("identifiant", identifiant)
+                        .param("mot_de_passe", motDePasse)
+                        .with(r -> {
+                            r.setRemoteAddr(ip);
+                            return r;
+                        })
+                        .with(csrf()))
+                .andReturn().getResponse();
+    }
+
+    /** The end of a login whose password was already checked against {@code charge}. */
+    private MockHttpServletResponse finirConnexion(UserDetails charge, String identifiant) throws Exception {
+        var auth = UsernamePasswordAuthenticationToken.authenticated(charge, null, charge.getAuthorities());
+        auth.eraseCredentials();
+        var req = new MockHttpServletRequest("POST", "/api/sessions");
+        req.setParameter("identifiant", identifiant);
+        req.setRemoteAddr("100.127.240.10");
+        var res = new MockHttpServletResponse();
+        loginSuccess.onAuthenticationSuccess(req, res, auth);
+        return res;
+    }
+
+    @Test
+    void shouldNeverLetALoginWithTheOldPasswordUndoAResetInProgress() throws Exception {
+        Inscrit inscrit = eleveInscrit();
+        UUID eleveId = inscrit.eleve().id();
+        String identifiant = inscrit.eleve().identifiantConnexion();
+        // The login loads the account and checks the OLD password: it matches.
+        UserDetails charge = userDetails.loadUserByUsername(identifiant);
+
+        CountDownLatch resetEcrit = new CountDownLatch(1);
+        CountDownLatch resetPeutValider = new CountDownLatch(1);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            // The teacher's reset: the student's row is locked and rewritten, not yet committed.
+            Future<String> reset = pool.submit(() -> transactions.execute(s -> {
+                String p = reinitialisations.reinitialiser(
+                        inscrit.classe(), eleveId, inscrit.prof(), false).motDePasseProvisoire();
+                resetEcrit.countDown();
+                try {
+                    resetPeutValider.await(10, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return p;
+            }));
+            assertThat(resetEcrit.await(10, TimeUnit.SECONDS)).isTrue();
+
+            // Meanwhile the login with the old password finishes. Read without a lock, it would
+            // see the account as it was and write that old state back over the reset on commit.
+            Future<MockHttpServletResponse> login = pool.submit(() -> finirConnexion(charge, identifiant));
+            Thread.sleep(500); // the login reaches the student's row while the reset holds it
+            resetPeutValider.countDown();
+            String provisoire = reset.get(10, TimeUnit.SECONDS);
+            MockHttpServletResponse res = login.get(10, TimeUnit.SECONDS);
+
+            // The login is refused exactly like a wrong password...
+            assertThat(res.getStatus()).isEqualTo(401);
+            assertThat(res.getContentAsString())
+                    .isEqualTo("{\"error\":\"Identifiant ou mot de passe incorrect\"}");
+            // ...and the reset stands: change pending, the old password no longer opens, the
+            // provisional one does.
+            assertThat(comptes.findById(eleveId).orElseThrow().isDoitChangerMotDePasse()).isTrue();
+            assertThat(connexion(identifiant, MOT_DE_PASSE, "100.127.241.10").getStatus()).isEqualTo(401);
+            assertThat(connexion(identifiant, provisoire, "100.127.242.10").getStatus()).isEqualTo(200);
+        } finally {
+            pool.shutdownNow();
+        }
     }
 
     @Test
