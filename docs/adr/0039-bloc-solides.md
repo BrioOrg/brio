@@ -48,8 +48,9 @@ Add a `solid` block to the content schema, separate from `figure`. Additive chan
    front or left face (pavé, cube), or to the axis (cylinder, a plane facing the viewer at
    distance `at` from the axis). A ball's section is a plane parallel to the equator at distance
    `at` from the centre. The section is computed from the solid, never authored: each of its sides
-   lies on a face and is seen when that face is. It is the one coloured object of the block
-   (`accent`, faint fill), as colour must stay rare and meaningful.
+   lies on a face and is seen when that face is. It is the one coloured object of the block,
+   in the first maths tone (`--color-tone-1` stroke on `--color-tone-1-soft`, ADR 0037), as
+   colour must stay rare and meaningful.
 5. **Sphere.** `equator`, `parallels` (latitudes), `meridians` (longitudes, pole to pole) and
    `points` by `latitude` and `longitude`, north and east positive, longitude 0 facing the
    viewer. A point on the far side keeps its name and gets a muted dot.
