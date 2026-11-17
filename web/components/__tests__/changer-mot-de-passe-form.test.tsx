@@ -144,6 +144,25 @@ describe('ChangerMotDePasseForm', () => {
     // Showing never submits the form.
     expect(screen.queryByRole('alert')).toBeNull()
   })
+
+  it('ne laisse jamais le clavier ni le correcteur modifier le mot de passe, même affiché', async () => {
+    await setup()
+    const user = userEvent.setup()
+    const champs = [
+      screen.getByLabelText('Ton nouveau mot de passe'),
+      screen.getByLabelText('Retape-le pour vérifier'),
+    ]
+    await user.click(screen.getByRole('button', { name: 'Afficher le nouveau mot de passe' }))
+    await user.click(screen.getByRole('button', { name: 'Afficher le mot de passe retapé' }))
+
+    // Shown means plain text: on a phone the keyboard would capitalise or "correct" it.
+    for (const champ of champs) {
+      expect(champ).toHaveAttribute('type', 'text')
+      expect(champ).toHaveAttribute('autocapitalize', 'none')
+      expect(champ).toHaveAttribute('autocorrect', 'off')
+      expect(champ).toHaveAttribute('spellcheck', 'false')
+    }
+  })
 })
 
 describe('ChangerMotDePassePage', () => {

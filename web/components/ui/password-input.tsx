@@ -32,6 +32,12 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         ref={ref}
         id={id}
         type={visible ? 'text' : 'password'}
+        // Shown, the field is plain text: a phone keyboard would capitalise or "correct" the
+        // password the child is choosing, and the browser could send it to a spell-checking
+        // service. Never overridable by a caller.
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         suffixe={
           <button
             type="button"
