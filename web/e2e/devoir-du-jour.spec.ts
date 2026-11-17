@@ -49,6 +49,29 @@ test('a course homework opens its course in one click, with the homework banner'
   await expect(page).toHaveURL('/')
 })
 
+// critère 2 — U6: the banner is in the server's HTML, so it is in the first paint (no layout
+// shift) and needs no homework fetch from the browser.
+test('the course homework banner is in the first paint', async ({ page }) => {
+  const url = `/cours/${COURS_LISIBLE}?devoir=${DEVOIR_LISIBLE}`
+  const reponse = await page.request.get(url, COMPILATION)
+  expect(reponse.status()).toBe(200)
+  // The markup only: no script (the RSC payload repeats the props), no React text separators.
+  const balisage = (await reponse.text())
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+  expect(balisage).toContain(TITRE_DU_COURS)
+  expect(balisage).toContain(BANDEAU)
+
+  const appelsDevoirs: string[] = []
+  page.on('request', (requete) => {
+    if (new URL(requete.url()).pathname === '/api/devoirs') appelsDevoirs.push(requete.url())
+  })
+  await page.goto(url)
+  await expect(page.getByText(BANDEAU)).toBeVisible(COMPILATION)
+  await page.waitForLoadState('networkidle')
+  expect(appelsDevoirs).toEqual([])
+})
+
 // critère 3
 test('each card leads to its own homework, soonest due first', async ({ page }) => {
   await page.goto('/')
