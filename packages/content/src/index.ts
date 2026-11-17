@@ -91,6 +91,32 @@ export type {
 } from './scratch'
 export { parseScratch, buildScratchModel } from './scratch'
 
+export type {
+  CalculMode,
+  CalculLine,
+  CalculSpec,
+  CalculParts,
+  CalculSplit,
+  CalculSplitError,
+  CalculRow,
+  CalculModel,
+  CalculIssue,
+  CalculIssueCode,
+} from './calcul'
+export {
+  buildCalculModel,
+  calculSteps,
+  checkCalcul,
+  focusRanges,
+  scanLatex,
+  splitCalculLine,
+  wrapFocus,
+  CALCUL_FOCUS_CLASS,
+  CALCUL_MAX_LINES,
+  CALCUL_MIN_LINES,
+  CALCUL_NOTE_MAX_LENGTH,
+} from './calcul'
+
 export type { DeckBlock, DeckSection, DeckInput, Diapo } from './deck'
 export { buildDeck, RESERVED_DIAPO_IDS } from './deck'
 

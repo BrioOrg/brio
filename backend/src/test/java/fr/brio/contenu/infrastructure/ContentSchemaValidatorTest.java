@@ -433,6 +433,48 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptACalculInEachMode() {
+        String equation =
+                """
+                { "id": "k1", "type": "calcul", "mode": "equation", "title": "Résoudre $x + 13 = 41$",
+                  "lines": [ { "latex": "x + 13 = 41" },
+                             { "latex": "x = 41 - 13", "op": "-13", "focus": "- 13",
+                               "note": "on soustrait 13 aux deux membres" },
+                             { "latex": "x = 28" } ],
+                  "conclusion": "La solution est $28$." }
+                """;
+        String egalites =
+                """
+                { "id": "k2", "type": "calcul", "mode": "egalites",
+                  "lines": [ { "latex": "A = 2x + 3 + 4x - 1" }, { "latex": "6x + 2", "note": "on réduit" } ] }
+                """;
+        for (String block : List.of(equation, egalites)) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectAnOperationInAChainOfEqualities() {
+        String block =
+                """
+                { "id": "k1", "type": "calcul", "mode": "egalites",
+                  "lines": [ { "latex": "A = 1 + 1" }, { "latex": "2", "op": "+1" } ] }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectACalculOfOneLine() {
+        String block =
+                """
+                { "id": "k1", "type": "calcul", "mode": "equation", "lines": [ { "latex": "x = 1" } ] }
+                """;
+        assertThat(violationsOf(chapterWith(block)))
+                .containsExactly(new ContentViolation(ContentViolation.EMPTY, "s1", "k1", "lines"));
+    }
+
+    @Test
     void shouldLocateAMissingExerciseFieldByItsName() {
         String block = """
                 { "id": "ex1", "type": "exercise", "exerciseType": "numeric", "prompt": "Combien ?" }

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -86,11 +87,45 @@ class ChapitreContentApiImpl implements ChapitreContentApi {
             return new ExerciseBlock(id, type, prompt, exerciceId);
         }
 
+        if ("calcul".equals(type)) {
+            return new TextBlock(id, type, calculText(b));
+        }
+
         // prose/callout: "text"; formula: "latex"; reference/steps/objectives: "title"; image: "alt"
         String text = b.has("text") ? b.path("text").asText("")
                 : b.has("latex") ? b.path("latex").asText("")
                 : b.has("title") ? b.path("title").asText("")
                 : b.path("alt").asText("");
         return new TextBlock(id, type, text);
+    }
+
+    /**
+     * A worked calculation as the tutor reads it (ADR 0042): its title, each line with its note
+     * in brackets, then its conclusion, joined by " ; ". A continuation line of a chain of
+     * equalities keeps the "= " it implies, so the chain reads as written.
+     */
+    private static final Pattern STARTS_WITH_RELATION = Pattern.compile(
+            "[=<>≈≤≥≠]|\\\\(approx|neq|ne|leqslant|leq|le|geqslant|geq|ge|lt|gt)(?![a-zA-Z])");
+
+    static String calculText(JsonNode b) {
+        List<String> parts = new ArrayList<>();
+        if (b.hasNonNull("title")) {
+            parts.add(b.path("title").asText());
+        }
+        boolean egalites = "egalites".equals(b.path("mode").asText());
+        int index = 0;
+        for (JsonNode line : b.path("lines")) {
+            String latex = line.path("latex").asText("").strip();
+            if (egalites && index > 0 && !STARTS_WITH_RELATION.matcher(latex).lookingAt()) {
+                latex = "= " + latex;
+            }
+            String note = line.path("note").asText("");
+            parts.add(note.isBlank() ? latex : latex + " (" + note + ")");
+            index++;
+        }
+        if (b.hasNonNull("conclusion")) {
+            parts.add(b.path("conclusion").asText());
+        }
+        return String.join(" ; ", parts);
     }
 }

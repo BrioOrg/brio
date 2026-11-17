@@ -40,6 +40,12 @@
  *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
  *    Scratch's multiplication sign there.
  *
+ * 4b. Worked calculations (ADR 0042): 2 to 12 lines, none blank; each line splits on its
+ *    relation (balanced groups; one relation per equation line; a chain line holds none but a
+ *    leading one); a focus is found in its line; an operation only on an equation line after
+ *    the first, balanced, without relation; a note short and not blank. KaTeX itself runs in
+ *    the web's tests (web/lib/__tests__/calcul-catalogue.test.ts): this script has no dependency.
+ *
  * 5. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
  *    on `id` alone.
@@ -66,12 +72,14 @@ let parseScratch
 let RESERVED_DIAPO_IDS
 let checkChart
 let checkTones
+let checkCalcul
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
   ;({ checkTones } = await import('../packages/content/src/tone.ts'))
+  ;({ checkCalcul } = await import('../packages/content/src/calcul.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -552,6 +560,46 @@ function checkChartBlock(block, file, path) {
   for (const issue of checkChart(block)) fail(file, `${path}.${issue.path}`, chartMessage(issue))
 }
 
+// --- Worked calculations (ADR 0042) ---
+// The rules live in packages/content/src/calcul.ts, shared with the teacher editor.
+
+function calculMessage(issue) {
+  switch (issue.code) {
+    case 'LINE_COUNT':
+      return `a calculation has ${issue.min} to ${issue.max} lines, found ${issue.count}`
+    case 'BLANK_LINE':
+      return 'blank line'
+    case 'UNBALANCED':
+      return 'unbalanced braces, \\left…\\right or \\begin…\\end'
+    case 'NO_RELATION':
+      return 'an equation line needs a relation (=, <, \\leq…) outside any group'
+    case 'SEVERAL_RELATIONS':
+      return 'one relation per line: split the line in two'
+    case 'RELATION_INSIDE':
+      return 'a line of a chain of equalities is the next expression ("=" is implied); it may only start with a relation'
+    case 'EMPTY_MEMBER':
+      return 'a member of the relation is empty'
+    case 'BLANK_NOTE':
+      return 'blank note'
+    case 'NOTE_TOO_LONG':
+      return `note of ${issue.length} characters; at most ${issue.max} (a longer one belongs in the prose)`
+    case 'FOCUS_NOT_FOUND':
+      return `focus ${JSON.stringify(issue.focus)} is not in the line (or cuts a number or a command)`
+    case 'OP_IN_EGALITES':
+      return 'an operation on both members only makes sense in equation mode'
+    case 'OP_ON_FIRST_LINE':
+      return 'the first line has no operation: an operation leads to its line from the one before'
+    case 'OP_INVALID':
+      return 'an operation is LaTeX without relation, e.g. "-13" or "\\div 4"'
+    default:
+      return issue.code
+  }
+}
+
+function checkCalculBlock(block, file, path) {
+  for (const issue of checkCalcul(block)) fail(file, `${path}.${issue.path}`, calculMessage(issue))
+}
+
 // --- Scratch programmes (ADR 0031) ---
 
 function checkScratchBlock(block, file, path) {
@@ -569,6 +617,7 @@ function checkFigures(doc, file) {
       const path = `sections[id=${section.id}].blocks[${i}]`
       if (block.type === 'figure') checkFigureBlock(block, file, path)
       else if (block.type === 'chart') checkChartBlock(block, file, path)
+      else if (block.type === 'calcul') checkCalculBlock(block, file, path)
       else if (block.type === 'code' && block.language === 'scratch') checkScratchBlock(block, file, path)
     }
   }
@@ -678,4 +727,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + Scratch programmes + maths tones + unique chapter and block ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + Scratch programmes + maths tones + unique chapter and block ids).`)
