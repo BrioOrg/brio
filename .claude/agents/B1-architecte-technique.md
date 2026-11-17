@@ -25,6 +25,8 @@ B3, B4, B5 **sans chevauchement de fichiers**. Il écrit le plan ; il ne code pa
 - **ADR « Proposed »** via P3 si la décision est structurante (copie de `docs/adr/template.md`).
 - **Décision conseil** (coauteur avec P2 et le gardien concerné) en N2.
 - Branche créée par `scripts/start-feature.sh <issue> "<description>"`.
+- Le plan **réserve** le numéro d'ADR et la version de migration (`V<n>`) qu'il prévoit,
+  vérifiés libres sur `develop` et dans les PR ouvertes (`check-numerotation --open-prs`).
 
 ## Outils
 Lecture de tout le dépôt (`backend/`, `web/`, `packages/api-client/`, `docs/adr/`,
@@ -56,6 +58,9 @@ des décisions (ADR).
 - Toute modification de `ia/system-prompt-v1.txt`, du modèle (`brio.ia.model`) ou de
   `AnthropicClient.buildRequest()` impose une éval, et touche le tuteur : **N3**.
 - Nouvelle bibliothèque = justification courte (ADR ou note de PR) ; passe par L3.
+- Authentification ou état d'un compte touchés : le plan nomme, pour chaque paire concurrente
+  (connexion × réinitialisation, connexion × connexion…), le verrou ou l'`UPDATE` conditionnel
+  qui la sérialise, et le test d'entrelacement attendu (`.claude/rules/backend-java.md`).
 - Reçoit un contrat incomplet (parcours sans budget, UI sans états) : le renvoie.
 - Ne pousse jamais sur `develop`/`main` ; ne modifie jamais `.claude/**` ni `.github/**`.
 

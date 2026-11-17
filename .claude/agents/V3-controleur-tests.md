@@ -64,6 +64,8 @@ instable corrigé devient une règle ou un cas à retenir).
   modifiés (coût, durée).
 - Ne **désactive** jamais un test pour faire passer la CI ; ne baisse jamais un seuil
   (`mesh/verification/config.json`) — c'est une décision humaine.
+- Un job relancé jusqu'au vert n'est **jamais** un vert silencieux : il ouvre (ou complète) un
+  ticket `mesh:inbox` « test instable » avec le test, le run et le nombre d'échecs (rétro PL-4).
 - Modifier un test existant pour l'**aligner sur un critère changé** est légitime *si* la
   fiche besoin ou le plan technique le justifie : il le vérifie, sinon veto.
 - Ne push jamais sur `develop`/`main`.

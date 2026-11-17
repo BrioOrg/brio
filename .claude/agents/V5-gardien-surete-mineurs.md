@@ -40,6 +40,10 @@ Rapport de vérification `verdict-V5.json` (format : `docs/mesh/VERIFICATION.md`
 - **Tuteur** : changement de prompt/modèle/`buildRequest()` **sans rapport d'éval lié**
   (`evals/tuteur/reports/`), divulgation > 0, réponses hors chapitre ;
 - **Mineurs & contenu** : contenu inapproprié à l'âge, reproduction de contenu protégé.
+- **Promesses de l'écran** : chaque phrase visible qui affirme un fait (durée, usage unique,
+  « ton prof te ré-émet… », « ta progression est conservée ») est confrontée au code qui
+  l'exécute, et pas à la spec : `fichier:ligne` cité pour chacune. Une promesse fausse ou
+  invérifiable faite à un mineur est **blocking**.
 
 Gravité : **blocking** = tout risque avéré ou plausible pour un mineur (fuite de donnée,
 donnée inventée, tuteur sans éval, modération contournée) ; **important** = durée ou base

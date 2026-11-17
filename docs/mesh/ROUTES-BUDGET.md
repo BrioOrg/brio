@@ -46,13 +46,17 @@ changer cette règle, par une PR dédiée.
 - Un lien construit depuis une variable (`href={href}`) ou fourni par le backend n'est pas vu.
   L'angle mort est connu : un contournement doit passer par un `href` littéral pour compter.
 - Le temps et la clarté d'un clic ne sont pas mesurés ici (U6, U5, S2).
+- Une page atteinte **seulement par une redirection conditionnelle** (garde d'état ou de rôle,
+  comme `/changer-mot-de-passe` après une connexion avec un mot de passe provisoire) n'a aucun
+  lien entrant : elle sort en route orpheline. La déclarer dans `attendus.horsNavigation` dans
+  le même commit que la page, et lancer `route-budget` en local avant le push (rétro PL-4).
 
 ## Le contrat `tasks.json`
 
 ```jsonc
 {
   "personas": { "eleve": { "entree": "/", "exclut": ["/prof", …] }, … },
-  "attendus": { "horsNavigation": ["/design", …], "liensMorts": ["/mot-de-passe-oublie"] },
+  "attendus": { "horsNavigation": ["/design", …], "liensMorts": [] },
   "taches": [{
     "id": "eleve-devoirs-a-faire",   // stable : cité par les personas et les rapports de nuit
     "label": "Voir mes devoirs à faire",

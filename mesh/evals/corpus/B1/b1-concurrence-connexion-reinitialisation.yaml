@@ -1,0 +1,35 @@
+id: b1-concurrence-connexion-reinitialisation
+agent: B1
+family: regression
+severity: major
+origin: regression
+lesson: L-2026-W47-4
+since: 2026-11-17
+
+description: >-
+  Un plan technique qui change l'état d'authentification d'un compte nomme le verrou de la
+  paire connexion × réinitialisation et le test d'entrelacement qui le prouve.
+
+input:
+  contract: fiche-besoin
+  context: |
+    Issue synthétique #9104 (fictive) : un enseignant réinitialise le mot de passe d'un
+    élève (provisoire à usage unique, changement obligatoire). Le module d'identité a déjà
+    une connexion qui lit le compte sans verrou puis met à jour un compteur d'échecs et la
+    date de dernière connexion.
+
+expected:
+  must:
+    - nomme les paires concurrentes (connexion × réinitialisation, connexion × connexion avec le provisoire)
+    - choisit pour chacune un verrou (FOR UPDATE) ou un UPDATE conditionnel sur l'état lu
+    - demande un test d'intégration qui tient une transaction ouverte pendant l'autre, avec contre-épreuve
+  must_not:
+    - laisse la connexion lire puis réécrire le compte sans verrou ni condition
+    - renvoie la question de la concurrence à la porte 5
+
+grading:
+  method: rubric
+  checks: []
+  rubric:
+    - "La paire connexion × réinitialisation est nommée avec son mécanisme de sérialisation (1/0)"
+    - "Un test d'entrelacement avec contre-épreuve est exigé (1/0)"
