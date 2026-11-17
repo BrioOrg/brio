@@ -3,9 +3,11 @@ import 'katex/dist/katex.min.css'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { OptionRowDemo, ButtonLoadingDemo, ResultSheetDemo } from './kit-interactive'
 import { EditeurMessageDemo } from './editeur-message-demo'
+import { CalculDemo } from './calcul-demo'
 import { MotionDemo } from './motion-demo'
 import { SoundDemo } from './sound-demo'
 import { BlocsCommunaute } from '@/components/blocs/blocs-communaute'
+import { CalculRenderer } from '@/components/calcul-renderer'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
 import { OptionRow } from '@/components/ui/option-row'
@@ -228,6 +230,45 @@ export default function DesignPage() {
             <code className="text-xs">{'"fill": "soft"'}</code> sur un polygone. Au plus trois
             teintes par bloc, bleu et orange d’abord.
           </p>
+        </Section>
+
+        {/* ── Worked calculations (ADR 0042) ─────────────────────────────────── */}
+        <Section title="Calcul en ligne">
+          <Label>Chaîne d’égalités : aligné sur =, la partie qui change en tone-1</Label>
+          <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+            <CalculRenderer
+              id="demo-calcul-developper"
+              spec={{
+                mode: 'egalites',
+                title: 'Développer $4(x + 3)$',
+                lines: [
+                  {
+                    latex: '4(x + 3) = 4 \\times x + 4 \\times 3',
+                    focus: '4 \\times',
+                    note: 'on multiplie chaque terme par 4',
+                  },
+                  { latex: '4x + 12', note: 'on calcule chaque produit' },
+                ],
+              }}
+            />
+            <CalculRenderer
+              id="demo-calcul-pythagore"
+              spec={{
+                mode: 'equation',
+                title: 'Calculer $BC$',
+                lines: [
+                  { latex: 'BC^2 = AB^2 + AC^2', note: 'théorème de Pythagore' },
+                  { latex: 'BC^2 = 3^2 + 4{,}5^2', focus: '4{,}5^2' },
+                  { latex: 'BC^2 = 9 + 20{,}25' },
+                  { latex: 'BC^2 = 29{,}25' },
+                  { latex: 'BC = \\sqrt{29{,}25}', note: 'une longueur est positive' },
+                  { latex: 'BC \\approx 5{,}4', note: 'au dixième' },
+                ],
+              }}
+            />
+          </div>
+          <Label>Équation : l’opération sous les deux membres, ligne par ligne en mode interactif</Label>
+          <CalculDemo />
         </Section>
 
         {/* ── Scratch palette ───────────────────────────────────────────────── */}

@@ -5,6 +5,7 @@ import { useEffect, useRef, type KeyboardEvent, type MutableRefObject, type Reac
 import type { Competence } from '@brio/api-client'
 
 import { ChampFormule } from '@/components/maths/champ-formule'
+import { CalculEditeur } from '@/components/prof/calcul-editeur'
 import { CodeEditeur } from '@/components/prof/code-editeur'
 import { CompetencesPicker } from '@/components/prof/competences-picker'
 import { FigureEditeur } from '@/components/prof/figure-editeur'
@@ -360,6 +361,9 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
         </div>
       )
     }
+
+    case 'calcul':
+      return <CalculEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
 
     case 'table':
       return <TableEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />

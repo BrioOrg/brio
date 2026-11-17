@@ -1,7 +1,8 @@
 import { Fragment } from 'react'
-import { type FigureSpec, type ChartSpec } from '@brio/content'
+import { type FigureSpec, type ChartSpec, type CalculSpec } from '@brio/content'
 
 import { ExerciceWidget, PaperExercise, type CourseSection } from '@/components/exercice-widget'
+import { CalculRenderer } from '@/components/calcul-renderer'
 import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { CitationChip } from '@/components/ui/chat/citation-chip'
@@ -100,6 +101,9 @@ export function BlockRenderer({
 
     case 'steps':
       return <StepsBlock id={block.id} block={block} />
+
+    case 'calcul':
+      return <CalculRenderer id={block.id} spec={block as unknown as CalculSpec} />
 
     case 'objectives':
       return <ObjectivesBlock id={block.id} block={block} />
