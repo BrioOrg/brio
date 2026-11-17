@@ -36,6 +36,11 @@
  *      segment, no construction marks in a repère with unequal scales. Image points count as
  *      defined points for the other primitives.
  *
+ *    - functions, readings, parameters (ADR 0038): the rules of
+ *      packages/content/src/function-rules.ts, shared with the teacher editor — axes present,
+ *      expressions that parse (x and the parameters only), a domain inside the x axis, a curve
+ *      that enters the window, readings that can be drawn, sliders whose value is a notch.
+ *
  * 3. Chart blocks (ADR 0030): exactly one series; 2 to 12 categories (6 for a pie), labels not
  *    blank and not duplicated; finite values, none negative in a bar, all positive in a pie;
  *    yMax not below the largest value; yStep positive and at most 20 graduations; no axis
@@ -78,6 +83,7 @@
  * runs with Node's type stripping: `pnpm check:content` (node --experimental-strip-types). Exits non-zero on any problem.
  */
 import { readdirSync, readFileSync } from 'node:fs'
+import { register } from 'node:module'
 import { join, relative } from 'node:path'
 
 let parseRichText
@@ -89,6 +95,18 @@ let checkCalcul
 let checkTree
 let checkFigureGeometry
 let expandTransformations
+let checkFunctionPlot
+// packages/content imports its own modules without an extension, as the bundlers expect; Node's
+// type stripping does not guess one, so add `.ts` to the relative imports it cannot resolve.
+register(
+  'data:text/javascript,' +
+    encodeURIComponent(
+      'export async function resolve(specifier, context, next) {' +
+        '  try { return await next(specifier, context) } catch (e) {' +
+        "    if (specifier.startsWith('.') && !/\\.[cm]?[jt]s$/.test(specifier)) return next(specifier + '.ts', context);" +
+        '    throw e } }',
+    ),
+)
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
@@ -100,6 +118,7 @@ try {
   ;({ checkFigureGeometry, expandTransformations } = await import(
     '../packages/content/src/transformations.ts'
   ))
+  ;({ checkFunctionPlot } = await import('../packages/content/src/function-rules.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -386,6 +405,9 @@ function checkFigureBlock(block, file, blockPath) {
   }
 
   if (spec.axes) checkAxes(spec, file, `${blockPath}.spec.axes`)
+
+  // Functions, readings and sliders (ADR 0038): shared rules, French messages.
+  for (const issue of checkFunctionPlot(spec)) fail(file, `${blockPath}.spec.${issue.path}`, issue.message)
 
   const solidNames = new Set()
   for (let i = 0; i < (spec.solids ?? []).length; i++) {

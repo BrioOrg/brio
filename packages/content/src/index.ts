@@ -37,6 +37,7 @@ export type {
   DrawingAxis,
   DrawingAxes,
   DrawingModel,
+  DrawingOptions,
   SolidEdge,
   SolidArc,
   SolidDrawing,
@@ -81,6 +82,46 @@ export {
   svgAffineAt,
   svgMatrix,
 } from './transformations'
+
+export type {
+  ExpressionNode,
+  ExpressionFunction,
+  ExpressionError,
+  Expression,
+  ParseResult,
+  ParseOptions,
+} from './expression'
+export { parseExpression } from './expression'
+
+export type {
+  FigureFunction,
+  FigureReading,
+  FigureParameter,
+  FunctionPlotSpec,
+  CompiledFunction,
+  DrawingFunctionCurve,
+  DrawingCurveLabel,
+  DrawingReading,
+  DrawingFunctionPlot,
+} from './function-plot'
+export {
+  buildFunctionPlot,
+  bindFunction,
+  compileFunctions,
+  formatReadingValue,
+  parameterScope,
+  sampleCurve,
+  solveFor,
+} from './function-plot'
+
+export type { FunctionIssue } from './function-rules'
+export {
+  checkFunctionPlot,
+  MAX_FUNCTIONS,
+  MAX_PARAMETER_NOTCHES,
+  MAX_PARAMETERS,
+  MAX_READINGS,
+} from './function-rules'
 
 export type {
   ChartKind,

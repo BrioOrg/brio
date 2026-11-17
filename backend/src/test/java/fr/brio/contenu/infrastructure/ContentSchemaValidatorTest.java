@@ -441,6 +441,54 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptFunctionsReadingsAndParametersInARepere() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "axes": { "x": { "from": -4, "to": 4, "step": 1 },
+                                      "y": { "from": -4, "to": 4, "step": 1 } },
+                            "functions": [ { "name": "f", "expr": "a x² − 1", "domain": [-3, 3],
+                                             "label": true, "style": "dashed" },
+                                           { "name": "g", "expr": "1/x", "label": "Inverse" } ],
+                            "readings": [ { "function": "f", "x": 1 }, { "function": "f", "y": 3 } ],
+                            "parameters": [ { "name": "a", "min": -2, "max": 2, "step": 0.5, "value": 1 } ] } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectAReadingGivenBothAnXAndAY() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "axes": { "x": { "from": -4, "to": 4, "step": 1 },
+                                      "y": { "from": -4, "to": 4, "step": 1 } },
+                            "functions": [ { "name": "f", "expr": "x" } ],
+                            "readings": [ { "function": "f", "x": 1, "y": 1 } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectAFunctionWithoutExpressionOrWithALongName() {
+        String withoutExpr =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "functions": [ { "name": "f" } ] } }
+                """;
+        String longName =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "functions": [ { "name": "prix", "expr": "2x" } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(withoutExpr)))
+                .isInstanceOf(InvalidContentException.class);
+        assertThatThrownBy(() -> validator.validate(chapterWith(longName)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldAcceptABarAPieAndALineChart() {
         String bar =
                 """

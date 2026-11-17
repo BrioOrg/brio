@@ -674,7 +674,50 @@
         "transformations": { "type": "array", "items": { "$ref": "#/$defs/figureTransformation" } },
         "vectors":     { "type": "array", "items": { "$ref": "#/$defs/figureVector" } },
         "lines":       { "type": "array", "items": { "$ref": "#/$defs/figureLine" } },
-        "rays":        { "type": "array", "items": { "$ref": "#/$defs/figureRay" } }
+        "rays":        { "type": "array", "items": { "$ref": "#/$defs/figureRay" } },
+        "functions":   { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/figureFunction" } },
+        "readings":    { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/figureReading" } },
+        "parameters":  { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/figureParameter" } }
+      }
+    },
+
+    "figureFunction": {
+      "description": "A curve given by the expression of f(x), drawn in a figure with axes (ADR 0038). The expression is read by packages/content/src/expression.ts: decimal comma or point, x, + − × / ^ ² ³, implicit products (2x, 3(x + 1)), brackets, sqrt/racine/√, abs/|…|, π, and the letters of `parameters`. check-content parses it and keeps the domain inside the x axis.",
+      "type": "object",
+      "required": ["name", "expr"],
+      "additionalProperties": false,
+      "properties": {
+        "name":   { "description": "One letter, optionally followed by a digit (f, g, h, f1); readings refer to it.", "type": "string", "pattern": "^[a-zA-Z][0-9]?$" },
+        "expr":   { "description": "The expression of f(x), without « f(x) = »: \"2x + 1\", \"x² − 3\", \"1/x\", \"√x\".", "type": "string", "minLength": 1, "maxLength": 200 },
+        "domain": { "description": "[from, to]: where the curve is drawn, inside the x axis. Default: the whole x axis.", "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+        "label":  { "description": "true writes 𝒞_f next to the curve, where it touches nothing; a string writes that text instead (\"Tarif A\").", "oneOf": [{ "type": "boolean" }, { "$ref": "#/$defs/plainText" }] },
+        "style":  { "enum": ["solid", "dashed"] },
+        "tone":   { "$ref": "#/$defs/figureTone" }
+      }
+    },
+    "figureReading": {
+      "description": "A reading on a curve, drawn as dashed guides to the axes with the values written there: the image of x, or the antecedents of y (solved numerically). check-content requires it to be reachable in the window.",
+      "type": "object",
+      "required": ["function"],
+      "additionalProperties": false,
+      "properties": {
+        "function": { "type": "string", "pattern": "^[a-zA-Z][0-9]?$" },
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      },
+      "oneOf": [{ "required": ["x"] }, { "required": ["y"] }]
+    },
+    "figureParameter": {
+      "description": "A letter of the expressions that a slider moves on screen (« a = 1,5 »); print and the first render use value. check-content requires value to be a notch: min + k × step.",
+      "type": "object",
+      "required": ["name", "min", "max", "step", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "name":  { "type": "string", "pattern": "^[a-zA-Z]$" },
+        "min":   { "type": "number" },
+        "max":   { "type": "number" },
+        "step":  { "type": "number", "exclusiveMinimum": 0 },
+        "value": { "type": "number" }
       }
     },
 
