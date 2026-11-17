@@ -8,12 +8,19 @@ import { Icon } from '@/components/ui/icon'
 import { apiBaseUrl } from '@/lib/api-base-url'
 import { formatEcheance } from '@/lib/echeance'
 
+/** The page the banner sits on: a catalogue chapter (by slug) or a teacher course (by id). */
+type BandeauDevoirProps = { devoirId: string; slug: string } | { devoirId: string; coursId: string }
+
 /**
- * The reminder above a chapter opened from a homework (`?devoir=` on its URL). Everything comes
- * from the student's own homework list: an id that isn't theirs, or that points to another
- * chapter, shows nothing. A failed load shows nothing either: the chapter stays readable.
+ * The reminder above a chapter or a course opened from a homework (`?devoir=` on its URL).
+ * Everything comes from the student's own homework list: an id that isn't theirs, or that points
+ * to another chapter or course, shows nothing. A failed load shows nothing either: the page stays
+ * readable.
  */
-export function BandeauDevoir({ devoirId, slug }: { devoirId: string; slug: string }) {
+export function BandeauDevoir(props: BandeauDevoirProps) {
+  const { devoirId } = props
+  const [sourceType, sourceRef] =
+    'coursId' in props ? ['cours', props.coursId] : ['chapitre', props.slug]
   const [devoir, setDevoir] = useState<DevoirEleveVue | null>(null)
 
   useEffect(() => {
@@ -21,7 +28,7 @@ export function BandeauDevoir({ devoirId, slug }: { devoirId: string; slug: stri
     listerMesDevoirs(apiBaseUrl())
       .then((liste) => {
         const trouve = liste?.find(
-          (d) => d.id === devoirId && d.sourceType === 'chapitre' && d.sourceRef === slug
+          (d) => d.id === devoirId && d.sourceType === sourceType && d.sourceRef === sourceRef
         )
         if (vivant) setDevoir(trouve ?? null)
       })
@@ -29,7 +36,7 @@ export function BandeauDevoir({ devoirId, slug }: { devoirId: string; slug: stri
     return () => {
       vivant = false
     }
-  }, [devoirId, slug])
+  }, [devoirId, sourceType, sourceRef])
 
   if (!devoir) return null
 

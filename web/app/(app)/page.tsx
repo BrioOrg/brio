@@ -12,6 +12,7 @@ import { Panel } from '@/components/ui/panel'
 import { ProgressBar } from '@/components/ui/progress-bar'
 import { getCatalogue, type CatalogueNiveau } from '@/lib/api'
 import { formatEcheance } from '@/lib/echeance'
+import { cheminsChapitres, lienDevoir } from '@/lib/lien-devoir'
 import {
   competenceARevoir,
   lireClasses,
@@ -50,7 +51,10 @@ export default async function AccueilPage() {
   const aRendre = prochainsDevoirs(devoirs ?? [], 3)
   const aRevoir = competenceARevoir(maitrises ?? [], libelles, new Date())
   const rienAFaire = aRendre.length === 0 && !reprendre && !aRevoir
-  const catalogue = rienAFaire ? await getCatalogue().catch(() => []) : []
+  // The catalogue gives a chapter homework its URL, and the first steps their subjects: only load
+  // it when one of them is on the page. A failure leaves the cards on their Ma classe fallback.
+  const besoinCatalogue = rienAFaire || aRendre.some((d) => d.sourceType === 'chapitre')
+  const catalogue = besoinCatalogue ? await getCatalogue().catch(() => []) : []
 
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">
@@ -64,7 +68,13 @@ export default async function AccueilPage() {
           {moi.pseudonyme ? `Salut ${moi.pseudonyme}` : 'Salut'}
         </h1>
 
-        {aRendre.length > 0 && <PourTaClasse devoirs={aRendre} classes={classes ?? []} />}
+        {aRendre.length > 0 && (
+          <PourTaClasse
+            devoirs={aRendre}
+            classes={classes ?? []}
+            chemins={cheminsChapitres(catalogue)}
+          />
+        )}
         {reprendre && <Reprendre chapitre={reprendre} />}
         {aRevoir && (
           <section aria-labelledby="a-revoir-heading">
@@ -90,7 +100,16 @@ export default async function AccueilPage() {
   )
 }
 
-function PourTaClasse({ devoirs, classes }: { devoirs: DevoirEleveVue[]; classes: MaClasse[] }) {
+function PourTaClasse({
+  devoirs,
+  classes,
+  chemins,
+}: {
+  devoirs: DevoirEleveVue[]
+  classes: MaClasse[]
+  /** Chapter slug → chapter URL, from the catalogue. */
+  chemins: Record<string, string>
+}) {
   const libelle = (classeId: string) => classes.find((c) => c.id === classeId)?.libelle
   // Homework from several classes: each one says its class, since the heading cannot.
   const uneSeule = new Set(devoirs.map((d) => d.classeId)).size === 1
@@ -104,7 +123,8 @@ function PourTaClasse({ devoirs, classes }: { devoirs: DevoirEleveVue[]; classes
       <ul className="grid gap-3 sm:grid-cols-3">
         {devoirs.map((d) => (
           <li key={d.id}>
-            <CarteLien href="/ma-classe">
+            {/* Straight to the homework's content; Ma classe when it cannot be told (#370). */}
+            <CarteLien href={lienDevoir(d, chemins) ?? '/ma-classe'}>
               <span className="font-display text-lg font-extrabold tracking-tight text-ink">
                 {d.titre}
               </span>
