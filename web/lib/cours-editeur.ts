@@ -6,12 +6,14 @@
 // (créer / enregistrer / publier un brouillon) est une étape suivante — ici on persiste en local.
 
 import {
+  checkCalcul,
   checkChart,
   checkTones,
   formatNumber,
   parseScratch,
   maxCategories,
   CHART_AXIS_FIELDS,
+  type CalculIssue,
   type ChartIssue,
   type ChartKind,
   type ChartSpec,
@@ -28,12 +30,16 @@ export type BlocType =
   | 'formula'
   | 'callout'
   | 'steps'
+  | 'calcul'
   | 'table'
   | 'reference'
   | 'figure'
   | 'chart'
   | 'code'
   | 'exercise'
+
+/** Une ligne d'un bloc « calcul » (ADR 0042) : la ligne en LaTeX, et ses champs facultatifs. */
+export type LigneCalcul = { latex: string; note?: string; focus?: string; op?: string }
 
 /** Une étape d'un bloc « exemple en étapes » : un texte, et éventuellement une formule. */
 export type Etape = { text: string; formula?: string }
@@ -95,6 +101,12 @@ export const BLOCS: {
   { type: 'formula', label: 'Formule', description: 'Une formule mathématique', icone: '∑' },
   { type: 'callout', label: 'Encadré', description: 'Définition, exemple, attention…', icone: '▣' },
   { type: 'steps', label: 'Étapes', description: 'Un exemple résolu, étape par étape', icone: '≣' },
+  {
+    type: 'calcul',
+    label: 'Calcul',
+    description: 'Un calcul en ligne ou une équation, aligné sur le signe =',
+    icone: '=',
+  },
   {
     type: 'table',
     label: 'Tableau',
@@ -177,6 +189,7 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   formula: 'Formule',
   callout: 'Encadré',
   steps: 'Étapes',
+  calcul: 'Calcul',
   table: 'Tableau',
   reference: 'Référence',
   figure: 'Figure',
@@ -260,6 +273,16 @@ export function nouveauBloc(
     case 'steps':
       // Un exemple résolu : un titre optionnel et une première étape prête à remplir.
       return { id: genId(), type, title: '', steps: [{ text: '' }] as Etape[] }
+    case 'calcul':
+      // Une équation par défaut (le cas le plus fréquent au collège), deux lignes à remplir : le
+      // schéma en exige au moins deux.
+      return {
+        id: genId(),
+        type,
+        mode: 'equation',
+        title: '',
+        lines: [{ latex: '' }, { latex: '' }] as LigneCalcul[],
+      }
     case 'table':
       // Une grille 2×1 prête à remplir : une ligne d'en-têtes (facultative dans le schéma, mais
       // proposée par défaut) et une première ligne de corps. Le schéma exige au moins une ligne
@@ -441,6 +464,20 @@ function blocServi(bloc: Bloc): Bloc {
       if (Array.isArray(b.steps)) {
         b.steps = (b.steps as Etape[]).map((e) => (vide(e.formula) ? { text: e.text } : e))
       }
+      return b
+    case 'calcul':
+      // Note, partie en évidence et opération laissées vides ne partent pas ; une opération n'a
+      // de sens qu'en mode équation (le schéma la refuse ailleurs).
+      if (Array.isArray(b.lines)) {
+        b.lines = (b.lines as LigneCalcul[]).map((l) => {
+          const ligne: LigneCalcul = { latex: l.latex }
+          if (!vide(l.note) && l.note !== undefined) ligne.note = l.note
+          if (!vide(l.focus) && l.focus !== undefined) ligne.focus = l.focus
+          if (!vide(l.op) && l.op !== undefined && b.mode === 'equation') ligne.op = l.op
+          return ligne
+        })
+      }
+      if (vide(b.conclusion)) delete b.conclusion
       return b
     case 'table':
       if (Array.isArray(b.headers) && (b.headers as unknown[]).every(vide)) delete b.headers
@@ -677,6 +714,11 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
     case 'chart':
       p.push(...problemesGraphique(b))
       break
+    case 'calcul':
+      for (const i of checkCalcul(b)) {
+        p.push({ code: `CALCUL_${i.code}`, champ: i.path, message: libelleCalcul(i) })
+      }
+      break
     case 'code':
       exiger('code', b.code)
       // Un programme qui ne s'analyse pas s'afficherait en texte (ADR 0031 §6) : ce n'est pas ce
@@ -834,6 +876,43 @@ function libelleGraphique(i: ChartIssue): string {
       return 'Le pas des graduations doit être plus grand que 0.'
     case 'TOO_MANY_GRADUATIONS':
       return `Ce pas donne ${i.graduations} graduations, au plus ${i.max} : choisis un pas plus grand.`
+  }
+}
+
+// --- Calcul ---------------------------------------------------------------------
+// Les règles sont celles de check-content (packages/content, calcul.ts) ; le libellé français ici.
+
+export function libelleCalcul(i: CalculIssue): string {
+  const ligne = 'index' in i ? `Ligne ${i.index + 1} : ` : ''
+  switch (i.code) {
+    case 'LINE_COUNT':
+      return i.count < i.min
+        ? `Un calcul a au moins ${i.min} lignes.`
+        : `Un calcul a au plus ${i.max} lignes : coupe-le en deux.`
+    case 'BLANK_LINE':
+      return `${ligne}écris la ligne.`
+    case 'UNBALANCED':
+      return `${ligne}une accolade ou une parenthèse \\left…\\right n’est pas fermée.`
+    case 'NO_RELATION':
+      return `${ligne}une équation a un signe =, <, ≤…`
+    case 'SEVERAL_RELATIONS':
+      return `${ligne}un seul signe = par ligne : passe à la ligne suivante.`
+    case 'RELATION_INSIDE':
+      return `${ligne}écris seulement l’expression suivante, le = est ajouté tout seul.`
+    case 'EMPTY_MEMBER':
+      return `${ligne}il manque un membre de part et d’autre du signe.`
+    case 'BLANK_NOTE':
+      return `${ligne}la note est vide.`
+    case 'NOTE_TOO_LONG':
+      return `${ligne}la note fait ${i.length} caractères, ${i.max} au plus : garde-la courte.`
+    case 'FOCUS_NOT_FOUND':
+      return `${ligne}la partie mise en évidence ne se trouve pas dans la ligne.`
+    case 'OP_IN_EGALITES':
+      return `${ligne}l’opération sur les deux membres n’existe qu’en mode équation.`
+    case 'OP_ON_FIRST_LINE':
+      return 'La première ligne n’a pas d’opération : elle mène d’une ligne à la suivante.'
+    case 'OP_INVALID':
+      return `${ligne}l’opération s’écrit sans signe =, par exemple -13 ou \\div 4.`
   }
 }
 

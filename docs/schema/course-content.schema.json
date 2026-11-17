@@ -123,6 +123,7 @@
         { "$ref": "#/$defs/referenceBlock" },
         { "$ref": "#/$defs/tableBlock" },
         { "$ref": "#/$defs/stepsBlock" },
+        { "$ref": "#/$defs/calculBlock" },
         { "$ref": "#/$defs/objectivesBlock" },
         { "$ref": "#/$defs/listBlock" },
         { "$ref": "#/$defs/unknownBlock" }
@@ -959,6 +960,63 @@
       }
     },
 
+    "calculBlock": {
+      "description": "A worked calculation (calcul en ligne): a chain of equalities or of equivalent equations, aligned on the relation symbol by the renderer, each line with an optional note in the margin, an emphasised part and, for an equation, the operation applied to both members. The interactive mode reveals it line by line. See ADR 0042.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "mode", "lines"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "calcul" },
+        "mode": {
+          "description": "egalites: a chain A = … = …; the first line is the starting expression (optionally 'A = …'), each next line is the next expression with '=' implied (it may start with another relation, e.g. \\approx). equation: every line is a whole equation with exactly one relation, e.g. '3x + 5 = 11'.",
+          "enum": ["egalites", "equation"]
+        },
+        "title": { "$ref": "#/$defs/richText" },
+        "lines": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/calculLine" }
+        },
+        "conclusion": {
+          "description": "Written under the calculation and revealed last, e.g. 'La solution de l'équation est $28$.'",
+          "$ref": "#/$defs/richText"
+        }
+      },
+      "if": { "properties": { "mode": { "const": "egalites" } } },
+      "then": {
+        "properties": { "lines": { "items": { "properties": { "op": false } } } }
+      }
+    },
+
+    "calculLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["latex"],
+      "properties": {
+        "latex": {
+          "description": "The whole line in LaTeX, relation included; never an alignment mark (&): the renderer aligns on the relation it finds.",
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "description": "A short justification in the margin (at most 80 characters, checked by check-content): 'on développe'.",
+          "$ref": "#/$defs/richText"
+        },
+        "focus": {
+          "description": "A substring of latex (spaces ignored) emphasised wherever it occurs: what changed on this line.",
+          "type": "string",
+          "minLength": 1
+        },
+        "op": {
+          "description": "Equation mode, from the second line: the operation applied to both members to obtain this line, in LaTeX ('-13', '\\div 4'). Drawn under both members of the previous line.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+
     "objectivesBlock": {
       "description": "Chapter objectives. Two independent facets: 'items' are the free-text objective sentences a teacher writes ('what you'll be able to do'); 'competencies' are coded references into the controlled referential (ADR 0009), a separate machine-readable facet. Either may be empty, but a block with neither carries no information.",
       "type": "object",
@@ -1015,6 +1073,7 @@
               "reference",
               "table",
               "steps",
+              "calcul",
               "objectives",
               "list"
             ]

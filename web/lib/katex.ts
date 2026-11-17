@@ -62,6 +62,40 @@ export function renderKatex(latex: string, displayMode: boolean): string {
   }
 }
 
+/**
+ * One part of a `calcul` line (ADR 0042), in text style but with display-size fractions, as a
+ * textbook sets a calculation. The model wraps the emphasised part in `\tone{1}{…}` (ADR 0037),
+ * so the limits and macros are those of every formula.
+ *
+ * `html` draws the columns (KaTeX already hides them from assistive technology); `mathml` gives
+ * each whole line once, for a screen reader.
+ */
+export function renderCalculKatex(latex: string, output: 'html' | 'mathml'): string {
+  if (latex.trim() === '') return ''
+  try {
+    if (latex.length > LATEX_MAX_LENGTH) return asPlainText(latex)
+    return katex.renderToString(`\\displaystyle ${latex}`, {
+      ...KATEX_LIMITS,
+      output,
+      macros: katexMacros(),
+      throwOnError: false,
+      displayMode: false,
+    })
+  } catch {
+    return asPlainText(latex)
+  }
+}
+
+/** KaTeX's parse error for `latex`, or null when it parses: what the editor shows under a line. */
+export function katexError(latex: string): string | null {
+  try {
+    katex.renderToString(latex, { ...KATEX_LIMITS, macros: katexMacros(), throwOnError: true })
+    return null
+  } catch (e) {
+    return e instanceof Error ? e.message : String(e)
+  }
+}
+
 function asPlainText(latex: string): string {
   return String(latex)
     .replaceAll('&', '&amp;')
