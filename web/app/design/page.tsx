@@ -7,6 +7,7 @@ import { CalculDemo } from './calcul-demo'
 import { MotionDemo } from './motion-demo'
 import { SoundDemo } from './sound-demo'
 import { TransformationsDemo } from './transformations-demo'
+import { SolidRenderer } from '@/components/solid-renderer'
 import { BlocsCommunaute } from '@/components/blocs/blocs-communaute'
 import { CalculRenderer } from '@/components/calcul-renderer'
 import { Button } from '@/components/ui/button'
@@ -328,7 +329,9 @@ export default function DesignPage() {
               }}
             />
           </div>
-          <Label>Équation : l’opération sous les deux membres, ligne par ligne en mode interactif</Label>
+          <Label>
+            Équation : l’opération sous les deux membres, ligne par ligne en mode interactif
+          </Label>
           <CalculDemo />
         </Section>
 
@@ -433,8 +436,8 @@ export default function DesignPage() {
 
         <Section title="Transformations, vecteurs et droites" id="transformations">
           <Label>
-            Source en ink, image en tone-1, construction en ink-muted · images et codages
-            calculés (ADR 0041)
+            Source en ink, image en tone-1, construction en ink-muted · images et codages calculés
+            (ADR 0041)
           </Label>
           <TransformationsDemo />
         </Section>
@@ -497,6 +500,74 @@ export default function DesignPage() {
                 parameters: [{ name: 'a', min: -2, max: 2, step: 0.25, value: 0.5 }],
                 readings: [{ function: 'f', x: 2 }],
               }}
+            />
+          </div>
+        </Section>
+
+        <Section title="Solides à faire tourner">
+          <Label>
+            Vue de départ du manuel, arêtes cachées en pointillés, section en ton 1 (ADR 0039)
+          </Label>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <SolidRenderer
+              spec={{
+                kind: 'pave',
+                width: 4,
+                height: 3,
+                depth: 2,
+                names: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+              }}
+              alt="Un pavé droit ABCDEFGH ; les arêtes [AE], [EF] et [EH] sont cachées."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'pyramide',
+                base: [
+                  { x: 0, y: 0 },
+                  { x: 4, y: 0 },
+                  { x: 4, y: 4 },
+                  { x: 0, y: 4 },
+                ],
+                height: 4,
+                names: ['A', 'B', 'C', 'D', 'S'],
+                section: { at: 2 },
+              }}
+              alt="Une pyramide SABCD à base carrée, coupée à mi-hauteur par un plan parallèle à sa base."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'cone',
+                radius: 2,
+                height: 4.5,
+                names: ['O', 'S'],
+                section: { at: 1.5 },
+              }}
+              alt="Un cône de sommet S et de base le disque de centre O, coupé par un plan parallèle à sa base."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'cylindre',
+                radius: 2,
+                height: 4,
+                section: { parallelTo: 'axis', at: 1 },
+              }}
+              alt="Un cylindre coupé par un plan parallèle à son axe : la section est un rectangle."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'boule',
+                radius: 3,
+                names: ['O'],
+                equator: true,
+                parallels: [45],
+                meridians: [0, 60],
+                points: [{ name: 'M', latitude: 45, longitude: 60 }],
+              }}
+              alt="Une sphère de centre O avec l’équateur, le parallèle 45° N, les méridiens 0° et 60° E, et le point M (45° N ; 60° E)."
+            />
+            <SolidRenderer
+              spec={{ kind: 'boule', radius: 3, names: ['O'], section: { at: 1.5 } }}
+              alt="Une boule de centre O coupée par un plan à 1,5 du centre : la section est un disque."
             />
           </div>
         </Section>

@@ -493,6 +493,38 @@ niveau par niveau ; le renderer place les nœuds, les probabilités et les issue
 - Horizontal par défaut ; `orientation: "vertical"` pour un petit arbre. Sur téléphone, tout
   arbre est dessiné horizontalement.
 
+### Solides à faire tourner
+
+Un solide que l'élève fait tourner (glisser, flèches du clavier) est un bloc `solid`, pas une
+`figure` (ADR 0039). On donne la sorte et les dimensions ; le renderer calcule les arêtes
+cachées (en pointillés), les sections et les repères de la sphère. La vue de départ est celle du
+manuel (de face, un peu par la droite et par-dessus) ; c'est elle que décrit `alt`.
+
+Recette — un cône coupé par un plan parallèle à sa base :
+
+```json
+{ "id": "solide-cone", "type": "solid", "kind": "cone", "radius": 2, "height": 4.5,
+  "names": ["O", "S"], "section": { "parallelTo": "base", "at": 1.5 },
+  "alt": "Un cône de sommet S et de base le disque de centre O, coupé par un plan parallèle à sa base." }
+```
+
+- `kind` : `pave` (`width`, `height`, `depth`), `cube` (`edge`), `prisme` (`base` = face avant en
+  vraie grandeur, `depth`), `cylindre` (`radius`, `height`), `pyramide` (`base` vue de dessus,
+  `height`, `apex` facultatif = pied de la hauteur, par défaut le centre de la base), `cone`
+  (`radius`, `height`), `boule` (`radius`).
+- `names` : les sommets dans l'ordre de `figure.solids` (face avant puis face arrière ; base
+  puis sommet pour une pyramide) ; les centres des bases d'un cylindre ; le centre de la base
+  puis le sommet d'un cône ; le centre d'une boule. Nommer les centres trace l'axe en pointillés.
+- `section` : `parallelTo` vaut `base` (par défaut), `front` ou `side` (pavé, cube), `axis`
+  (cylindre) ; `at` est la distance à cette face ou à l'axe, strictement à l'intérieur. Pour une
+  boule, pas de `parallelTo` : `at` est la distance du centre au plan, parallèle à l'équateur.
+- Boule seulement : `equator`, `parallels` (latitudes), `meridians` (longitudes) et `points`
+  (`name`, `latitude`, `longitude`), en degrés, nord et est positifs ; la longitude 0 est face à
+  l'élève.
+- Ce dessin n'est **pas** en perspective cavalière (la face avant n'est pas en vraie grandeur) :
+  pour enseigner la cavalière, garder `figure.solids` et le dire dans le texte.
+- Un exercice qui demande de faire tourner le solide suit le bloc et dit quel geste faire.
+
 ### Programmes Scratch
 
 Un programme Scratch est un bloc `code` en `"language": "scratch"` (ADR 0031). Il s'écrit en
