@@ -10,6 +10,7 @@ import { CodeEditeur } from '@/components/prof/code-editeur'
 import { CompetencesPicker } from '@/components/prof/competences-picker'
 import { FigureEditeur } from '@/components/prof/figure-editeur'
 import { GraphiqueEditeur } from '@/components/prof/graphique-editeur'
+import { ArbreEditeur } from '@/components/prof/arbre-editeur'
 import {
   marqueChamp,
   marqueGroupe,
@@ -376,6 +377,9 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
 
     case 'chart':
       return <GraphiqueEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+
+    case 'tree':
+      return <ArbreEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
 
     case 'code':
       return <CodeEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
