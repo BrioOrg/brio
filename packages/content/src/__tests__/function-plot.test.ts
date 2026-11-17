@@ -204,6 +204,17 @@ describe('buildDrawingModel with functions', () => {
     expect(xLabels).toContain('3')
   })
 
+  it('should also hide a graduation number that almost touches a read value', () => {
+    const model = buildDrawingModel({
+      axes,
+      functions: [{ name: 'g', expr: '1/x' }],
+      readings: [{ function: 'g', x: 0.5 }],
+    })
+    const xLabels = model.axes!.x.ticks.flatMap((t) => (t.label ? [t.label.text] : []))
+    expect(xLabels).not.toContain('1')
+    expect(xLabels).toContain('2')
+  })
+
   it('should draw every antecedent of a value', () => {
     const model = buildDrawingModel({
       axes,

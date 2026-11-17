@@ -50,6 +50,7 @@ exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
         r="2"
       />
       <text
+        class="[paint-order:stroke] [stroke:var(--figure-halo,var(--color-surface-page))] [stroke-width:3px] [stroke-linejoin:round]"
         dominant-baseline="hanging"
         fill="currentColor"
         font-family="serif"
@@ -61,6 +62,7 @@ exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
         A
       </text>
       <text
+        class="[paint-order:stroke] [stroke:var(--figure-halo,var(--color-surface-page))] [stroke-width:3px] [stroke-linejoin:round]"
         dominant-baseline="hanging"
         fill="currentColor"
         font-family="serif"
@@ -72,6 +74,7 @@ exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
         B
       </text>
       <text
+        class="[paint-order:stroke] [stroke:var(--figure-halo,var(--color-surface-page))] [stroke-width:3px] [stroke-linejoin:round]"
         dominant-baseline="auto"
         fill="currentColor"
         font-family="serif"

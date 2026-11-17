@@ -30,6 +30,7 @@ import { FigureRenderer } from '@/components/figure-renderer'
 import { renderKatex } from '@/lib/katex'
 import { TreeRenderer } from '@/components/tree-renderer'
 import type { FigureSpec, TreeSpec } from '@brio/content'
+import { FigureParametree } from '@/components/figure-parametree'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -436,6 +437,68 @@ export default function DesignPage() {
             calculés (ADR 0041)
           </Label>
           <TransformationsDemo />
+        </Section>
+
+        {/* ── Function curves (ADR 0038) ────────────────────────────────────── */}
+        <Section title="Courbes de fonctions" id="courbes">
+          <Label>La courbe en ink, la lecture seule en couleur — guides, point et valeurs</Label>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FigureRenderer
+              alt="Parabole de f(x) = x²/2 − 2 ; les antécédents de 2 par f sont −2,83 et 2,83 environ."
+              caption="Antécédents de 2 par f."
+              spec={{
+                axes: {
+                  x: { from: -4, to: 4, step: 1 },
+                  y: { from: -3, to: 5, step: 1 },
+                  grid: true,
+                },
+                functions: [{ name: 'f', expr: 'x²/2 − 2', label: true }],
+                readings: [{ function: 'f', y: 2 }],
+              }}
+            />
+            <FigureRenderer
+              alt="Hyperbole de la fonction inverse, en deux branches, et l’image de 0,5 : 2."
+              caption="Fonction inverse : la courbe s’interrompt en 0."
+              spec={{
+                axes: {
+                  x: { from: -4, to: 4, step: 1 },
+                  y: { from: -4, to: 4, step: 1 },
+                  grid: true,
+                },
+                functions: [{ name: 'g', expr: '1/x', label: true }],
+                readings: [{ function: 'g', x: 0.5 }],
+              }}
+            />
+            <FigureRenderer
+              alt="Courbe de la racine carrée sur [0 ; 9] et droite de h(x) = x/3 en pointillés."
+              caption="Deux courbes, chacune dans le ton de sa formule (tone-1, tone-2)."
+              spec={{
+                axes: {
+                  x: { from: 0, to: 9, step: 1 },
+                  y: { from: 0, to: 4, step: 1 },
+                  grid: true,
+                },
+                functions: [
+                  { name: 'r', expr: '√x', label: true, tone: 1 },
+                  { name: 'h', expr: 'x/3', label: true, style: 'dashed', tone: 2 },
+                ],
+              }}
+            />
+            <FigureParametree
+              alt="Droite d’équation y = ax + 1 ; un curseur règle a de −2 à 2."
+              caption="Un curseur par paramètre."
+              spec={{
+                axes: {
+                  x: { from: -4, to: 4, step: 1 },
+                  y: { from: -4, to: 4, step: 1 },
+                  grid: true,
+                },
+                functions: [{ name: 'f', expr: 'ax + 1', label: true }],
+                parameters: [{ name: 'a', min: -2, max: 2, step: 0.25, value: 0.5 }],
+                readings: [{ function: 'f', x: 2 }],
+              }}
+            />
+          </div>
         </Section>
 
         {/* ── Typography ────────────────────────────────────────────────────── */}

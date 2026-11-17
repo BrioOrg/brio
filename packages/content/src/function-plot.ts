@@ -457,6 +457,8 @@ const READING_FONT_PX = 11
 const CHAR_PX = 6.2
 const VALUE_GAP_PX = 10
 const LABEL_GAP_PX = 5
+/** Around a read value, the room where no graduation number stays (see clearReadValues). */
+const READ_VALUE_MARGIN_PX = 10
 
 function textBox(t: DrawingText, fontPx = READING_FONT_PX): Box {
   const w = t.text.length * CHAR_PX * (fontPx / READING_FONT_PX)
@@ -724,7 +726,20 @@ export function buildFunctionPlot(
  */
 export function clearReadValues(axes: DrawingAxes, plot: DrawingFunctionPlot | null): DrawingAxes {
   if (!plot || plot.readings.length === 0) return axes
-  const taken = plot.readings.flatMap((r) => r.values.map((v) => inflate(textBox(v), 1)))
+  // Not only an overlap: a graduation number almost touching the value ("0,5" against "1")
+  // reads as one number, so the margin is about a short number's width across, a little
+  // along the axis.
+  const taken = plot.readings.flatMap((r) =>
+    r.values.map((v) => {
+      const b = textBox(v)
+      return {
+        left: b.left - READ_VALUE_MARGIN_PX,
+        right: b.right + READ_VALUE_MARGIN_PX,
+        top: b.top - READ_VALUE_MARGIN_PX / 2,
+        bottom: b.bottom + READ_VALUE_MARGIN_PX / 2,
+      }
+    })
+  )
   const clear = (axis: DrawingAxes['x']): DrawingAxes['x'] => ({
     ...axis,
     ticks: axis.ticks.map((t) =>
