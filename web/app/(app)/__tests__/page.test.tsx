@@ -270,6 +270,10 @@ describe('AccueilPage', () => {
     it('demande le catalogue sans attendre la fin des autres lectures', async () => {
       let livrerReprendre: (valeur: unknown) => void = () => {}
       let livrerMaitrises: (valeur: unknown) => void = () => {}
+      // Clear the calls left by the previous test now: `afficher` only resets the mock after its
+      // own `await import`, too late for the first `waitFor` below (V3, tour 3).
+      const { getCatalogue } = await import('@/lib/api')
+      vi.mocked(getCatalogue).mockClear()
       const enCours = afficher({
         devoirs: [devoirChapitre('ch', '2026-11-01T16:00:00Z', 'a')],
         // Still pending until the catalogue has been asked for.
@@ -281,7 +285,6 @@ describe('AccueilPage', () => {
         }),
       })
 
-      const { getCatalogue } = await import('@/lib/api')
       await vi.waitFor(() => expect(getCatalogue).toHaveBeenCalled())
       livrerReprendre(null)
       livrerMaitrises([])
