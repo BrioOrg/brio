@@ -465,6 +465,25 @@ Un délimiteur non fermé (`**gras`, `$formule`) s'affiche tel quel, délimiteur
 c'est une erreur visible plutôt qu'une perte silencieuse. `pnpm check:content`
 détecte ces cas avant le commit.
 
+### Couleurs signifiantes (ADR 0037)
+
+Une couleur dit qu'**un même objet** apparaît à deux endroits : le côté [AB] du triangle et le
+$AB^2$ de l'égalité, le terme $ka$ de la figure d'aires et celui du développement. Elle ne sert
+jamais à décorer ni à signaler un état (juste, faux, important) : l'encre reste le défaut.
+
+- **Dans une formule** (`formula.latex`, `$...$` d'un `richText`, `steps[].formula`) :
+  `\tone{n}{…}`, `n` de 1 à 4. Exemple : `"\\tone{3}{BC}^2 = \\tone{1}{AB}^2 + \\tone{2}{AC}^2"`.
+  Colore l'objet (`\tone{1}{AB}^2`), pas son exposant ni le signe qui le précède.
+- **Dans une figure** : `"tone": n` sur un point (point et nom), un segment, un polygone, un
+  cercle, un arc, une marque d'angle ou une étiquette. Un polygone teinté peut prendre
+  `"fill": "soft"` (fond doux sous son trait) ; pour garder des contours à l'encre, redessine le
+  contour par-dessus avec un polygone sans teinte.
+- **Même numéro, même objet**, dans tout le chapitre. Commence par 1 et 2 (bleu et orange, le
+  couple que les élèves daltoniens distinguent le mieux).
+- **Au plus trois teintes par bloc** : au-delà, `pnpm check:content` avertit. Une teinte hors
+  1…4 est une erreur. Une teinte présente dans une figure et dans aucune formule est permise.
+- La couleur n'est jamais le seul indice : l'objet reste nommé (lettre, nombre) aux deux endroits.
+
 ### Callouts
 
 Utiliser les variantes dans leur sens exact :

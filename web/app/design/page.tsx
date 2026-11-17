@@ -23,6 +23,9 @@ import { SuggestedQuestion } from '@/components/ui/chat/suggested-question'
 import { TypingIndicator } from '@/components/ui/chat/typing-indicator'
 import { Icon } from '@/components/ui/icon'
 import { Mascot } from '@/components/ui/mascot'
+import { FigureRenderer } from '@/components/figure-renderer'
+import { renderKatex } from '@/lib/katex'
+import type { FigureSpec } from '@brio/content'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -37,6 +40,55 @@ const SCRATCH_CATEGORIES = [
   ['operators', 'Opérateurs'],
   ['variables', 'Variables'],
 ] as const
+
+// Maths tones (ADR 0037): the same object in the same tone in the figure and in the formula.
+const hidden = { dot: false, showName: false } as const
+const TONE_EXAMPLES: { spec: FigureSpec; alt: string; latex: string }[] = [
+  {
+    alt: 'Triangle ABC rectangle en A : AB en teinte 1, AC en teinte 2, l’hypoténuse BC en teinte 3.',
+    spec: {
+      points: [
+        { name: 'A', x: 0, y: 0, label: { placement: 'below-left' } },
+        { name: 'B', x: 4, y: 0, label: { placement: 'below-right' } },
+        { name: 'C', x: 0, y: 3, label: { placement: 'above-left' } },
+      ],
+      segments: [
+        { from: 'A', to: 'B', tone: 1 },
+        { from: 'A', to: 'C', tone: 2 },
+        { from: 'B', to: 'C', tone: 3 },
+      ],
+      angleMarks: [{ vertex: 'A', from: 'B', to: 'C', right: true }],
+    },
+    latex: '\\tone{3}{BC}^2 = \\tone{1}{AB}^2 + \\tone{2}{AC}^2',
+  },
+  {
+    alt: 'Rectangle 3 sur 4 + 2, partagé en deux rectangles d’aires 12 et 6.',
+    spec: {
+      points: [
+        { name: 'P', x: 0, y: 0, ...hidden },
+        { name: 'Q', x: 4, y: 0, ...hidden },
+        { name: 'R', x: 6, y: 0, ...hidden },
+        { name: 'S', x: 6, y: 3, ...hidden },
+        { name: 'T', x: 4, y: 3, ...hidden },
+        { name: 'U', x: 0, y: 3, ...hidden },
+      ],
+      polygons: [
+        { vertices: ['P', 'Q', 'T', 'U'], tone: 1, fill: 'soft' },
+        { vertices: ['Q', 'R', 'S', 'T'], tone: 2, fill: 'soft' },
+        { vertices: ['P', 'R', 'S', 'U'] },
+      ],
+      segments: [{ from: 'Q', to: 'T' }],
+      labels: [
+        { text: '4', x: 2, y: 3.5, tone: 1 },
+        { text: '2', x: 5, y: 3.5, tone: 2 },
+        { text: '3', x: -0.5, y: 1.5 },
+        { text: '12', x: 2, y: 1.5 },
+        { text: '6', x: 5, y: 1.5 },
+      ],
+    },
+    latex: '3 \\times (\\tone{1}{4} + \\tone{2}{2}) = \\tone{1}{12} + \\tone{2}{6}',
+  },
+]
 
 function Swatch({ token, label }: { token: string; label: string }) {
   return (
@@ -159,6 +211,23 @@ export default function DesignPage() {
               </div>
             ))}
           </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {TONE_EXAMPLES.map((example) => (
+              <Panel key={example.latex}>
+                <FigureRenderer spec={example.spec} alt={example.alt} />
+                <div
+                  className="overflow-x-auto py-1 text-center text-ink"
+                  dangerouslySetInnerHTML={{ __html: renderKatex(example.latex, true) }}
+                />
+              </Panel>
+            ))}
+          </div>
+          <p className="mt-3 font-prose text-sm text-ink-muted">
+            Formule : <code className="text-xs">{'\\tone{1}{AB}^2'}</code> ; figure :{' '}
+            <code className="text-xs">{'"tone": 1'}</code>, plus{' '}
+            <code className="text-xs">{'"fill": "soft"'}</code> sur un polygone. Au plus trois
+            teintes par bloc, bleu et orange d’abord.
+          </p>
         </Section>
 
         {/* ── Scratch palette ───────────────────────────────────────────────── */}

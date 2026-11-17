@@ -32,7 +32,47 @@
         {
           "id": "formule-distributivite",
           "type": "formula",
-          "latex": "k(a + b) = ka + kb \\qquad k(a - b) = ka - kb"
+          "latex": "k(\\tone{1}{a} + \\tone{2}{b}) = \\tone{1}{ka} + \\tone{2}{kb} \\qquad k(\\tone{1}{a} - \\tone{2}{b}) = \\tone{1}{ka} - \\tone{2}{kb}"
+        },
+        {
+          "id": "aires-distributivite",
+          "type": "prose",
+          "text": "On le voit avec des aires. Le grand rectangle mesure 3 sur 4 + 2 : son aire est 3 × (4 + 2). Il est fait de deux rectangles, l'un de 3 sur 4, l'autre de 3 sur 2 : son aire est aussi 3 × 4 + 3 × 2."
+        },
+        {
+          "id": "figure-aires-distributivite",
+          "type": "figure",
+          "alt": "Un rectangle de largeur 3 et de longueur 4 + 2, partagé en deux rectangles : l'un de 3 sur 4, d'aire 12, l'autre de 3 sur 2, d'aire 6.",
+          "spec": {
+            "points": [
+              { "name": "P", "x": 0, "y": 0, "dot": false, "showName": false },
+              { "name": "Q", "x": 4, "y": 0, "dot": false, "showName": false },
+              { "name": "R", "x": 6, "y": 0, "dot": false, "showName": false },
+              { "name": "S", "x": 6, "y": 3, "dot": false, "showName": false },
+              { "name": "T", "x": 4, "y": 3, "dot": false, "showName": false },
+              { "name": "U", "x": 0, "y": 3, "dot": false, "showName": false }
+            ],
+            "polygons": [
+              { "vertices": ["P", "Q", "T", "U"], "tone": 1, "fill": "soft" },
+              { "vertices": ["Q", "R", "S", "T"], "tone": 2, "fill": "soft" },
+              { "vertices": ["P", "R", "S", "U"] }
+            ],
+            "segments": [
+              { "from": "Q", "to": "T" }
+            ],
+            "labels": [
+              { "text": "4", "x": 2, "y": 3.5, "tone": 1 },
+              { "text": "2", "x": 5, "y": 3.5, "tone": 2 },
+              { "text": "3", "x": -0.5, "y": 1.5 },
+              { "text": "12", "x": 2, "y": 1.5 },
+              { "text": "6", "x": 5, "y": 1.5 }
+            ]
+          }
+        },
+        {
+          "id": "formule-aires-distributivite",
+          "type": "formula",
+          "latex": "3 \\times (\\tone{1}{4} + \\tone{2}{2}) = \\tone{1}{3 \\times 4} + \\tone{2}{3 \\times 2} = \\tone{1}{12} + \\tone{2}{6} = 18"
         },
         {
           "id": "def-developper-factoriser",
@@ -173,7 +213,8 @@
           "title": "Réduire 2x + 3 + 4x − 1",
           "steps": [
             {
-              "text": "On regroupe les termes en x : 2x + 4x = 6x."
+              "text": "On regroupe les termes en x : 2x + 4x = 6x.",
+              "formula": "\\tone{1}{2x} + \\tone{2}{3} + \\tone{1}{4x} - \\tone{2}{1}"
             },
             {
               "text": "On regroupe les nombres : 3 − 1 = 2."

@@ -93,3 +93,6 @@ export { parseScratch, buildScratchModel } from './scratch'
 
 export type { DeckBlock, DeckSection, DeckInput, Diapo } from './deck'
 export { buildDeck, RESERVED_DIAPO_IDS } from './deck'
+
+export type { Tone, ToneIssue, ToneIssueCode } from './tone'
+export { TONES, MAX_TONES_PER_BLOCK, isTone, toneArguments, checkTones } from './tone'

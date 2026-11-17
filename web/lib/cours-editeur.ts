@@ -7,6 +7,7 @@
 
 import {
   checkChart,
+  checkTones,
   formatNumber,
   parseScratch,
   maxCategories,
@@ -698,7 +699,25 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       p.push(...problemesExercice(b))
       break
   }
+  p.push(...problemesTeintes(b))
   return p
+}
+
+/** Les teintes d'un bloc (ADR 0037) : `\tone` de 1 à 4, au plus trois teintes par bloc. */
+function problemesTeintes(b: Bloc): ProblemeBrut[] {
+  return checkTones(b).issues.map((i) =>
+    i.code === 'UNKNOWN_TONE'
+      ? {
+          code: `TONE_${i.code}`,
+          champ: i.path,
+          message: `La teinte « ${i.value} » n’existe pas : choisis 1, 2, 3 ou 4.`,
+        }
+      : {
+          code: `TONE_${i.code}`,
+          gravite: 'avertissement',
+          message: `Ce bloc utilise ${i.tones.length} teintes : garde-en au plus ${i.max}, pour que chaque couleur dise quelque chose.`,
+        }
+  )
 }
 
 function problemesExercice(b: Bloc): ProblemeBrut[] {
