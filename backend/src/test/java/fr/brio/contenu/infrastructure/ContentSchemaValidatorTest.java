@@ -475,6 +475,61 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptATreeOfPossiblesAndAWeightedTree() {
+        String possibles =
+                """
+                { "id": "t1", "type": "tree", "outcomes": true,
+                  "alt": "Deux lancers d'une pièce : quatre issues",
+                  "root": { "children": [
+                    { "label": "P", "children": [ { "label": "P" }, { "label": "F" } ] },
+                    { "label": "F", "children": [ { "label": "P" }, { "label": "F" } ] } ] } }
+                """;
+        String weighted =
+                """
+                { "id": "t2", "type": "tree", "orientation": "vertical", "outcomes": true, "products": true,
+                  "highlightPath": [ "R", "B" ], "alt": "Deux tirages sans remise",
+                  "root": { "children": [
+                    { "label": "R", "probability": "3/5",
+                      "children": [ { "label": "R", "probability": "2/4" }, { "label": "B", "probability": "2/4" } ] },
+                    { "label": "$\\\\overline{R}$", "probability": "0,4",
+                      "children": [ { "label": "R", "probability": "3/4", "outcome": "$\\\\overline{R} \\\\cap R$" },
+                                    { "label": "B", "probability": "?" } ] } ] } }
+                """;
+        for (String block : List.of(possibles, weighted)) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectATreeFourLevelsDeep() {
+        String block =
+                """
+                { "id": "t1", "type": "tree", "alt": "Trop profond",
+                  "root": { "children": [ { "label": "A", "children": [ { "label": "B", "children": [
+                    { "label": "C", "children": [ { "label": "D" } ] } ] } ] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectATreeWithoutAltOrWithAnUnknownOrientation() {
+        String withoutAlt =
+                """
+                { "id": "t1", "type": "tree", "root": { "children": [ { "label": "A" } ] } }
+                """;
+        String diagonal =
+                """
+                { "id": "t1", "type": "tree", "orientation": "diagonal", "alt": "Arbre",
+                  "root": { "children": [ { "label": "A" } ] } }
+                """;
+        for (String block : List.of(withoutAlt, diagonal)) {
+            assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                    .isInstanceOf(InvalidContentException.class);
+        }
+    }
+
+    @Test
     void shouldLocateAMissingExerciseFieldByItsName() {
         String block = """
                 { "id": "ex1", "type": "exercise", "exerciseType": "numeric", "prompt": "Combien ?" }

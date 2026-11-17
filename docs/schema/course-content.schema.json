@@ -117,6 +117,7 @@
         { "$ref": "#/$defs/imageBlock" },
         { "$ref": "#/$defs/figureBlock" },
         { "$ref": "#/$defs/chartBlock" },
+        { "$ref": "#/$defs/treeBlock" },
         { "$ref": "#/$defs/calloutBlock" },
         { "$ref": "#/$defs/codeBlock" },
         { "$ref": "#/$defs/exerciseBlock" },
@@ -513,6 +514,115 @@
           "yStep": false,
           "showValues": false
         }
+      }
+    },
+
+    "treeBlock": {
+      "description": "A tree of possibles or a probability tree, laid out by the renderer from its structure: branches, a probability on each branch, the issues and their probabilities in a column. At most 3 levels (one node definition per level), 6 branches per node and 12 leaves (check-content). See ADR 0040.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "root", "alt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "tree" },
+        "title": { "$ref": "#/$defs/plainText" },
+        "orientation": {
+          "description": "horizontal: the root on the left, the issues in a column on the right. vertical: the root at the top, the issues under the leaves. On a narrow screen every tree is drawn horizontally (ADR 0040 §9).",
+          "enum": ["horizontal", "vertical"],
+          "default": "horizontal"
+        },
+        "outcomes": {
+          "description": "Writes the issue of each leaf, (R ; B), or the leaf's own outcome.",
+          "type": "boolean",
+          "default": false
+        },
+        "products": {
+          "description": "Writes the probability of each issue, the product along its path. Off by default: it gives away the exercise. Needs a numeric probability on every branch.",
+          "type": "boolean",
+          "default": false
+        },
+        "highlightPath": {
+          "description": "The labels of one root-to-leaf path, drawn in the accent colour (multiplication rule).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/richText" }
+        },
+        "root": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["children"],
+          "properties": {
+            "children": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "items": { "$ref": "#/$defs/treeNode1" }
+            }
+          }
+        },
+        "alt": {
+          "description": "Accessibility text. Required — a tree without a textual equivalent is invalid. The renderer also emits every path as a visually hidden table.",
+          "$ref": "#/$defs/plainText"
+        },
+        "caption": { "$ref": "#/$defs/richText" }
+      }
+    },
+
+    "treeProbability": {
+      "description": "A branch's probability as a textbook writes it: 3/5, 0,4 (decimal comma), 25 %, an integer, ? for a blank to fill, or LaTeX between $ ($p$, $1-p$). check-content parses it exactly.",
+      "type": "string",
+      "minLength": 1
+    },
+
+    "treeNode1": {
+      "description": "A branch of the first level and the node it leads to.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": { "$ref": "#/$defs/richText" },
+        "probability": { "$ref": "#/$defs/treeProbability" },
+        "outcome": {
+          "description": "On a leaf only: its issue, written instead of the labels of its path ($A \\cap B$).",
+          "$ref": "#/$defs/richText"
+        },
+        "children": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/treeNode2" }
+        }
+      }
+    },
+
+    "treeNode2": {
+      "description": "A branch of the second level.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": { "$ref": "#/$defs/richText" },
+        "probability": { "$ref": "#/$defs/treeProbability" },
+        "outcome": { "$ref": "#/$defs/richText" },
+        "children": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/treeNode3" }
+        }
+      }
+    },
+
+    "treeNode3": {
+      "description": "A branch of the third and last level: always a leaf.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": { "$ref": "#/$defs/richText" },
+        "probability": { "$ref": "#/$defs/treeProbability" },
+        "outcome": { "$ref": "#/$defs/richText" }
       }
     },
 
@@ -1067,6 +1177,7 @@
               "image",
               "figure",
               "chart",
+              "tree",
               "callout",
               "code",
               "exercise",
