@@ -91,10 +91,13 @@ jobs:
       # Stryker n'est pas une dépendance du dépôt (voir mesh/mutation/stryker.web.config.mjs).
       - name: Stryker
         if: steps.scope.outputs.ran == 'true'
+        # Les --package= doivent précéder dlx : placés après, pnpm 9 les prend
+        # pour un nom de paquet (GET registry/--package → 404).
         run: >-
-          pnpm dlx
-          --package @stryker-mutator/core@9.4.0
-          --package @stryker-mutator/vitest-runner@9.4.0
+          pnpm
+          --package=@stryker-mutator/core@9.4.0
+          --package=@stryker-mutator/vitest-runner@9.4.0
+          dlx
           stryker run ../mesh/mutation/stryker.web.config.mjs --mutate "${{ steps.scope.outputs.files }}"
         working-directory: web
       - uses: actions/upload-artifact@v4
