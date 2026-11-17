@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 
 import type { ChapitreAReprendre, DevoirEleveVue, MaClasse } from '@brio/api-client'
 
+import { ARevoir } from '@/components/a-revoir'
 import { CarteLien, Fleche, TITRE_DE_BLOC } from '@/components/carte-lien'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ import {
   lireReprendre,
   prochainsDevoirs,
 } from '@/lib/espace-eleve'
+import { lireLecon } from '@/lib/revoir'
 
 export const metadata: Metadata = {
   title: 'Accueil — Brio',
@@ -48,7 +50,9 @@ export default async function AccueilPage() {
   ])
 
   const aRendre = prochainsDevoirs(devoirs ?? [], 3)
-  const aRevoir = competenceARevoir(maitrises ?? [], libelles, new Date())
+  const competence = competenceARevoir(maitrises ?? [], libelles, new Date())
+  const lecon = competence ? await lireLecon(competence.code, moi.niveau, cookie) : null
+  const aRevoir = competence && lecon ? { intitule: competence.intitule, lecon } : null
   const rienAFaire = aRendre.length === 0 && !reprendre && !aRevoir
   const catalogue = rienAFaire ? await getCatalogue().catch(() => []) : []
 
@@ -66,22 +70,7 @@ export default async function AccueilPage() {
 
         {aRendre.length > 0 && <PourTaClasse devoirs={aRendre} classes={classes ?? []} />}
         {reprendre && <Reprendre chapitre={reprendre} />}
-        {aRevoir && (
-          <section aria-labelledby="a-revoir-heading">
-            <h2 id="a-revoir-heading" className={TITRE_DE_BLOC}>
-              À revoir
-            </h2>
-            <CarteLien href="/explorer">
-              <span className="font-display text-lg font-extrabold tracking-tight text-ink">
-                {aRevoir.intitule}
-              </span>
-              <span className="flex items-center justify-between font-prose text-sm text-ink-muted">
-                Retrouve-la dans Explorer
-                <Fleche />
-              </span>
-            </CarteLien>
-          </section>
-        )}
+        {aRevoir && <ARevoir competence={aRevoir} />}
         {rienAFaire && (
           <PremiereConnexion monNiveau={catalogue.find((n) => n.niveauCode === moi.niveau)} />
         )}
