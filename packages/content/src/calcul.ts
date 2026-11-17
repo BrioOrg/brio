@@ -36,8 +36,8 @@ export const CALCUL_MIN_LINES = 2
 export const CALCUL_MAX_LINES = 12
 /** A note sits in the margin: past this, it is a paragraph and belongs in the prose. */
 export const CALCUL_NOTE_MAX_LENGTH = 80
-/** The KaTeX `\htmlClass` the emphasised part is wrapped in; the only one the renderer trusts. */
-export const CALCUL_FOCUS_CLASS = 'calcul-focus'
+/** The maths tone of the emphasised part (ADR 0037): written as `\tone{1}{…}`, like an author would. */
+export const CALCUL_FOCUS_TONE = 1
 
 // --- Scanning --------------------------------------------------------------------------------
 
@@ -228,13 +228,13 @@ export function focusRanges(side: string, focus: string): [number, number][] {
   return ranges
 }
 
-/** `side` with every occurrence of `focus` wrapped in the focus class. */
+/** `side` with every occurrence of `focus` in the focus tone. */
 export function wrapFocus(side: string, focus: string | undefined): string {
   if (focus === undefined) return side
   let out = ''
   let last = 0
   for (const [start, end] of focusRanges(side, focus)) {
-    out += side.slice(last, start) + `\\htmlClass{${CALCUL_FOCUS_CLASS}}{${side.slice(start, end)}}`
+    out += side.slice(last, start) + `\\tone{${CALCUL_FOCUS_TONE}}{${side.slice(start, end)}}`
     last = end
   }
   return out + side.slice(last)

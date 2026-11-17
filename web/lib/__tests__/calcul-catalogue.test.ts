@@ -2,9 +2,9 @@ import { readdirSync, readFileSync } from 'fs'
 import { join, relative, resolve } from 'path'
 import katex from 'katex'
 import { describe, expect, it } from 'vitest'
-import { buildCalculModel, CALCUL_FOCUS_CLASS, type CalculSpec } from '@brio/content'
+import { buildCalculModel, type CalculSpec } from '@brio/content'
 
-import { KATEX_LIMITS } from '@/lib/katex'
+import { KATEX_LIMITS, katexMacros } from '@/lib/katex'
 
 // KaTeX over every `calcul` block of the catalogue (ADR 0042). check-content has no dependency,
 // so it cannot run KaTeX; this test does, on each line as written and on each part as drawn
@@ -34,8 +34,8 @@ function calculs(): [string, Bloc][] {
 function parse(latex: string): void {
   katex.renderToString(latex, {
     ...KATEX_LIMITS,
+    macros: katexMacros(),
     throwOnError: true,
-    trust: (c) => c.command === '\\htmlClass' && c.class === CALCUL_FOCUS_CLASS,
   })
 }
 

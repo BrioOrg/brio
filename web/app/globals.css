@@ -141,9 +141,3 @@
   animation: atlasPulse 1.7s var(--ease-out) infinite;
   z-index: -1;
 }
-
-/* The part of a calculation line that changed (ADR 0042). KaTeX writes this class through
-   \htmlClass, outside Tailwind's reach, so the colour is set here: tone 1 (ADR 0037), the same as the operation it often comes from. */
-.calcul-focus {
-  color: var(--color-tone-1);
-}

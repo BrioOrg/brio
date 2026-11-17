@@ -144,7 +144,7 @@
         {
           "id": "intro-operation-inverse",
           "type": "prose",
-          "text": "Chaque opération se défait par l'opération inverse : une addition par une soustraction, une multiplication par une division. On fait la même opération sur les **deux membres** de l'égalité : elle reste vraie, et $x$ se retrouve seul."
+          "text": "Chaque opération se défait par l’opération inverse : une addition par une soustraction, une multiplication par une division. On fait la même opération sur les **deux membres** de l’égalité : elle reste vraie, et $x$ se retrouve seul."
         },
         {
           "id": "calcul-x-plus-13",
@@ -166,7 +166,7 @@
               "note": "on calcule"
             }
           ],
-          "conclusion": "La solution de l'équation est $28$."
+          "conclusion": "La solution de l’équation est $28$."
         },
         {
           "id": "calcul-4x",
@@ -188,7 +188,7 @@
               "note": "on calcule"
             }
           ],
-          "conclusion": "La solution de l'équation est $7$."
+          "conclusion": "La solution de l’équation est $7$."
         },
         {
           "id": "tip-verifier",

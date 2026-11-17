@@ -55,10 +55,10 @@ ADR 0019 §2).
    enough (container ≥ 32 rem), under the right member of its line otherwise. Horizontal scroll
    inside the block only when a line itself is wider than the screen.
 5. **What changed.** `focus` is a substring of the line (spaces ignored), emphasised wherever it
-   occurs, never inside a number (`2` in `12`) or a command. The model wraps it in KaTeX
-   `\htmlClass{calcul-focus}`, the one command trusted beyond `KATEX_LIMITS`, and only with that
-   class; `\htmlClass` keeps KaTeX's spacing (a binary minus stays binary). The colour is
-   `--color-tone-1` (ADR 0037): the operation and the part it produces wear the same tone.
+   occurs, never inside a number (`2` in `12`) or a command. The model wraps it in `\tone{1}{…}`,
+   the authors' macro of ADR 0037 (a trusted `\htmlClass`, which keeps KaTeX's spacing: a binary
+   minus stays binary). The operation and the part it produces wear the same tone. An author who
+   colours a line with `\tone` already (terms in x in tone 1, numbers in tone 2) needs no focus.
 6. **The operation on both members** — the signature of the block. `op` (equation mode, from the
    second line) is the LaTeX of the operation that gives this line: `-13`, `\div 4`. It is written
    small, in tone 1, under the *end* of each member of the previous line, as on a copy. It belongs

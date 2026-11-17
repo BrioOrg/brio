@@ -88,8 +88,8 @@ describe('focus', () => {
     expect(focusRanges('\\frac{f}{2}', 'f')).toEqual([[6, 7]])
   })
 
-  it('should wrap every occurrence in the focus class', () => {
-    expect(wrapFocus('x + 13 - 13', '- 13')).toBe('x + 13 \\htmlClass{calcul-focus}{- 13}')
+  it('should write every occurrence in the focus tone', () => {
+    expect(wrapFocus('x + 13 - 13', '- 13')).toBe('x + 13 \\tone{1}{- 13}')
     expect(wrapFocus('5x + 10', undefined)).toBe('5x + 10')
   })
 })
@@ -120,7 +120,7 @@ describe('buildCalculModel', () => {
     expect(model.rows[1]).toEqual({
       lhs: 'x',
       rel: '=',
-      rhs: '41 \\htmlClass{calcul-focus}{- 13}',
+      rhs: '41 \\tone{1}{- 13}',
       spoken: 'x = 41 - 13',
       note: 'on soustrait 13 aux deux membres',
       op: { latex: '-13', rhsBefore: '41' },

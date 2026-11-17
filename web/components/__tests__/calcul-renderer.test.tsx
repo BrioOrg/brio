@@ -42,8 +42,9 @@ describe('CalculRenderer', () => {
   it('should emphasise the part that changed and write the operation under both members', () => {
     const { container } = render(<CalculRenderer id="k" spec={equation} />)
     const deuxieme = lignes(container)[1]
-    expect(deuxieme.querySelector('.calcul-focus')?.textContent).toBe('−13')
-    expect(deuxieme.querySelectorAll('.text-tone-1')).toHaveLength(2)
+    // The emphasis (\tone{1}) and the operation under both members share tone 1.
+    expect(deuxieme.querySelector('.katex .text-tone-1')?.textContent).toBe('−13')
+    expect(deuxieme.querySelectorAll('.leading-none.text-tone-1')).toHaveLength(2)
     expect(screen.getByText('on soustrait 13 aux deux membres')).toBeInTheDocument()
   })
 

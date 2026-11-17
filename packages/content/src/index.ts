@@ -111,7 +111,7 @@ export {
   scanLatex,
   splitCalculLine,
   wrapFocus,
-  CALCUL_FOCUS_CLASS,
+  CALCUL_FOCUS_TONE,
   CALCUL_MAX_LINES,
   CALCUL_MIN_LINES,
   CALCUL_NOTE_MAX_LENGTH,
