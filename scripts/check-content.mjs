@@ -48,6 +48,11 @@
  *    first block, so within one chapter block ids are unique, and none is `debut` or `fin`
  *    (reserved for the opening and closing slides; read from packages/content/src/deck.ts).
  *
+ * 7. Maths tones (ADR 0037) — every `\tone{n}{…}` and figure `tone` is 1 to 4 (error). More than
+ *    3 distinct tones in one block is a warning: the colour stops meaning anything. A tone in a
+ *    figure that no formula of the section uses is fine (the object may be named only there).
+ *    Rules read from packages/content/src/tone.ts, shared with the teacher editor.
+ *
  * Scanned: content/ (excluding referentiel) + docs/schema/examples/.
  * No dependencies; it imports the Scratch parser, the reserved slide ids and the chart rules as
  * TypeScript (packages/content), so it
@@ -60,11 +65,13 @@ let parseRichText
 let parseScratch
 let RESERVED_DIAPO_IDS
 let checkChart
+let checkTones
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
+  ;({ checkTones } = await import('../packages/content/src/tone.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -113,9 +120,14 @@ function findSegment(name, segments) {
 const repoRoot = new URL('..', import.meta.url).pathname
 
 const errors = []
+const warnings = []
 
 function fail(file, path, message) {
   errors.push(`${relative(repoRoot, file)} (${path}): ${message}`)
+}
+
+function warn(file, path, message) {
+  warnings.push(`${relative(repoRoot, file)} (${path}): ${message}`)
 }
 
 /**
@@ -562,6 +574,27 @@ function checkFigures(doc, file) {
   }
 }
 
+// --- Maths tones (ADR 0037) ---
+
+function checkToneBlocks(doc, file) {
+  for (const section of doc.sections ?? []) {
+    for (let i = 0; i < (section.blocks ?? []).length; i++) {
+      const path = `sections[id=${section.id}].blocks[${i}]`
+      for (const issue of checkTones(section.blocks[i]).issues) {
+        if (issue.code === 'UNKNOWN_TONE') {
+          fail(file, `${path}.${issue.path}`, `tone "${issue.value}" does not exist: use 1, 2, 3 or 4`)
+        } else {
+          warn(
+            file,
+            path,
+            `${issue.tones.length} tones in one block (${issue.tones.join(', ')}): keep at most ${issue.max}, colour is rare and meaningful`,
+          )
+        }
+      }
+    }
+  }
+}
+
 // --- Block ids (ADR 0032 §3) ---
 
 function checkBlockIds(doc, file) {
@@ -614,6 +647,7 @@ for (const file of contentFiles) {
     const doc = JSON.parse(readFileSync(file, 'utf8'))
     walkStrings(doc, file, '')
     checkFigures(doc, file)
+    checkToneBlocks(doc, file)
     checkBlockIds(doc, file)
     if (isChapterFile(file) && typeof doc.id === 'string') {
       filesById.set(doc.id, [...(filesById.get(doc.id) ?? []), file])
@@ -633,10 +667,15 @@ for (const [id, files] of filesById) {
   }
 }
 
+if (warnings.length > 0) {
+  console.warn(`! ${warnings.length} warning(s):`)
+  for (const warning of warnings) console.warn(`  - ${warning}`)
+}
+
 if (errors.length > 0) {
   console.error(`✗ Content check failed (${errors.length} problem(s)):`)
   for (const error of errors) console.error(`  - ${error}`)
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + Scratch programmes + unique chapter and block ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + Scratch programmes + maths tones + unique chapter and block ids).`)

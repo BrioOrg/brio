@@ -236,6 +236,50 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptATonedFigure() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Triangle ABC rectangle en A",
+                  "spec": {
+                    "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 4, "y": 0 },
+                                { "name": "C", "x": 0, "y": 3, "tone": 2 } ],
+                    "segments": [ { "from": "A", "to": "B", "tone": 1 } ],
+                    "polygons": [ { "vertices": ["A", "B", "C"], "tone": 3, "fill": "soft" } ],
+                    "circles": [ { "center": "A", "radius": 1, "tone": 4 } ],
+                    "arcs": [ { "center": "A", "radius": 2, "startAngle": 0, "endAngle": 90, "tone": 1 } ],
+                    "angleMarks": [ { "vertex": "A", "from": "B", "to": "C", "right": true, "tone": 1 } ],
+                    "labels": [ { "text": "a", "x": 2, "y": -0.5, "tone": 1 } ]
+                  } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectATonePastFour() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un segment",
+                  "spec": { "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 1, "y": 0 } ],
+                            "segments": [ { "from": "A", "to": "B", "tone": 5 } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectASoftFillWithoutATone() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un triangle",
+                  "spec": { "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 1, "y": 0 },
+                                        { "name": "C", "x": 0, "y": 1 } ],
+                            "polygons": [ { "vertices": ["A", "B", "C"], "fill": "soft" } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldRejectAnArcGivenBothByPointsAndByAngles() {
         String block =
                 """

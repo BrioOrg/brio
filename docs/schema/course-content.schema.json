@@ -591,6 +591,7 @@
           "description": "false hides the point's name. The name still identifies the point inside the spec. Defaults to true.",
           "type": "boolean"
         },
+        "tone": { "$ref": "#/$defs/figureTone" },
         "label": {
           "type": "object",
           "additionalProperties": false,
@@ -613,8 +614,14 @@
       "properties": {
         "from":  { "type": "string", "minLength": 1 },
         "to":    { "type": "string", "minLength": 1 },
-        "style": { "$ref": "#/$defs/figureLineStyle" }
+        "style": { "$ref": "#/$defs/figureLineStyle" },
+        "tone": { "$ref": "#/$defs/figureTone" }
       }
+    },
+
+    "figureTone": {
+      "description": "A meaningful colour (1 to 4), shared with the formula that names the same object through \\tone{n}{…}. Ink when absent. At most 3 distinct tones in a block (a warning of check-content). See ADR 0037.",
+      "enum": [1, 2, 3, 4]
     },
 
     "figureLineStyle": {
@@ -632,8 +639,14 @@
           "minItems": 3,
           "items": { "type": "string", "minLength": 1 }
         },
-        "style": { "$ref": "#/$defs/figureLineStyle" }
-      }
+        "style": { "$ref": "#/$defs/figureLineStyle" },
+        "tone": { "$ref": "#/$defs/figureTone" },
+        "fill": {
+          "description": "\"soft\" fills the polygon with the soft fill of its tone, under its stroke. Requires a tone. See ADR 0037.",
+          "enum": ["soft"]
+        }
+      },
+      "dependentRequired": { "fill": ["tone"] }
     },
 
     "figureCircle": {
@@ -644,7 +657,8 @@
       "properties": {
         "center":  { "type": "string", "minLength": 1 },
         "through": { "type": "string", "minLength": 1 },
-        "radius":  { "type": "number", "exclusiveMinimum": 0 }
+        "radius":  { "type": "number", "exclusiveMinimum": 0 },
+        "tone": { "$ref": "#/$defs/figureTone" }
       },
       "oneOf": [
         { "required": ["through"], "not": { "required": ["radius"] } },
@@ -665,7 +679,8 @@
         "startAngle": { "type": "number" },
         "endAngle":   { "type": "number" },
         "closed":     { "enum": ["sector", "chord"] },
-        "style":      { "$ref": "#/$defs/figureLineStyle" }
+        "style":      { "$ref": "#/$defs/figureLineStyle" },
+        "tone":       { "$ref": "#/$defs/figureTone" }
       },
       "oneOf": [
         {
@@ -688,7 +703,8 @@
         "vertex": { "type": "string", "minLength": 1 },
         "from":   { "type": "string", "minLength": 1 },
         "to":     { "type": "string", "minLength": 1 },
-        "right":  { "type": "boolean", "default": false }
+        "right":  { "type": "boolean", "default": false },
+        "tone": { "$ref": "#/$defs/figureTone" }
       }
     },
 
@@ -711,7 +727,8 @@
       "properties": {
         "text": { "type": "string", "minLength": 1 },
         "x":    { "type": "number" },
-        "y":    { "type": "number" }
+        "y":    { "type": "number" },
+        "tone": { "$ref": "#/$defs/figureTone" }
       }
     },
 
