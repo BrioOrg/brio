@@ -50,8 +50,13 @@ unchanged (ADR 0004, ADR 0019 §2).
    draws every solution. A value that is not exact is rounded to the hundredth with ≈. The
    graduation number a value would cover is removed: the read value replaces it.
 5. **Colour.** The curve is ink, like every other stroke of a figure. The reading is the one
-   coloured thing (accent: guides, point and values together). `tone: 1…4` (#382) colours a
-   curve and its name to match the same tone in the prose's formula; never decoration.
+   coloured thing (accent: guides, point and values together). `tone` (ADR 0037, the same
+   `figureTone` 1–4 and editor picker as every figure element) colours a curve and its name to
+   match the same tone in the prose's formula; never decoration.
+   Every text of a repère (graduation numbers, axis titles, read values, curve names) is drawn
+   over the strokes with a halo in the page colour (`paint-order: stroke`), so a curve passing
+   behind a number stops short of it, as in a printed textbook. A graduation number within a
+   short number's width of a read value is hidden: the read value wins.
 6. **Parameters.** Each letter gets a native range input under the drawing (keyboard, Home/End,
    `aria-valuetext` "a = 1,5"), with its bounds written at both ends. The curve and its readings
    follow it on every input, with no animation: the point moves because the student moves it.
