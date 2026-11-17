@@ -146,6 +146,21 @@ export default function DesignPage() {
           </div>
         </Section>
 
+        {/* ── Maths tones ───────────────────────────────────────────────────── */}
+        <Section title="Couleurs mathématiques">
+          <Label>
+            Un même objet, une même teinte dans la figure et dans la formule — rare, jamais un état
+          </Label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="flex flex-col gap-2">
+                <Swatch token={`tone-${n}`} label={`tone-${n}`} />
+                <Swatch token={`tone-${n}-soft`} label="fond doux" />
+              </div>
+            ))}
+          </div>
+        </Section>
+
         {/* ── Scratch palette ───────────────────────────────────────────────── */}
         <Section title="Blocs Scratch">
           <Label>Une couleur par catégorie de bloc, identique dans les deux thèmes</Label>
