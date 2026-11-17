@@ -13,18 +13,18 @@ const CHAPITRES = join(__dirname, '../../../content/chapitres')
 
 type Chapitre = DeckInput & { id: string; sections: { id: string; kind: string }[] }
 
+function sousDossiers(dossier: string): string[] {
+  return readdirSync(dossier, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+}
+
 function chapitres(): { fichier: string; chapitre: Chapitre }[] {
   const resultat: { fichier: string; chapitre: Chapitre }[] = []
-  for (const niveau of readdirSync(CHAPITRES)) {
-    for (const matiere of readdirSync(join(CHAPITRES, niveau))) {
+  for (const niveau of sousDossiers(CHAPITRES)) {
+    for (const matiere of sousDossiers(join(CHAPITRES, niveau))) {
       const dossier = join(CHAPITRES, niveau, matiere)
-      let fichiers: string[]
-      try {
-        fichiers = readdirSync(dossier)
-      } catch {
-        continue
-      }
-      for (const f of fichiers) {
+      for (const f of readdirSync(dossier)) {
         if (!f.endsWith('.json') || f.startsWith('_')) continue
         resultat.push({
           fichier: `${niveau}/${matiere}/${f}`,
