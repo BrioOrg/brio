@@ -115,6 +115,18 @@ export const E2E_SESSION_SANS_CLASSE = 'JSESSIONID=e2e-sans-classe'
 /** A logged-in teacher: /api/moi answers ENSEIGNANT, so the teacher space (/prof) opens. */
 export const E2E_SESSION_ENSEIGNANT = 'JSESSIONID=e2e-enseignant'
 
+/**
+ * A student (5e) whose competence to review is `c4.num.operations.diviser-decimal`: taught in a
+ * lesson section of `division-decimale-problemes` (#371).
+ */
+export const E2E_SESSION_A_REVOIR = 'JSESSIONID=e2e-a-revoir'
+
+/**
+ * A student whose competence to review is `c4.geo.pythagore.reciproque`, which only an `exercises`
+ * section carries: no lesson to link, so the Accueil hides « À revoir » (#371).
+ */
+export const E2E_SESSION_A_REVOIR_ORPHELIN = 'JSESSIONID=e2e-a-revoir-orphelin'
+
 function cookies(req) {
   return (req.headers.cookie ?? '').split(/;\s*/)
 }
@@ -162,8 +174,19 @@ function sessionReinit(req) {
 /** Any live session. Another JSESSIONID (`e2e-expiree`…) is a session the backend has dropped. */
 function connecte(req) {
   return (
-    cookies(req).includes(E2E_SESSION) || sansClasse(req) || enseignant(req) || !!sessionReinit(req)
+    cookies(req).includes(E2E_SESSION) ||
+    sansClasse(req) ||
+    enseignant(req) ||
+    !!sessionReinit(req) ||
+    competenceARevoir(req) !== null
   )
+}
+
+/** The competence a #371 session has to review, null for any other session. */
+function competenceARevoir(req) {
+  if (cookies(req).includes(E2E_SESSION_A_REVOIR)) return 'c4.num.operations.diviser-decimal'
+  if (cookies(req).includes(E2E_SESSION_A_REVOIR_ORPHELIN)) return 'c4.geo.pythagore.reciproque'
+  return null
 }
 
 function enseignant(req) {
@@ -537,6 +560,81 @@ async function chapitres() {
   return out
 }
 
+const REFERENTIEL_DIR = join(CONTENT_DIR, '../referentiel')
+
+/** Competence labels as /api/referentiel/libelles serves them (deprecated codes included). */
+async function libelles() {
+  const out = []
+  for (const fichier of await readdir(REFERENTIEL_DIR)) {
+    if (!fichier.endsWith('.json')) continue
+    const { competences } = JSON.parse(await readFile(join(REFERENTIEL_DIR, fichier), 'utf8'))
+    for (const { code, intitule } of competences) out.push({ code, intitule })
+  }
+  return out
+}
+
+// Mirrors V5 (contenu.niveaux.ordre): the order the catalogue lists levels in.
+const NIVEAUX = ['6e', '5e', '4e', '3e']
+
+/**
+ * The lesson section that teaches a competence (#371, ADR 0037), the same rule as the backend:
+ * published chapters of content/chapitres (annales and teacher courses live elsewhere) with a
+ * `lesson` section whose exercise block carries the code; the requested level's chapters first,
+ * then level order, matiere, `_index.json` order; in the chapter, the first such section.
+ */
+async function leconDe(code, niveauDemande) {
+  const candidats = []
+  for (const niveau of NIVEAUX) {
+    let matieres
+    try {
+      matieres = (await readdir(join(CONTENT_DIR, niveau))).sort()
+    } catch {
+      continue
+    }
+    for (const matiere of matieres) {
+      let ordre
+      try {
+        ordre = JSON.parse(
+          await readFile(join(CONTENT_DIR, niveau, matiere, '_index.json'), 'utf8')
+        )
+      } catch {
+        continue
+      }
+      for (const slug of ordre) {
+        let chapitre
+        try {
+          chapitre = JSON.parse(
+            await readFile(join(CONTENT_DIR, niveau, matiere, `${slug}.json`), 'utf8')
+          )
+        } catch {
+          continue
+        }
+        if ((chapitre.status ?? 'published') !== 'published') continue
+        const section = (chapitre.sections ?? []).find(
+          (sec) =>
+            sec.kind === 'lesson' &&
+            (sec.blocks ?? []).some(
+              (b) => b.type === 'exercise' && (b.competencies ?? []).includes(code)
+            )
+        )
+        if (!section) continue
+        candidats.push({
+          niveauCode: niveau,
+          matiereCode: matiere,
+          chapitreId: chapitre.id,
+          sectionId: section.id,
+          sectionTitre: section.title,
+        })
+      }
+    }
+  }
+  // Stable sort: the level asked for first, the catalogue order kept for the rest.
+  candidats.sort(
+    (a, b) => Number(b.niveauCode === niveauDemande) - Number(a.niveauCode === niveauDemande)
+  )
+  return candidats[0] ?? null
+}
+
 /** A track in its catalogue order (`_index.json`), for a student with nothing recorded. */
 async function parcours(niveau, matiere) {
   if (![niveau, matiere].every((s) => SEGMENT.test(s))) return []
@@ -720,12 +818,27 @@ const server = createServer(async (req, res) => {
       if (pathname === '/api/progression/reprendre') {
         return sansClasse(req) ? send(res, 204) : send(res, 200, REPRENDRE)
       }
-      if (pathname === '/api/progression/maitrise') return send(res, 200, [])
+      if (pathname === '/api/progression/maitrise') {
+        const code = competenceARevoir(req)
+        if (code === null) return send(res, 200, [])
+        // Worked yesterday, computed at run time so it stays inside the 30 days competenceARevoir keeps.
+        const hier = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        return send(res, 200, [
+          { competenceCode: code, niveau: 1, echantillon: 5, dernierTravail: hier },
+        ])
+      }
       return send(res, 404)
     }
     if (pathname === '/api/referentiel/libelles') {
       if (!connecte(req)) return send(res, 401)
-      return send(res, 200, [])
+      return send(res, 200, competenceARevoir(req) === null ? [] : await libelles())
+    }
+    if (pathname === '/api/referentiel/lecon') {
+      if (!connecte(req)) return send(res, 401)
+      const code = searchParams.get('competence')
+      if (!code) return send(res, 400)
+      const lecon = await leconDe(code, searchParams.get('niveau'))
+      return lecon ? send(res, 200, lecon) : send(res, 204)
     }
 
     // The teacher's class and its roster (ADR 0029), for the access reset (ADR 0036).
