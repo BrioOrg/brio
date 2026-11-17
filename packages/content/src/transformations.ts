@@ -274,6 +274,17 @@ export function placementToward(dx: number, dy: number): LabelPlacement {
   return bySector[sector]
 }
 
+const PLACEMENT_DIRECTIONS: Partial<Record<LabelPlacement, [number, number]>> = {
+  right: [1, 0],
+  'above-right': [1, 1],
+  above: [0, 1],
+  'above-left': [-1, 1],
+  left: [-1, 0],
+  'below-left': [-1, -1],
+  below: [0, -1],
+  'below-right': [1, -1],
+}
+
 function centroid(pts: Pt2[]): Pt2 {
   return {
     x: pts.reduce((s, p) => s + p.x, 0) / pts.length,
@@ -295,6 +306,14 @@ function imagePlacement(
   source: FigurePoint | undefined,
   motion: TransformationMotion
 ): LabelPlacement {
+  // The author placed the source name where it is free: the image name goes where the
+  // transformation sends that spot (mirrored, turned, or through the centre).
+  const placed = source?.label?.placement
+  if (placed && placed !== 'auto' && PLACEMENT_DIRECTIONS[placed]) {
+    const [dx, dy] = PLACEMENT_DIRECTIONS[placed]
+    const [a, b, c, d] = affineAt(motion, 1)
+    return placementToward(a * dx + c * dy, b * dx + d * dy)
+  }
   if (images.length >= 3) {
     const g = centroid(images)
     return placementToward(image.x - g.x, image.y - g.y)

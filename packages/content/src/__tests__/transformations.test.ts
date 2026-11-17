@@ -141,6 +141,25 @@ describe('expandTransformations', () => {
     expect(named?.[2].label?.placement).toBe('below')
   })
 
+  it('sends an authored name placement where the transformation sends it', () => {
+    const { layers } = expandTransformations({
+      points: [
+        { name: 'P', x: 0, y: 0 },
+        { name: 'Q', x: 0, y: 2 },
+        { name: 'A', x: -2, y: 0, label: { placement: 'above-left' } },
+        { name: 'B', x: -1, y: 1, label: { placement: 'below' } },
+        { name: 'C', x: -3, y: 2 },
+      ],
+      lines: [{ through: ['P', 'Q'] }],
+      polygons: [{ vertices: ['A', 'B', 'C'] }],
+      transformations: [{ kind: 'symetrie-axiale', axis: ['P', 'Q'], source: ['A', 'B'] }],
+    })
+    const placements = layers[0].image.points
+      ?.filter((p) => p.showName !== false)
+      .map((p) => p.label?.placement)
+    expect(placements).toEqual(['above-right', 'below'])
+  })
+
   it('leaves an invariant point unnamed: it is its own image', () => {
     const { layers } = expandTransformations({
       points: [
