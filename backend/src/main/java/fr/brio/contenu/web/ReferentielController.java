@@ -5,16 +5,19 @@ import fr.brio.contenu.ReferentielService;
 import fr.brio.contenu.api.CompetenceLibelle;
 import fr.brio.contenu.api.LeconCompetence;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * The referential's labels for any logged-in account (#324): progression only knows competency
@@ -51,9 +54,16 @@ class ReferentielController {
                     + " passent d'abord (ADR 0037).")
     @ApiResponse(responseCode = "200", description = "Leçon à revoir")
     @ApiResponse(responseCode = "204", description = "Aucune leçon rattachable à cette compétence", content = @Content)
-    @ApiResponse(responseCode = "401", description = "Authentification requise")
+    @ApiResponse(responseCode = "400", description = "Compétence absente ou vide", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Authentification requise", content = @Content)
     ResponseEntity<LeconCompetence> lecon(
-            @RequestParam String competence, @RequestParam(required = false) String niveau) {
+            
+            @Parameter(required = true, description = "Code de la compétence ; 400 s'il est absent ou vide")
+                    @RequestParam(required = false) String competence,
+            @RequestParam(required = false) String niveau) {
+        if (competence == null || competence.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Compétence requise");
+        }
         return leconCompetenceService
                 .trouver(competence, niveau)
                 .map(ResponseEntity::ok)

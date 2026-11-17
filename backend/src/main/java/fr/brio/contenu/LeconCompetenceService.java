@@ -7,6 +7,7 @@ import fr.brio.contenu.api.LeconCompetence;
 import fr.brio.contenu.domain.Chapitre;
 import fr.brio.contenu.infrastructure.ExerciceRepository;
 import java.io.UncheckedIOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -35,12 +36,12 @@ public class LeconCompetenceService {
     @Transactional(readOnly = true)
     public Optional<LeconCompetence> trouver(String competence, String niveau) {
         List<Chapitre> candidats = exerciceRepository.findPublishedChapitresByCompetence(competence);
-        // Stable sorts: the repository already orders by niveau, matière and chapter order.
+        // Stable sort: chapters of the requested niveau first, the repository order
+        // (niveau, matière, chapter order) otherwise kept.
         List<Chapitre> ordonnes = niveau == null
                 ? candidats
-                : java.util.stream.Stream.concat(
-                                candidats.stream().filter(c -> niveau.equals(c.getNiveauCode())),
-                                candidats.stream().filter(c -> !niveau.equals(c.getNiveauCode())))
+                : candidats.stream()
+                        .sorted(Comparator.comparing((Chapitre c) -> !niveau.equals(c.getNiveauCode())))
                         .toList();
         for (Chapitre chapitre : ordonnes) {
             Optional<LeconCompetence> lecon = premiereSection(chapitre, competence);

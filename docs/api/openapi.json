@@ -2415,6 +2415,7 @@
         "parameters" : [ {
           "name" : "competence",
           "in" : "query",
+          "description" : "Code de la compétence ; 400 s'il est absent ou vide",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -2441,15 +2442,11 @@
           "204" : {
             "description" : "Aucune leçon rattachable à cette compétence"
           },
+          "400" : {
+            "description" : "Compétence absente ou vide"
+          },
           "401" : {
-            "description" : "Authentification requise",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/LeconCompetence"
-                }
-              }
-            }
+            "description" : "Authentification requise"
           }
         }
       }
