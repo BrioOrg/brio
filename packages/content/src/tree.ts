@@ -107,12 +107,14 @@ const STACK_GAP = 7
 const ROW_GAP = 8
 const MARGIN = 4
 const STEP_INCREMENT = 4
-const STEP_ATTEMPTS = 12
+const STEP_ATTEMPTS = 20
 const BRANCH_INCREMENT = 6
-const MAX_ATTEMPTS = 40
+const MAX_ATTEMPTS = 60
 const COLLISION_MARGIN = 1
 /** Two labels keep at least this much air between them. */
 const LABEL_SPACING = 6
+/** Between two branch labels (ADR 0040 §7). */
+const PROBABILITY_SPACING = 14
 
 type Box = { width: number; height: number }
 
@@ -400,7 +402,10 @@ export function treeCollisions(model: TreeModel): string[] {
   rects.forEach((r, i) => {
     if (rectsOverlap(r, rootRect, COLLISION_MARGIN)) found.push(`root × label ${i}`)
     for (let j = i + 1; j < rects.length; j++) {
-      if (rectsOverlap(r, rects[j], LABEL_SPACING)) found.push(`label ${i} × label ${j}`)
+      // Two branch labels keep more air: each must read as its own branch's, not its neighbour's.
+      const both = model.labels[i].role === 'probability' && model.labels[j].role === 'probability'
+      const spacing = both ? PROBABILITY_SPACING : LABEL_SPACING
+      if (rectsOverlap(r, rects[j], spacing)) found.push(`label ${i} × label ${j}`)
     }
     model.branches.forEach((s, k) => {
       if (segmentHitsRect(s, r, COLLISION_MARGIN)) found.push(`branch ${k} × label ${i}`)
