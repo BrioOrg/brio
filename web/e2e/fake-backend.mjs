@@ -34,6 +34,24 @@
  *                                                 by Vitest, as it needs another server setting
  *   /api/communaute/**                            the Communauté (ADR 0035), kept in memory with
  *                                                 CommunauteService's rules; 403 for a teacher
+ *   GET  /api/prof/classes                        the test teacher's class (PROF_CLASSE)
+ *   GET  /api/classes/{id}/inscriptions           its one student, for the teacher; 403 otherwise
+ *   POST /api/classes/{id}/inscriptions/{compteId}/reinitialisation-acces
+ *                                                 teacher-led access reset (ADR 0036): the student's
+ *                                                 identifier + a fresh provisional password, 7 days
+ *   POST /api/sessions                            form login, only with a provisional password above
+ *                                                 (dashes, spaces and case ignored, as the backend
+ *                                                 does — the identifier's spaces and case too):
+ *                                                 usable once, opens a session that must choose
+ *                                                 its password (doitChangerMotDePasse, pseudonym
+ *                                                 withheld); 401 otherwise, with the backend's body
+ *   POST /api/moi/mot-de-passe                    204 lifts that flag; 400 under 8 chars or over 72
+ *                                                 bytes of UTF-8 (what bcrypt hashes); 422
+ *                                                 the provisional password again; 409 when nothing is
+ *                                                 pending. While pending, every other call of that
+ *                                                 session is a 403, as StatutCheckFilter does — except
+ *                                                 DELETE /api/sessions (logout runs before it).
+ *                                                 Afterwards /api/moi carries accesReinitialise
  *   anything else                                 404 (the catalogue too: the page falls back
  *                                                 to codes, nothing is invented)
  *
@@ -101,9 +119,51 @@ function cookies(req) {
   return (req.headers.cookie ?? '').split(/;\s*/)
 }
 
+// Teacher-led access reset (ADR 0036). Each reset issues its own provisional password, valid once:
+// the desktop and mobile projects run the same spec at once against this one server, so a reset
+// must not invalidate the other project's (the real backend keeps only the latest — a detail
+// no spec relies on). A login with one opens a session, keyed by its cookie value.
+const IDENTIFIANT_REINIT = 'k7m4p9xa3r'
+const ALPHABET_PROVISOIRE = '23456789abcdefghjkmnpqrstuvwxyz'
+/** canonical provisional password -> when its reset happened (the date told to the student) */
+const provisoiresValides = new Map()
+/** cookie value -> { aChanger, provisoire, le } for a session opened with a provisional password */
+const sessionsReinit = new Map()
+
+/**
+ * The backend's canonical form of a provisional password (MotDePasseProvisoire.normaliser). JS's
+ * \s covers the non-breaking spaces (U+00A0, U+202F) the backend drops too.
+ */
+function canonique(motDePasse) {
+  return motDePasse.replace(/[-\s]/g, '').toLowerCase()
+}
+
+/** The backend's tolerant reading of a typed identifier (IdentifiantConnexion.normaliser). */
+function identifiantCanonique(identifiant) {
+  return identifiant.replace(/\s/g, '').toLowerCase()
+}
+
+function provisoire() {
+  const groupe = () =>
+    Array.from({ length: 4 }, () =>
+      ALPHABET_PROVISOIRE.charAt(Math.floor(Math.random() * ALPHABET_PROVISOIRE.length))
+    ).join('')
+  return `${groupe()}-${groupe()}-${groupe()}`
+}
+
+/** The session opened with a provisional password, if this request carries one. */
+function sessionReinit(req) {
+  const valeur = cookies(req)
+    .find((c) => c.startsWith('JSESSIONID='))
+    ?.slice('JSESSIONID='.length)
+  return valeur && sessionsReinit.has(valeur) ? valeur : null
+}
+
 /** Any live session. Another JSESSIONID (`e2e-expiree`…) is a session the backend has dropped. */
 function connecte(req) {
-  return cookies(req).includes(E2E_SESSION) || sansClasse(req) || enseignant(req)
+  return (
+    cookies(req).includes(E2E_SESSION) || sansClasse(req) || enseignant(req) || !!sessionReinit(req)
+  )
 }
 
 function enseignant(req) {
@@ -130,6 +190,23 @@ const ENSEIGNANT = {
   statut: 'actif',
   nom: 'M. Dubois',
   email: 'prof.e2e@example.org',
+}
+
+// The test teacher's class and its one student, whose access the teacher can reset (ADR 0036).
+const PROF_CLASSE = {
+  id: 'classe-4eA',
+  etablissementId: 'etab-e2e',
+  niveauCode: '4e',
+  libelle: '4e A',
+  anneeScolaire: '2026-2027',
+  statut: 'active',
+  enseignantPrincipalId: '00000000-0000-4000-8000-0000000000e3',
+}
+const PROF_INSCRIT = {
+  compteId: '00000000-0000-4000-8000-0000000000e4',
+  nomAffiche: 'Inès',
+  depuis: '2026-09-02',
+  homonyme: false,
 }
 
 // The logged-in student's class and its salon (F6b, #270), for /ma-classe. `estMoi` is derived
@@ -534,6 +611,12 @@ function evaluer(block, answer) {
   }
 }
 
+async function texte(req) {
+  const morceaux = []
+  for await (const morceau of req) morceaux.push(morceau)
+  return Buffer.concat(morceaux).toString('utf8')
+}
+
 async function corps(req) {
   const morceaux = []
   for await (const morceau of req) morceaux.push(morceau)
@@ -553,6 +636,54 @@ function send(res, status, body) {
 
 const server = createServer(async (req, res) => {
   const { pathname, searchParams } = new URL(req.url ?? '/', 'http://localhost')
+
+  // A session opened with a provisional password may only choose its password (ADR 0036 §5).
+  const reinit = sessionReinit(req)
+  const etatReinit = reinit ? sessionsReinit.get(reinit) : null
+  if (reinit && req.method === 'DELETE' && pathname === '/api/sessions') {
+    // Logout is handled before StatutCheckFilter: allowed even while the change is pending.
+    sessionsReinit.delete(reinit)
+    res.writeHead(204, { 'set-cookie': 'JSESSIONID=; Path=/; Max-Age=0' })
+    return res.end()
+  }
+  if (etatReinit?.aChanger) {
+    if (req.method === 'GET' && pathname === '/api/moi') {
+      // The pseudonym is withheld until the student chose their password (ADR 0036 §9).
+      return send(res, 200, {
+        ...ELEVE,
+        pseudonyme: null,
+        doitChangerMotDePasse: true,
+        accesReinitialise: null,
+      })
+    }
+    if (req.method === 'POST' && pathname === '/api/moi/mot-de-passe') {
+      const nouveau = (await corps(req))?.nouveauMotDePasse
+      if (
+        typeof nouveau !== 'string' ||
+        nouveau.length < 8 ||
+        Buffer.byteLength(nouveau, 'utf8') > 72
+      ) {
+        return send(res, 400, { error: 'Ton mot de passe est trop long.' })
+      }
+      if (canonique(nouveau) === etatReinit.provisoire) {
+        return send(res, 422, {
+          error: 'Choisis un mot de passe différent du mot de passe provisoire.',
+        })
+      }
+      sessionsReinit.set(reinit, { ...etatReinit, aChanger: false })
+      res.writeHead(204)
+      return res.end()
+    }
+    return send(res, 403, { error: 'Choisis ton nouveau mot de passe avant de continuer.' })
+  }
+  if (etatReinit && req.method === 'GET' && pathname === '/api/moi') {
+    // Once chosen, the student is told about the reset (ADR 0036 §8).
+    return send(res, 200, {
+      ...ELEVE,
+      doitChangerMotDePasse: false,
+      accesReinitialise: { le: etatReinit.le, par: 'enseignant' },
+    })
+  }
 
   if (pathname.startsWith('/api/communaute/')) {
     return communaute(req, res, pathname, searchParams)
@@ -597,6 +728,18 @@ const server = createServer(async (req, res) => {
       return send(res, 200, [])
     }
 
+    // The teacher's class and its roster (ADR 0029), for the access reset (ADR 0036).
+    if (pathname === '/api/prof/classes') {
+      if (!connecte(req)) return send(res, 401)
+      return enseignant(req) ? send(res, 200, [PROF_CLASSE]) : send(res, 403)
+    }
+    const inscrits = pathname.match(/^\/api\/classes\/([^/]+)\/inscriptions$/)
+    if (inscrits) {
+      if (!connecte(req)) return send(res, 401)
+      if (!enseignant(req) || inscrits[1] !== PROF_CLASSE.id) return send(res, 403)
+      return send(res, 200, [PROF_INSCRIT])
+    }
+
     // Class salon (F6b). A session that is not the test student's gets 401, as the backend
     // would for a logged-out caller — the client treats that as "no class".
     if (pathname === '/api/moi/classes') {
@@ -624,6 +767,61 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === 'POST') {
+    // Teacher-led access reset (ADR 0036): the class teacher only, for a student of the class.
+    const reinitialisation = pathname.match(
+      /^\/api\/classes\/([^/]+)\/inscriptions\/([^/]+)\/reinitialisation-acces$/
+    )
+    if (reinitialisation) {
+      if (!connecte(req)) return send(res, 401)
+      if (!enseignant(req) || reinitialisation[1] !== PROF_CLASSE.id) return send(res, 403)
+      if (reinitialisation[2] !== PROF_INSCRIT.compteId) {
+        return send(res, 404, { error: 'Élève non inscrit dans cette classe' })
+      }
+      const motDePasse = provisoire()
+      provisoiresValides.set(canonique(motDePasse), new Date().toISOString())
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' })
+      return res.end(
+        JSON.stringify({
+          identifiantConnexion: IDENTIFIANT_REINIT,
+          motDePasseProvisoire: motDePasse,
+          expireLe: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+        })
+      )
+    }
+    // Form login (Spring Security's processing URL, not in the OpenAPI spec): only the student
+    // above, with a provisional password, once. Everything else is the backend's single 401.
+    if (pathname === '/api/sessions') {
+      const form = new URLSearchParams(await texte(req))
+      const motDePasse = canonique(form.get('mot_de_passe') ?? '')
+      if (
+        identifiantCanonique(form.get('identifiant') ?? '') !== IDENTIFIANT_REINIT ||
+        !provisoiresValides.has(motDePasse)
+      ) {
+        return send(res, 401, { error: 'Identifiant ou mot de passe incorrect' })
+      }
+      const le = provisoiresValides.get(motDePasse)
+      provisoiresValides.delete(motDePasse)
+      const session = `e2e-reinit-${randomUUID()}`
+      sessionsReinit.set(session, { aChanger: true, provisoire: motDePasse, le })
+      res.writeHead(200, {
+        'content-type': 'application/json',
+        'set-cookie': `JSESSIONID=${session}; Path=/; HttpOnly; SameSite=Lax`,
+      })
+      return res.end(
+        JSON.stringify({
+          ...ELEVE,
+          pseudonyme: null,
+          doitChangerMotDePasse: true,
+          accesReinitialise: null,
+        })
+      )
+    }
+    if (pathname === '/api/moi/mot-de-passe') {
+      if (!connecte(req)) return send(res, 401)
+      return send(res, 409, {
+        error: "Aucun changement de mot de passe n'est demandé pour ce compte.",
+      })
+    }
     const soumission = pathname.match(/^\/api\/exercices\/([^/]+)\/soumissions$/)
     if (soumission) {
       if (!connecte(req)) return send(res, 401)

@@ -12,12 +12,18 @@
     },
     "visiteur": {
       "entree": "/commencer",
-      "autorise": ["/commencer", "/connexion", "/inscription", "/rejoindre"]
+      "autorise": ["/commencer", "/connexion", "/inscription", "/rejoindre", "/mot-de-passe-oublie"]
     }
   },
   "attendus": {
-    "horsNavigation": ["/consentement/[token]", "/consentement/revocation/[token]", "/consentement/succes", "/design"],
-    "liensMorts": ["/mot-de-passe-oublie"]
+    "horsNavigation": [
+      "/consentement/[token]",
+      "/consentement/revocation/[token]",
+      "/consentement/succes",
+      "/design",
+      "/changer-mot-de-passe"
+    ],
+    "liensMorts": []
   },
   "taches": [
     { "id": "eleve-reprendre-chapitre", "label": "Reprendre le chapitre en cours", "persona": "eleve", "chaude": true, "arrivee": "/[niveau]/[matiere]/[slug]", "budget": 1, "cible": 1 },
