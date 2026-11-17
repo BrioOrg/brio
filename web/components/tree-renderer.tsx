@@ -121,53 +121,56 @@ function PathTable({ rows, title }: { rows: TreePathRow[]; title?: string }) {
   const steps = Math.max(...rows.map((r) => r.steps.length))
   const withProduct = rows.some((r) => r.product !== null)
   return (
-    <table className="sr-only">
-      {title && <caption>{title}</caption>}
-      <thead>
-        <tr>
-          {Array.from({ length: steps }, (_, i) => (
-            <th key={i} scope="col">
-              Épreuve {i + 1}
-            </th>
-          ))}
-          <th scope="col">Issue</th>
-          {withProduct && <th scope="col">Probabilité</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, r) => (
-          <tr key={r}>
-            {Array.from({ length: steps }, (_, i) => {
-              const step = row.steps[i]
-              return (
-                <td key={i}>
-                  {step && <RichTextRenderer text={step.label} />}
-                  {step?.probability && (
-                    <>
-                      {' '}
-                      (probabilité{' '}
-                      <span
-                        dangerouslySetInnerHTML={{ __html: renderKatex(step.probability, false) }}
-                      />
-                      )
-                    </>
+    // In a div: a table refuses the 1px width of sr-only and would widen the page on a phone.
+    <div className="sr-only">
+      <table>
+        {title && <caption>{title}</caption>}
+        <thead>
+          <tr>
+            {Array.from({ length: steps }, (_, i) => (
+              <th key={i} scope="col">
+                Épreuve {i + 1}
+              </th>
+            ))}
+            <th scope="col">Issue</th>
+            {withProduct && <th scope="col">Probabilité</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, r) => (
+            <tr key={r}>
+              {Array.from({ length: steps }, (_, i) => {
+                const step = row.steps[i]
+                return (
+                  <td key={i}>
+                    {step && <RichTextRenderer text={step.label} />}
+                    {step?.probability && (
+                      <>
+                        {' '}
+                        (probabilité{' '}
+                        <span
+                          dangerouslySetInnerHTML={{ __html: renderKatex(step.probability, false) }}
+                        />
+                        )
+                      </>
+                    )}
+                  </td>
+                )
+              })}
+              <td>
+                <RichTextRenderer text={row.outcome} />
+              </td>
+              {withProduct && (
+                <td>
+                  {row.product && (
+                    <span dangerouslySetInnerHTML={{ __html: renderKatex(row.product, false) }} />
                   )}
                 </td>
-              )
-            })}
-            <td>
-              <RichTextRenderer text={row.outcome} />
-            </td>
-            {withProduct && (
-              <td>
-                {row.product && (
-                  <span dangerouslySetInnerHTML={{ __html: renderKatex(row.product, false) }} />
-                )}
-              </td>
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

@@ -53,8 +53,9 @@ unchanged (ADR 0004, ADR 0019 §2).
    when every factor is decimal. Off by default, like `showValues` in ADR 0030: a written product
    gives away the exercise. `products` requires every probability on every path to be numeric.
 6. **One emphasised path.** `highlightPath` lists the labels from the root to one leaf. Its
-   branches, their probabilities and its leaf texts take the accent colour: the multiplication rule
-   seen on the figure. Colour is never the only cue: the path is also drawn thicker.
+   branches, their probabilities and its leaf texts take the first maths tone (`--color-tone-1`,
+   #382): the multiplication rule read on the figure and in the product, in the same colour.
+   Colour is never the only cue: the path is also drawn thicker and its issue in bold.
 7. **Layout in `@brio/content`.** A pure function places leaves at equal steps, each parent at
    the middle of its children, and each branch label at mid-branch on the side away from its
    siblings (the middle branch of an odd fan: above). Label sizes are estimated from KaTeX's

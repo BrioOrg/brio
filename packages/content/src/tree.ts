@@ -87,8 +87,8 @@ export const TREE_TEXT_PX = 13
 export const TREE_MATH_EM = 13
 const TEXT_CHAR = 0.62 * TREE_TEXT_PX
 const TEXT_HEIGHT = 18
-const MATH_LINE = 1.2
-const FRACTION_HEIGHT = 2.05
+const MATH_LINE = 1.45
+const FRACTION_HEIGHT = 2.43
 /** Estimates are rounded up by this factor plus PAD, so a real box is never wider. */
 const SAFETY = 1.08
 const PAD = 2
@@ -103,7 +103,7 @@ const LABEL_GAP = 3
 const ROOT_RADIUS = 2.5
 const COLUMN_GAP = 18
 const PRODUCT_GAP = 14
-const STACK_GAP = 2
+const STACK_GAP = 7
 const ROW_GAP = 8
 const MARGIN = 4
 const STEP_INCREMENT = 4
@@ -111,6 +111,8 @@ const STEP_ATTEMPTS = 12
 const BRANCH_INCREMENT = 6
 const MAX_ATTEMPTS = 40
 const COLLISION_MARGIN = 1
+/** Two labels keep at least this much air between them. */
+const LABEL_SPACING = 6
 
 type Box = { width: number; height: number }
 
@@ -398,7 +400,7 @@ export function treeCollisions(model: TreeModel): string[] {
   rects.forEach((r, i) => {
     if (rectsOverlap(r, rootRect, COLLISION_MARGIN)) found.push(`root × label ${i}`)
     for (let j = i + 1; j < rects.length; j++) {
-      if (rectsOverlap(r, rects[j], COLLISION_MARGIN)) found.push(`label ${i} × label ${j}`)
+      if (rectsOverlap(r, rects[j], LABEL_SPACING)) found.push(`label ${i} × label ${j}`)
     }
     model.branches.forEach((s, k) => {
       if (segmentHitsRect(s, r, COLLISION_MARGIN)) found.push(`branch ${k} × label ${i}`)
@@ -517,7 +519,9 @@ export function buildTreeModel(spec: TreeSpec, options: TreeLayoutOptions = {}):
     // The leaf step grows first; past STEP_ATTEMPTS the branches lengthen too, which opens the
     // narrow angle near a parent where a fan's middle label can meet its neighbour's branch.
     const extra = ROW_GAP + Math.min(attempt, STEP_ATTEMPTS) * STEP_INCREMENT
-    const columnCentre = placeDepth(branch + Math.max(0, attempt - STEP_ATTEMPTS) * BRANCH_INCREMENT)
+    const columnCentre = placeDepth(
+      branch + Math.max(0, attempt - STEP_ATTEMPTS) * BRANCH_INCREMENT
+    )
     // Breadth axis: leaves one after another, parents at the middle of their children.
     let cursor = 0
     leaves.forEach((leaf, i) => {
