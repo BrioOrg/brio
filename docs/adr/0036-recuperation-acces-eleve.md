@@ -4,7 +4,8 @@
 - **Date**: 2026-11-16
 - **Deciders**: Porte 3 du mesh — B1 (architecture) · U1 (veto V5) — arbitrages humains N3
   (Gabrielle, 2026-11-16 : compte existant ; puis risque résiduel accepté, `admin_brio` hors
-  classe, réglages) — ticket PL-4 (#364)
+  classe, réglages ; 2026-11-17 : message honnête aux élèves sans classe active, avis de
+  30 jours) — ticket PL-4 (#364) ; suites #367, #368
 
 ## Context
 
@@ -65,15 +66,22 @@ réinitialiser hors classe.
 
 `POST /api/admin/comptes/{id}/reinitialisation-acces` (`AdminComptesController`, sur le patron de
 `/{id}/pseudonyme`), réservé à `ROLE_ADMIN_BRIO` par le matcher existant
-`/api/admin/comptes/**`. La cible doit être un compte de **rôle élève** (sinon 404, un adulte
-compris, comme un compte inexistant) et **actif** (sinon 409). Mêmes garanties que §1 : provisoire,
+`/api/admin/comptes/**`. La cible peut être **tout compte élève actif**, en classe ou non (la
+voie est pensée pour les élèves sans classe active, mais ne s'y restreint pas) : un compte d'un
+autre rôle donne 404 (un adulte compris, comme un compte inexistant), un compte non actif 409. Le
+rôle de la cible est vérifié **avant** tout verrou (voir §6). Mêmes garanties que §1 : provisoire,
 7 jours, usage unique, sessions fermées, audit (`classe_id` NULL), débit limité.
 
 Aucune surface web d'administration n'existe encore sur `develop` : l'endpoint est livré seul,
 l'action sera branchée dans l'espace `/admin` (PR #357, mergée après celle-ci). **Aucun canal de
 contact** vers `admin_brio` n'existe non plus (ni page légale, ni adresse dans `deploy/`, la
-documentation ou les ADR) : `/mot-de-passe-oublie` n'en invente pas et ne mentionne pas cette
-voie tant qu'il n'y en a pas (voir Follow-ups).
+documentation ou les ADR) : `/mot-de-passe-oublie` n'en invente pas (voir Follow-ups, #367).
+
+**Décision humaine (N3, 2026-11-17)** : `/mot-de-passe-oublie` dit honnêtement à ces élèves que
+leur cas n'a pas encore de solution en ligne, sans inventer de canal : « Tu t'es inscrit sans
+classe, ou ta classe est fermée ? Ton accès ne peut pas encore être récupéré en ligne. » Le canal
+de contact suit dans **#367** ; d'ici là, la page ne contient toujours aucune adresse
+(`@`/`mailto`), ce qu'un test vérifie.
 
 ### 2. Le mot de passe provisoire
 
@@ -88,6 +96,19 @@ voie tant qu'il n'y en a pas (voir Follow-ups).
   `DelegatingPasswordEncoder`) canonicalise la saisie **uniquement** devant un hash marqué. Le
   hachage reste bcrypt ; le mot de passe choisi ensuite par l'élève n'a pas le marqueur et reste
   comparé exactement. L'entropie ne change pas (les tirets sont fixes, l'alphabet est minuscule).
+  Les espaces retirés comprennent les **espaces insécables** (U+00A0, U+202F) qu'apporte un
+  copier-coller depuis une page en français — comme le faux backend de l'e2e.
+- **Identifiant tolérant (R1, #364)** : le prof lit l'identifiant groupé par quatre
+  (`k7m4 p9xa 3r`), un clavier de téléphone ajoute une majuscule. `BrioUserDetailsService` cherche
+  d'abord l'identifiant **exact** ; à défaut, et seulement si la saisie ne contient pas d'`@`, sa
+  forme **sans aucun espace et en minuscules** (`IdentifiantConnexion.normaliser`) ; à défaut,
+  l'e-mail comme avant. Sans collision possible : tout identifiant stocké est déjà sous cette
+  forme — généré (`IdentifiantGenerator` : 10 caractères d'un alphabet minuscule), e-mail du prof
+  (rogné et mis en minuscules à l'inscription), comptes de démonstration — et unique (`V8`), donc
+  la forme normalisée d'une saisie désigne au plus un compte, celui dont c'est déjà
+  l'identifiant. La connexion **par e-mail** ne change pas (l'étape tolérante est sautée dès
+  qu'il y a un `@`). Le verrou progressif (`V42`) compte les échecs sur la **même** forme
+  normalisée : `K7M4 p9xa3r` et `k7m4p9xa3r` partagent un compteur.
 - Stocké **haché** dans `mot_de_passe_hash`, **à la place** de l'ancien : l'ancien mot de passe
   cesse de fonctionner immédiatement (utile aussi si le compte a été partagé ou volé).
 - Renvoyé en clair **dans cette seule réponse**, avec `Cache-Control: no-store`. Aucun endpoint
@@ -110,6 +131,17 @@ et `acces_reinitialise_le` / `acces_reinitialise_par` (§8).
   choisir le nouveau mot de passe. Si l'élève la quitte sans l'avoir fait, il retourne voir son
   prof — c'est le prix de l'usage unique (arbitrage N3 : « usage unique strict », avec
   l'avertissement « fais-le maintenant » sur `/changer-mot-de-passe`).
+- **Une connexion ne consomme que le provisoire qu'elle a vérifié (I1)** : Spring charge le
+  compte et compare le mot de passe tapé au hash lu, **puis** `LoginAuditHandler` consomme le
+  provisoire. Entre les deux, un prof peut réinitialiser : sans garde, une connexion avec
+  l'**ancien** mot de passe (ou un **ancien** provisoire) aurait consommé le provisoire tout juste
+  émis, et l'élève, arrivant avec lui, aurait reçu un 401. Le principal de connexion
+  (`CompteUserDetails`) porte donc l'`acces_reinitialise_le` lu au chargement (null si jamais
+  réinitialisé) ; l'`UPDATE` conditionnel exige `acces_reinitialise_le = <valeur lue>`. Une
+  connexion vérifiée contre l'état d'avant la réinitialisation ne consomme rien ; le compte a
+  désormais un changement en attente, elle est refusée comme un mauvais mot de passe (même 401,
+  même comptage) et le nouveau provisoire reste utilisable. L'instant de réinitialisation est
+  tronqué à la microseconde (précision de Postgres) pour que la comparaison soit exacte.
 - Le changement (`POST /api/moi/mot-de-passe`) remplace le hash, efface les trois colonnes du
   provisoire.
 
@@ -136,20 +168,26 @@ jamais une page en erreur.
 
 `POST /api/moi/mot-de-passe` n'est accepté que **si le drapeau est levé et que le provisoire a
 servi** (sinon 409) : sans demander l'ancien mot de passe, il ne doit pas devenir un changement
-libre qu'une session volée pourrait utiliser. Nouveau mot de passe : 8 à 128 caractères,
-différent du provisoire, comparé comme à la connexion (422). Le compte est verrouillé le temps du
-changement, et **toutes les autres sessions du compte sont fermées** : seule celle qui a choisi
-le mot de passe reste ouverte.
+libre qu'une session volée pourrait utiliser. Nouveau mot de passe : au moins 8 caractères et
+**au plus 72 octets UTF-8** (I2 : la limite de bcrypt ; une lettre accentuée compte deux octets,
+un emoji quatre), sinon un **400** au message clair (« trop long ») au lieu du 500 que levait
+l'encodeur ; le formulaire mesure de même avant d'envoyer. Différent du provisoire, comparé comme
+à la connexion (422). Les autres formulaires de mot de passe (inscriptions) relèvent de **#368**.
+Le compte est verrouillé le temps du changement, et **toutes les autres sessions du compte sont
+fermées** : seule celle qui a choisi le mot de passe reste ouverte.
 
 ### 6. Débit limité et sessions
 
 - Réinitialisations : au plus **40 par heure par adulte** et **5 par 24 h par élève**
   (`brio.reinitialisation.*`, réglages validés en N3) → 429 ; l'écran prof dit que l'attente peut
   aller jusqu'à 24 h. Compté sur la table d'audit, en base (pas de Redis, ADR 0034). **Sûr en
-  parallèle** : la réinitialisation verrouille la ligne de l'adulte puis celle de l'élève
-  (`SELECT … FOR UPDATE`, toujours dans cet ordre, donc sans interblocage) ; deux réinitialisations
-  du même adulte ou du même élève s'exécutent l'une après l'autre et chacune compte la trace que
-  la précédente a validée.
+  parallèle** : la réinitialisation vérifie d'abord, **sans verrou**, que la cible est un compte
+  élève (un rôle ne change pas), puis verrouille la ligne de l'adulte et enfin celle de l'élève
+  (`SELECT … FOR UPDATE`, toujours dans cet ordre). Un adulte n'étant jamais verrouillé comme
+  cible, deux réinitialisations ne peuvent pas s'attendre mutuellement (S1 : sans ce contrôle
+  préalable, deux `admin_brio` se visant l'un l'autre auraient pu s'interbloquer) ; deux
+  réinitialisations du même adulte ou du même élève s'exécutent l'une après l'autre et chacune
+  compte la trace que la précédente a validée.
 - Connexions avec le provisoire : le verrou par identifiant et le débit par IP tronquée de
   `V42` s'appliquent tels quels. La réinitialisation **efface** le verrou de l'identifiant de
   l'élève : le prof vient de le voir en personne, et l'élève doit réussir du premier coup (AC8).
@@ -168,18 +206,28 @@ ligne de log ne peut pas l'imprimer.
 ### 8. L'élève est prévenu (arbitrage N3)
 
 Une fois son mot de passe choisi, l'élève voit, en haut des pages de l'application : « Ton accès
-a été réinitialisé le … par ton prof (ou : par l'équipe brio). Si ce n'est pas toi qui as choisi
-ton mot de passe, préviens ton prof. »
+a été réinitialisé le … par ton prof. Si ce n'est pas toi qui as choisi ton mot de passe,
+préviens ton prof. » Quand c'est `admin_brio` (S5) — l'élève n'a peut-être aucune classe, donc
+aucun prof : « … par l'équipe brio. Si ce n'est pas toi qui as choisi ton mot de passe, préviens
+un adulte de confiance : un parent ou un prof. » Bandeau d'information (icône `info`, pas
+d'alerte), croix de fermeture d'au moins 24 px (WCAG 2.5.8).
 
-- Données : `acces_reinitialise_le` et `acces_reinitialise_par` (`enseignant` | `admin_brio`),
-  posées par la réinitialisation et **conservées** après le changement. Jamais le nom de
-  l'adulte. Exposées dans `CompteInfo.accesReinitialise` (`le`, `par`) **seulement** une fois le
-  changement fait, et pendant **30 jours** après la réinitialisation (`HORIZON_AVIS`) ; `null`
-  sinon. Rien n'est affiché qui ne vienne de là.
+- Données : `acces_reinitialise_le` et `acces_reinitialise_par`, posées par la réinitialisation
+  et **conservées** après le changement. Jamais le nom de l'adulte. Exposées dans
+  `CompteInfo.accesReinitialise` (`le`, `par` — énumération `ReinitialisePar` : `enseignant` |
+  `admin_brio`, ainsi décrite dans `openapi.json`, S6) **seulement** une fois le changement fait,
+  et pendant **30 jours** après la réinitialisation (`HORIZON_AVIS`) ; `null` sinon. Rien n'est
+  affiché qui ne vienne de là. **Durée de 30 jours validée en N3 le 2026-11-17.**
 - Le bandeau se ferme ; la fermeture est retenue **sur l'appareil seulement** (`localStorage`,
-  clé = date de la réinitialisation), jamais sur le serveur : un adulte qui aurait choisi le mot
-  de passe à la place de l'élève et fermé le bandeau chez lui ne peut pas le cacher sur l'appareil
-  de l'élève. Une nouvelle réinitialisation le refait apparaître.
+  une clé **par compte** — un poste partagé sert plusieurs élèves — qui garde la date de la
+  réinitialisation), jamais sur le serveur : un adulte qui aurait choisi le mot de passe à la
+  place de l'élève et fermé le bandeau chez lui ne peut pas le cacher sur l'appareil de l'élève.
+  Une nouvelle réinitialisation le refait apparaître.
+- **Limite connue (S5)** : l'avis n'atteint que l'élève qui **se connecte** à son compte. Si un
+  adulte s'est connecté avec le provisoire et a choisi le mot de passe à sa place, l'élève est
+  **évincé** : il ne peut plus se connecter, donc ne voit jamais l'avis. Il ne peut alors que
+  retourner voir son prof — qui verra la réinitialisation dans l'audit (§7) et pourra en refaire
+  une. C'est la part du « Risque résiduel accepté » que la notification ne couvre pas.
 
 ### 9. Ce que voit l'adulte qui détient le provisoire
 
@@ -202,24 +250,34 @@ n'est touché, aucune frontière Modulith franchie. Contrats publiés dans `iden
 ### 11. Écrans
 
 - `/connexion` : lien « Identifiant ou mot de passe oublié ? » ; champ identifiant sans
-  majuscule, correction ni soulignement automatiques.
+  majuscule, correction ni soulignement automatiques, exemple à la forme d'un identifiant généré
+  (`h3tq8wb2ne`, D7) ; bouton « Afficher le mot de passe » (R5 : bascule `aria-pressed`, libellé
+  fixe, `type="button"`).
 - `/mot-de-passe-oublie` (public, statique), en phrases courtes : « Va voir ton prof. Il te
   redonne ton identifiant et un mot de passe provisoire. C'est pour ton compte. Ensuite, tu
   choisis ton propre mot de passe. » Puis : pas d'autre solution (attendre le prof), **ne pas
   créer de nouveau compte** (la progression attend), 7 jours et usage unique, pas besoin de ton
-  e-mail. Aucun champ, aucun lien vers `/rejoindre` (qui crée un autre compte).
+  e-mail. Aucun champ, aucun lien vers `/rejoindre` (qui crée un autre compte). En dernier, pour
+  les élèves sans classe active (N3, 2026-11-17, §1 bis) : « Tu t'es inscrit sans classe, ou ta
+  classe est fermée ? Ton accès ne peut pas encore être récupéré en ligne. »
 - `/prof/classes/[id]` : « Réinitialiser l'accès » par élève → confirmation (qui dit que l'élève
   sera déconnecté partout ; le focus y entre) → résultat (le focus y passe, WCAG 2.4.3) :
-  identifiant groupé par 4 (espacement visuel seulement), provisoire **masqué par défaut** avec
-  « Afficher », avertissement « N'affichez pas cet écran au tableau », boutons **Copier** pour
-  l'identifiant et le provisoire. Un résultat par élève : en réinitialiser un second n'efface pas
-  le premier.
+  identifiant groupé par 4 (espacement visuel ; tapé ainsi, il est accepté aussi, §2),
+  provisoire **masqué par défaut** (lu « masqué » par un lecteur d'écran, texte `sr-only`) avec un
+  bouton « Afficher » à bascule (`aria-pressed`, libellé fixe complété pour le lecteur d'écran :
+  « … le mot de passe provisoire de Léa »), avertissement « N'affichez pas cet écran au tableau »,
+  boutons **Copier** qui nomment l'élève (« Copier l'identifiant de Léa »). Un résultat par
+  élève : en réinitialiser un second n'efface pas le premier. Réinitialiser **à nouveau** le même
+  élève : la confirmation prévient que le provisoire encore affiché cessera de fonctionner, et le
+  nouveau résultat repart d'un panneau neuf (I4 : masqué, sans « Copié » périmé, focus dessus).
 - `/changer-mot-de-passe` : hors coquille, **protégé** (non ajouté aux préfixes publics : il
   n'a de sens qu'avec la session ouverte par le provisoire ; sans session, le middleware
   renvoie à `/connexion`). Avertit « Fais-le maintenant : si tu fermes le navigateur, il faudra
-  redemander à ton prof ». Le middleware y renvoie aussi depuis `/connexion`, `/inscription`,
-  `/commencer` et `/rejoindre` quand un changement est en attente ; une erreur de `/api/moi`
-  (5xx, injoignable) n'est jamais prise pour une session ouverte.
+  redemander à ton prof ». Deux boutons « Afficher » (R5), un par champ, nommés chacun. Le
+  middleware y renvoie aussi depuis `/connexion`, `/inscription`, `/commencer`, `/rejoindre` et
+  `/mot-de-passe-oublie` (D2) quand un changement est en attente — le bouton **Retour** du
+  navigateur y ramène donc aussi (R3, prouvé en e2e desktop et mobile) ; une erreur de
+  `/api/moi` (5xx, injoignable) n'est jamais prise pour une session ouverte.
 
 ## Risque résiduel accepté
 
@@ -260,12 +318,15 @@ Ce qui le limite :
 - Un élève qui n'est inscrit dans **aucune** classe active ne peut être réinitialisé que par
   `admin_brio` (§1 bis), et aucun canal ne permet encore à l'élève de le joindre.
 - L'avis de §8 dépend de l'appareil pour sa fermeture : sur un nouvel appareil, il réapparaît
-  pendant 30 jours.
+  pendant 30 jours. Il n'atteint pas un élève évincé de son compte (§8, limite connue).
 - Une requête de plus par requête authentifiée ? Non : `StatutCheckFilter` lisait déjà le compte.
 
 ### Follow-ups
-- **Canal de contact** pour les élèves sans classe active (§1 bis) : à créer (page légale ou
-  adresse de support), puis à mentionner sur `/mot-de-passe-oublie`.
+- **#367 — Canal de contact** pour les élèves sans classe active (§1 bis) : à créer (page légale
+  ou adresse de support), puis à mentionner sur `/mot-de-passe-oublie` à la place de « ne peut pas
+  encore être récupéré en ligne ».
+- **#368 — Limite de 72 octets** sur les autres formulaires de mot de passe (inscriptions
+  élève/enseignant, `/rejoindre`) : ici, seul l'écran de changement l'applique (I2).
 - Brancher §1 bis dans l'espace `/admin` (PR #357).
 - Purge de `reinitialisations_acces` à aligner sur la rétention des traces de session.
 - Reset enseignant (e-mail pro) : ticket séparé.
