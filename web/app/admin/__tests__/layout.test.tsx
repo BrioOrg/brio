@@ -70,7 +70,7 @@ describe('AdminLayout role gate', () => {
     const { default: AdminLayout } = await import('../layout')
 
     await expect(AdminLayout({ children: 'CONTENU' })).rejects.toThrow(
-      'REDIRECT:/connexion?from=/admin'
+      'REDIRECT:/connexion?from=/admin/communaute'
     )
   })
 })

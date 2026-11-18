@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     cache: 'no-store',
   })
 
-  if (!res.ok) redirect('/connexion?from=/admin')
+  if (!res.ok) redirect('/connexion?from=/admin/communaute')
 
   const moi = CompteInfoSchema.parse(await res.json())
   if (moi.role !== 'admin_brio') redirect('/')
