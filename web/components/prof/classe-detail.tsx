@@ -22,6 +22,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TextInput } from '@/components/ui/text-input'
 import { messageErreur } from '@/components/messagerie/messagerie-format'
 import { SalonClasseProf } from '@/components/messagerie/salon-classe-prof'
@@ -161,9 +162,12 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
     >
       {/* Once open, the salon renders its own heading row, with « Actualiser » beside it. */}
       {!salon && (
-        <h2 className="font-display text-sm font-extrabold uppercase tracking-widest text-ink-muted">
-          Salon de la classe
-        </h2>
+        // Same height as the open salon's heading row, where « Actualiser » sits beside it.
+        <div className="flex min-h-9 items-center">
+          <h2 className="font-display text-sm font-extrabold uppercase tracking-widest text-ink-muted">
+            Salon de la classe
+          </h2>
+        </div>
       )}
 
       {erreur && (
@@ -172,7 +176,7 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
         </p>
       )}
 
-      {salon === undefined && !erreur && <p className="text-ink-muted">Chargement…</p>}
+      {salon === undefined && !erreur && <SalonSquelette />}
 
       {salon && <SalonClasseProf salon={salon} vientDOuvrir={vientDOuvrir} />}
 
@@ -180,7 +184,7 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
         <>
           <p className="text-sm text-ink-muted">
             {
-              "Ouvre le salon de la classe\u00a0: tes élèves et toi pourrez y écrire. Tu le liras ici et tu pourras masquer les messages de tes élèves."
+              'Ouvre le salon de la classe\u00a0: tes élèves et toi pourrez y écrire. Tu le liras ici et tu pourras masquer les messages de tes élèves.'
             }
           </p>
           <div>
@@ -192,6 +196,27 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
         </>
       )}
     </section>
+  )
+}
+
+/**
+ * Reserves the height of the open salon (intro, list, composer) while it loads, so that the
+ * sections below do not move when it arrives.
+ */
+function SalonSquelette() {
+  return (
+    <>
+      <p role="status" className="sr-only">
+        Chargement…
+      </p>
+      <Skeleton className="h-20 w-full sm:h-10" />
+      <Skeleton className="h-52 w-full" />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-8 w-full sm:h-4" />
+        <Skeleton className="h-9 w-24 self-end" />
+      </div>
+    </>
   )
 }
 

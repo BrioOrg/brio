@@ -43,9 +43,9 @@ const TEXTES = {
   titreConfirmation: `Masquer ce message${NBSP}?`,
   descriptionConfirmation: `Tes élèves ne le verront plus au prochain affichage de leur salon. Toi, tu le verras toujours ici, marqué «${NBSP}Masqué${NBSP}». Ses signalements en attente seront clos. Son auteur n'est pas prévenu, et tu ne pourras pas le réafficher.`,
   labelChamp: 'Ton message à la classe',
-  placeholder: 'Écris à ta classe…',
+  placeholder: 'Écris un message à ta classe…',
   // Exactly what the salon refuses: ModerationPreventive.java:17.
-  aide: 'Toute la classe peut le lire. Les liens commençant par http:// ou www. sont refusés.',
+  aide: 'Toute la classe peut le lire. Les liens (http://, https://, www.) sont refusés.',
   envoyer: 'Envoyer',
   annonceChargement: 'Chargement des messages…',
   annonceOuvert: 'Salon ouvert.',
@@ -113,10 +113,6 @@ export function SalonClasseProf({
 
   useEffect(() => {
     void charger()
-    return () => {
-      // Drop any answer still in flight once unmounted.
-      sequence.current += 1
-    }
   }, [charger])
 
   useEffect(() => {
@@ -180,40 +176,42 @@ export function SalonClasseProf({
         </p>
       )}
 
-      {chargement && (
-        <div className="flex min-h-52 flex-col gap-2">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      )}
+      {/* Same minimum height in every state (loading, empty, list): no layout shift below. */}
+      <div className="min-h-52">
+        {chargement && (
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        )}
 
-      {messages !== null &&
-        (messages.length === 0 ? (
-          <p className="text-sm text-ink-muted">{TEXTES.vide}</p>
-        ) : (
-          <ul
-            ref={listeRef}
-            aria-label={TEXTES.listeNom}
-            // A scrollable region must be reachable by keyboard (WCAG 2.1.1).
-            tabIndex={0}
-            // Same minimum height as the skeletons: no layout shift when the list arrives.
-            className="flex min-h-52 max-h-96 flex-col gap-2 overflow-y-auto rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            {messages.map((m) => (
-              <li key={m.id}>
-                <MessageProf
-                  message={m}
-                  articleRef={(el) => {
-                    if (el) articlesRef.current.set(m.id, el)
-                    else articlesRef.current.delete(m.id)
-                  }}
-                  onMasque={apresMasquage}
-                />
-              </li>
-            ))}
-          </ul>
-        ))}
+        {messages !== null &&
+          (messages.length === 0 ? (
+            <p className="text-sm text-ink-muted">{TEXTES.vide}</p>
+          ) : (
+            <ul
+              ref={listeRef}
+              aria-label={TEXTES.listeNom}
+              // A scrollable region must be reachable by keyboard (WCAG 2.1.1).
+              tabIndex={0}
+              className="flex min-h-52 max-h-96 flex-col gap-2 overflow-y-auto rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              {messages.map((m) => (
+                <li key={m.id}>
+                  <MessageProf
+                    message={m}
+                    articleRef={(el) => {
+                      if (el) articlesRef.current.set(m.id, el)
+                      else articlesRef.current.delete(m.id)
+                    }}
+                    onMasque={apresMasquage}
+                  />
+                </li>
+              ))}
+            </ul>
+          ))}
+      </div>
 
       <Composer salonId={salon.id} focusInitial={vientDOuvrir} onEnvoye={apresEnvoi} />
     </>
@@ -234,6 +232,12 @@ function MessageProf({
   // A hidden message's body stays folded (the page may be projected in class); local, not kept.
   const [contenuVisible, setContenuVisible] = useState(false)
   const corpsId = `corps-message-${m.id}`
+  const corpsRef = useRef<HTMLParagraphElement | null>(null)
+
+  useEffect(() => {
+    // Unfolded at the bottom of the list: bring it into view. Optional call: absent in jsdom.
+    if (contenuVisible) corpsRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [contenuVisible])
 
   const cadre = masque
     ? 'border-dashed border-line bg-surface-page'
@@ -276,6 +280,8 @@ function MessageProf({
               variant="ghost"
               size="sm"
               type="button"
+              // Cancels the ghost face's px-4: the label lines up with the author.
+              className="-ml-4"
               aria-expanded={contenuVisible}
               aria-controls={corpsId}
               aria-label={
@@ -289,6 +295,7 @@ function MessageProf({
             </Button>
           </div>
           <p
+            ref={corpsRef}
             id={corpsId}
             hidden={!contenuVisible}
             className="whitespace-pre-line text-sm text-ink-muted"
@@ -343,7 +350,11 @@ function MasquerMessage({
   function changerOuverture(suivant: boolean) {
     // No closing while the request is running: its outcome must stay visible.
     if (!suivant && enCoursRef.current) return
-    if (suivant) setErreur(null)
+    if (suivant) {
+      setErreur(null)
+      // A previous success whose reload failed must not keep the focus away from the trigger.
+      reussi.current = false
+    }
     setOuvert(suivant)
   }
 
@@ -415,6 +426,8 @@ function Composer({
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
   const champRef = useRef<HTMLTextAreaElement | null>(null)
+  // Two submits in the same task both see `envoi` false: the ref closes that gap (doubles `loading`).
+  const envoiRef = useRef(false)
 
   const vide = corps.trim() === ''
 
@@ -425,7 +438,8 @@ function Composer({
 
   async function envoyer(e: React.FormEvent) {
     e.preventDefault()
-    if (vide || envoi) return
+    if (vide || envoiRef.current) return
+    envoiRef.current = true
     setEnvoi(true)
     setErreur(null)
     try {
@@ -443,6 +457,7 @@ function Composer({
       // The submit button went disabled while sending: give the focus back to the text to fix.
       champRef.current?.focus()
     } finally {
+      envoiRef.current = false
       setEnvoi(false)
     }
   }
