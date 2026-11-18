@@ -25,6 +25,16 @@
  *                                                 evaluators (#246); 401 without a session
  *   POST /api/chapitres/{id}/sections/{s}/lu      204 with a session, 401 without
  *   GET  /api/devoirs, /api/cours                 the test student's homework and courses
+ *   GET  /api/cours/{id}                          a published teacher course, as CoursController
+ *                                                 serves it: 401 without a session, 400 for an id
+ *                                                 UUID.fromString rejects (GlobalExceptionHandler's
+ *                                                 body), then 404 with no body when unknown or not
+ *                                                 published (checked before the scope), 403 with no
+ *                                                 body when scoped to none of the reader's classes
+ *                                                 (COURS_HORS_PORTEE; a teacher or a student in no
+ *                                                 class has none), 200 the chapter shape (ADR 0019
+ *                                                 §1): a catalogue chapter served under the
+ *                                                 course's title
  *   GET  /api/moi/classes, /api/salons            the test student's class and salon, none for
  *                                                 E2E_SESSION_SANS_CLASSE; 401 without a session
  *   GET  /api/salons/{id}/messages                that salon's messages, own ones flagged
@@ -219,7 +229,37 @@ const CLASSE = {
   anneeScolaire: '2026-2027',
   nomAffiche: 'Inès',
 }
-// Their homework, one of which points to a chapter (#322), and a course of their class.
+// A course of their class, and a published course scoped to another class only: the backend
+// leaves it out of the student's list and answers 403 on it (#370). Stable UUIDs, as the backend
+// parses the path id as one.
+const COURS = [
+  {
+    id: '00000000-0000-4000-8000-00000000c001',
+    titre: 'Les fractions, version M. Dubois',
+    niveauCode: '5e',
+    matiereCode: 'mathematiques',
+    enseignant: 'M. Dubois',
+    publieAt: '2026-10-01T08:00:00Z',
+    classeIds: [CLASSE.id],
+  },
+]
+const COURS_HORS_PORTEE = {
+  id: '00000000-0000-4000-8000-00000000c002',
+  titre: 'Les nombres relatifs, version 4e A',
+  niveauCode: '4e',
+  matiereCode: 'mathematiques',
+  enseignant: 'M. Dubois',
+  publieAt: '2026-10-02T08:00:00Z',
+  classeIds: [PROF_CLASSE.id],
+}
+/** A well-formed course id that names no course: GET /api/cours/{id} answers 404. */
+const COURS_INCONNU_ID = '00000000-0000-4000-8000-00000000c404'
+/** What a published course's content is in this fake: a catalogue chapter (#370). */
+const CONTENU_DES_COURS = ['5e', 'mathematiques', 'fractions-comparer-additionner']
+
+// Their homework: one points to a chapter (#322), three to a teacher course (#370) — one the
+// student can read, one scoped to another class (403), one unknown (404). The unknown one is due
+// last: Accueil shows the three soonest, Ma classe shows them all.
 const DEVOIRS = [
   {
     id: 'devoir-pythagore',
@@ -233,16 +273,41 @@ const DEVOIRS = [
     statutRendu: 'non_commence',
     corrige: false,
   },
-]
-const COURS = [
   {
-    id: 'cours-fractions',
-    titre: 'Les fractions, version M. Dubois',
-    niveauCode: '5e',
-    matiereCode: 'mathematiques',
+    id: '00000000-0000-4000-8000-00000000d404',
+    classeId: CLASSE.id,
+    titre: 'Lire le cours sur les aires',
     enseignant: 'M. Dubois',
-    publieAt: '2026-10-01T08:00:00Z',
-    classeIds: [CLASSE.id],
+    sourceType: 'cours',
+    sourceRef: COURS_INCONNU_ID,
+    echeanceAt: '2026-11-05T16:00:00Z',
+    nombreExercices: 1,
+    statutRendu: 'non_commence',
+    corrige: false,
+  },
+  {
+    id: '00000000-0000-4000-8000-00000000d403',
+    classeId: CLASSE.id,
+    titre: 'Lire le cours sur les relatifs',
+    enseignant: 'M. Dubois',
+    sourceType: 'cours',
+    sourceRef: COURS_HORS_PORTEE.id,
+    echeanceAt: '2026-10-24T16:00:00Z',
+    nombreExercices: 1,
+    statutRendu: 'non_commence',
+    corrige: false,
+  },
+  {
+    id: '00000000-0000-4000-8000-00000000d200',
+    classeId: CLASSE.id,
+    titre: 'Relire le cours sur les fractions',
+    enseignant: 'M. Dubois',
+    sourceType: 'cours',
+    sourceRef: COURS[0].id,
+    echeanceAt: '2026-10-19T16:00:00Z',
+    nombreExercices: 2,
+    statutRendu: 'non_commence',
+    corrige: false,
   },
 ]
 // The chapter they left unfinished; a student with no class has nothing to resume.
@@ -627,6 +692,29 @@ async function corps(req) {
   }
 }
 
+// What UUID.fromString accepts: five dash-separated hex groups, each no longer than its slot.
+const UUID_JAVA = /^[0-9a-f]{1,8}-[0-9a-f]{1,4}-[0-9a-f]{1,4}-[0-9a-f]{1,4}-[0-9a-f]{1,12}$/i
+
+/** GET /api/cours/{id}, in CoursController.getCoursPublie's order. */
+async function coursPublie(req, res, segment) {
+  if (!connecte(req)) return send(res, 401)
+  let coursId = ''
+  try {
+    coursId = decodeURIComponent(segment)
+  } catch {
+    // A malformed escape is no UUID either.
+  }
+  // A path id that is no UUID fails conversion: GlobalExceptionHandler's generic 400.
+  if (!UUID_JAVA.test(coursId)) return send(res, 400, { error: 'Requête invalide' })
+  const cours = [...COURS, COURS_HORS_PORTEE].find((c) => c.id === coursId.toLowerCase())
+  if (!cours) return send(res, 404)
+  const classesDuLecteur = sansClasse(req) || enseignant(req) ? [] : [CLASSE.id]
+  if (!cours.classeIds.some((id) => classesDuLecteur.includes(id))) return send(res, 403)
+  const [niveau, matiere, slug] = CONTENU_DES_COURS
+  const json = await readFile(join(CONTENT_DIR, niveau, matiere, `${slug}.json`), 'utf8')
+  return send(res, 200, { ...asServed(JSON.parse(json)), title: cours.titre })
+}
+
 let soumissions = 0
 
 function send(res, status, body) {
@@ -754,6 +842,8 @@ const server = createServer(async (req, res) => {
       if (!connecte(req)) return send(res, 401)
       return send(res, 200, sansClasse(req) ? [] : COURS)
     }
+    const unCours = pathname.match(/^\/api\/cours\/([^/]+)$/)
+    if (unCours) return coursPublie(req, res, unCours[1])
     if (pathname === '/api/salons') {
       if (!connecte(req)) return send(res, 401)
       return send(res, 200, sansClasse(req) ? [] : [SALON])
