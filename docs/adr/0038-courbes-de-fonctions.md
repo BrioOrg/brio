@@ -55,7 +55,9 @@ unchanged (ADR 0004, ADR 0019 §2).
    match the same tone in the prose's formula; never decoration.
    Every text of a repère (graduation numbers, axis titles, read values, curve names) is drawn
    over the strokes with a halo in the page colour (`paint-order: stroke`), so a curve passing
-   behind a number stops short of it, as in a printed textbook. A graduation number within a
+   behind a number stops short of it, as in a printed textbook. Point names, free labels,
+   vector names (ADR 0041, a text shadow on their KaTeX) and the labels of transformation
+   images get the same halo and come after the strokes of their layer. A graduation number within a
    short number's width of a read value is hidden: the read value wins.
 6. **Parameters.** Each letter gets a native range input under the drawing (keyboard, Home/End,
    `aria-valuetext` "a = 1,5"), with its bounds written at both ends. The curve and its readings
