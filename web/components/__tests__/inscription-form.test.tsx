@@ -106,4 +106,37 @@ describe('InscriptionForm', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/la demande a échoué/i)
   })
+
+  describe('mot de passe de plus de 72 octets (#368)', () => {
+    async function soumettre(motDePasse: string) {
+      const { inscrireEleve } = await setup()
+      inscrireEleve.mockResolvedValue(EN_ATTENTE)
+      const user = userEvent.setup()
+      await user.selectOptions(screen.getByLabelText(/ton niveau/i), '4e')
+      await user.click(screen.getByLabelText(/mot de passe/i))
+      await user.paste(motDePasse)
+      await user.type(screen.getByLabelText(/e-mail de ton parent/i), 'parent@exemple.fr')
+      await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
+      return inscrireEleve
+    }
+
+    it('accepte 72 octets : 36 lettres accentuées', async () => {
+      const inscrireEleve = await soumettre('é'.repeat(36))
+      await waitFor(() => expect(inscrireEleve).toHaveBeenCalledOnce())
+    })
+
+    it('refuse 37 lettres accentuées (74 octets) sans appeler l’API', async () => {
+      const inscrireEleve = await soumettre('é'.repeat(37))
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        /ton mot de passe est trop long\. raccourcis-le/i
+      )
+      expect(inscrireEleve).not.toHaveBeenCalled()
+    })
+
+    it('refuse 200 emojis collés sans appeler l’API', async () => {
+      const inscrireEleve = await soumettre('😀'.repeat(200))
+      expect(await screen.findByRole('alert')).toHaveTextContent(/trop long/i)
+      expect(inscrireEleve).not.toHaveBeenCalled()
+    })
+  })
 })

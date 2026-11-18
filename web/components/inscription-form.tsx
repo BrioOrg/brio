@@ -2,6 +2,12 @@
 
 import { useId, useState } from 'react'
 import Link from 'next/link'
+import {
+  MESSAGE_MOT_DE_PASSE_TROP_LONG,
+  MOT_DE_PASSE_MAX_OCTETS,
+  MOT_DE_PASSE_MIN,
+  octetsUtf8,
+} from '@brio/api-client'
 import { inscrireEleve, InscrireEleveError } from '@/lib/enrollment'
 import type { InscriptionEleveEnAttenteInfo, InscrireEleveInput } from '@/lib/enrollment'
 import { Button } from '@/components/ui/button'
@@ -14,8 +20,6 @@ const NIVEAUX: { value: InscrireEleveInput['niveauDeclare']; label: string }[] =
   { value: '4e', label: '4e' },
   { value: '3e', label: '3e' },
 ]
-
-const MOT_DE_PASSE_MIN = 8
 
 function messageForStatus(status: number): string {
   switch (status) {
@@ -107,6 +111,10 @@ export function InscriptionForm() {
 
     if (motDePasse.length < MOT_DE_PASSE_MIN) {
       setError(`Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`)
+      return
+    }
+    if (octetsUtf8(motDePasse) > MOT_DE_PASSE_MAX_OCTETS) {
+      setError(MESSAGE_MOT_DE_PASSE_TROP_LONG)
       return
     }
 

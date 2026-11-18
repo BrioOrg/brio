@@ -60,7 +60,10 @@ describe('RejoindreForm', () => {
     // Success screen surfaces the one-time identifiant and the class.
     expect(await screen.findByText('lea.martin.4eb')).toBeInTheDocument()
     expect(screen.getByText(/te voilà dans la 4e b/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /me connecter/i })).toHaveAttribute('href', '/connexion')
+    expect(screen.getByRole('link', { name: /me connecter/i })).toHaveAttribute(
+      'href',
+      '/connexion'
+    )
   })
 
   it('refuse un mot de passe trop court sans appeler l’API', async () => {
@@ -95,5 +98,37 @@ describe('RejoindreForm', () => {
     await user.click(screen.getByRole('button', { name: /rejoindre ma classe/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/n’est plus valable/i)
+  })
+
+  describe('mot de passe de plus de 72 octets (#368)', () => {
+    async function soumettre(motDePasse: string) {
+      const { rejoindreClasse } = await setup()
+      const user = userEvent.setup()
+      await user.type(screen.getByLabelText(/code de la classe/i), '4EB-2K9P')
+      await user.type(screen.getByLabelText(/ton prénom/i), 'Léa')
+      await user.click(screen.getByLabelText(/mot de passe/i))
+      await user.paste(motDePasse)
+      await user.click(screen.getByRole('button', { name: /rejoindre ma classe/i }))
+      return rejoindreClasse
+    }
+
+    it('accepte 72 octets : 18 emojis', async () => {
+      const rejoindreClasse = await soumettre('😀'.repeat(18))
+      await waitFor(() => expect(rejoindreClasse).toHaveBeenCalledOnce())
+    })
+
+    it('refuse 37 lettres accentuées (74 octets) sans appeler l’API', async () => {
+      const rejoindreClasse = await soumettre('é'.repeat(37))
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        /ton mot de passe est trop long\. raccourcis-le/i
+      )
+      expect(rejoindreClasse).not.toHaveBeenCalled()
+    })
+
+    it('refuse 200 emojis collés sans appeler l’API', async () => {
+      const rejoindreClasse = await soumettre('😀'.repeat(200))
+      expect(await screen.findByRole('alert')).toHaveTextContent(/trop long/i)
+      expect(rejoindreClasse).not.toHaveBeenCalled()
+    })
   })
 })

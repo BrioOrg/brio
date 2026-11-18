@@ -133,4 +133,38 @@ describe('InscriptionEnseignantForm', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/vérifiez vos informations/i)
   })
+
+  describe('mot de passe de plus de 72 octets (#368)', () => {
+    async function soumettre(motDePasse: string) {
+      const { inscrireEnseignant } = await setup()
+      inscrireEnseignant.mockResolvedValue(COMPTE)
+      const user = userEvent.setup()
+      await user.type(screen.getByLabelText(/votre nom/i), 'Mme Durand')
+      await user.type(screen.getByLabelText(/votre e-mail/i), 'durand@exemple.fr')
+      await user.selectOptions(screen.getByLabelText(/votre établissement/i), 'Collège pilote')
+      await user.click(screen.getByLabelText(/mot de passe/i))
+      await user.paste(motDePasse)
+      await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
+      return inscrireEnseignant
+    }
+
+    it('accepte 72 octets ASCII', async () => {
+      const inscrireEnseignant = await soumettre('a'.repeat(72))
+      await waitFor(() => expect(inscrireEnseignant).toHaveBeenCalledOnce())
+    })
+
+    it('refuse 73 octets ASCII au vouvoiement, sans appeler l’API', async () => {
+      const inscrireEnseignant = await soumettre('a'.repeat(73))
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        /votre mot de passe est trop long\. raccourcissez-le/i
+      )
+      expect(inscrireEnseignant).not.toHaveBeenCalled()
+    })
+
+    it('refuse 37 lettres accentuées (74 octets) sans appeler l’API', async () => {
+      const inscrireEnseignant = await soumettre('é'.repeat(37))
+      expect(await screen.findByRole('alert')).toHaveTextContent(/trop long/i)
+      expect(inscrireEnseignant).not.toHaveBeenCalled()
+    })
+  })
 })

@@ -2,6 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import {
+  MESSAGE_MOT_DE_PASSE_TROP_LONG,
+  MOT_DE_PASSE_MAX_OCTETS,
+  MOT_DE_PASSE_MIN,
+  octetsUtf8,
+} from '@brio/api-client'
 import { rejoindreClasse, RejoindreError } from '@/lib/enrollment'
 import type { EleveInscritInfo } from '@/lib/enrollment'
 import { Button } from '@/components/ui/button'
@@ -9,7 +15,6 @@ import { TextInput } from '@/components/ui/text-input'
 import { Icon } from '@/components/ui/icon'
 
 // Mirror the backend constraints (RejoindreClasseRequest).
-const MOT_DE_PASSE_MIN = 8
 const NOM_AFFICHE_MAX = 30
 
 function messageForStatus(status: number): string {
@@ -42,6 +47,10 @@ export function RejoindreForm() {
 
     if (motDePasse.length < MOT_DE_PASSE_MIN) {
       setError(`Ton mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`)
+      return
+    }
+    if (octetsUtf8(motDePasse) > MOT_DE_PASSE_MAX_OCTETS) {
+      setError(MESSAGE_MOT_DE_PASSE_TROP_LONG)
       return
     }
 
@@ -79,7 +88,9 @@ export function RejoindreForm() {
           </p>
           <p className="mt-2 flex items-start gap-2 font-prose text-sm text-ink-muted">
             <Icon name="warning-circle" weight="bold" size={18} className="mt-0.5 shrink-0" />
-            <span>Note-le bien : tu en auras besoin, avec ton mot de passe, pour te reconnecter.</span>
+            <span>
+              Note-le bien : tu en auras besoin, avec ton mot de passe, pour te reconnecter.
+            </span>
           </p>
         </div>
 
