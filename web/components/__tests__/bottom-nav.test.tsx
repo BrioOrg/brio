@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 let pathname = '/'
@@ -30,16 +30,66 @@ describe('BottomNav', () => {
     expect(screen.getByRole('button', { name: /Communauté/ })).toBeInTheDocument()
   })
 
-  it('keeps the five spaces in order, with Communauté before Profil', async () => {
+  // critère 4 (#395) : six emplacements, Annales après Explorer, chacun un lien direct (ou
+  // l'onglet désactivé Communauté), aucun déplacé dans un menu.
+  it('keeps the six spaces in order, with Annales after Explorer and Communauté before Profil', async () => {
     await setup()
     const noms = screen.getAllByRole('listitem').map((li) => li.textContent)
     expect(noms).toEqual([
       'Accueil',
       'Ma classe',
       'Explorer',
+      'Annales',
       'Communauté — bientôt disponible',
       'Profil',
     ])
+  })
+
+  // critère 2 (#395) : l'entrée Annales est un lien, jamais un bouton désactivé, même quand la
+  // Communauté est inactive ; son nom accessible est son libellé (critère 8 : rien d'autre).
+  it('wires Annales as a link to its route while the Communauté is off', async () => {
+    await setup()
+    const annales = screen.getByRole('link', { name: 'Annales' })
+    expect(annales).toHaveAttribute('href', '/annales')
+    expect(annales).toHaveTextContent(/^Annales$/)
+    expect(screen.queryByRole('button', { name: /Annales/ })).not.toBeInTheDocument()
+  })
+
+  // critère 5 (#395) : sur /annales, Annales est le seul lien courant de la barre.
+  it('marks Annales, and only Annales, current on /annales', async () => {
+    await setup('/annales')
+    const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
+    const annales = within(nav).getByRole('link', { name: 'Annales' })
+    expect(annales).toHaveAttribute('href', '/annales')
+    expect(annales).toHaveAttribute('aria-current', 'page')
+    const courants = nav.querySelectorAll('[aria-current="page"]')
+    expect(courants).toHaveLength(1)
+    expect(courants[0]).toBe(annales)
+    expect(within(nav).getByRole('link', { name: 'Explorer' })).not.toHaveAttribute('aria-current')
+  })
+
+  // critère 6 (#395) : un sujet ouvert depuis les annales a exactement un lien courant, Explorer.
+  it('marks Explorer, and only Explorer, current on an opened annale subject', async () => {
+    await setup('/3e/mathematiques/brevet-2025-demo')
+    const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
+    const courants = nav.querySelectorAll('[aria-current="page"]')
+    expect(courants).toHaveLength(1)
+    expect(courants[0]).toBe(within(nav).getByRole('link', { name: 'Explorer' }))
+  })
+
+  // critères 2 et 4 (#395) : Communauté active, six liens, Annales compris.
+  it('lists six links, Annales among them, once the Communauté is on', async () => {
+    pathname = '/'
+    const { BottomNav } = await import('../bottom-nav')
+    const { navigationEleve } = await import('@/lib/app-sections')
+    render(<BottomNav {...navigationEleve(true)} />)
+    const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((a) => a.textContent)
+    ).toEqual(['Accueil', 'Ma classe', 'Explorer', 'Annales', 'Communauté', 'Profil'])
+    expect(within(nav).queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('wires Explorer to its route and marks it current on a catalogue URL', async () => {

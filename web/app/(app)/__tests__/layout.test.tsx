@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
@@ -51,5 +51,22 @@ describe('AppLayout', () => {
     await rendre(vi.fn().mockImplementation(appel))
     expect(screen.queryByRole('link', { name: /Communauté/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Communauté/ })).toBeDisabled()
+  })
+
+  // critère 2 (#395) : l'entrée Annales est un lien vers /annales dans les deux navigations
+  // (colonne latérale et barre du bas), que la Communauté soit active, inactive ou indisponible.
+  it.each([
+    ['the setting is on', () => Promise.resolve(reponse(200, { active: true }))],
+    ['the setting is off', () => Promise.resolve(reponse(200, { active: false }))],
+    ['the backend answers an error', () => Promise.resolve(reponse(500))],
+    ['the backend cannot be reached', () => Promise.reject(new Error('réseau'))],
+  ])('links Annales in both navigations when %s', async (_cas, appel) => {
+    await rendre(vi.fn().mockImplementation(appel))
+    const navs = screen.getAllByRole('navigation', { name: 'Navigation principale' })
+    expect(navs).toHaveLength(2)
+    for (const nav of navs) {
+      expect(within(nav).getByRole('link', { name: 'Annales' })).toHaveAttribute('href', '/annales')
+      expect(within(nav).queryByRole('button', { name: /Annales/ })).not.toBeInTheDocument()
+    }
   })
 })
