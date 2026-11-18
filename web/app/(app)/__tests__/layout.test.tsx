@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 vi.mock('@/components/examen-banner', () => ({ ExamenBanner: () => null }))
+vi.mock('@/components/avis-reinitialisation', () => ({ AvisReinitialisation: () => null }))
 vi.mock('@/components/progression-context', () => ({
   ProgressionProvider: ({ children }: { children: React.ReactNode }) => children,
 }))

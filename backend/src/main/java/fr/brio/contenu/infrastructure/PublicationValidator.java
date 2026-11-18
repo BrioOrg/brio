@@ -46,7 +46,10 @@ public class PublicationValidator {
                 String type = block.path("type").asText();
                 if ("reference".equals(type) && "internal".equals(block.path("scope").asText())) {
                     assertInternalReferenceResolves(sectionId, block);
-                } else if ("image".equals(type) || "figure".equals(type) || "chart".equals(type)) {
+                } else if ("image".equals(type)
+                        || "figure".equals(type)
+                        || "chart".equals(type)
+                        || "tree".equals(type)) {
                     assertAltPresent(sectionId, block);
                 } else if ("exercise".equals(type)
                         && "fill-blank".equals(block.path("exerciseType").asText())) {

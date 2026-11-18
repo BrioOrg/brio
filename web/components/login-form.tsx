@@ -7,6 +7,7 @@ import { login, LoginError } from '@/lib/session'
 import { Button } from '@/components/ui/button'
 import { TextInput } from '@/components/ui/text-input'
 import { Icon } from '@/components/ui/icon'
+import { PasswordInput } from '@/components/ui/password-input'
 
 /**
  * Login form for the /connexion page. Client component: owns form state and
@@ -14,7 +15,8 @@ import { Icon } from '@/components/ui/icon'
  * where their class and matières are shown — except a teacher, whose home is
  * the teacher space. A specific return path (`redirectTo`) wins for everyone;
  * `/` does not count as one, since the middleware sets it for any logged-out
- * visit to the home page.
+ * visit to the home page. A student who has just logged in with the provisional
+ * password a teacher gave them (ADR 0036) goes first to choosing their own.
  */
 export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
   const router = useRouter()
@@ -30,7 +32,13 @@ export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
     setSubmitting(true)
     try {
       const compte = await login(identifiant, motDePasse)
-      router.push(compte.role === 'enseignant' && redirectTo === '/' ? '/prof' : redirectTo)
+      router.push(
+        compte.doitChangerMotDePasse
+          ? '/changer-mot-de-passe'
+          : compte.role === 'enseignant' && redirectTo === '/'
+            ? '/prof'
+            : redirectTo
+      )
       router.refresh()
     } catch (err) {
       setError(
@@ -59,16 +67,21 @@ export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
         type="text"
         name="identifiant"
         autoComplete="username"
-        placeholder="lea.martin"
+        // No capital, correction or underline from a phone keyboard (the server also ignores case
+        // and spaces in an identifier, #364).
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
+        // Shaped like the identifiers brio generates: 10 lower-case letters and digits.
+        placeholder="h3tq8wb2ne"
         value={identifiant}
         onChange={(e) => setIdentifiant(e.target.value)}
         required
         autoFocus
       />
 
-      <TextInput
+      <PasswordInput
         label="Mot de passe"
-        type="password"
         name="mot_de_passe"
         autoComplete="current-password"
         placeholder="••••••••"
@@ -82,7 +95,7 @@ export function LoginForm({ redirectTo = '/' }: { redirectTo?: string }) {
           href="/mot-de-passe-oublie"
           className="rounded-sm font-prose text-sm text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          Mot de passe oublié ?
+          Identifiant ou mot de passe oublié ?
         </Link>
       </div>
 

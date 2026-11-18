@@ -3,9 +3,11 @@ import 'katex/dist/katex.min.css'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { OptionRowDemo, ButtonLoadingDemo, ResultSheetDemo } from './kit-interactive'
 import { EditeurMessageDemo } from './editeur-message-demo'
+import { CalculDemo } from './calcul-demo'
 import { MotionDemo } from './motion-demo'
 import { SoundDemo } from './sound-demo'
 import { BlocsCommunaute } from '@/components/blocs/blocs-communaute'
+import { CalculRenderer } from '@/components/calcul-renderer'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
 import { OptionRow } from '@/components/ui/option-row'
@@ -23,6 +25,10 @@ import { SuggestedQuestion } from '@/components/ui/chat/suggested-question'
 import { TypingIndicator } from '@/components/ui/chat/typing-indicator'
 import { Icon } from '@/components/ui/icon'
 import { Mascot } from '@/components/ui/mascot'
+import { FigureRenderer } from '@/components/figure-renderer'
+import { renderKatex } from '@/lib/katex'
+import { TreeRenderer } from '@/components/tree-renderer'
+import type { FigureSpec, TreeSpec } from '@brio/content'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -37,6 +43,113 @@ const SCRATCH_CATEGORIES = [
   ['operators', 'Opérateurs'],
   ['variables', 'Variables'],
 ] as const
+
+// Maths tones (ADR 0037): the same object in the same tone in the figure and in the formula.
+const hidden = { dot: false, showName: false } as const
+const TONE_EXAMPLES: { spec: FigureSpec; alt: string; latex: string }[] = [
+  {
+    alt: 'Triangle ABC rectangle en A : AB en teinte 1, AC en teinte 2, l’hypoténuse BC en teinte 3.',
+    spec: {
+      points: [
+        { name: 'A', x: 0, y: 0, label: { placement: 'below-left' } },
+        { name: 'B', x: 4, y: 0, label: { placement: 'below-right' } },
+        { name: 'C', x: 0, y: 3, label: { placement: 'above-left' } },
+      ],
+      segments: [
+        { from: 'A', to: 'B', tone: 1 },
+        { from: 'A', to: 'C', tone: 2 },
+        { from: 'B', to: 'C', tone: 3 },
+      ],
+      angleMarks: [{ vertex: 'A', from: 'B', to: 'C', right: true }],
+    },
+    latex: '\\tone{3}{BC}^2 = \\tone{1}{AB}^2 + \\tone{2}{AC}^2',
+  },
+  {
+    alt: 'Rectangle 3 sur 4 + 2, partagé en deux rectangles d’aires 12 et 6.',
+    spec: {
+      points: [
+        { name: 'P', x: 0, y: 0, ...hidden },
+        { name: 'Q', x: 4, y: 0, ...hidden },
+        { name: 'R', x: 6, y: 0, ...hidden },
+        { name: 'S', x: 6, y: 3, ...hidden },
+        { name: 'T', x: 4, y: 3, ...hidden },
+        { name: 'U', x: 0, y: 3, ...hidden },
+      ],
+      polygons: [
+        { vertices: ['P', 'Q', 'T', 'U'], tone: 1, fill: 'soft' },
+        { vertices: ['Q', 'R', 'S', 'T'], tone: 2, fill: 'soft' },
+        { vertices: ['P', 'R', 'S', 'U'] },
+      ],
+      segments: [{ from: 'Q', to: 'T' }],
+      labels: [
+        { text: '4', x: 2, y: 3.5, tone: 1 },
+        { text: '2', x: 5, y: 3.5, tone: 2 },
+        { text: '3', x: -0.5, y: 1.5 },
+        { text: '12', x: 2, y: 1.5 },
+        { text: '6', x: 5, y: 1.5 },
+      ],
+    },
+    latex: '3 \\times (\\tone{1}{4} + \\tone{2}{2}) = \\tone{1}{12} + \\tone{2}{6}',
+  },
+]
+// Three trees for the styleguide (ADR 0040): a 5e tree of possibles, a 3e weighted tree with its
+// products and one highlighted path, a seconde tree with complementary events, drawn vertically.
+const ARBRE_PIECES: TreeSpec = {
+  root: {
+    children: ['P', 'F'].map((a) => ({ label: a, children: [{ label: 'P' }, { label: 'F' }] })),
+  },
+  outcomes: true,
+}
+
+const ARBRE_URNE: TreeSpec = {
+  root: {
+    children: [
+      {
+        label: 'R',
+        probability: '3/5',
+        children: [
+          { label: 'R', probability: '2/4' },
+          { label: 'B', probability: '2/4' },
+        ],
+      },
+      {
+        label: 'B',
+        probability: '2/5',
+        children: [
+          { label: 'R', probability: '3/4' },
+          { label: 'B', probability: '1/4' },
+        ],
+      },
+    ],
+  },
+  outcomes: true,
+  products: true,
+  highlightPath: ['R', 'B'],
+}
+
+const ARBRE_CONTRAIRE: TreeSpec = {
+  orientation: 'vertical',
+  root: {
+    children: [
+      {
+        label: '$A$',
+        probability: '0,3',
+        children: [
+          { label: '$B$', probability: '0,8' },
+          { label: '$\\overline{B}$', probability: '0,2' },
+        ],
+      },
+      {
+        label: '$\\overline{A}$',
+        probability: '0,7',
+        children: [
+          { label: '$B$', probability: '0,4' },
+          { label: '$\\overline{B}$', probability: '?' },
+        ],
+      },
+    ],
+  },
+}
 
 function Swatch({ token, label }: { token: string; label: string }) {
   return (
@@ -146,6 +259,77 @@ export default function DesignPage() {
           </div>
         </Section>
 
+        {/* ── Maths tones ───────────────────────────────────────────────────── */}
+        <Section title="Couleurs mathématiques">
+          <Label>
+            Un même objet, une même teinte dans la figure et dans la formule — rare, jamais un état
+          </Label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="flex flex-col gap-2">
+                <Swatch token={`tone-${n}`} label={`tone-${n}`} />
+                <Swatch token={`tone-${n}-soft`} label="fond doux" />
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {TONE_EXAMPLES.map((example) => (
+              <Panel key={example.latex}>
+                <FigureRenderer spec={example.spec} alt={example.alt} />
+                <div
+                  className="overflow-x-auto py-1 text-center text-ink"
+                  dangerouslySetInnerHTML={{ __html: renderKatex(example.latex, true) }}
+                />
+              </Panel>
+            ))}
+          </div>
+          <p className="mt-3 font-prose text-sm text-ink-muted">
+            Formule : <code className="text-xs">{'\\tone{1}{AB}^2'}</code> ; figure :{' '}
+            <code className="text-xs">{'"tone": 1'}</code>, plus{' '}
+            <code className="text-xs">{'"fill": "soft"'}</code> sur un polygone. Au plus trois
+            teintes par bloc, bleu et orange d’abord.
+          </p>
+        </Section>
+
+        {/* ── Worked calculations (ADR 0042) ─────────────────────────────────── */}
+        <Section title="Calcul en ligne">
+          <Label>Chaîne d’égalités : aligné sur =, la partie qui change en tone-1</Label>
+          <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+            <CalculRenderer
+              id="demo-calcul-developper"
+              spec={{
+                mode: 'egalites',
+                title: 'Développer $4(x + 3)$',
+                lines: [
+                  {
+                    latex: '4(x + 3) = 4 \\times x + 4 \\times 3',
+                    focus: '4 \\times',
+                    note: 'on multiplie chaque terme par 4',
+                  },
+                  { latex: '4x + 12', note: 'on calcule chaque produit' },
+                ],
+              }}
+            />
+            <CalculRenderer
+              id="demo-calcul-pythagore"
+              spec={{
+                mode: 'equation',
+                title: 'Calculer $BC$',
+                lines: [
+                  { latex: 'BC^2 = AB^2 + AC^2', note: 'théorème de Pythagore' },
+                  { latex: 'BC^2 = 3^2 + 4{,}5^2', focus: '4{,}5^2' },
+                  { latex: 'BC^2 = 9 + 20{,}25' },
+                  { latex: 'BC^2 = 29{,}25' },
+                  { latex: 'BC = \\sqrt{29{,}25}', note: 'une longueur est positive' },
+                  { latex: 'BC \\approx 5{,}4', note: 'au dixième' },
+                ],
+              }}
+            />
+          </div>
+          <Label>Équation : l’opération sous les deux membres, ligne par ligne en mode interactif</Label>
+          <CalculDemo />
+        </Section>
+
         {/* ── Scratch palette ───────────────────────────────────────────────── */}
         <Section title="Blocs Scratch">
           <Label>Une couleur par catégorie de bloc, identique dans les deux thèmes</Label>
@@ -219,6 +403,29 @@ export default function DesignPage() {
             <Swatch token="cube-top" label="Dessus" />
             <Swatch token="cube-front" label="Face" />
             <Swatch token="cube-side" label="Côté" />
+          </div>
+        </Section>
+
+        <Section title="Arbres de probabilités">
+          <Label>Arbre des possibles (5e) — issues en colonne</Label>
+          <TreeRenderer
+            spec={ARBRE_PIECES}
+            alt="Arbre des possibles de deux lancers d’une pièce : quatre issues."
+          />
+          <div className="mt-8">
+            <Label>Arbre pondéré (3e) — produits, un chemin mis en évidence</Label>
+            <TreeRenderer
+              spec={ARBRE_URNE}
+              alt="Deux tirages sans remise dans une urne de 3 boules rouges et 2 bleues."
+              caption="Le chemin (R ; B) : on multiplie les probabilités rencontrées."
+            />
+          </div>
+          <div className="mt-8">
+            <Label>Événements contraires (seconde) — vertical, une branche à compléter</Label>
+            <TreeRenderer
+              spec={ARBRE_CONTRAIRE}
+              alt="Arbre vertical des événements A, non A, B et non B."
+            />
           </div>
         </Section>
 

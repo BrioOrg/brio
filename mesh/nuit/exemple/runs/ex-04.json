@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "synthetique": true,
+  "date": "2026-11-13",
+  "commit": "0000000",
+  "env": "staging",
+  "budget": 2,
+  "run_id": "ex-04",
+  "kind": "persona",
+  "agent": "S2",
+  "persona": "01-eleve-reel",
+  "tache": "eleve-annales",
+  "resultat": "abandon",
+  "duree_s": 60,
+  "etapes": [
+    {
+      "n": 1,
+      "action": "clic",
+      "cible": "barre de navigation",
+      "route": "/"
+    },
+    {
+      "n": 2,
+      "action": "recherche",
+      "cible": "entrée « Annales »",
+      "route": "/",
+      "observation": "[exemple] le persona ne trouve pas l'entrée et renonce"
+    }
+  ],
+  "frictions": [
+    {
+      "type": "impasse",
+      "route": "/",
+      "detail": "[exemple] Le persona renonce : il ne devine pas que les annales sont sous « Explorer »."
+    }
+  ]
+}

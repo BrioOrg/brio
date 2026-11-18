@@ -1,6 +1,7 @@
 package fr.brio.identite;
 
 import fr.brio.identite.api.CompteInfo;
+import fr.brio.identite.api.EtatAcces;
 import fr.brio.identite.api.InscriptionEleveEnAttenteInfo;
 import fr.brio.identite.domain.Compte;
 import fr.brio.identite.domain.Rattachement;
@@ -90,14 +91,16 @@ public class CompteService {
     }
 
     /**
-     * Returns true only when the compte exists and its statut is actif.
-     * Used by StatutCheckFilter to enforce immediate revocation on every request.
+     * What the session of this compte may do right now, in one lookup: refused unless active,
+     * and limited to choosing a new password after a teacher-led reset (ADR 0036 §5). Read by
+     * StatutCheckFilter on every authenticated request.
      */
     @Transactional(readOnly = true)
-    public boolean estActif(UUID id) {
+    public EtatAcces etatAcces(UUID id) {
         return comptes.findById(id)
-                .map(c -> c.getStatut() == StatutCompte.actif)
-                .orElse(false);
+                .filter(c -> c.getStatut() == StatutCompte.actif)
+                .map(c -> c.isDoitChangerMotDePasse() ? EtatAcces.MOT_DE_PASSE_A_CHANGER : EtatAcces.ACTIF)
+                .orElse(EtatAcces.INACTIF);
     }
 
     /**

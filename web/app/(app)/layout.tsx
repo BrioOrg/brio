@@ -1,5 +1,6 @@
 import { lireReglageCommunaute } from '@brio/api-client'
 
+import { AvisReinitialisation } from '@/components/avis-reinitialisation'
 import { BottomNav } from '@/components/bottom-nav'
 import { ExamenBanner } from '@/components/examen-banner'
 import { ProgressionProvider } from '@/components/progression-context'
@@ -31,6 +32,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <SectionSidebar sections={sections} />
         <div className="min-w-0 flex-1 pb-16 sm:pb-0">
           <ExamenBanner />
+          {/* After a teacher-led reset: told once the student chose their password (ADR 0036 §8). */}
+          <AvisReinitialisation />
           {children}
         </div>
       </div>

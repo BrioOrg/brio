@@ -1,0 +1,184 @@
+# Mesh · porte 5 — Vérification (Phase 3, #358).
+#
+# Produit UNE revue consolidée par PR : chaque gardien dépose un `verdict-<ID>.json`
+# (contrat : mesh/verification/verdict.schema.json), le job `consolidate` les agrège en
+# un seul commentaire de PR (constats `fichier:ligne`, gravité bloquant/important/suggestion).
+# Format, niveaux d'autonomie et mode d'emploi : docs/mesh/VERIFICATION.md.
+#
+# ÉBAUCHE : les jobs déterministes (V2, V3) sont opérationnels ; le job `agents` (V1, V4, V5,
+# V6) reste éteint tant que la variable de dépôt MESH_AGENTS_ENABLED n'est pas « true » et que
+# l'app GitHub Claude n'est pas installée sur BrioOrg (prérequis bloquant du plan).
+#
+# Sécurité : le code de la PR s'exécute avec un jeton en lecture seule. Le job qui écrit le
+# commentaire n'exécute QUE l'agrégateur et la configuration de la branche de base — une PR ne
+# peut ni assouplir un seuil, ni relever le niveau d'autonomie d'un gardien pour se dédouaner.
+name: Mesh · Vérification
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: mesh-verification-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── V2 · contrats : openapi.json ↔ Zod ↔ faux backend ↔ vrai backend ──────────
+  contracts:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+      # OpenApiContractTest écrit backend/target/openapi-actual.json AVANT de comparer : on
+      # garde le fichier même si le test échoue (c'est précisément la dérive qu'on veut voir).
+      - name: Sortie réelle de /v3/api-docs
+        run: ./mvnw -B -q -Dtest=OpenApiContractTest -Dsurefire.failIfNoSpecifiedTests=false test || true
+        working-directory: backend
+      - name: Contrôle de dérive des contrats
+        run: |
+          node scripts/mesh/verification/check-contract-drift.mjs \
+            --actual backend/target/openapi-actual.json --require-actual \
+            --out verdicts/verdict-V2.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verdict-V2
+          path: verdicts/verdict-V2.json
+          if-no-files-found: ignore
+
+  # ── V3 · alerte « test affaibli » (déterministe, sur le diff) ─────────────────
+  weakened-tests:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node scripts/mesh/verification/detect-weakened-tests.mjs \
+            --base "origin/${{ github.base_ref }}" --out verdicts/verdict-V3-weak.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verdict-V3-weak
+          path: verdicts/verdict-V3-weak.json
+          if-no-files-found: ignore
+
+  # ── V3 · mutation (PIT backend, Stryker web) — sur les fichiers modifiés ──────
+  mutation:
+    if: github.event.pull_request.draft == false
+    uses: ./.github/workflows/mesh-mutation.yml
+    with:
+      base_ref: ${{ github.base_ref }}
+
+  # ── V1, V4, V5, V6 · gardiens-agents (éteints par défaut) ─────────────────────
+  agents:
+    if: >-
+      vars.MESH_AGENTS_ENABLED == 'true'
+      && github.event.pull_request.draft == false
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        guardian: [V1, V4, V5, V6]
+    permissions:
+      contents: read
+      pull-requests: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # ÉBAUCHE À VALIDER au premier run : version de l'action, mode d'authentification (app
+      # GitHub Claude), et récupération de la sortie. Le contrat attendu est simple : l'agent
+      # écrit verdicts/verdict-<ID>.json, rien d'autre. L'agent n'a que des outils en lecture
+      # (cf. son frontmatter `tools`) ; V6 a besoin des captures Playwright (à brancher).
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Tu es l'agent ${{ matrix.guardian }} du mesh de Brio. Applique ta fiche
+            `.claude/agents/${{ matrix.guardian }}-*.md` à la PR #${{ github.event.pull_request.number }}
+            (diff : `git diff origin/${{ github.base_ref }}...HEAD`).
+            Écris ton rapport dans `verdicts/verdict-${{ matrix.guardian }}.json`, conforme à
+            `mesh/verification/verdict.schema.json`. Ne modifie aucun autre fichier.
+          claude_args: --max-turns 30 --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Write(verdicts/*)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verdict-${{ matrix.guardian }}
+          path: verdicts/verdict-${{ matrix.guardian }}.json
+          if-no-files-found: ignore
+
+  # ── Consolidation : UN commentaire de PR ──────────────────────────────────────
+  consolidate:
+    if: always() && github.event.pull_request.draft == false
+    needs: [contracts, weakened-tests, mutation, agents]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # Scripts et configuration de la BASE, jamais ceux de la PR (voir l'en-tête).
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          sparse-checkout: |
+            scripts/mesh/verification
+            mesh/verification
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: verdict-*
+          path: verdicts
+          merge-multiple: true
+      - name: Agréger les verdicts
+        id: aggregate
+        if: hashFiles('scripts/mesh/verification/aggregate-verdicts.mjs') != ''
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          # `--enforce` ne bloque que les gardiens d'autonomie >= 2 (mesh/verification/config.json).
+          node scripts/mesh/verification/aggregate-verdicts.mjs --dir verdicts --out review-comment.md --enforce
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          cat review-comment.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Publier / mettre à jour le commentaire
+        if: >-
+          steps.aggregate.outcome == 'success'
+          && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const body = fs.readFileSync('review-comment.md', 'utf8')
+            const marker = '<!-- mesh-verification -->'
+            const { owner, repo } = context.repo
+            const issue_number = context.payload.pull_request.number
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 })
+            const existing = comments.find((c) => c.body?.startsWith(marker))
+            if (existing) await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body })
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body })
+      - name: Porte 5 — veto bloquant ?
+        if: steps.aggregate.outputs.status == '1'
+        run: |
+          echo "::error::Un gardien d'autonomie >= 2 a posé son veto : voir le commentaire de revue consolidée."
+          exit 1

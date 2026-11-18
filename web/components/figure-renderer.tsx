@@ -5,6 +5,8 @@ import {
   type FigureSpec,
 } from '@brio/content'
 
+import { TONE_FILL, TONE_STROKE, toneClass, tonedShapeClass } from '@/lib/math-tones'
+
 // Hidden edges and construction lines, in viewBox units like the stroke widths (ADR 0013, #215).
 const DASH = '5 4'
 
@@ -79,6 +81,7 @@ export function FigureRenderer({
               points={poly.points}
               fill="none"
               stroke="currentColor"
+              className={tonedShapeClass(poly.tone, poly.soft)}
               strokeWidth={1.5}
               strokeDasharray={poly.dashed ? DASH : undefined}
             />
@@ -93,6 +96,7 @@ export function FigureRenderer({
               x2={seg.x2}
               y2={seg.y2}
               stroke="currentColor"
+              className={toneClass(TONE_STROKE, seg.tone)}
               strokeWidth={1.5}
               strokeDasharray={seg.dashed ? DASH : undefined}
             />
@@ -105,6 +109,7 @@ export function FigureRenderer({
               d={curve.d}
               fill="none"
               stroke="currentColor"
+              className={toneClass(TONE_STROKE, curve.tone)}
               strokeWidth={1.5}
               strokeDasharray={curve.dashed ? DASH : undefined}
             />
@@ -132,6 +137,7 @@ export function FigureRenderer({
               r={c.r}
               fill="none"
               stroke="currentColor"
+              className={toneClass(TONE_STROKE, c.tone)}
               strokeWidth={1.5}
             />
           ))}
@@ -143,13 +149,21 @@ export function FigureRenderer({
               points={sq.points}
               fill="none"
               stroke="currentColor"
+              className={toneClass(TONE_STROKE, sq.tone)}
               strokeWidth={1.5}
             />
           ))}
 
           {/* Angle arcs */}
           {model.angleArcs.map((arc, i) => (
-            <path key={i} d={arc.d} fill="none" stroke="currentColor" strokeWidth={1.5} />
+            <path
+              key={i}
+              d={arc.d}
+              fill="none"
+              stroke="currentColor"
+              className={toneClass(TONE_STROKE, arc.tone)}
+              strokeWidth={1.5}
+            />
           ))}
 
           {/* Length ticks */}
@@ -169,7 +183,14 @@ export function FigureRenderer({
 
           {/* Point dots */}
           {model.dots.map((dot, i) => (
-            <circle key={i} cx={dot.cx} cy={dot.cy} r={2} fill="currentColor" />
+            <circle
+              key={i}
+              cx={dot.cx}
+              cy={dot.cy}
+              r={2}
+              fill="currentColor"
+              className={toneClass(TONE_FILL, dot.tone)}
+            />
           ))}
 
           {/* Point labels */}
@@ -183,6 +204,7 @@ export function FigureRenderer({
               fontSize={13}
               fontFamily="serif"
               fill="currentColor"
+              className={toneClass(TONE_FILL, lbl.tone)}
             >
               {lbl.text}
             </text>
@@ -198,6 +220,7 @@ export function FigureRenderer({
               dominantBaseline="middle"
               fontSize={12}
               fill="currentColor"
+              className={toneClass(TONE_FILL, lbl.tone)}
             >
               {lbl.text}
             </text>

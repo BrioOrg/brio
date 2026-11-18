@@ -108,6 +108,10 @@ not a typo.
 
 ## Step reveal (#247)
 
+A `calcul` block (ADR 0042) follows the same rules, one line at a time then its
+conclusion; a line not revealed yet is invisible but keeps its place, so the
+aligned columns never move.
+
 A `steps` block (a worked example) shows its steps one at a time, so the student
 follows the method rather than reading the answer first.
 

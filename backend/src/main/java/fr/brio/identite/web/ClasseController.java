@@ -1,9 +1,12 @@
 package fr.brio.identite.web;
 
 import fr.brio.identite.ClasseService;
+import fr.brio.identite.ReinitialisationAccesService;
 import fr.brio.identite.api.*;
 import jakarta.validation.Valid;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +18,11 @@ import java.util.UUID;
 class ClasseController {
 
     private final ClasseService classeService;
+    private final ReinitialisationAccesService reinitialisations;
 
-    ClasseController(ClasseService classeService) {
+    ClasseController(ClasseService classeService, ReinitialisationAccesService reinitialisations) {
         this.classeService = classeService;
+        this.reinitialisations = reinitialisations;
     }
 
     @PostMapping
@@ -81,6 +86,22 @@ class ClasseController {
         UUID demandePar = UUID.fromString(auth.getName());
         boolean isAdmin = hasRole(auth, "ROLE_ADMIN_BRIO");
         return classeService.renommerEleve(id, compteId, req.nomAffiche(), demandePar, isAdmin);
+    }
+
+    /**
+     * Resets a student's access to their existing account (ADR 0036): the class teacher (or
+     * ADMIN_BRIO) gets, once, the student's login identifier and a provisional password valid
+     * 7 days and usable once. Never cached: the password is in the body.
+     */
+    @PostMapping("/{id}/inscriptions/{compteId}/reinitialisation-acces")
+    ResponseEntity<ReinitialisationAccesInfo> reinitialiserAcces(@PathVariable UUID id,
+                                                                 @PathVariable UUID compteId,
+                                                                 Authentication auth) {
+        UUID demandePar = UUID.fromString(auth.getName());
+        boolean isAdmin = hasRole(auth, "ROLE_ADMIN_BRIO");
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(reinitialisations.reinitialiser(id, compteId, demandePar, isAdmin));
     }
 
     private static boolean hasRole(Authentication auth, String role) {

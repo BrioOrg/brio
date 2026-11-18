@@ -8,10 +8,16 @@ import { listerMesDevoirs, type DevoirEleveVue } from '@brio/api-client'
 import { DeposerCopie } from '@/components/deposer-copie'
 import { apiBaseUrl } from '@/lib/api-base-url'
 import { formatEcheance } from '@/lib/echeance'
+import { lienDevoir } from '@/lib/lien-devoir'
 
 // Les devoirs d'une classe côté élève (F4, onglet « À faire » de Ma classe). On sépare « à faire »
 // et « terminés » ; un retard n'est jamais puni (aucune sanction affichée). Les statuts viennent du
 // serveur (rendu dérivé des soumissions) — jamais de valeur fabriquée.
+
+// The link to the homework's content, the same for a course and a chapter (#370). `inline-flex`
+// with `min-h-6` keeps the target at least 24 px tall.
+const LIEN_CONTENU =
+  'mt-2 inline-flex min-h-6 items-center font-display text-sm font-extrabold text-accent-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 const STATUT_LABEL: Record<string, string> = {
   non_commence: 'À faire',
@@ -47,12 +53,7 @@ export function DevoirsEleve({
   const aFaire = deLaClasse.filter((d) => !estTermine(d))
   const termines = deLaClasse.filter(estTermine)
   const carte = (d: DevoirEleveVue, enCours: boolean) => (
-    <CarteDevoir
-      key={d.id}
-      devoir={d}
-      aFaire={enCours}
-      chemin={d.sourceType === 'chapitre' ? cheminsChapitres[d.sourceRef] : undefined}
-    />
+    <CarteDevoir key={d.id} devoir={d} aFaire={enCours} lien={lienDevoir(d, cheminsChapitres)} />
   )
 
   return (
@@ -89,12 +90,12 @@ export function DevoirsEleve({
 function CarteDevoir({
   devoir,
   aFaire,
-  chemin,
+  lien,
 }: {
   devoir: DevoirEleveVue
   aFaire: boolean
-  /** The URL of the chapter this homework points to, if any. */
-  chemin?: string
+  /** The URL of the course or chapter this homework points to, `null` when it cannot be told. */
+  lien: string | null
 }) {
   return (
     <li
@@ -104,7 +105,9 @@ function CarteDevoir({
     >
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate font-display text-base font-extrabold text-ink">{devoir.titre}</div>
+          <div className="truncate font-display text-base font-extrabold text-ink">
+            {devoir.titre}
+          </div>
           <div className="mt-0.5 text-xs text-ink-muted">
             {devoir.nombreExercices} exercice{devoir.nombreExercices > 1 ? 's' : ''} · à rendre le{' '}
             {formatEcheance(devoir.echeanceAt)}
@@ -114,12 +117,9 @@ function CarteDevoir({
           {devoir.corrige ? 'Corrigé' : (STATUT_LABEL[devoir.statutRendu] ?? devoir.statutRendu)}
         </span>
       </div>
-      {chemin && (
-        <Link
-          href={`${chemin}?devoir=${devoir.id}`}
-          className="mt-2 inline-block font-display text-sm font-extrabold text-accent-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          Ouvrir le chapitre
+      {lien && (
+        <Link href={lien} className={LIEN_CONTENU}>
+          {devoir.sourceType === 'cours' ? 'Ouvrir le cours' : 'Ouvrir le chapitre'}
         </Link>
       )}
       {aFaire && <DeposerCopie devoirId={devoir.id} />}

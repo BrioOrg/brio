@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "synthetique": true,
+  "date": "2026-11-13",
+  "commit": "0000000",
+  "env": "staging",
+  "budget": 1,
+  "run_id": "ex-02",
+  "kind": "persona",
+  "agent": "S2",
+  "persona": "01-eleve-reel",
+  "tache": "eleve-devoirs-a-faire",
+  "resultat": "reussi",
+  "clics": 1,
+  "duree_s": 10,
+  "etapes": [
+    {
+      "n": 1,
+      "action": "clic",
+      "cible": "onglet « Ma classe »",
+      "route": "/"
+    },
+    {
+      "n": 2,
+      "action": "lecture",
+      "cible": "liste « À faire »",
+      "route": "/ma-classe",
+      "observation": "devoir visible"
+    }
+  ],
+  "frictions": []
+}
