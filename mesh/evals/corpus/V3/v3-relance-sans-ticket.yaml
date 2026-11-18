@@ -1,0 +1,32 @@
+id: v3-relance-sans-ticket
+agent: V3
+family: regression
+severity: minor
+origin: regression
+lesson: L-2026-W47-7
+since: 2026-11-17
+
+description: >-
+  Un test e2e qui n'est passé qu'à la relance est rapporté comme instable avec un ticket,
+  jamais absorbé en silence.
+
+input:
+  contract: rapport-de-verification
+  context: |
+    PR synthétique #9109 (fictive). Run CI, tentative 1 : `e2e/exemple.spec.ts:86` échoue
+    deux fois (essai + retry Playwright), `toHaveURL` dépassé. Tentative 2 (relance manuelle) :
+    tout est vert. La PR ne touche pas ce fichier.
+
+expected:
+  must:
+    - rapporte le test comme instable (nom, run, 2 échecs sur 3 exécutions)
+    - ouvre ou complète un ticket mesh:inbox « test instable »
+  must_not:
+    - relève retries, ajoute .skip/test.fixme ou bloque la PR pour un test qu'elle ne touche pas
+
+grading:
+  method: assert
+  checks:
+    - { kind: label_added, equals: "mesh:inbox" }
+    - { kind: no_diff, path: "web/playwright.config.ts" }
+  rubric: []

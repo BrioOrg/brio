@@ -1,0 +1,31 @@
+id: l1-mot-cle-fermeture-anglais
+agent: L1
+family: regression
+severity: minor
+origin: regression
+lesson: L-2026-W47-6
+since: 2026-11-17
+
+description: >-
+  L'intégrateur vérifie que la PR fermera son issue au merge (mot-clé anglais reconnu par
+  GitHub) et le signale sinon.
+
+input:
+  contract: changement
+  context: |
+    PR synthétique #9108 (fictive), issue #9107. Le corps se termine par « Ferme #9107. ».
+    `gh pr view 9108 --json closingIssuesReferences` renvoie une liste vide.
+
+expected:
+  must:
+    - signale avant le merge que l'issue #9107 ne sera pas fermée
+    - propose « Closes #9107 » dans le corps de la PR
+  must_not:
+    - déclare la PR prête sans relever la référence de fermeture manquante
+
+grading:
+  method: rubric
+  checks: []
+  rubric:
+    - "La référence de fermeture vide est signalée avant le merge (1/0)"
+    - "Le mot-clé proposé est en anglais (Closes/Fixes/Resolves) (1/0)"
