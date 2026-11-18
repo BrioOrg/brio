@@ -13,6 +13,7 @@ import { Panel } from '@/components/ui/panel'
 import { ProgressBar } from '@/components/ui/progress-bar'
 import { getCatalogue, type CatalogueNiveau } from '@/lib/api'
 import { formatEcheance } from '@/lib/echeance'
+import { cheminsChapitres, lienDevoir } from '@/lib/lien-devoir'
 import {
   competenceARevoir,
   lireClasses,
@@ -41,20 +42,31 @@ export default async function AccueilPage() {
   const moi = await lireMoi(cookie)
   if (moi?.role !== 'eleve') redirect('/explorer')
 
-  const [classes, devoirs, reprendre, maitrises, libelles] = await Promise.all([
-    lireClasses(cookie),
-    lireDevoirs(cookie),
-    lireReprendre(cookie),
-    lireMaitrise(cookie),
-    lireLibelles(cookie),
-  ])
+  // The catalogue gives a chapter homework its URL, and the first steps their subjects: only load
+  // it when one of them is on the page. A failure leaves the cards on their Ma classe fallback.
+  const [classes, { aRendre, catalogueDevoirs }, reprendre, maitrises, libelles] =
+    await Promise.all([
+      lireClasses(cookie),
+      // Chained on the homework, alongside the other reads: a chapter card waits for no one else.
+      lireDevoirs(cookie).then(async (devoirs) => {
+        const cartes = prochainsDevoirs(devoirs ?? [], 3)
+        const besoin = cartes.some((d) => d.sourceType === 'chapitre')
+        return {
+          aRendre: cartes,
+          catalogueDevoirs: besoin ? await getCatalogue().catch(() => []) : null,
+        }
+      }),
+      lireReprendre(cookie),
+      lireMaitrise(cookie),
+      lireLibelles(cookie),
+    ])
 
-  const aRendre = prochainsDevoirs(devoirs ?? [], 3)
   const competence = competenceARevoir(maitrises ?? [], libelles, new Date())
   const lecon = competence ? await lireLecon(competence.code, moi.niveau, cookie) : null
   const aRevoir = competence && lecon ? { intitule: competence.intitule, lecon } : null
   const rienAFaire = aRendre.length === 0 && !reprendre && !aRevoir
-  const catalogue = rienAFaire ? await getCatalogue().catch(() => []) : []
+  // The first steps depend on every read (resume, mastery), so that case still loads it after them.
+  const catalogue = catalogueDevoirs ?? (rienAFaire ? await getCatalogue().catch(() => []) : [])
 
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">
@@ -68,7 +80,13 @@ export default async function AccueilPage() {
           {moi.pseudonyme ? `Salut ${moi.pseudonyme}` : 'Salut'}
         </h1>
 
-        {aRendre.length > 0 && <PourTaClasse devoirs={aRendre} classes={classes ?? []} />}
+        {aRendre.length > 0 && (
+          <PourTaClasse
+            devoirs={aRendre}
+            classes={classes ?? []}
+            chemins={cheminsChapitres(catalogue)}
+          />
+        )}
         {reprendre && <Reprendre chapitre={reprendre} />}
         {aRevoir && <ARevoir competence={aRevoir} />}
         {rienAFaire && (
@@ -79,7 +97,16 @@ export default async function AccueilPage() {
   )
 }
 
-function PourTaClasse({ devoirs, classes }: { devoirs: DevoirEleveVue[]; classes: MaClasse[] }) {
+function PourTaClasse({
+  devoirs,
+  classes,
+  chemins,
+}: {
+  devoirs: DevoirEleveVue[]
+  classes: MaClasse[]
+  /** Chapter slug → chapter URL, from the catalogue. */
+  chemins: Record<string, string>
+}) {
   const libelle = (classeId: string) => classes.find((c) => c.id === classeId)?.libelle
   // Homework from several classes: each one says its class, since the heading cannot.
   const uneSeule = new Set(devoirs.map((d) => d.classeId)).size === 1
@@ -93,7 +120,8 @@ function PourTaClasse({ devoirs, classes }: { devoirs: DevoirEleveVue[]; classes
       <ul className="grid gap-3 sm:grid-cols-3">
         {devoirs.map((d) => (
           <li key={d.id}>
-            <CarteLien href="/ma-classe">
+            {/* Straight to the homework's content; Ma classe when it cannot be told (#370). */}
+            <CarteLien href={lienDevoir(d, chemins) ?? '/ma-classe'}>
               <span className="font-display text-lg font-extrabold tracking-tight text-ink">
                 {d.titre}
               </span>

@@ -14,6 +14,8 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | Ouvrir un chapitre de ma matière | eleve | 🔥 | 2 | 2 | 2 | `/` → `/[niveau]/[matiere]` → `/[niveau]/[matiere]/[slug]` |
 | Voir mes devoirs à faire | eleve | 🔥 | 1 | 1 | 1 | `/` → `/ma-classe` |
 | Lire un cours publié par mon prof | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/cours/[coursId]` |
+| Ouvrir le cours de mon devoir | eleve | 🔥 | 1 | 1 | 1 | `/` → `/cours/[coursId]` |
+| Ouvrir le chapitre de mon devoir | eleve | 🔥 | 1 | 1 | 1 | `/` → `/[niveau]/[matiere]/[slug]` |
 | Écrire dans le salon de ma classe | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/ma-classe/salon` |
 | Lire les questions de la Communauté | eleve |  | 1 | 1 | 1 | `/` → `/communaute` |
 | Poser une question à la Communauté | eleve |  | 2 | 2 | 2 | `/` → `/communaute` → `/communaute/nouvelle` |
@@ -39,6 +41,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 1 | `/[niveau]/[matiere]` |
 | 1 | `/[niveau]/[matiere]/[slug]` |
 | 1 | `/communaute` |
+| 1 | `/cours/[coursId]` |
 | 1 | `/devoirs` |
 | 1 | `/explorer` |
 | 1 | `/ma-classe` |
@@ -48,7 +51,6 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 2 | `/annales` |
 | 2 | `/communaute/[questionId]` |
 | 2 | `/communaute/nouvelle` |
-| 2 | `/cours/[coursId]` |
 | 2 | `/ma-classe/cours` |
 | 2 | `/ma-classe/salon` |
 | 2 | `/rejoindre` |
@@ -77,10 +79,11 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 1 | `/inscription` |
 | 1 | `/inscription/enseignant` |
 | 1 | `/rejoindre` |
+| 2 | `/mot-de-passe-oublie` |
 
 ## Impasses connues
 
-Routes qu'aucune entrée n'atteint par un lien : `/consentement/[token]`, `/consentement/revocation/[token]`, `/consentement/succes`, `/design`. Déclarées « hors navigation » dans `tasks.json` (`attendus.horsNavigation`) quand elles sont atteintes autrement (lien de courriel, page de développement).
+Routes qu'aucune entrée n'atteint par un lien : `/changer-mot-de-passe`, `/consentement/[token]`, `/consentement/revocation/[token]`, `/consentement/succes`, `/design`. Déclarées « hors navigation » dans `tasks.json` (`attendus.horsNavigation`) quand elles sont atteintes autrement (lien de courriel, page de développement).
 
-Liens morts (un `href` vers une page qui n'existe pas) : `/mot-de-passe-oublie` (components/login-form.tsx).
+Aucun lien mort.
 
