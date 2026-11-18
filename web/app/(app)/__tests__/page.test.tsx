@@ -121,6 +121,7 @@ async function afficher(donnees: Donnees = {}) {
   set(espace.lireMaitrise, donnees.maitrises ?? [])
   set(espace.lireLibelles, donnees.libelles ?? new Map())
   const { lireLecon } = await import('@/lib/revoir')
+  vi.mocked(lireLecon).mockReset()
   set(lireLecon, 'lecon' in donnees ? donnees.lecon : LECON)
   // The mock outlives vi.resetModules(): start each page from no recorded call.
   vi.mocked(getCatalogue).mockReset()
@@ -389,6 +390,41 @@ describe('AccueilPage', () => {
     await rendre({ reprendre: REPRENDRE })
     expect(screen.queryByRole('heading', { name: /Pour ta classe/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'À revoir' })).not.toBeInTheDocument()
+    const { lireLecon } = await import('@/lib/revoir')
+    expect(lireLecon).not.toHaveBeenCalled()
+  })
+
+  it('montre côte à côte un devoir et la compétence à revoir, chacun avec son lien', async () => {
+    await rendre({
+      devoirs: [devoirChapitre('ch', '2026-11-01T16:00:00Z', 'a')],
+      maitrises: [MAITRISE_A_REVOIR],
+      libelles: new Map([['c4.x', 'Calculer avec des fractions']]),
+    })
+    expect(screen.getByRole('heading', { name: 'Pour ta classe · 5e B' })).toBeVisible()
+    expect(screen.getByRole('link', { name: /Devoir ch/ })).toHaveAttribute(
+      'href',
+      '/5e/mathematiques/a?devoir=ch'
+    )
+    expect(screen.getByRole('heading', { name: 'À revoir' })).toBeVisible()
+    expect(screen.getByRole('link', { name: /Calculer avec des fractions/ })).toHaveAttribute(
+      'href',
+      '/5e/mathematiques/les-fractions?diapo=calculer-avec-des-fractions'
+    )
+    expect(screen.queryByText('Choisis par où commencer')).not.toBeInTheDocument()
+    const { getCatalogue } = await import('@/lib/api')
+    expect(getCatalogue).toHaveBeenCalledTimes(1)
+  })
+
+  it('ne propose pas la première connexion quand un devoir reste, même sans leçon à revoir', async () => {
+    await rendre({
+      devoirs: [devoirChapitre('ch', '2026-11-01T16:00:00Z', 'a')],
+      maitrises: [MAITRISE_A_REVOIR],
+      libelles: new Map([['c4.x', 'Calculer avec des fractions']]),
+      lecon: null,
+    })
+    expect(screen.getByRole('link', { name: /Devoir ch/ })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'À revoir' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Choisis par où commencer')).not.toBeInTheDocument()
   })
 
   it('montre les matières du niveau à la première connexion', async () => {

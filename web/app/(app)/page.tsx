@@ -65,7 +65,7 @@ export default async function AccueilPage() {
   const lecon = competence ? await lireLecon(competence.code, moi.niveau, cookie) : null
   const aRevoir = competence && lecon ? { intitule: competence.intitule, lecon } : null
   const rienAFaire = aRendre.length === 0 && !reprendre && !aRevoir
-  // The first steps depend on every read (resume, mastery), so that case still loads it after them.
+  // The first steps depend on every read (resume, mastery, lesson), so that case still loads it after them.
   const catalogue = catalogueDevoirs ?? (rienAFaire ? await getCatalogue().catch(() => []) : [])
 
   return (
