@@ -1,0 +1,7 @@
+# Le jeu de cas caché ne vit JAMAIS dans ce dépôt (voir HIDDEN.md).
+# Ce motif est une ceinture de sécurité : si un agent ou un humain y copie des cas
+# par erreur, git les ignore. scripts/mesh/check-evals.sh échoue si l'un d'eux est suivi.
+hidden/
+hidden-*/
+*.hidden.yaml
+*.hidden.yml

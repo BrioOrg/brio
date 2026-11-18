@@ -35,6 +35,13 @@
  *    yMax not below the largest value; yStep positive and at most 20 graduations; no axis
  *    field (xLabel, yLabel, yMax, yStep, showValues) on a pie.
  *
+ * 3b. Tree blocks (ADR 0040): at least one branch; depth ≤ 3, ≤ 6 branches per node, ≤ 12
+ *    leaves; sibling labels not blank and not duplicated; probabilities written 3/5, 0,4, 25 %,
+ *    an integer, ? or LaTeX between $, none above 1; numeric siblings summing exactly to 1
+ *    (rationals), given ones never above 1; products only with a number on every branch; an
+ *    outcome on leaves only; highlightPath leading to a leaf. Siblings with only some probabilities
+ *    given are a warning, printed without failing.
+ *
  * 4. Scratch programmes (ADR 0031): a code block with language "scratch" must parse with the
  *    renderer's own parser (packages/content/src/scratch.ts), every faulty line reported. The
  *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
@@ -43,6 +50,12 @@
  *    (packages/content/src/scratch-eval.ts): what the sprite says must match the answer the
  *    exercise expects, so a wrong computation in the content is a CI error.
  *
+ * 4b. Worked calculations (ADR 0042): 2 to 12 lines, none blank; each line splits on its
+ *    relation (balanced groups; one relation per equation line; a chain line holds none but a
+ *    leading one); a focus is found in its line; an operation only on an equation line after
+ *    the first, balanced, without relation; a note short and not blank. KaTeX itself runs in
+ *    the web's tests (web/lib/__tests__/calcul-catalogue.test.ts): this script has no dependency.
+ *
  * 5. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
  *    on `id` alone.
@@ -50,6 +63,11 @@
  * 6. Block ids (ADR 0032 §3) — a slide of the interactive mode is addressed by the id of its
  *    first block, so within one chapter block ids are unique, and none is `debut` or `fin`
  *    (reserved for the opening and closing slides; read from packages/content/src/deck.ts).
+ *
+ * 7. Maths tones (ADR 0037) — every `\tone{n}{…}` and figure `tone` is 1 to 4 (error). More than
+ *    3 distinct tones in one block is a warning: the colour stops meaning anything. A tone in a
+ *    figure that no formula of the section uses is fine (the object may be named only there).
+ *    Rules read from packages/content/src/tone.ts, shared with the teacher editor.
  *
  * Scanned: content/ (excluding referentiel) + docs/schema/examples/.
  * No dependencies; it imports the Scratch parser, the reserved slide ids and the chart rules as
@@ -65,6 +83,9 @@ let evaluateScratch
 let toScratchNumber
 let RESERVED_DIAPO_IDS
 let checkChart
+let checkTones
+let checkCalcul
+let checkTree
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
@@ -73,6 +94,9 @@ try {
   ))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
+  ;({ checkTones } = await import('../packages/content/src/tone.ts'))
+  ;({ checkCalcul } = await import('../packages/content/src/calcul.ts'))
+  ;({ checkTree } = await import('../packages/content/src/tree-rules.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -121,9 +145,14 @@ function findSegment(name, segments) {
 const repoRoot = new URL('..', import.meta.url).pathname
 
 const errors = []
+const warnings = []
 
 function fail(file, path, message) {
   errors.push(`${relative(repoRoot, file)} (${path}): ${message}`)
+}
+
+function warn(file, path, message) {
+  warnings.push(`${relative(repoRoot, file)} (${path}): ${message}`)
 }
 
 /**
@@ -548,6 +577,95 @@ function checkChartBlock(block, file, path) {
   for (const issue of checkChart(block)) fail(file, `${path}.${issue.path}`, chartMessage(issue))
 }
 
+// --- Worked calculations (ADR 0042) ---
+// The rules live in packages/content/src/calcul.ts, shared with the teacher editor.
+
+function calculMessage(issue) {
+  switch (issue.code) {
+    case 'LINE_COUNT':
+      return `a calculation has ${issue.min} to ${issue.max} lines, found ${issue.count}`
+    case 'BLANK_LINE':
+      return 'blank line'
+    case 'UNBALANCED':
+      return 'unbalanced braces, \\left…\\right or \\begin…\\end'
+    case 'NO_RELATION':
+      return 'an equation line needs a relation (=, <, \\leq…) outside any group'
+    case 'SEVERAL_RELATIONS':
+      return 'one relation per line: split the line in two'
+    case 'RELATION_INSIDE':
+      return 'a line of a chain of equalities is the next expression ("=" is implied); it may only start with a relation'
+    case 'EMPTY_MEMBER':
+      return 'a member of the relation is empty'
+    case 'BLANK_NOTE':
+      return 'blank note'
+    case 'NOTE_TOO_LONG':
+      return `note of ${issue.length} characters; at most ${issue.max} (a longer one belongs in the prose)`
+    case 'FOCUS_NOT_FOUND':
+      return `focus ${JSON.stringify(issue.focus)} is not in the line (or cuts a number or a command)`
+    case 'OP_IN_EGALITES':
+      return 'an operation on both members only makes sense in equation mode'
+    case 'OP_ON_FIRST_LINE':
+      return 'the first line has no operation: an operation leads to its line from the one before'
+    case 'OP_INVALID':
+      return 'an operation is LaTeX without relation, e.g. "-13" or "\\div 4"'
+    default:
+      return issue.code
+  }
+}
+
+function checkCalculBlock(block, file, path) {
+  for (const issue of checkCalcul(block)) fail(file, `${path}.${issue.path}`, calculMessage(issue))
+}
+
+// The rules live in packages/content/src/tree-rules.ts, shared with the teacher editor (ADR 0040);
+// only their English wording is here.
+function treeMessage(issue) {
+  switch (issue.code) {
+    case 'NO_BRANCH':
+      return 'a tree needs at least one branch'
+    case 'TOO_DEEP':
+      return `a tree is at most ${issue.max} levels deep`
+    case 'TOO_MANY_CHILDREN':
+      return `${issue.count} branches from one node; at most ${issue.max}`
+    case 'TOO_MANY_LEAVES':
+      return `${issue.count} leaves; at most ${issue.max}`
+    case 'BLANK_LABEL':
+      return 'blank branch label'
+    case 'DUPLICATE_LABEL':
+      return `two sibling branches are labelled "${issue.label}"`
+    case 'INVALID_PROBABILITY':
+      return issue.reason === 'decimal-point'
+        ? `probability "${issue.value}" uses a decimal point; write a decimal comma`
+        : issue.reason === 'zero-denominator'
+          ? `probability "${issue.value}" has a zero denominator`
+          : `probability "${issue.value}" is not 3/5, 0,4, 25 %, an integer, ? or $LaTeX$`
+    case 'PROBABILITY_ABOVE_ONE':
+      return `probability "${issue.value}" is above 1`
+    case 'SUM_NOT_ONE':
+      return `sibling probabilities sum to ${issue.sum}, not 1`
+    case 'SUM_ABOVE_ONE':
+      return `the given sibling probabilities already sum to ${issue.sum}, above 1`
+    case 'PARTIAL_PROBABILITIES':
+      return `only ${issue.given} of ${issue.count} sibling branches carry a probability`
+    case 'OUTCOME_ON_BRANCH':
+      return 'only a leaf has an outcome'
+    case 'PRODUCT_NEEDS_PROBABILITIES':
+      return 'products need a numeric probability on every branch'
+    case 'HIGHLIGHT_NOT_A_PATH':
+      return 'highlightPath does not lead from the root to a leaf'
+    default:
+      return issue.code
+  }
+}
+
+function checkTreeBlock(block, file, path) {
+  for (const issue of checkTree(block)) {
+    const where = `${relative(repoRoot, file)} (${path}.${issue.path})`
+    if (issue.severity === 'warning') warnings.push(`${where}: ${treeMessage(issue)}`)
+    else fail(file, `${path}.${issue.path}`, treeMessage(issue))
+  }
+}
+
 // --- Scratch programmes (ADR 0031) ---
 
 function checkScratchBlock(block, file, path) {
@@ -666,7 +784,30 @@ function checkFigures(doc, file) {
       const path = `sections[id=${section.id}].blocks[${i}]`
       if (block.type === 'figure') checkFigureBlock(block, file, path)
       else if (block.type === 'chart') checkChartBlock(block, file, path)
+      else if (block.type === 'calcul') checkCalculBlock(block, file, path)
+      else if (block.type === 'tree') checkTreeBlock(block, file, path)
       else if (block.type === 'code' && block.language === 'scratch') checkScratchBlock(block, file, path)
+    }
+  }
+}
+
+// --- Maths tones (ADR 0037) ---
+
+function checkToneBlocks(doc, file) {
+  for (const section of doc.sections ?? []) {
+    for (let i = 0; i < (section.blocks ?? []).length; i++) {
+      const path = `sections[id=${section.id}].blocks[${i}]`
+      for (const issue of checkTones(section.blocks[i]).issues) {
+        if (issue.code === 'UNKNOWN_TONE') {
+          fail(file, `${path}.${issue.path}`, `tone "${issue.value}" does not exist: use 1, 2, 3 or 4`)
+        } else {
+          warn(
+            file,
+            path,
+            `${issue.tones.length} tones in one block (${issue.tones.join(', ')}): keep at most ${issue.max}, colour is rare and meaningful`,
+          )
+        }
+      }
     }
   }
 }
@@ -724,6 +865,7 @@ for (const file of contentFiles) {
     walkStrings(doc, file, '')
     checkFigures(doc, file)
     checkScratchExercises(doc, file)
+    checkToneBlocks(doc, file)
     checkBlockIds(doc, file)
     if (isChapterFile(file) && typeof doc.id === 'string') {
       filesById.set(doc.id, [...(filesById.get(doc.id) ?? []), file])
@@ -743,10 +885,20 @@ for (const [id, files] of filesById) {
   }
 }
 
+if (warnings.length > 0) {
+  console.warn(`! ${warnings.length} warning(s):`)
+  for (const warning of warnings) console.warn(`  - ${warning}`)
+}
+
+if (warnings.length > 0) {
+  console.warn(`! ${warnings.length} warning(s):`)
+  for (const warning of warnings) console.warn(`  - ${warning}`)
+}
+
 if (errors.length > 0) {
   console.error(`✗ Content check failed (${errors.length} problem(s)):`)
   for (const error of errors) console.error(`  - ${error}`)
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + Scratch programmes + unique chapter and block ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + trees + Scratch programmes + maths tones + unique chapter and block ids).`)

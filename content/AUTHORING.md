@@ -403,6 +403,35 @@ Recette — un diagramme en barres :
   « quel diagramme correspond à ce tableau ? », un `table`, puis des `chart` titrés
   « Diagramme A », « Diagramme B »…, puis un QCM sur ces titres.
 
+### Arbres de probabilités
+
+Un arbre des possibles ou un arbre pondéré est un bloc `tree` (ADR 0040). On donne les branches,
+niveau par niveau ; le renderer place les nœuds, les probabilités et les issues.
+
+```json
+{ "id": "arbre-urne", "type": "tree", "outcomes": true, "products": true,
+  "highlightPath": ["R", "B"],
+  "root": { "children": [
+    { "label": "R", "probability": "3/5", "children": [
+      { "label": "R", "probability": "2/4" }, { "label": "B", "probability": "2/4" } ] },
+    { "label": "B", "probability": "2/5", "children": [
+      { "label": "R", "probability": "3/4" }, { "label": "B", "probability": "1/4" } ] } ] },
+  "alt": "Deux tirages sans remise dans une urne de 3 boules rouges et 2 bleues." }
+```
+
+- Sans `probability`, c'est un arbre des possibles (5e). Une probabilité s'écrit `3/5` (dessinée
+  en vraie fraction, jamais simplifiée), `0,4` (virgule), `25 %`, `?` (case à compléter) ou une
+  formule entre `$` (`$p$`, `$1-p$`). `label` accepte `$\overline{A}$`.
+- Au plus 3 niveaux, 6 branches par nœud, 12 issues. Les probabilités de branches sœurs toutes
+  chiffrées font **exactement 1** (check-content calcule en fractions).
+- `outcomes: true` écrit les issues, `(R ; B)` ; une feuille peut donner la sienne avec `outcome`
+  (`$A \cap B$`). `products: true` écrit leur probabilité : à éviter dans un exercice, elle
+  donnerait la réponse.
+- `highlightPath` (les noms du chemin, de la racine à une feuille) colore un chemin : la règle
+  du produit.
+- Horizontal par défaut ; `orientation: "vertical"` pour un petit arbre. Sur téléphone, tout
+  arbre est dessiné horizontalement.
+
 ### Programmes Scratch
 
 Un programme Scratch est un bloc `code` en `"language": "scratch"` (ADR 0031). Il s'écrit en
@@ -480,6 +509,25 @@ la prose sans balisage : un `$a + b$` inline pour une expression simple est du b
 Un délimiteur non fermé (`**gras`, `$formule`) s'affiche tel quel, délimiteur compris —
 c'est une erreur visible plutôt qu'une perte silencieuse. `pnpm check:content`
 détecte ces cas avant le commit.
+
+### Couleurs signifiantes (ADR 0037)
+
+Une couleur dit qu'**un même objet** apparaît à deux endroits : le côté [AB] du triangle et le
+$AB^2$ de l'égalité, le terme $ka$ de la figure d'aires et celui du développement. Elle ne sert
+jamais à décorer ni à signaler un état (juste, faux, important) : l'encre reste le défaut.
+
+- **Dans une formule** (`formula.latex`, `$...$` d'un `richText`, `steps[].formula`) :
+  `\tone{n}{…}`, `n` de 1 à 4. Exemple : `"\\tone{3}{BC}^2 = \\tone{1}{AB}^2 + \\tone{2}{AC}^2"`.
+  Colore l'objet (`\tone{1}{AB}^2`), pas son exposant ni le signe qui le précède.
+- **Dans une figure** : `"tone": n` sur un point (point et nom), un segment, un polygone, un
+  cercle, un arc, une marque d'angle ou une étiquette. Un polygone teinté peut prendre
+  `"fill": "soft"` (fond doux sous son trait) ; pour garder des contours à l'encre, redessine le
+  contour par-dessus avec un polygone sans teinte.
+- **Même numéro, même objet**, dans tout le chapitre. Commence par 1 et 2 (bleu et orange, le
+  couple que les élèves daltoniens distinguent le mieux).
+- **Au plus trois teintes par bloc** : au-delà, `pnpm check:content` avertit. Une teinte hors
+  1…4 est une erreur. Une teinte présente dans une figure et dans aucune formule est permise.
+- La couleur n'est jamais le seul indice : l'objet reste nommé (lettre, nombre) aux deux endroits.
 
 ### Callouts
 

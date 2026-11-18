@@ -1,0 +1,54 @@
+name: Mesh UX
+
+# Click budget (#358, U1): a PR that lengthens a hot route, leaves a page nobody links to,
+# adds a dead link, or raises a hot budget fails here. Pure Node, no build, no browser.
+# Method and limits: docs/mesh/ROUTES-BUDGET.md. The budgets live in mesh/routes/tasks.json.
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'web/app/**'
+      - 'web/components/**'
+      - 'web/lib/**'
+      - 'web/public/**'
+      - 'mesh/routes/**'
+      - 'scripts/mesh/**'
+      - '.github/workflows/mesh-ux.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  click-budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the base branch's tasks.json is read to forbid raising a hot budget
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests of the route graph
+        run: node --test 'scripts/mesh/__tests__/*.test.mjs'
+      - name: Click budget (hot routes must not lengthen)
+        run: node scripts/mesh/route-budget.mjs --base "origin/${{ github.base_ref }}" --json route-budget.json
+      - name: Route map is up to date (informational)
+        if: always()
+        run: |
+          node scripts/mesh/route-budget.mjs --write-doc > /dev/null || true
+          if ! git diff --quiet -- docs/mesh/CARTE-ROUTES.md; then
+            echo "::notice file=docs/mesh/CARTE-ROUTES.md::La carte des routes est périmée : lancer 'node scripts/mesh/route-budget.mjs --write-doc' et committer le résultat."
+          fi
+      - name: Upload the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-budget
+          path: route-budget.json
+          retention-days: 14
+          if-no-files-found: ignore

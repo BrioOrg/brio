@@ -3,7 +3,7 @@
 import katex from 'katex'
 import { useMemo, useRef } from 'react'
 
-import { KATEX_LIMITS, LATEX_MAX_LENGTH } from '@/lib/katex'
+import { KATEX_LIMITS, LATEX_MAX_LENGTH, katexMacros } from '@/lib/katex'
 
 // Rendu KaTeX « en direct » d'une formule LaTeX saisie à la main, en cours de frappe : elle est
 // donc souvent incomplète ou invalide. Mêmes limites que l'affichage (lib/katex.ts). On rend avec throwOnError pour attraper l'erreur nous-mêmes
@@ -38,6 +38,7 @@ export function ApercuKatex({
     try {
       const rendu = katex.renderToString(source, {
         ...KATEX_LIMITS,
+        macros: katexMacros(),
         throwOnError: true,
         displayMode,
       })

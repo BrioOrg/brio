@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "description": "Tâches clés, budget de clics et personas d'entrée. Propriétaire : U1 Cartographe des parcours. Un budget de route chaude ne se relève jamais sans décision U1 + humain (vérifié en CI contre la branche de base).",
+  "personas": {
+    "eleve": {
+      "entree": "/",
+      "exclut": ["/prof", "/connexion", "/commencer", "/inscription", "/consentement", "/design"]
+    },
+    "enseignant": {
+      "entree": "/prof",
+      "autorise": ["/prof", "/cours"]
+    },
+    "visiteur": {
+      "entree": "/commencer",
+      "autorise": ["/commencer", "/connexion", "/inscription", "/rejoindre", "/mot-de-passe-oublie"]
+    }
+  },
+  "attendus": {
+    "horsNavigation": [
+      "/consentement/[token]",
+      "/consentement/revocation/[token]",
+      "/consentement/succes",
+      "/design",
+      "/changer-mot-de-passe"
+    ],
+    "liensMorts": []
+  },
+  "taches": [
+    { "id": "eleve-reprendre-chapitre", "label": "Reprendre le chapitre en cours", "persona": "eleve", "chaude": true, "arrivee": "/[niveau]/[matiere]/[slug]", "budget": 1, "cible": 1 },
+    { "id": "eleve-ouvrir-chapitre", "label": "Ouvrir un chapitre de ma matière", "persona": "eleve", "chaude": true, "via": ["/[niveau]/[matiere]"], "arrivee": "/[niveau]/[matiere]/[slug]", "budget": 2, "cible": 2 },
+    { "id": "eleve-devoirs-a-faire", "label": "Voir mes devoirs à faire", "persona": "eleve", "chaude": true, "arrivee": "/ma-classe", "budget": 1, "cible": 1 },
+    { "id": "eleve-cours-du-prof", "label": "Lire un cours publié par mon prof", "persona": "eleve", "chaude": true, "via": ["/ma-classe"], "arrivee": "/cours/[coursId]", "budget": 2, "cible": 2 },
+    { "id": "eleve-salon-de-classe", "label": "Écrire dans le salon de ma classe", "persona": "eleve", "chaude": true, "arrivee": "/ma-classe/salon", "budget": 2, "cible": 2 },
+    { "id": "eleve-lire-communaute", "label": "Lire les questions de la Communauté", "persona": "eleve", "chaude": false, "arrivee": "/communaute", "budget": 1, "cible": 1 },
+    { "id": "eleve-poser-question", "label": "Poser une question à la Communauté", "persona": "eleve", "chaude": false, "arrivee": "/communaute/nouvelle", "budget": 2, "cible": 2 },
+    { "id": "eleve-annales", "label": "S'entraîner sur une annale", "persona": "eleve", "chaude": false, "arrivee": "/annales", "budget": 2, "cible": 2 },
+    { "id": "eleve-profil", "label": "Voir mon profil", "persona": "eleve", "chaude": false, "arrivee": "/profil", "budget": 1, "cible": 1 },
+    { "id": "eleve-parametres", "label": "Ouvrir mes paramètres", "persona": "eleve", "chaude": false, "arrivee": "/parametres", "budget": 1, "cible": 1 },
+    { "id": "eleve-rejoindre-classe", "label": "Rejoindre une classe avec un code", "persona": "eleve", "chaude": false, "arrivee": "/rejoindre", "budget": 2, "cible": 2 },
+    { "id": "prof-creer-devoir", "label": "Créer un devoir", "persona": "enseignant", "chaude": true, "arrivee": "/prof/devoirs/nouveau", "budget": 2, "cible": 2 },
+    { "id": "prof-suivre-devoir", "label": "Suivre et corriger un devoir", "persona": "enseignant", "chaude": true, "via": ["/prof/devoirs"], "arrivee": "/prof/devoirs/[id]", "budget": 2, "cible": 2 },
+    { "id": "prof-mes-classes", "label": "Voir mes classes", "persona": "enseignant", "chaude": true, "arrivee": "/prof/classes", "budget": 1, "cible": 1 },
+    { "id": "prof-signalements", "label": "Traiter un signalement", "persona": "enseignant", "chaude": false, "arrivee": "/prof/signalements", "budget": 1, "cible": 1 },
+    { "id": "prof-signalements-salon", "label": "Modérer le salon de classe", "persona": "enseignant", "chaude": false, "arrivee": "/prof/signalements-salon", "budget": 1, "cible": 1 },
+    { "id": "visiteur-se-connecter", "label": "Se connecter", "persona": "visiteur", "chaude": true, "arrivee": "/connexion", "budget": 1, "cible": 1 },
+    { "id": "visiteur-creer-compte-eleve", "label": "Créer un compte élève", "persona": "visiteur", "chaude": true, "arrivee": "/inscription", "budget": 1, "cible": 1 },
+    { "id": "visiteur-rejoindre-classe", "label": "Rejoindre une classe avec un code", "persona": "visiteur", "chaude": true, "arrivee": "/rejoindre", "budget": 1, "cible": 1 },
+    { "id": "visiteur-creer-compte-enseignant", "label": "Créer un compte enseignant", "persona": "visiteur", "chaude": false, "arrivee": "/inscription/enseignant", "budget": 1, "cible": 1 }
+  ]
+}
