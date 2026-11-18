@@ -220,4 +220,17 @@ class PublicationValidatorTest {
                 .extracting(e -> ((InvalidContentException) e).violations())
                 .isEqualTo(List.of(new ContentViolation(ContentViolation.MISSING_ALT, "s1", "chart1", "alt")));
     }
+
+    @Test
+    void shouldRejectATreeWithABlankAlt() {
+        // A tree is a figure for a screen reader too (ADR 0040 §10).
+        String tree = """
+                { "id": "arbre1", "type": "tree", "alt": "   ",
+                  "root": { "children": [ { "label": "P" }, { "label": "F" } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(doc(tree)))
+                .isInstanceOf(InvalidContentException.class)
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(ContentViolation.MISSING_ALT, "s1", "arbre1", "alt")));
+    }
 }

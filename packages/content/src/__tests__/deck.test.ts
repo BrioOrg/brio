@@ -26,6 +26,7 @@ const figure = (id: string) => block(id, 'figure')
 const table = (id: string) => block(id, 'table')
 const formula = (id: string) => block(id, 'formula')
 const chart = (id: string) => block(id, 'chart')
+const tree = (id: string) => block(id, 'tree')
 const image = (id: string) => block(id, 'image')
 const exercise = (id: string) => block(id, 'exercise')
 
@@ -149,7 +150,7 @@ describe('buildDeck', () => {
       ).toEqual(['exercice:x1', 'exercice:f+x2'])
     })
 
-    it('should also hold for an image or a chart', () => {
+    it('should also hold for an image, a chart or a tree', () => {
       expect(
         middle({
           sections: [
@@ -157,6 +158,9 @@ describe('buildDeck', () => {
           ],
         })
       ).toEqual(['lecon:d', 'exercice:i+x1', 'exercice:c+x2'])
+      expect(
+        middle({ sections: [section('s1', definition('d'), tree('a'), exercise('x'))] })
+      ).toEqual(['lecon:d', 'exercice:a+x'])
     })
 
     it('should bring along every support in the same run', () => {
@@ -315,11 +319,11 @@ describe('buildDeck on the catalogue', () => {
       movedOntoExercise: decks.flat().filter((d) => d.kind === 'exercice' && d.blockIds.length > 1)
         .length,
     }).toEqual({
-      slides: 989,
+      slides: 992,
       fewest: 10,
       median: 21,
       most: 33,
-      blocksPerSlide: { 0: 50, 1: 785, 2: 117, 3: 33, 4: 2, 5: 2 },
+      blocksPerSlide: { 0: 50, 1: 787, 2: 118, 3: 33, 4: 2, 5: 2 },
       movedOntoExercise: 33,
     })
   })

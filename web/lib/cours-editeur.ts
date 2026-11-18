@@ -12,11 +12,16 @@ import {
   formatNumber,
   parseScratch,
   maxCategories,
+  checkTree,
+  findPath,
   CHART_AXIS_FIELDS,
   type CalculIssue,
   type ChartIssue,
   type ChartKind,
   type ChartSpec,
+  type TreeIssue,
+  type TreeNodeSpec,
+  type TreeSpec,
 } from '@brio/content'
 
 import type { ChapitreResponse } from '@/components/chapter-view'
@@ -35,6 +40,7 @@ export type BlocType =
   | 'reference'
   | 'figure'
   | 'chart'
+  | 'tree'
   | 'code'
   | 'exercise'
 
@@ -132,6 +138,12 @@ export const BLOCS: {
     icone: '◔',
   },
   {
+    type: 'tree',
+    label: 'Arbre',
+    description: 'Un arbre des possibles ou un arbre de probabilités',
+    icone: '⋲',
+  },
+  {
     type: 'code',
     label: 'Programme',
     description: 'Un programme Scratch dessiné en blocs, ou du code en texte',
@@ -194,6 +206,7 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   reference: 'Référence',
   figure: 'Figure',
   chart: 'Diagramme',
+  tree: 'Arbre',
   code: 'Programme',
   exercise: 'Exercice',
 }
@@ -314,6 +327,16 @@ export function nouveauBloc(
             data: [{ label: '' }, { label: '' }] as Donnee[],
           },
         ],
+        alt: '',
+      }
+    case 'tree':
+      // Arbre (ADR 0040) : deux branches à nommer, sans probabilité (un arbre des possibles) ;
+      // l'enseignant en ajoute une par branche pour en faire un arbre pondéré.
+      return {
+        id: genId(),
+        type,
+        outcomes: true,
+        root: { children: [{ label: '' }, { label: '' }] as NoeudArbre[] },
         alt: '',
       }
     case 'code':
@@ -489,6 +512,8 @@ function blocServi(bloc: Bloc): Bloc {
       if (b.kind === 'pie') for (const champ of CHART_AXIS_FIELDS) delete b[champ]
       if (b.showValues !== true) delete b.showValues
       return b
+    case 'tree':
+      return arbreServi(b)
     case 'exercise':
       return b.exerciseType === 'fill-blank' ? { ...b, bank: banqueServie(b.bank) } : b
     default:
@@ -718,6 +743,9 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       for (const i of checkCalcul(b)) {
         p.push({ code: `CALCUL_${i.code}`, champ: i.path, message: libelleCalcul(i) })
       }
+      break
+    case 'tree':
+      p.push(...problemesArbre(b))
       break
     case 'code':
       exiger('code', b.code)
@@ -981,6 +1009,160 @@ export function graphiquePourApercu(b: Bloc): ChartSpec | null {
   return spec
 }
 
+// --- Arbre ----------------------------------------------------------------------
+// Les règles sont celles de check-content (packages/content, tree-rules.ts) ; seul leur libellé
+// français est ici. Un avertissement (probabilités données pour une partie des branches sœurs)
+// ne bloque pas : un arbre à compléter est légitime.
+
+/** Une branche d'arbre telle que saisie : une probabilité vide est une chaîne vide. */
+export type NoeudArbre = {
+  label: string
+  probability?: string
+  children?: NoeudArbre[]
+}
+
+/** Les branches qui partent de la racine. */
+export function branchesArbre(b: Bloc): NoeudArbre[] {
+  const root = b.root as { children?: unknown } | undefined
+  return Array.isArray(root?.children) ? (root.children as NoeudArbre[]) : []
+}
+
+function noeudServi(n: NoeudArbre): NoeudArbre {
+  const servi: NoeudArbre = { ...n }
+  if (vide(servi.probability)) delete servi.probability
+  if (Array.isArray(servi.children)) {
+    if (servi.children.length === 0) delete servi.children
+    else servi.children = servi.children.map(noeudServi)
+  }
+  return servi
+}
+
+function arbreServi(b: Bloc): Bloc {
+  b.root = { children: branchesArbre(b).map(noeudServi) }
+  if (b.outcomes !== true) delete b.outcomes
+  if (b.products !== true) delete b.products
+  if (b.orientation !== 'vertical') delete b.orientation
+  if (!Array.isArray(b.highlightPath) || b.highlightPath.length === 0) delete b.highlightPath
+  return b
+}
+
+/** Le chemin d'une feuille, écrit pour un sélecteur : « R puis B ». */
+export function cheminsArbre(b: Bloc): string[][] {
+  const chemins: string[][] = []
+  const parcourir = (noeuds: NoeudArbre[], chemin: string[]) => {
+    for (const n of noeuds) {
+      const ici = [...chemin, n.label ?? '']
+      if (Array.isArray(n.children) && n.children.length > 0) parcourir(n.children, ici)
+      else chemins.push(ici)
+    }
+  }
+  parcourir(branchesArbre(b), [])
+  return chemins
+}
+
+function rangBranche(chemin: string): string {
+  // `root.children[1].children[0]` → « branche 2.1 »
+  const rangs = [...chemin.matchAll(/children\[(\d+)\]/g)].map((m) => Number(m[1]) + 1)
+  return rangs.length > 0 ? `la branche ${rangs.join('.')}` : 'la racine'
+}
+
+/** `root.children[0].children` → « issues de la branche 1 ». */
+function depuis(chemin: string): string {
+  return `issues de ${rangBranche(chemin.replace(/\.children$/, ''))}`
+}
+
+function libelleArbre(i: TreeIssue): string {
+  switch (i.code) {
+    case 'NO_BRANCH':
+      return 'Ajoute au moins une branche.'
+    case 'TOO_DEEP':
+      return `Un arbre a au plus ${i.max} niveaux.`
+    case 'TOO_MANY_CHILDREN':
+      return `Au plus ${i.max} branches partent d’un même nœud (${rangBranche(i.path)}).`
+    case 'TOO_MANY_LEAVES':
+      return `Cet arbre a ${i.count} issues, au plus ${i.max} : retire des branches.`
+    case 'BLANK_LABEL':
+      return `Nomme ${rangBranche(i.path)}.`
+    case 'DUPLICATE_LABEL':
+      return `Deux branches sœurs s’appellent « ${i.label} » : donne-leur des noms différents.`
+    case 'INVALID_PROBABILITY':
+      return i.reason === 'decimal-point'
+        ? `Écris « ${i.value} » avec une virgule (${rangBranche(i.path)}).`
+        : i.reason === 'zero-denominator'
+          ? `« ${i.value} » a un dénominateur nul (${rangBranche(i.path)}).`
+          : `« ${i.value} » n’est pas une probabilité : écris 3/5, 0,4, 25 %, ? ou une formule entre $ (${rangBranche(i.path)}).`
+    case 'PROBABILITY_ABOVE_ONE':
+      return `Une probabilité ne dépasse pas 1 (« ${i.value} », ${rangBranche(i.path)}).`
+    case 'SUM_NOT_ONE':
+      return `Les probabilités des branches ${depuis(i.path)} font ${i.sum} au lieu de 1.`
+    case 'SUM_ABOVE_ONE':
+      return `Les probabilités données aux branches ${depuis(i.path)} dépassent déjà 1.`
+    case 'PARTIAL_PROBABILITIES':
+      return `Seules ${i.given} branches sur ${i.count} ${depuis(i.path)} ont une probabilité : écris ? pour une case à compléter.`
+    case 'OUTCOME_ON_BRANCH':
+      return 'Seule une feuille a une issue.'
+    case 'PRODUCT_NEEDS_PROBABILITIES':
+      return 'Pour écrire les produits, donne une probabilité chiffrée à chaque branche.'
+    case 'HIGHLIGHT_NOT_A_PATH':
+      return 'Le chemin mis en évidence ne mène plus à une feuille : choisis-en un autre.'
+  }
+}
+
+function problemesArbre(b: Bloc): ProblemeBrut[] {
+  const p: ProblemeBrut[] = []
+  if (!texteRempli(b.alt)) {
+    p.push({
+      code: 'MISSING_ALT',
+      champ: 'alt',
+      message: 'Décris l’arbre dans le texte alternatif.',
+    })
+  }
+  for (const i of checkTree(b)) {
+    p.push({
+      code: `TREE_${i.code}`,
+      champ: i.path,
+      gravite: i.severity === 'warning' ? 'avertissement' : 'bloquant',
+      message: libelleArbre(i),
+    })
+  }
+  return p
+}
+
+/**
+ * Ce que l'aperçu peut dessiner d'un arbre en cours de saisie : les branches nommées seulement,
+ * les probabilités vides retirées, le chemin mis en évidence s'il existe encore. Null s'il ne
+ * reste aucune branche nommée ou si l'arbre a une erreur de structure (trop profond, trop large).
+ */
+export function arbrePourApercu(b: Bloc): TreeSpec | null {
+  const nommees = (noeuds: NoeudArbre[]): TreeNodeSpec[] =>
+    noeuds
+      .filter((n) => texteRempli(n.label))
+      .map((n) => {
+        const noeud: TreeNodeSpec = { label: n.label.trim() }
+        if (texteRempli(n.probability)) noeud.probability = String(n.probability).trim()
+        const enfants = Array.isArray(n.children) ? nommees(n.children) : []
+        if (enfants.length > 0) noeud.children = enfants
+        return noeud
+      })
+  const children = nommees(branchesArbre(b))
+  if (children.length === 0) return null
+  const spec: TreeSpec = { root: { children } }
+  const structure = checkTree({ root: spec.root }).some((i) =>
+    ['TOO_DEEP', 'TOO_MANY_CHILDREN', 'TOO_MANY_LEAVES'].includes(i.code)
+  )
+  if (structure) return null
+  if (b.orientation === 'vertical') spec.orientation = 'vertical'
+  if (b.outcomes === true) spec.outcomes = true
+  const produitsPossibles = !checkTree({ root: spec.root, products: true }).some(
+    (i) => i.code === 'PRODUCT_NEEDS_PROBABILITIES'
+  )
+  if (b.products === true && produitsPossibles) spec.products = true
+  if (Array.isArray(b.highlightPath) && findPath(spec.root, b.highlightPath) !== null) {
+    spec.highlightPath = b.highlightPath as string[]
+  }
+  return spec
+}
+
 function probleme(
   brut: ProblemeBrut,
   lieu: { sectionId?: string; blocId?: string },
@@ -1140,6 +1322,10 @@ export function exerciceComplet(bloc: Bloc): boolean {
 const CHAMPS_CORRECTION = ['expected', 'acceptedAnswers', 'answer', 'tolerance', 'caseSensitive']
 
 function blocPourApercu(bloc: Bloc): Bloc {
+  if (bloc.type === 'tree') {
+    const { id, type, title, alt, caption } = bloc
+    return { id, type, title, alt, caption, ...arbrePourApercu(bloc) }
+  }
   if (bloc.type === 'chart') {
     // Le diagramme dessinable (graphiquePourApercu), avec ses textes : l'afficheur élève ne
     // reçoit jamais une valeur manquante ou une graduation invalide.
@@ -1172,6 +1358,7 @@ export function brouillonVersApercu(b: Brouillon): {
       .filter((bloc) => {
         // Un diagramme de moins de deux catégories remplies n'a rien à dessiner.
         if (bloc.type === 'chart') return graphiquePourApercu(bloc) !== null
+        if (bloc.type === 'tree') return arbrePourApercu(bloc) !== null
         // Un programme vide n'a rien à montrer. Un programme Scratch qui ne s'analyse pas reste :
         // l'afficheur le montre en texte, comme il le ferait pour l'élève.
         if (bloc.type === 'code') return texteRempli(bloc.code)

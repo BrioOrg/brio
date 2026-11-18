@@ -27,7 +27,8 @@ import { Icon } from '@/components/ui/icon'
 import { Mascot } from '@/components/ui/mascot'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { renderKatex } from '@/lib/katex'
-import type { FigureSpec } from '@brio/content'
+import { TreeRenderer } from '@/components/tree-renderer'
+import type { FigureSpec, TreeSpec } from '@brio/content'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -91,6 +92,64 @@ const TONE_EXAMPLES: { spec: FigureSpec; alt: string; latex: string }[] = [
     latex: '3 \\times (\\tone{1}{4} + \\tone{2}{2}) = \\tone{1}{12} + \\tone{2}{6}',
   },
 ]
+// Three trees for the styleguide (ADR 0040): a 5e tree of possibles, a 3e weighted tree with its
+// products and one highlighted path, a seconde tree with complementary events, drawn vertically.
+const ARBRE_PIECES: TreeSpec = {
+  root: {
+    children: ['P', 'F'].map((a) => ({ label: a, children: [{ label: 'P' }, { label: 'F' }] })),
+  },
+  outcomes: true,
+}
+
+const ARBRE_URNE: TreeSpec = {
+  root: {
+    children: [
+      {
+        label: 'R',
+        probability: '3/5',
+        children: [
+          { label: 'R', probability: '2/4' },
+          { label: 'B', probability: '2/4' },
+        ],
+      },
+      {
+        label: 'B',
+        probability: '2/5',
+        children: [
+          { label: 'R', probability: '3/4' },
+          { label: 'B', probability: '1/4' },
+        ],
+      },
+    ],
+  },
+  outcomes: true,
+  products: true,
+  highlightPath: ['R', 'B'],
+}
+
+const ARBRE_CONTRAIRE: TreeSpec = {
+  orientation: 'vertical',
+  root: {
+    children: [
+      {
+        label: '$A$',
+        probability: '0,3',
+        children: [
+          { label: '$B$', probability: '0,8' },
+          { label: '$\\overline{B}$', probability: '0,2' },
+        ],
+      },
+      {
+        label: '$\\overline{A}$',
+        probability: '0,7',
+        children: [
+          { label: '$B$', probability: '0,4' },
+          { label: '$\\overline{B}$', probability: '?' },
+        ],
+      },
+    ],
+  },
+}
 
 function Swatch({ token, label }: { token: string; label: string }) {
   return (
@@ -344,6 +403,29 @@ export default function DesignPage() {
             <Swatch token="cube-top" label="Dessus" />
             <Swatch token="cube-front" label="Face" />
             <Swatch token="cube-side" label="Côté" />
+          </div>
+        </Section>
+
+        <Section title="Arbres de probabilités">
+          <Label>Arbre des possibles (5e) — issues en colonne</Label>
+          <TreeRenderer
+            spec={ARBRE_PIECES}
+            alt="Arbre des possibles de deux lancers d’une pièce : quatre issues."
+          />
+          <div className="mt-8">
+            <Label>Arbre pondéré (3e) — produits, un chemin mis en évidence</Label>
+            <TreeRenderer
+              spec={ARBRE_URNE}
+              alt="Deux tirages sans remise dans une urne de 3 boules rouges et 2 bleues."
+              caption="Le chemin (R ; B) : on multiplie les probabilités rencontrées."
+            />
+          </div>
+          <div className="mt-8">
+            <Label>Événements contraires (seconde) — vertical, une branche à compléter</Label>
+            <TreeRenderer
+              spec={ARBRE_CONTRAIRE}
+              alt="Arbre vertical des événements A, non A, B et non B."
+            />
           </div>
         </Section>
 
