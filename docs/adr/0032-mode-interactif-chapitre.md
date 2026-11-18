@@ -8,6 +8,9 @@
   instead of `LazyMotion` + `m.*`
 - **Amended**: 2026-10-26 (#277) — §2 rule 6: a figure right before an exercise goes on the
   exercise slide, so the student never has to go back to see it while answering
+- **Amended**: 2026-11-18 (#396) — §4 superseded by [ADR 0046](0046-historique-mode-interactif.md):
+  a slide change **replaces** the URL instead of pushing an entry, one history entry per chapter
+  visit, so one back leaves the chapter
 
 ## Context
 
@@ -152,8 +155,10 @@ is often wrong.
   `/<niveau>/<matiere>/<slug>?diapo=<id>`. No new route.
 - `?diapo` **implies the interactive mode**, whatever the cookie says. It does not write the
   cookie: following a shared link does not change the student's remembered mode.
-- Each slide change **pushes** a history entry: the back button goes back one slide, and every
-  slide has a direct link.
+- ~~Each slide change pushes a history entry: the back button goes back one slide.~~
+  *Superseded by [ADR 0046](0046-historique-mode-interactif.md) (#396):* each slide change
+  **replaces** the URL, so a chapter visit is one history entry and one back leaves the chapter.
+  Every slide still has a direct link.
 - Opening the interactive mode without `?diapo` shows `debut` and **replaces** the URL with
   `?diapo=debut`, without adding an entry. There is no "resume where I left off": nothing records
   it.
@@ -247,8 +252,9 @@ with the same tokens and the same `buildDeck`.
 
 - An automatic split is sometimes wrong. A chapter that splits badly needs its blocks reordered, or
   later hand-written breaks.
-- Pushing one history entry per slide makes "back to the course list" take many presses. The site
-  navigation stays one tap away.
+- ~~Pushing one history entry per slide makes "back to the course list" take many presses.~~
+  Superseded by [ADR 0046](0046-historique-mode-interactif.md) (#396): one back leaves the
+  chapter; back no longer walks the slides (←, the swipe and the strip do).
 - In interactive mode every slide is in the DOM, hidden: the page weighs the same as the reading
   page, and a hidden exercise keeps running its mount effects.
 - About 20 kB gzip more for the interactive mode, the first time it opens.
