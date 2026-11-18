@@ -8,15 +8,15 @@
 // Like the parser, this module imports only types and uses only erasable TypeScript, so it
 // runs under Node's type stripping (the same path `check-content` loads).
 //
-// Scope (v1, develop): the catalogue the parser exposes today — green-flag hat, `demander`,
-// `mettre`/`ajouter` on variables, `dire`, `avancer`/`tourner` (motion), the `répéter n fois`
-// loop, and operator blocks (+ - * /). Motion blocks run as no-ops: they change no variable
-// and say nothing, so a "distance parcourue" question is not evaluated here (it is not what
-// the sprite says). Conditions, comparisons, `répéter jusqu'à` and the pen extension are not
-// in the parser on `develop` yet (#234/#354); the design below slots them in as new `case`s
-// of two exhaustive switches, with no rewrite — see the note above each switch.
+// Scope: the whole catalogue of ADR 0031 — green-flag hat, `demander`, `mettre`/`ajouter` on
+// variables, `dire`, `avancer`/`tourner` (motion), `répéter n fois`, operator blocks (+ - * /),
+// and the 4e blocks (#234): `si … alors [… sinon]`, `répéter jusqu'à ce que`, the boolean
+// blocks (< = >, et, ou, non) and the pen. Motion and pen blocks run as no-ops: they change no
+// variable and say nothing, so a "distance parcourue" or "figure tracée" question is not
+// evaluated here (it is not what the sprite says). Both switches below are exhaustive and
+// checked by TypeScript (`never`), so a block added to the parser cannot be silently skipped.
 
-import type { ScratchStatement, ScratchValue } from './scratch'
+import type { ScratchBoolean, ScratchStatement, ScratchValue } from './scratch'
 
 /** A Scratch value at runtime: a number, or a string (text « », `réponse`, a `demander` input). */
 export type ScratchRuntimeValue = number | string
@@ -54,8 +54,9 @@ export type ScratchEvalOptions = {
    */
   inputs?: ScratchRuntimeValue[]
   /**
-   * Upper bound on executed statements, a guard against a runaway loop (a huge `répéter n fois`,
-   * and the future `répéter jusqu'à`). Default 100000 — far above any teaching programme.
+   * Upper bound on executed statements and loop turns, a guard against a runaway loop (a huge
+   * `répéter n fois`, a `répéter jusqu'à ce que` whose condition never comes true). Default
+   * 100000 — far above any teaching programme.
    */
   maxSteps?: number
 }
@@ -121,14 +122,14 @@ function runBlock(block: ScratchStatement[], state: EvalState): void {
   for (const statement of block) exec(statement, state)
 }
 
-// Execution of one statement. The switch is exhaustive over today's `ScratchStatement` union,
-// so when the parser gains `if` / `ifElse` / `repeatUntil` / pen blocks (#234/#354) TypeScript
-// flags this switch until each new kind gets a `case` here — the evaluator grows by addition,
-// not by rewrite.
+function step(state: EvalState, line: number): void {
+  if (++state.steps > state.maxSteps) throw new ScratchEvalAbort('tooManySteps', line)
+}
+
+// Execution of one statement. The switch is exhaustive over `ScratchStatement`: the `never` in
+// `default` makes TypeScript flag a block kind the parser gains until it gets its `case` here.
 function exec(statement: ScratchStatement, state: EvalState): void {
-  if (++state.steps > state.maxSteps) {
-    throw new ScratchEvalAbort('tooManySteps', statement.line)
-  }
+  step(state, statement.line)
   switch (statement.kind) {
     case 'whenFlagClicked':
       return
@@ -157,6 +158,11 @@ function exec(statement: ScratchStatement, state: EvalState): void {
       // operand anyway so a malformed value would still surface, then ignore the effect.
       evalValue(statement.kind === 'move' ? statement.steps : statement.degrees, state)
       return
+    case 'penDown':
+    case 'penUp':
+    case 'clear':
+      // The pen draws; it says nothing and changes no variable.
+      return
     case 'repeat': {
       const raw = toNumber(evalValue(statement.times, state))
       if (!Number.isInteger(raw) || raw < 0) {
@@ -165,7 +171,80 @@ function exec(statement: ScratchStatement, state: EvalState): void {
       for (let i = 0; i < raw; i++) runBlock(statement.body, state)
       return
     }
+    case 'if':
+      if (evalBoolean(statement.condition, state)) runBlock(statement.body, state)
+      else if (statement.elseBody !== null) runBlock(statement.elseBody, state)
+      return
+    case 'repeatUntil':
+      // As in Scratch, the condition is tested BEFORE each turn: already true, the body never runs.
+      // Each turn counts as a step, so a condition that never comes true ends in `tooManySteps`.
+      while (!evalBoolean(statement.condition, state)) {
+        runBlock(statement.body, state)
+        step(state, statement.line)
+      }
+      return
+    default: {
+      const unhandled: never = statement
+      throw new Error(`unhandled Scratch statement ${JSON.stringify(unhandled)}`)
+    }
   }
+}
+
+// Evaluation of a boolean (hexagonal) block; exhaustive over `ScratchBoolean`.
+function evalBoolean(condition: ScratchBoolean, state: EvalState): boolean {
+  switch (condition.kind) {
+    case 'comparison': {
+      const order = compare(evalValue(condition.left, state), evalValue(condition.right, state))
+      switch (condition.op) {
+        case '<':
+          return order < 0
+        case '=':
+          return order === 0
+        case '>':
+          return order > 0
+      }
+    }
+    // Neither side has effects, so evaluating both (no short-circuit) changes nothing.
+    case 'logical': {
+      const left = evalBoolean(condition.left, state)
+      const right = evalBoolean(condition.right, state)
+      return condition.op === 'et' ? left && right : left || right
+    }
+    case 'not':
+      return !evalBoolean(condition.operand, state)
+    default: {
+      const unhandled: never = condition
+      throw new Error(`unhandled Scratch boolean ${JSON.stringify(unhandled)}`)
+    }
+  }
+}
+
+/**
+ * Compare two values the way Scratch's `<`, `=` and `>` do (scratch-vm `Cast.compare`): as
+ * numbers when both read as numbers, otherwise as texts, **ignoring case** (« Oui » = « oui »).
+ * Empty or blank text is not a number. One Brio convention differs from Scratch: a decimal comma
+ * reads as a number here, as everywhere in Brio (ADR 0031 §1), whereas Scratch compares « 2,5 »
+ * as text — hence AUTHORING's rule to compare integers only.
+ */
+export function compare(a: ScratchRuntimeValue, b: ScratchRuntimeValue): number {
+  const n1 = strictNumber(a)
+  const n2 = strictNumber(b)
+  if (n1 === null || n2 === null) {
+    const s1 = String(a).toLowerCase()
+    const s2 = String(b).toLowerCase()
+    return s1 < s2 ? -1 : s1 > s2 ? 1 : 0
+  }
+  if (n1 === n2) return 0 // also Infinity = Infinity, where n1 - n2 would be NaN
+  return n1 - n2
+}
+
+/** The number a value reads as, or null when it is not numeric (blank text included). */
+function strictNumber(value: ScratchRuntimeValue): number | null {
+  if (typeof value === 'number') return Number.isNaN(value) ? null : value
+  const trimmed = value.trim()
+  if (trimmed === '') return null
+  const n = Number(trimmed.replace(',', '.'))
+  return Number.isNaN(n) ? null : n
 }
 
 function readVariable(name: string, state: EvalState): ScratchRuntimeValue {
@@ -173,9 +252,9 @@ function readVariable(name: string, state: EvalState): ScratchRuntimeValue {
   return name in state.variables ? state.variables[name] : 0
 }
 
-// Evaluation of a value (reporter) block. Exhaustive over today's `ScratchValue` union; the
-// future comparison/boolean operator blocks (hexagons: = < > et ou) arrive as new kinds and
-// get their own `case` here without disturbing the rest.
+// Evaluation of a value (reporter) block; exhaustive over `ScratchValue` (TypeScript checks the
+// return on every path). Booleans are a separate union (`evalBoolean`): the parser never puts one
+// in a value slot (ADR 0031 §2).
 function evalValue(value: ScratchValue, state: EvalState): ScratchRuntimeValue {
   switch (value.kind) {
     case 'number':

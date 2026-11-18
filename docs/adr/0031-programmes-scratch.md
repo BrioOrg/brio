@@ -120,11 +120,16 @@ renderer, and the teacher editor, show the text as before.
      is a number compares to that number. A linked programme that says nothing, or that fails at
      runtime (a `demander` with no input, a negative/fractional `répéter` count, a runaway loop
      caught by a step budget), is a CI error.
-   - **Extensibility for 4e (#234).** The evaluator is two exhaustive switches — one over
-     statements, one over value blocks. When the parser gains conditions, comparisons/booleans,
-     `répéter jusqu'à` and the pen, each new tree kind is flagged by TypeScript and added as a
-     new `case`, with no rewrite. Those blocks are **not evaluated yet** on `develop`; the
-     evaluator covers only today's catalogue.
+   - **4e blocks (#234).** The evaluator covers the whole catalogue: `si … alors [… sinon]` runs
+     one branch; `répéter jusqu'à ce que` tests its condition **before** each turn (already true,
+     the body never runs), and each turn counts against the step budget, so a condition that
+     never comes true is a `tooManySteps` CI error; the pen runs as a no-op like motion.
+     Comparisons follow Scratch (`Cast.compare`): numbers when both sides read as numbers,
+     otherwise texts **ignoring case**; blank text is not a number. One Brio convention differs:
+     a decimal comma reads as a number (§1), where Scratch would compare « 2,5 » as text — hence
+     AUTHORING's rule to compare integers only. The three switches (statements, values,
+     booleans) are exhaustive and end in a `never`, so a block kind added to the parser is a
+     type error until it is evaluated.
 8. **Teacher editor** (#233, amendment 2026-10-26). The code block of the course editor
    (« Programme ») offers « Texte » (no `language`) or « Scratch » (`language: "scratch"`, the
    default for a new block). In Scratch it runs the same `parseScratch` on every keystroke, lists

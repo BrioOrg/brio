@@ -494,7 +494,9 @@ qui ne s'analyse pas, ligne par ligne.
   seule bonne réponse est un nombre) peut se relier au programme qu'il interroge avec un champ
   `program`. `check:content` exécute alors le programme et refuse l'exercice si ce que dit le
   lutin (le dernier `dire`) ne correspond pas à la réponse attendue — une erreur de calcul dans
-  le contenu devient une erreur de CI.
+  le contenu devient une erreur de CI. Les `si … sinon`, `répéter jusqu'à ce que` et comparaisons
+  s'exécutent comme dans Scratch (voir « Le sens des blocs » ci-dessus) ; une boucle qui ne
+  s'arrête jamais, ou un `demander` sans valeur dans `inputs`, est aussi une erreur de CI.
 
   ```json
   { "id": "ex-prevoir-cinq", "type": "exercise", "exerciseType": "numeric",
