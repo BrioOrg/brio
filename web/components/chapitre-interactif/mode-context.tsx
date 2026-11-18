@@ -18,11 +18,14 @@ import { getMoi } from '@/lib/session'
 import type { ChapitreSuivant } from '@/lib/bilan'
 import {
   MODE_COOKIE,
+  etatAuMontage,
   indexDiapo,
+  modeDuCookie,
   sectionTerminee,
   urlAvecDiapo,
   type ModeChapitre,
 } from '@/lib/diapos'
+import { remplacerAdresse } from './adresse'
 import {
   chargerMotion,
   detacher,
@@ -42,8 +45,13 @@ import { basculerSons, jouer } from './sons'
  * reading mode (`display: contents`) and shown only when current in interactive mode. Nothing is
  * remounted when switching, so an answered exercise stays answered.
  *
- * Holds the current slide and keeps it in the URL (`?diapo=<id>`, one history entry per slide),
- * the keyboard, the swipe, and the "section read" signal of both modes (ADR 0032 §6 bis).
+ * Holds the current slide and mirrors it in the URL (`?diapo=<id>`), the keyboard, the swipe, and
+ * the "section read" signal of both modes (ADR 0032 §6 bis).
+ *
+ * History (ADR 0046): one entry per chapter visit, whatever the mode and the number of slides
+ * seen. Every slide change and mode switch replaces the current entry's address, through
+ * `remplacerAdresse` only; no gesture creates an entry, and nothing listens to `popstate`. Back
+ * leaves the chapter; forward remounts it, and the address then wins over the server props.
  */
 
 type ModeChapitreContext = {
@@ -367,7 +375,7 @@ export function ModeChapitreProvider({
   // --- Moving between slides. ---
 
   const naviguer = useCallback(
-    (cible: number, options: { historique: 'push' | 'aucun'; depuisX?: number }) => {
+    (cible: number, options: { depuisX?: number } = {}) => {
       const { index: depart, mode: modeCourant, reducedMotion: reduit } = etat.current
       if (modeCourant !== 'interactif' || cible === depart || cible < 0 || cible >= deck.length) {
         return
@@ -375,9 +383,9 @@ export function ModeChapitreProvider({
       terminer()
       jouer('appui')
       const direction = cible > depart ? 1 : -1
-      // Steps come one at a time only on the next slide, moved to by the student; reached any
-      // other way (back, a jump, the history), the slide shows them all.
-      const pasAPas = options.historique === 'push' && cible === depart + 1
+      // Steps come one at a time only on the next slide; reached any other way (back, a jump), the
+      // slide shows them all. Every call is a student's gesture: the history never moves slides.
+      const pasAPas = cible === depart + 1
       const blocsEtapes = (deck[cible].blockIds as readonly string[]).filter((id) => id in etapes)
       if (blocsEtapes.length > 0) {
         const visibles = { ...etat.current.etapesVisibles }
@@ -390,9 +398,6 @@ export function ModeChapitreProvider({
       if (direction === 1) {
         const section = sectionTerminee(deck, depart)
         if (section) signalerSection(section)
-      }
-      if (options.historique === 'push') {
-        window.history.pushState(null, '', urlAvecDiapo(window.location.href, deck[cible].id))
       }
 
       const article = racine.current?.querySelector<HTMLElement>('[data-chapitre-article]')
@@ -417,11 +422,13 @@ export function ModeChapitreProvider({
       // Read by the next key press before React re-renders: two quick presses move two slides.
       etat.current = { ...etat.current, index: cible }
       setIndex(cible)
+      // The address follows, never first: a failed write must not stop the slide (ADR 0046 §3).
+      remplacerAdresse(urlAvecDiapo(window.location.href, deck[cible].id))
     },
     [deck, etapes, frames, signalerSection, changerEtapes]
   )
 
-  const aller = useCallback((cible: number) => naviguer(cible, { historique: 'push' }), [naviguer])
+  const aller = useCallback((cible: number) => naviguer(cible), [naviguer])
   const suivante = useCallback(() => {
     if (revelerEtape()) jouer('appui')
     else aller(etat.current.index + 1)
@@ -461,13 +468,13 @@ export function ModeChapitreProvider({
     terminer()
     if (etat.current.mode === 'interactif') {
       ecrireCookie('lecture')
-      window.history.replaceState(null, '', urlAvecDiapo(window.location.href, null))
       versLecture.current = etat.current.index
       setTiroirOuvert(false)
       setAideOuverte(false)
       // Full screen belongs to the interactive mode: the long page never opens in it.
       quitterPleinEcran()
       setMode('lecture')
+      remplacerAdresse(urlAvecDiapo(window.location.href, null))
       return
     }
     // Reading → interactive opens the slide holding the block at the top of the screen.
@@ -478,11 +485,11 @@ export function ModeChapitreProvider({
     const id = window.scrollY < HAUT_DE_PAGE ? null : enHaut?.closest('[data-diapo]')
     const cible = indexDiapo(deck, id instanceof HTMLElement ? id.dataset.diapo : null)
     ecrireCookie('interactif')
-    window.history.replaceState(null, '', urlAvecDiapo(window.location.href, deck[cible].id))
     changerEtapes({})
     apres.current = { focus: true, transition: null }
     setIndex(cible)
     setMode('interactif')
+    remplacerAdresse(urlAvecDiapo(window.location.href, deck[cible].id))
   }, [deck, changerEtapes])
 
   // Interactive → reading lands on the first block of the slide that was open.
@@ -510,7 +517,32 @@ export function ModeChapitreProvider({
       ?.focus({ preventScroll: true })
   }, [mode, deck])
 
-  // --- URL: a shared link, the back button. ---
+  // --- The address at mount (ADR 0046 §4-5): it wins over the props, then it is normalised. ---
+
+  // A back/forward traversal serves the chapter from the router cache, with the props of its first
+  // render: the address and the cookie say what the student left. Corrected before paint, every
+  // step shown, no transition, and no address write. On a full load the server read the same
+  // address and cookie: nothing changes. Then, and only here, an un-normalised `?diapo` (absent,
+  // or naming a block or a section) is rewritten to the slide shown.
+  const monte = useRef(false)
+  useLayoutEffect(() => {
+    if (monte.current) return
+    monte.current = true
+    const props = { mode: initialMode, index: initialIndex }
+    const voulu = etatAuMontage(deck, props, window.location.search, modeDuCookie(document.cookie))
+    if (voulu !== props) {
+      etat.current = { ...etat.current, mode: voulu.mode, index: voulu.index }
+      changerEtapes({})
+      apres.current = { focus: false, transition: null }
+      setIndex(voulu.index)
+      setMode(voulu.mode)
+    }
+    if (voulu.mode !== 'interactif') return
+    const id = deck[voulu.index].id
+    if (new URLSearchParams(window.location.search).get('diapo') !== id) {
+      remplacerAdresse(urlAvecDiapo(window.location.href, id))
+    }
+  }, [deck, initialMode, initialIndex, changerEtapes])
 
   useEffect(() => {
     if (mode !== 'interactif') return
@@ -518,46 +550,10 @@ export function ModeChapitreProvider({
     void chargerMotion()
       .then(() => actif && setTransitionsPretes(true))
       .catch(() => {}) // a failed chunk load only costs the transitions
-
-    // `?diapo` absent (first visit) or naming a block that moved: replace, never push.
-    const actuel = new URLSearchParams(window.location.search).get('diapo')
-    if (actuel !== deck[etat.current.index].id) {
-      window.history.replaceState(
-        null,
-        '',
-        urlAvecDiapo(window.location.href, deck[etat.current.index].id)
-      )
-    }
     return () => {
       actif = false
     }
-  }, [mode, deck])
-
-  useEffect(() => {
-    const onPopState = () => {
-      const id = new URLSearchParams(window.location.search).get('diapo')
-      if (id === null) {
-        // Not written by this page's switch (which replaces): leave the cookie alone.
-        if (etat.current.mode === 'interactif') {
-          terminer()
-          versLecture.current = etat.current.index
-          setMode('lecture')
-        }
-        return
-      }
-      const cible = indexDiapo(deck, id)
-      if (etat.current.mode !== 'interactif') {
-        changerEtapes({})
-        apres.current = { focus: true, transition: null }
-        setIndex(cible)
-        setMode('interactif')
-        return
-      }
-      naviguer(cible, { historique: 'aucun' })
-    }
-    window.addEventListener('popstate', onPopState)
-    return () => window.removeEventListener('popstate', onPopState)
-  }, [deck, naviguer, changerEtapes])
+  }, [mode])
 
   // --- Every animation can be skipped (budget rule 4): any press finishes them all first. ---
 
@@ -694,7 +690,7 @@ export function ModeChapitreProvider({
       if (loin && dx < 0 && revelerEtape()) {
         revenir(frames(deck[courant].id), dx, etat.current.reducedMotion)
       } else if (loin && cible >= 0 && cible < deck.length) {
-        naviguer(cible, { historique: 'push', depuisX: etat.current.reducedMotion ? 0 : dx })
+        naviguer(cible, { depuisX: etat.current.reducedMotion ? 0 : dx })
       } else {
         revenir(frames(deck[courant].id), dx, etat.current.reducedMotion)
       }
@@ -717,16 +713,29 @@ export function ModeChapitreProvider({
     }
   }, [mode, deck, frames, naviguer, revelerEtape])
 
-  // --- In-page links (« Revoir : <section> » after a wrong answer) open the slide they target. ---
+  // --- In-page links (ADR 0046 §7), in both modes: never a history entry. In interactive mode
+  // (« Revoir : <section> » after a wrong answer) they open the slide they target; in reading mode
+  // (« Revoir », « Sur cette page ») they scroll to it, as the native jump would, and hand it the
+  // keyboard. React events bubble through portals: the mobile tools sheet is covered too. ---
 
   const onClickCapture = useCallback(
     (e: React.MouseEvent) => {
-      if (etat.current.mode !== 'interactif' || !(e.target instanceof Element)) return
+      if (!(e.target instanceof Element)) return
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
       const lien = e.target.closest<HTMLAnchorElement>('a[href^="#"]')
       const id = lien?.getAttribute('href')?.slice(1)
-      if (!id || !racine.current?.querySelector(`[id="${attr(id)}"]`)) return
+      const cible = id ? racine.current?.querySelector<HTMLElement>(`[id="${attr(id)}"]`) : null
+      if (!id || !cible) return
       e.preventDefault()
-      aller(indexDiapo(deck, id))
+      if (etat.current.mode === 'interactif') {
+        aller(indexDiapo(deck, id))
+        return
+      }
+      // `block: 'start'` honours the sections' scroll margin, like the native jump.
+      cible.scrollIntoView({ block: 'start' })
+      if (cible.tabIndex < 0 && !cible.hasAttribute('tabindex'))
+        cible.setAttribute('tabindex', '-1')
+      cible.focus({ preventScroll: true })
     },
     [aller, deck]
   )

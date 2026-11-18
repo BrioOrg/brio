@@ -126,7 +126,7 @@ describe('interactive mode — slides', () => {
     expect(window.history.length).toBe(before)
   })
 
-  it('moves with the arrows and space, one history entry per slide', () => {
+  it('moves with the arrows and space, without adding a history entry (ADR 0046)', () => {
     const before = window.history.length
     const { container } = renderChapitre()
 
@@ -138,7 +138,7 @@ describe('interactive mode — slides', () => {
     expect(visibles(container)).toEqual(['p1'])
 
     expect(window.location.search).toBe('?diapo=p1')
-    expect(window.history.length).toBe(before + 3)
+    expect(window.history.length).toBe(before)
   })
 
   it('moves two slides for two presses in a row', () => {
@@ -181,7 +181,7 @@ describe('interactive mode — slides', () => {
     expect(visibles(container)).toEqual(['p1'])
   })
 
-  it('follows the back button', () => {
+  it('a popstate changes neither slide nor mode: the history is Next’s to traverse', () => {
     const { container } = renderChapitre()
     touche('ArrowRight')
     touche('ArrowRight')
@@ -190,7 +190,38 @@ describe('interactive mode — slides', () => {
       window.history.replaceState(null, '', `${CHEMIN}?diapo=p1`)
       window.dispatchEvent(new PopStateEvent('popstate'))
     })
-    expect(visibles(container)).toEqual(['p1'])
+    expect(visibles(container)).toEqual(['ex1'])
+
+    act(() => {
+      window.history.replaceState(null, '', CHEMIN)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', 'interactif')
+    expect(visibles(container)).toEqual(['ex1'])
+  })
+
+  it('adds no history entry for a jump from the strip or a mode switch', () => {
+    const before = window.history.length
+    renderChapitre()
+    fireEvent.click(screen.getByRole('link', { name: /Diapo 4 sur 5/ }))
+    touche('Escape')
+    fireEvent.click(screen.getByRole('button', { name: /Mode interactif/ }))
+
+    expect(window.history.length).toBe(before)
+  })
+
+  it('still changes slide when the browser refuses the address write', () => {
+    const { container } = renderChapitre()
+    const ecrire = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {
+      throw new DOMException('Too many calls', 'SecurityError')
+    })
+
+    touche('ArrowRight')
+    touche('ArrowRight')
+    ecrire.mockRestore()
+
+    expect(visibles(container)).toEqual(['ex1'])
+    expect(screen.getByText('Diapo 3 sur 5', { selector: '[aria-live]' })).toBeInTheDocument()
   })
 
   it('opens the slide holding a block named by an in-page link', () => {
@@ -201,6 +232,87 @@ describe('interactive mode — slides', () => {
 
     fireEvent.click(lien)
     expect(visibles(container)).toEqual(['p1'])
+  })
+})
+
+describe('the address at mount (ADR 0046 §4)', () => {
+  it('opens the slide of the address over stale props, without writing it', () => {
+    window.history.replaceState(null, '', `${CHEMIN}?diapo=ex2`)
+    const ecrire = vi.spyOn(window.history, 'replaceState')
+    const { container } = renderChapitre('interactif', 0)
+
+    expect(visibles(container)).toEqual(['ex2'])
+    expect(screen.getByText('4 / 5')).toBeInTheDocument()
+    expect(ecrire).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(document.body)
+    ecrire.mockRestore()
+  })
+
+  it('opens the interactive mode from ?diapo over stale reading props', () => {
+    window.history.replaceState(null, '', `${CHEMIN}?diapo=ex1`)
+    const { container } = renderChapitre('lecture')
+
+    expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', 'interactif')
+    expect(visibles(container)).toEqual(['ex1'])
+  })
+
+  it('opens the reading mode the cookie remembers when the address has no ?diapo', () => {
+    document.cookie = 'brio_mode_chapitre=lecture; path=/'
+    const { container } = renderChapitre('interactif', 2)
+
+    expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', 'lecture')
+    expect(window.location.search).toBe('')
+  })
+
+  it('normalises a ?diapo naming a block to the slide shown, without adding an entry', () => {
+    window.history.replaceState(null, '', `${CHEMIN}?diapo=def&a=1#x`)
+    const before = window.history.length
+    const { container } = renderChapitre('interactif', 1)
+
+    expect(visibles(container)).toEqual(['p1'])
+    expect(window.location.search).toBe('?diapo=p1&a=1')
+    expect(window.location.hash).toBe('#x')
+    expect(window.history.length).toBe(before)
+  })
+})
+
+describe('in-page links (ADR 0046 §7)', () => {
+  beforeEach(() => {
+    // jsdom has no layout: scrolling into view is recorded only.
+    Element.prototype.scrollIntoView = vi.fn()
+  })
+
+  function lienVers(container: HTMLElement, cible: string, depuis = '#ex2') {
+    const lien = document.createElement('a')
+    lien.href = `#${cible}`
+    lien.textContent = 'Revoir'
+    container.querySelector(depuis)!.appendChild(lien)
+    return lien
+  }
+
+  it('scrolls to the target in reading mode and hands it the keyboard, the address untouched', () => {
+    const { container } = renderChapitre('lecture')
+    const before = window.history.length
+    const cible = container.querySelector<HTMLElement>('#def')!
+
+    const lien = lienVers(container, 'def')
+    const suivi = fireEvent.click(lien)
+
+    expect(suivi).toBe(false)
+    expect(cible.scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
+    expect(cible).toHaveFocus()
+    expect(cible).toHaveAttribute('tabindex', '-1')
+    expect(window.location.hash).toBe('')
+    expect(window.location.search).toBe('')
+    expect(window.history.length).toBe(before)
+  })
+
+  it('leaves a link with a modifier key, or one to outside the chapter, to the browser', () => {
+    const { container } = renderChapitre('lecture')
+
+    expect(fireEvent.click(lienVers(container, 'def'), { metaKey: true })).toBe(true)
+    expect(fireEvent.click(lienVers(container, 'ailleurs'))).toBe(true)
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled()
   })
 })
 
@@ -528,7 +640,10 @@ describe('steps revealed one at a time (MOTION.md "Step reveal")', () => {
     const { unmount } = renderEtapes(2)
     expect(etapesVisibles()).toHaveLength(3)
     unmount()
-    renderEtapes(0, 'lecture')
+    // The first render wrote ?diapo, which the next mount would follow (ADR 0046 §4).
+    window.history.replaceState(null, '', CHEMIN)
+    const { container } = renderEtapes(0, 'lecture')
+    expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', 'lecture')
     expect(etapesVisibles()).toHaveLength(3)
   })
 
