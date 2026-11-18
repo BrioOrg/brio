@@ -319,12 +319,12 @@ describe('buildDeck on the catalogue', () => {
       movedOntoExercise: decks.flat().filter((d) => d.kind === 'exercice' && d.blockIds.length > 1)
         .length,
     }).toEqual({
-      slides: 995,
+      slides: 998,
       fewest: 10,
       median: 22,
-      most: 33,
-      blocksPerSlide: { 0: 50, 1: 788, 2: 120, 3: 33, 4: 2, 5: 2 },
-      movedOntoExercise: 34,
+      most: 34,
+      blocksPerSlide: { 0: 50, 1: 789, 2: 122, 3: 33, 4: 2, 5: 2 },
+      movedOntoExercise: 36,
     })
   })
 
