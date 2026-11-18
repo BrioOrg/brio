@@ -1,5 +1,5 @@
 <!-- mesh:contrat=decision-conseil v1 -->
-# 0038 — Deux tâches chaudes pour ouvrir le contenu d'un devoir depuis l'Accueil
+# 0045 — Deux tâches chaudes pour ouvrir le contenu d'un devoir depuis l'Accueil
 
 - **Status**: Proposed
 - **Date**: 2026-11-17
@@ -7,9 +7,9 @@
   (cartographe des parcours, gardien des routes chaudes) — arbitrage humain (Gabrielle,
   2026-11-17) — ticket PL-1 (#370). Consigné par P3 (greffier), qui ne ratifie pas.
 
-> **Numérotation.** 0036 est pris sur `develop` (récupération d'accès, #365). **0037 est
-> réservé** à la renumérotation probable de l'ADR de la PR #357 (console de modération,
-> déposé sous le numéro 0036 en collision). Cet ADR prend donc 0038.
+> **Numérotation.** Déposé d'abord sous 0038, renuméroté **0045** le 2026-11-18 pour éviter
+> une collision : au 2026-11-18, `develop` porte 0036, 0037, 0040 et 0042 ; les PR ouvertes
+> réclament 0038 (#394), 0039 (#390), 0041 (#393), 0043 (#376) et 0044 (#357).
 >
 > **Statut.** Le conseil N2 a tranché avec l'accord de l'humaine ; l'ADR passe en `Accepted`
 > au merge de la PR de PL-1 qui porte les deux lignes de `mesh/routes/tasks.json`.
