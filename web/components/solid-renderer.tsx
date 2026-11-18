@@ -19,6 +19,7 @@ import {
   type SolidView,
 } from '@brio/content'
 
+import { HALO_CLASS } from '@/components/figure/halo'
 import { Icon } from '@/components/ui/icon'
 import { bezierAt } from '@/lib/courbe-bezier'
 import { duration, ease } from '@/lib/motion-tokens'
@@ -306,11 +307,8 @@ export function SolidRenderer({
               fontSize={13}
               fontFamily="serif"
               fill="currentColor"
-              // A halo in the page colour keeps a name readable when an edge turns under it.
-              className="stroke-surface-page"
-              strokeWidth={3}
-              strokeLinejoin="round"
-              paintOrder="stroke"
+              // The figures' halo (ADR 0038): an edge turning under a name stops short of it.
+              className={HALO_CLASS}
             >
               {l.text}
             </text>
