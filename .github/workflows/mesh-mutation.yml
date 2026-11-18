@@ -1,0 +1,137 @@
+# Mesh · mutation testing en CI (Phase 3, #358) — appelé par mesh-verification.yml.
+#
+# PIT (backend, Maven) et Stryker (web, Vitest) ne mutent que les FICHIERS MODIFIÉS par la PR : une
+# suite complète est bien trop lente pour une PR. Le résultat est converti en verdict V3
+# (`verdict-V3-mutation`) : un mutant survivant = un constat `fichier:ligne` ; un score sous le seuil
+# ou sous la référence = alerte « test affaibli » (mesh/verification/config.json, seuils humains).
+# Doc : docs/mesh/VERIFICATION.md §Mutation. ÉBAUCHE : à valider au premier run réel.
+name: Mesh · Mutation
+
+on:
+  workflow_call:
+    inputs:
+      base_ref:
+        description: Branche de base de la PR (develop)
+        type: string
+        default: develop
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: Branche de base
+        type: string
+        default: develop
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    outputs:
+      ran: ${{ steps.scope.outputs.ran }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+      - name: Classes Java modifiées
+        id: scope
+        run: |
+          classes="$(scripts/mesh/verification/changed-java-classes.sh "origin/${{ inputs.base_ref }}" | paste -sd, -)"
+          echo "classes=$classes" >> "$GITHUB_OUTPUT"
+          if [ -n "$classes" ]; then echo "ran=true" >> "$GITHUB_OUTPUT"; else echo "ran=false" >> "$GITHUB_OUTPUT"; fi
+      # Tests unitaires seulement (profil `mutation` du pom : les *IntegrationTest sont exclus).
+      # Le seuil de PIT est mis à 0 : la politique (seuil, référence) vit dans
+      # mesh/verification/config.json et se juge dans mutation-to-verdict.mjs.
+      - name: PIT
+        if: steps.scope.outputs.ran == 'true'
+        run: >-
+          ./mvnw -B -Pmutation test-compile org.pitest:pitest-maven:mutationCoverage
+          -Dpit.targetClasses="${{ steps.scope.outputs.classes }}"
+          -Dpit.mutationThreshold=0
+        working-directory: backend
+      - uses: actions/upload-artifact@v4
+        if: steps.scope.outputs.ran == 'true'
+        with:
+          name: mutation-pit
+          path: backend/target/pit-reports/
+          retention-days: 7
+
+  web:
+    runs-on: ubuntu-latest
+    outputs:
+      ran: ${{ steps.scope.outputs.ran }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: "Fichiers web modifiés (logique pure, web/lib et api-client)"
+        id: scope
+        run: |
+          files="$(git diff --name-only --diff-filter=AM "origin/${{ inputs.base_ref }}...HEAD" -- 'web/lib/*.ts' 'web/lib/**/*.ts' 'packages/api-client/src/*.ts' \
+            | grep -v -E '(__tests__/|\.test\.ts$|/generated/)' \
+            | sed -e 's#^web/##' -e 's#^packages/#../packages/#' | paste -sd, - || true)"
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+          if [ -n "$files" ]; then echo "ran=true" >> "$GITHUB_OUTPUT"; else echo "ran=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: pnpm/action-setup@v4
+        if: steps.scope.outputs.ran == 'true'
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        if: steps.scope.outputs.ran == 'true'
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: steps.scope.outputs.ran == 'true'
+      # Stryker n'est pas une dépendance du dépôt (voir mesh/mutation/stryker.web.config.mjs).
+      - name: Stryker
+        if: steps.scope.outputs.ran == 'true'
+        # Les --package= doivent précéder dlx : placés après, pnpm 9 les prend
+        # pour un nom de paquet (GET registry/--package → 404).
+        run: >-
+          pnpm
+          --package=@stryker-mutator/core@9.4.0
+          --package=@stryker-mutator/vitest-runner@9.4.0
+          dlx
+          stryker run ../mesh/mutation/stryker.web.config.mjs --mutate "${{ steps.scope.outputs.files }}"
+        working-directory: web
+      - uses: actions/upload-artifact@v4
+        if: steps.scope.outputs.ran == 'true'
+        with:
+          name: mutation-stryker
+          path: web/reports/mutation/
+          retention-days: 7
+
+  verdict:
+    needs: [backend, web]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: mutation-pit
+          path: reports/pit
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: mutation-stryker
+          path: reports/stryker
+      - name: Verdict de mutation
+        run: |
+          node scripts/mesh/verification/mutation-to-verdict.mjs \
+            --pit reports/pit/mutations.xml --stryker reports/stryker/mutation.json \
+            --out verdicts/verdict-V3-mutation.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verdict-V3-mutation
+          path: verdicts/verdict-V3-mutation.json

@@ -1,6 +1,19 @@
 export { createApiClient } from './client.js'
 export type { paths, components, operations } from './generated/schema.js'
-export { login, logout, getMoi, LoginError, LogoutError, CompteInfoSchema } from './session.js'
+export {
+  login,
+  logout,
+  getMoi,
+  changerMotDePasse,
+  ChangerMotDePasseError,
+  MOT_DE_PASSE_MIN,
+  MOT_DE_PASSE_MAX_OCTETS,
+  MESSAGE_MOT_DE_PASSE_TROP_LONG,
+  octetsUtf8,
+  LoginError,
+  LogoutError,
+  CompteInfoSchema,
+} from './session.js'
 export type { CompteInfo } from './session.js'
 export { ensureCsrfToken, csrfHeaders, readXsrfToken } from './csrf.js'
 export { rejoindreClasse, RejoindreError, EleveInscritInfoSchema } from './enrollment.js'
@@ -64,6 +77,8 @@ export {
   getCodeClasse,
   listerInscrits,
   renommerEleve,
+  reinitialiserAccesEleve,
+  ReinitialisationAccesSchema,
   CodeClasseCreeeSchema,
   CodeClasseInfoSchema,
   InscriptionInfoSchema,
@@ -74,6 +89,7 @@ export type {
   CodeClasseInfo,
   InscriptionInfo,
   CreerMaClasseInput,
+  ReinitialisationAcces,
 } from './prof-classes.js'
 export {
   creerDevoir,

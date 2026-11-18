@@ -236,6 +236,50 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptATonedFigure() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Triangle ABC rectangle en A",
+                  "spec": {
+                    "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 4, "y": 0 },
+                                { "name": "C", "x": 0, "y": 3, "tone": 2 } ],
+                    "segments": [ { "from": "A", "to": "B", "tone": 1 } ],
+                    "polygons": [ { "vertices": ["A", "B", "C"], "tone": 3, "fill": "soft" } ],
+                    "circles": [ { "center": "A", "radius": 1, "tone": 4 } ],
+                    "arcs": [ { "center": "A", "radius": 2, "startAngle": 0, "endAngle": 90, "tone": 1 } ],
+                    "angleMarks": [ { "vertex": "A", "from": "B", "to": "C", "right": true, "tone": 1 } ],
+                    "labels": [ { "text": "a", "x": 2, "y": -0.5, "tone": 1 } ]
+                  } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectATonePastFour() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un segment",
+                  "spec": { "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 1, "y": 0 } ],
+                            "segments": [ { "from": "A", "to": "B", "tone": 5 } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectASoftFillWithoutATone() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un triangle",
+                  "spec": { "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 1, "y": 0 },
+                                        { "name": "C", "x": 0, "y": 1 } ],
+                            "polygons": [ { "vertices": ["A", "B", "C"], "fill": "soft" } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldRejectAnArcGivenBothByPointsAndByAngles() {
         String block =
                 """
@@ -386,6 +430,103 @@ class ContentSchemaValidatorTest {
                 """;
         assertThatThrownBy(() -> validator.validate(chapterWith(block)))
                 .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldAcceptACalculInEachMode() {
+        String equation =
+                """
+                { "id": "k1", "type": "calcul", "mode": "equation", "title": "Résoudre $x + 13 = 41$",
+                  "lines": [ { "latex": "x + 13 = 41" },
+                             { "latex": "x = 41 - 13", "op": "-13", "focus": "- 13",
+                               "note": "on soustrait 13 aux deux membres" },
+                             { "latex": "x = 28" } ],
+                  "conclusion": "La solution est $28$." }
+                """;
+        String egalites =
+                """
+                { "id": "k2", "type": "calcul", "mode": "egalites",
+                  "lines": [ { "latex": "A = 2x + 3 + 4x - 1" }, { "latex": "6x + 2", "note": "on réduit" } ] }
+                """;
+        for (String block : List.of(equation, egalites)) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectAnOperationInAChainOfEqualities() {
+        String block =
+                """
+                { "id": "k1", "type": "calcul", "mode": "egalites",
+                  "lines": [ { "latex": "A = 1 + 1" }, { "latex": "2", "op": "+1" } ] }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectACalculOfOneLine() {
+        String block =
+                """
+                { "id": "k1", "type": "calcul", "mode": "equation", "lines": [ { "latex": "x = 1" } ] }
+                """;
+        assertThat(violationsOf(chapterWith(block)))
+                .containsExactly(new ContentViolation(ContentViolation.EMPTY, "s1", "k1", "lines"));
+    }
+
+    @Test
+    void shouldAcceptATreeOfPossiblesAndAWeightedTree() {
+        String possibles =
+                """
+                { "id": "t1", "type": "tree", "outcomes": true,
+                  "alt": "Deux lancers d'une pièce : quatre issues",
+                  "root": { "children": [
+                    { "label": "P", "children": [ { "label": "P" }, { "label": "F" } ] },
+                    { "label": "F", "children": [ { "label": "P" }, { "label": "F" } ] } ] } }
+                """;
+        String weighted =
+                """
+                { "id": "t2", "type": "tree", "orientation": "vertical", "outcomes": true, "products": true,
+                  "highlightPath": [ "R", "B" ], "alt": "Deux tirages sans remise",
+                  "root": { "children": [
+                    { "label": "R", "probability": "3/5",
+                      "children": [ { "label": "R", "probability": "2/4" }, { "label": "B", "probability": "2/4" } ] },
+                    { "label": "$\\\\overline{R}$", "probability": "0,4",
+                      "children": [ { "label": "R", "probability": "3/4", "outcome": "$\\\\overline{R} \\\\cap R$" },
+                                    { "label": "B", "probability": "?" } ] } ] } }
+                """;
+        for (String block : List.of(possibles, weighted)) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectATreeFourLevelsDeep() {
+        String block =
+                """
+                { "id": "t1", "type": "tree", "alt": "Trop profond",
+                  "root": { "children": [ { "label": "A", "children": [ { "label": "B", "children": [
+                    { "label": "C", "children": [ { "label": "D" } ] } ] } ] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectATreeWithoutAltOrWithAnUnknownOrientation() {
+        String withoutAlt =
+                """
+                { "id": "t1", "type": "tree", "root": { "children": [ { "label": "A" } ] } }
+                """;
+        String diagonal =
+                """
+                { "id": "t1", "type": "tree", "orientation": "diagonal", "alt": "Arbre",
+                  "root": { "children": [ { "label": "A" } ] } }
+                """;
+        for (String block : List.of(withoutAlt, diagonal)) {
+            assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                    .isInstanceOf(InvalidContentException.class);
+        }
     }
 
     @Test

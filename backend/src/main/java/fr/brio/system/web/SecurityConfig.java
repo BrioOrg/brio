@@ -1,6 +1,7 @@
 package fr.brio.system.web;
 
 import fr.brio.identite.CompteService;
+import fr.brio.identite.EncodeurMotsDePasse;
 import fr.brio.identite.ProtectionConnexionService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -74,6 +75,10 @@ class SecurityConfig {
                         .hasAnyRole("ADMIN_BRIO", "ADMIN_ETAB")
                 // Class code enrollment: public (convention gate enforced in the service)
                 .requestMatchers(HttpMethod.POST, "/api/classes/rejoindre").permitAll()
+                // Teacher-led access reset of a student (ADR 0036): adults only; the service
+                // further requires the class's own teacher (or ADMIN_BRIO).
+                .requestMatchers(HttpMethod.POST, "/api/classes/*/inscriptions/*/reinitialisation-acces")
+                        .hasAnyRole("ENSEIGNANT", "ADMIN_BRIO")
                 // Teacher course authoring (create/save/scope/publish): ENSEIGNANT only.
                 .requestMatchers("/api/prof/**").hasRole("ENSEIGNANT")
                 // The signup pick-list of établissements: names and types only (ADR 0029 §1).
@@ -137,7 +142,8 @@ class SecurityConfig {
         // DelegatingPasswordEncoder stores the algorithm prefix ({bcrypt}) in the hash,
         // making future algorithm migration a config change with on-login rehashing.
         // Strength 12 intentionally higher than Spring's default 10 — override to 4 in tests.
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        // EncodeurMotsDePasse only adds the tolerance of a provisional password (ADR 0036 §2).
+        return new EncodeurMotsDePasse(PasswordEncoderFactories.createDelegatingPasswordEncoder());
     }
 
     @Bean
@@ -149,7 +155,7 @@ class SecurityConfig {
             protection.enregistrerEchec(req.getParameter("identifiant"));
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.setContentType("application/json;charset=UTF-8");
-            res.getWriter().write("{\"error\":\"Identifiant ou mot de passe incorrect\"}");
+            res.getWriter().write(ProtectionConnexionService.CORPS_ECHEC_CONNEXION);
         };
     }
 

@@ -1167,6 +1167,27 @@
         }
       }
     },
+    "/api/moi/mot-de-passe" : {
+      "post" : {
+        "tags" : [ "session-controller" ],
+        "operationId" : "changerMotDePasse",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ChangerMotDePasseRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        }
+      }
+    },
     "/api/exercices/{id}/soumissions" : {
       "post" : {
         "tags" : [ "Exercices" ],
@@ -2065,6 +2086,41 @@
         }
       }
     },
+    "/api/classes/{id}/inscriptions/{compteId}/reinitialisation-acces" : {
+      "post" : {
+        "tags" : [ "classe-controller" ],
+        "operationId" : "reinitialiserAcces",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "compteId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReinitialisationAccesInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/classes/{id}/codes" : {
       "post" : {
         "tags" : [ "classe-controller" ],
@@ -2317,6 +2373,33 @@
           },
           "404" : {
             "description" : "Session introuvable"
+          }
+        }
+      }
+    },
+    "/api/admin/comptes/{id}/reinitialisation-acces" : {
+      "post" : {
+        "tags" : [ "admin-comptes-controller" ],
+        "operationId" : "reinitialiserAccesHorsClasse",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ReinitialisationAccesInfo"
+                }
+              }
+            }
           }
         }
       }
@@ -3835,6 +3918,17 @@
           }
         }
       },
+      "ChangerMotDePasseRequest" : {
+        "type" : "object",
+        "properties" : {
+          "nouveauMotDePasse" : {
+            "type" : "string",
+            "maxLength" : 72,
+            "minLength" : 8
+          }
+        },
+        "required" : [ "nouveauMotDePasse" ]
+      },
       "SoumissionRequest" : {
         "type" : "object",
         "properties" : {
@@ -4055,6 +4149,19 @@
         },
         "required" : [ "email", "etablissementId", "motDePasse", "nom" ]
       },
+      "AvisReinitialisation" : {
+        "type" : "object",
+        "properties" : {
+          "le" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "par" : {
+            "type" : "string",
+            "enum" : [ "enseignant", "admin_brio" ]
+          }
+        }
+      },
       "CompteInfo" : {
         "type" : "object",
         "properties" : {
@@ -4079,6 +4186,12 @@
           },
           "niveau" : {
             "type" : "string"
+          },
+          "doitChangerMotDePasse" : {
+            "type" : "boolean"
+          },
+          "accesReinitialise" : {
+            "$ref" : "#/components/schemas/AvisReinitialisation"
           }
         }
       },
@@ -4171,6 +4284,21 @@
           }
         },
         "required" : [ "anneeScolaire", "etablissementId", "libelle", "niveauCode" ]
+      },
+      "ReinitialisationAccesInfo" : {
+        "type" : "object",
+        "properties" : {
+          "identifiantConnexion" : {
+            "type" : "string"
+          },
+          "motDePasseProvisoire" : {
+            "type" : "string"
+          },
+          "expireLe" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
       },
       "GenererCodeRequest" : {
         "type" : "object",

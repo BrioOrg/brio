@@ -29,15 +29,17 @@
           "id": "schema-triangle",
           "type": "figure",
           "alt": "Triangle rectangle ABC, l'angle droit est en A et l'hypoténuse est le côté BC.",
-          "caption": "Le triangle rectangle ABC, rectangle en A.",
+          "caption": "Le triangle ABC, rectangle en A. Chaque côté a la même couleur ici et dans l'égalité.",
           "spec": {
             "points": [
               { "name": "A", "x": 0, "y": 0, "label": { "placement": "below-left" } },
               { "name": "B", "x": 4, "y": 0, "label": { "placement": "below-right" } },
               { "name": "C", "x": 0, "y": 3, "label": { "placement": "above-left" } }
             ],
-            "polygons": [
-              { "vertices": ["A", "B", "C"] }
+            "segments": [
+              { "from": "A", "to": "B", "tone": 1 },
+              { "from": "A", "to": "C", "tone": 2 },
+              { "from": "B", "to": "C", "tone": 3 }
             ],
             "angleMarks": [
               { "vertex": "A", "from": "B", "to": "C", "right": true }
@@ -48,7 +50,7 @@
           "id": "formule-pythagore",
           "type": "formula",
           "display": "block",
-          "latex": "BC^2 = AB^2 + AC^2"
+          "latex": "\\tone{3}{BC}^2 = \\tone{1}{AB}^2 + \\tone{2}{AC}^2"
         },
         {
           "id": "enonce-prose",
@@ -89,13 +91,13 @@
           "type": "callout",
           "variant": "example",
           "title": "Exemple",
-          "text": "Dans un triangle rectangle dont les côtés de l'angle droit mesurent 3 cm et 4 cm, l'hypoténuse mesure 5 cm."
+          "text": "Dans le triangle ABC rectangle en A, les côtés de l'angle droit mesurent AB = 4 cm et AC = 3 cm. L'hypoténuse [BC] mesure alors 5 cm."
         },
         {
           "id": "exemple-formule",
           "type": "formula",
           "display": "block",
-          "latex": "BC = \\sqrt{3^2 + 4^2} = \\sqrt{25} = 5"
+          "latex": "\\tone{3}{BC} = \\sqrt{\\tone{1}{AB}^2 + \\tone{2}{AC}^2} = \\sqrt{\\tone{1}{4}^2 + \\tone{2}{3}^2} = \\sqrt{25} = \\tone{3}{5}"
         },
         {
           "id": "ex-longueur-cotes",

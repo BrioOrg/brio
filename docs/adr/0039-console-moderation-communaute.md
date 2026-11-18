@@ -1,4 +1,4 @@
-# 0036 — Console de modération de la Communauté (v1)
+# 0039 — Console de modération de la Communauté (v1)
 
 - **Status**: Accepted
 - **Date**: 2026-11-12

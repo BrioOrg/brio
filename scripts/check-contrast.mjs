@@ -73,6 +73,14 @@ const dark = {
   'cube-top': '#4f7562',
   'cube-front': '#33503f',
   'cube-side': '#1f3329',
+  'tone-1': '#4bb4ff',
+  'tone-2': '#ff9600',
+  'tone-3': '#ff4f86',
+  'tone-4': '#34e3cf',
+  'tone-1-soft': '#193640',
+  'tone-2-soft': '#393012',
+  'tone-3-soft': '#39242a',
+  'tone-4-soft': '#153e37',
 }
 
 const light = {
@@ -113,6 +121,14 @@ const light = {
   'cube-top': '#f4fbf7',
   'cube-front': '#bddbc9',
   'cube-side': '#8bb39d',
+  'tone-1': '#1670c0',
+  'tone-2': '#a35f00',
+  'tone-3': '#9c2a78',
+  'tone-4': '#0e6e46',
+  'tone-1-soft': '#deebf6',
+  'tone-2-soft': '#f2e9db',
+  'tone-3-soft': '#f1e1ec',
+  'tone-4-soft': '#ddebe5',
 }
 
 // ── Pairs to check ───────────────────────────────────────────────────────────
@@ -151,6 +167,18 @@ function cubePairs(theme) {
   ]
 }
 
+// Maths tones (#382, ADR 0037) colour formula text as well as strokes: body text on every ground
+// a lesson block sits on. A polygon's soft fill sits under its own stroke and under ink labels.
+const TONES = [1, 2, 3, 4]
+function tonePairs(theme) {
+  const grounds = theme === 'dark' ? ['surface-panel', 'surface-page', 'surface-raised'] : ['surface-panel', 'surface-page']
+  return TONES.flatMap((n) => [
+    ...grounds.map((bg) => ({ theme, fg: `tone-${n}`, bg, level: 'AA' })),
+    { theme, fg: 'ink', bg: `tone-${n}-soft`, level: 'AA' },
+    { theme, fg: `tone-${n}`, bg: `tone-${n}-soft`, level: 'AA-large' },
+  ])
+}
+
 const pairs = [
   // Dark theme
   { theme: 'dark', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -169,6 +197,7 @@ const pairs = [
   ...chartPairs('dark'),
   ...scratchPairs('dark'),
   ...cubePairs('dark'),
+  ...tonePairs('dark'),
 
   // Light theme
   { theme: 'light', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -190,6 +219,7 @@ const pairs = [
   ...chartPairs('light'),
   ...scratchPairs('light'),
   ...cubePairs('light'),
+  ...tonePairs('light'),
 ]
 
 // ── Run checks ───────────────────────────────────────────────────────────────
@@ -218,9 +248,78 @@ for (const { theme, fg, bg, level } of pairs) {
   }
 }
 
+// ── Colour-vision deficiencies ───────────────────────────────────────────────
+//
+// The maths tones carry a correspondence (the same side in the figure and in the formula), so they
+// must stay apart for a colour-blind student too. Each colour is simulated for full protanopia,
+// deuteranopia and tritanopia (Machado, Oliveira & Fernandes 2009, severity 1), then two tones are
+// compared in CIELAB (ΔE*76). Protan and deutan, 8 % of boys, must keep ΔE ≥ 20; tritan, far
+// rarer, ≥ 12. Colour is still never the only cue: labels name the object in both places.
+
+const CVD = {
+  normal: [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ],
+  protan: [
+    [0.152286, 1.052583, -0.204868],
+    [0.114503, 0.786281, 0.099216],
+    [-0.003882, -0.048116, 1.051998],
+  ],
+  deutan: [
+    [0.367322, 0.860646, -0.227968],
+    [0.280085, 0.672501, 0.047413],
+    [-0.01182, 0.04294, 0.968881],
+  ],
+  tritan: [
+    [1.255528, -0.076749, -0.178779],
+    [-0.078411, 0.930809, 0.147602],
+    [0.004733, 0.691367, 0.3039],
+  ],
+}
+const CVD_MIN_DELTA_E = { normal: 20, protan: 20, deutan: 20, tritan: 12 }
+
+function simulatedLab(hex, matrix) {
+  const rgb = [1, 3, 5].map((i) => linearise(parseInt(hex.slice(i, i + 2), 16)))
+  const [r, g, b] = matrix.map((row) => Math.min(1, Math.max(0, row[0] * rgb[0] + row[1] * rgb[1] + row[2] * rgb[2])))
+  const x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047
+  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  const z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))]
+}
+
+function deltaE(a, b, matrix) {
+  const [l1, a1, b1] = simulatedLab(a, matrix)
+  const [l2, a2, b2] = simulatedLab(b, matrix)
+  return Math.hypot(l1 - l2, a1 - a2, b1 - b2)
+}
+
+let cvdChecks = 0
+for (const theme of ['dark', 'light']) {
+  const tokens = theme === 'dark' ? dark : light
+  for (const i of TONES) {
+    for (const j of TONES.filter((n) => n > i)) {
+      for (const [vision, matrix] of Object.entries(CVD)) {
+        const delta = deltaE(tokens[`tone-${i}`], tokens[`tone-${j}`], matrix)
+        const required = CVD_MIN_DELTA_E[vision]
+        const line = `  ${delta >= required ? '✓' : '✗'} [${theme}] tone-${i} vs tone-${j}, ${vision} — ΔE ${delta.toFixed(1).padStart(5)}  (≥ ${required})`
+        cvdChecks++
+        if (delta >= required) {
+          process.stdout.write(line + '\n')
+        } else {
+          process.stderr.write(line + '\n')
+          failures++
+        }
+      }
+    }
+  }
+}
+
 if (failures > 0) {
-  process.stderr.write(`\n${failures} contrast failure(s). Fix the values in web/app/tokens.css.\n`)
+  process.stderr.write(`\n${failures} contrast or colour-vision failure(s). Fix the values in web/app/tokens.css.\n`)
   process.exit(1)
 } else {
-  process.stdout.write(`\nAll ${pairs.length} contrast pairs pass.\n`)
+  process.stdout.write(`\nAll ${pairs.length} contrast pairs and ${cvdChecks} colour-vision checks pass.\n`)
 }

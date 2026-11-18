@@ -1,4 +1,4 @@
-import { type Diapo } from '@brio/content'
+import { calculSteps, type Diapo } from '@brio/content'
 
 import { type CourseSection } from '@/components/exercice-widget'
 import { Icon } from '@/components/ui/icon'
@@ -167,13 +167,18 @@ function courseSectionOf(section: Section): CourseSection | undefined {
   return section.kind === 'exercises' ? undefined : { id: section.id, title: section.title }
 }
 
-/** The number of steps of each `steps` block, by block id: what the interactive mode reveals. */
+/**
+ * The number of steps of each `steps` and `calcul` block, by block id: what the interactive mode
+ * reveals one at a time (a calculation's lines, then its conclusion).
+ */
 export function etapesParBloc(chapitre: ChapitreResponse): Record<string, number> {
   return Object.fromEntries(
     chapitre.sections.flatMap((section) =>
-      section.blocks
-        .filter((b) => b.type === 'steps' && Array.isArray(b.steps))
-        .map((b) => [b.id, (b.steps as unknown[]).length])
+      section.blocks.flatMap((b): [string, number][] => {
+        if (b.type === 'steps' && Array.isArray(b.steps)) return [[b.id, b.steps.length]]
+        if (b.type === 'calcul' && Array.isArray(b.lines)) return [[b.id, calculSteps(b)]]
+        return []
+      })
     )
   )
 }
