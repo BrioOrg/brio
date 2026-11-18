@@ -65,20 +65,40 @@ socle de modération minimal mais structurel.
    d'identification (LCEN) séparées du contenu. Mécanisme implémenté comme une tâche
    de purge ; branché au déploiement avec le reste de la rétention (aligné sur F5).
 
-   > **Précision de mise en œuvre (2026-11-12, #338).** « Anonymiser » = **couper le
-   > lien vers l'auteur** sans toucher au contenu : l'`auteur_id` (et le
-   > `marque_utile_par` d'un message d'entraide), seule donnée d'identification portée
-   > par ces lignes, est remplacé par un **compte anonyme** (l'UUID nul) ; le texte
-   > reste pour que le fil garde son sens. **Pas de suppression** (l'ADR dit
-   > « anonymisés »). La purge couvre les **contenus rédigés par des élèves** :
-   > `messages` (entraide), `salon_messages` (messagerie), `communaute_questions` et
-   > `communaute_reponses` (Communauté). Elle **ne touche pas** aux signalements,
-   > sanctions ni votes — enregistrements de modération / d'audit, pas des messages,
-   > dont la rétention propre reste à cadrer avec le socle de modération. **Fenêtre
-   > configurable** (`brio.social.retention.fenetre-mois`, défaut 12) ; tâche planifiée
-   > quotidienne (`…​.cron`), désactivable (`…​.active`) pour la brancher au
-   > déploiement. L'opération est **idempotente**. Code : `fr.brio.social.PurgeRetention`
-   > (+ `PurgeRetentionJob`).
+   > **Précision de mise en œuvre (2026-11-12, revue 2026-11-18, #338).** « Anonymiser »
+   > = **couper tout lien entre un contenu et un élève** sans toucher au texte : le
+   > texte reste pour que le fil garde son sens, **pas de suppression** (l'ADR dit
+   > « anonymisés »).
+   >
+   > - **Liens coupés dans `social`** : `auteur_id` de `fils` (le fil porte la question
+   >   d'ouverture et son titre, rédigés par le même élève), `messages` (entraide, plus
+   >   `marque_utile_par`), `salon_messages`, `communaute_questions` et
+   >   `communaute_reponses`, remplacés par un **compte anonyme** (l'UUID nul).
+   > - **Lien coupé dans `progression`** : l'XP d'une réponse retenue utile garde
+   >   `source_ref` = id de la réponse à côté de `eleve_id`. La purge publie
+   >   `ContenusAnonymises` (ids de contenus seulement) ; `progression` réécrit ces
+   >   références en `anonymise:<id de la ligne XP>`. Le solde de l'élève ne bouge pas.
+   > - **Après purge**, un contenu anonymisé ne peut plus être retenu utile ni résoudre
+   >   une question (pas d'XP versée au compte nul).
+   > - **Concurrence** : `auteur_id` n'est jamais réécrit par une entité
+   >   (`updatable = false`), donc une modération ou une édition chargée avant la purge
+   >   ne remet pas l'élève ; un `marque_utile_par` réécrit après coup est rattrapé à la
+   >   passe suivante.
+   > - **Fenêtre configurable** (`brio.social.retention.fenetre-mois`, défaut 12,
+   >   **12 au minimum** : en dessous l'application refuse de démarrer — durée LCEN
+   >   des données d'identification, et protection contre une purge massive par
+   >   erreur de configuration). Seuil = maintenant − N mois calendaires en UTC, strict.
+   >   Tâche planifiée quotidienne (`…​.cron`, `…​.zone`), désactivable (`…​.active`).
+   >   **Idempotente** ; deux instances simultanées n'anonymisent chaque ligne qu'une fois.
+   >
+   > **Hors périmètre, assumé** : signalements, sanctions, votes, décisions et
+   > contestations de la console de modération — enregistrements d'audit dont la
+   > rétention propre reste à cadrer. Risques résiduels connus : le texte lui-même
+   > (signature, prénom, style) dans une classe qui se connaît — c'est au mieux une
+   > pseudonymisation au sens du RGPD ; les publications d'événements Modulith en échec
+   > (`event_publication`, non bornées) ; les sauvegardes antérieures à la purge.
+   > Code : `fr.brio.social.PurgeRetention` (+ `PurgeRetentionJob`),
+   > `fr.brio.progression.infrastructure.ContenusAnonymisesListener`.
 
 > **Amendement ADR 0035 (2026-10-31) :** la Communauté s'ouvre sans modération pendant
 > le développement, derrière le réglage `brio.communaute.active`, désactivé par défaut.

@@ -27,7 +27,8 @@ class PurgeRetentionJob {
         this.purgeRetention = purgeRetention;
     }
 
-    @Scheduled(cron = "${brio.social.retention.cron:0 30 3 * * *}", zone = "${brio.social.retention.zone:Europe/Paris}")
+    @Scheduled(cron = "${brio.social.retention.cron:0 30 3 * * *}",
+            zone = "${brio.social.retention.zone:Europe/Paris}")
     void purgeProgrammee() {
         purgeRetention.purger();
     }

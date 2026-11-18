@@ -44,4 +44,16 @@ public interface ReponseCommunauteRepository extends JpaRepository<ReponseCommun
              where r.createdAt < :seuil and r.auteurId <> :anonyme
             """)
     int anonymiserAvant(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
+
+    /**
+     * Ids of the answers {@link #anonymiserAvant} is about to anonymise that resolved a question
+     * — the only ones that carry an XP reference in {@code progression}. Same predicate.
+     */
+    @Query(
+            """
+            select r.id from ReponseCommunaute r
+             where r.createdAt < :seuil and r.auteurId <> :anonyme
+               and exists (select 1 from QuestionCommunaute q where q.reponseResolueId = r.id)
+            """)
+    List<UUID> utilesAAnonymiser(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
 }

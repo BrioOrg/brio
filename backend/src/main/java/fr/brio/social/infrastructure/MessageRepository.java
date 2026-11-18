@@ -18,10 +18,12 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     long countByAuteurIdAndCreatedAtAfter(UUID auteurId, Instant depuis);
 
     /**
-     * Rétention (ADR 0023 §6) : au-delà de la fenêtre, le contenu reste mais le lien vers
-     * l'auteur (donnée d'identification, LCEN) est coupé — l'auteur et l'éventuel « marqué
-     * utile par » deviennent le compte anonyme. Idempotent : les lignes déjà anonymisées
-     * (auteur = compte anonyme) sont ignorées. Renvoie le nombre de lignes anonymisées.
+     * Retention (ADR 0023 §6): past the window the content stays but its link to people
+     * (identification data, LCEN) is cut — the author and the optional "marked useful by"
+     * become the anonymous account. Idempotent: fully anonymised rows are skipped. A row whose
+     * author is already anonymous but whose "marked useful by" was written back afterwards (a
+     * concurrent {@code marquerUtile} that loaded the row before the purge) is caught again.
+     * Returns the number of rows anonymised.
      */
     @Modifying
     @Query(
@@ -29,7 +31,20 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
             update Message m
                set m.auteurId = :anonyme,
                    m.marqueUtilePar = case when m.marqueUtilePar is not null then :anonyme else null end
-             where m.createdAt < :seuil and m.auteurId <> :anonyme
+             where m.createdAt < :seuil
+               and (m.auteurId <> :anonyme or m.marqueUtilePar <> :anonyme)
             """)
     int anonymiserAvant(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
+
+    /**
+     * Ids of the messages {@link #anonymiserAvant} is about to anonymise that were marked
+     * useful — the only ones that carry an XP reference in {@code progression}. Same predicate.
+     */
+    @Query(
+            """
+            select m.id from Message m
+             where m.createdAt < :seuil and m.marqueUtileAt is not null
+               and (m.auteurId <> :anonyme or m.marqueUtilePar <> :anonyme)
+            """)
+    List<UUID> utilesAAnonymiser(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
 }
