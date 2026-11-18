@@ -73,8 +73,10 @@ class ModerationCommunauteServiceTest {
         UUID membre = UUID.randomUUID();
         QuestionCommunaute q = mock(QuestionCommunaute.class);
         when(q.estVisible()).thenReturn(true);
+        when(q.getAuteurId()).thenReturn(UUID.randomUUID());
+        when(q.getTitre()).thenReturn("Titre lu au signalement");
         when(questions.findById(questionId)).thenReturn(Optional.of(q));
-        when(signalements.existsByCibleTypeAndCibleIdAndSignalePar("question", questionId, membre))
+        when(signalements.existsByCibleTypeAndCibleIdAndSignaleParAndStatut("question", questionId, membre, "ouvert"))
                 .thenReturn(false);
 
         service.signaler(CibleCommunaute.QUESTION, questionId, membre, "spam");
@@ -83,6 +85,7 @@ class ModerationCommunauteServiceTest {
         verify(signalements).save(captor.capture());
         assertThat(captor.getValue().getCible()).isEqualTo(CibleCommunaute.QUESTION);
         assertThat(captor.getValue().getMotif()).isEqualTo("spam");
+        assertThat(captor.getValue().getExtrait()).isEqualTo("Titre lu au signalement");
     }
 
     @Test
@@ -91,8 +94,9 @@ class ModerationCommunauteServiceTest {
         UUID membre = UUID.randomUUID();
         QuestionCommunaute q = mock(QuestionCommunaute.class);
         when(q.estVisible()).thenReturn(true);
+        when(q.getAuteurId()).thenReturn(UUID.randomUUID());
         when(questions.findById(questionId)).thenReturn(Optional.of(q));
-        when(signalements.existsByCibleTypeAndCibleIdAndSignalePar("question", questionId, membre))
+        when(signalements.existsByCibleTypeAndCibleIdAndSignaleParAndStatut("question", questionId, membre, "ouvert"))
                 .thenReturn(true);
 
         service.signaler(CibleCommunaute.QUESTION, questionId, membre, null);
@@ -121,7 +125,7 @@ class ModerationCommunauteServiceTest {
         QuestionCommunaute q = mock(QuestionCommunaute.class);
         when(questions.findById(questionId)).thenReturn(Optional.of(q));
         SignalementCommunaute ouvert =
-                new SignalementCommunaute(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), null);
+                new SignalementCommunaute(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), null, null);
         when(signalements.findByCibleTypeAndCibleIdAndStatut("question", questionId, "ouvert"))
                 .thenReturn(List.of(ouvert));
 
@@ -149,9 +153,7 @@ class ModerationCommunauteServiceTest {
     void decider_revoquer_xp_publie_levenement_pour_le_repondeur() {
         UUID reponseId = UUID.randomUUID();
         UUID repondeur = UUID.randomUUID();
-        ReponseCommunaute r = mock(ReponseCommunaute.class);
-        when(r.getAuteurId()).thenReturn(repondeur);
-        when(reponses.findById(reponseId)).thenReturn(Optional.of(r));
+        reponseRetenue(reponseId, repondeur);
 
         service.decider(CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), DecisionModeration.ACTION_REVOQUER_XP, null);
 
@@ -229,6 +231,7 @@ class ModerationCommunauteServiceTest {
         UUID auteur = UUID.randomUUID();
         QuestionCommunaute q = mock(QuestionCommunaute.class);
         when(q.getAuteurId()).thenReturn(auteur);
+        when(q.getStatut()).thenReturn("masque");
         when(questions.findById(questionId)).thenReturn(Optional.of(q));
         DecisionModeration decision = mock(DecisionModeration.class);
         UUID decisionId = UUID.randomUUID();
@@ -252,6 +255,7 @@ class ModerationCommunauteServiceTest {
         UUID auteur = UUID.randomUUID();
         QuestionCommunaute q = mock(QuestionCommunaute.class);
         when(q.getAuteurId()).thenReturn(auteur);
+        when(q.getStatut()).thenReturn("masque");
         when(questions.findById(questionId)).thenReturn(Optional.of(q));
         DecisionModeration decision = mock(DecisionModeration.class);
         UUID decisionId = UUID.randomUUID();
@@ -277,6 +281,7 @@ class ModerationCommunauteServiceTest {
         when(contestation.getCibleId()).thenReturn(cibleId);
         when(contestations.findById(contestationId)).thenReturn(Optional.of(contestation));
         QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.getStatut()).thenReturn("masque");
         when(questions.findById(cibleId)).thenReturn(Optional.of(q));
 
         service.trancherContestation(contestationId, admin, true, "tu as raison");
@@ -319,8 +324,8 @@ class ModerationCommunauteServiceTest {
     void file_agrege_les_signalements_par_cible() {
         UUID questionId = UUID.randomUUID();
         UUID auteur = UUID.randomUUID();
-        SignalementCommunaute s1 = new SignalementCommunaute(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), "spam");
-        SignalementCommunaute s2 = new SignalementCommunaute(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), null);
+        SignalementCommunaute s1 = new SignalementCommunaute(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), "spam", "Une question ?");
+        SignalementCommunaute s2 = new SignalementCommunaute(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), null, null);
         when(signalements.findByStatutOrderByCreatedAtAsc("ouvert")).thenReturn(List.of(s1, s2));
         QuestionCommunaute q = mock(QuestionCommunaute.class);
         when(q.getAuteurId()).thenReturn(auteur);
@@ -338,5 +343,249 @@ class ModerationCommunauteServiceTest {
         assertThat(vue.motifs()).containsExactly("spam");
         assertThat(vue.auteurPseudonyme()).isEqualTo("Renard-Turquoise");
         assertThat(vue.extrait()).isEqualTo("Une question");
+        assertThat(vue.extraitAuSignalement()).isEqualTo("Une question ?");
+    }
+
+    @Test
+    void file_marque_lxp_deja_revoquee_dune_reponse() {
+        UUID reponseId = UUID.randomUUID();
+        UUID repondeur = UUID.randomUUID();
+        reponseRetenue(reponseId, repondeur);
+        when(signalements.findByStatutOrderByCreatedAtAsc("ouvert")).thenReturn(List.of(
+                new SignalementCommunaute(CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), null, null)));
+        when(decisions.existsByCibleTypeAndCibleIdAndAction("reponse", reponseId, "revoquer_xp")).thenReturn(true);
+        when(profils.profils(anySet())).thenReturn(Map.of());
+
+        SignalementCommunauteVue vue = service.fileSignalements().get(0);
+
+        assertThat(vue.estReponseResolue()).isTrue();
+        assertThat(vue.xpDejaRevoquee()).isTrue();
+        assertThat(vue.auteurPseudonyme()).isEqualTo("Membre");
+    }
+
+    // ---- porte 5 : règles serveur ajoutées (#338) ------------------------------------
+
+    @Test
+    void signaler_son_propre_contenu_est_refuse() {
+        UUID questionId = UUID.randomUUID();
+        UUID auteur = UUID.randomUUID();
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.estVisible()).thenReturn(true);
+        when(q.getAuteurId()).thenReturn(auteur);
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+
+        assertThatThrownBy(() -> service.signaler(CibleCommunaute.QUESTION, questionId, auteur, null))
+                .isInstanceOf(AccesCommunauteRefuseException.class);
+        verify(signalements, never()).save(any());
+    }
+
+    @Test
+    void signaler_en_rafale_est_freine() {
+        UUID questionId = UUID.randomUUID();
+        UUID membre = UUID.randomUUID();
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.estVisible()).thenReturn(true);
+        when(q.getAuteurId()).thenReturn(UUID.randomUUID());
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+        when(signalements.countBySignaleParAndCreatedAtAfter(eq(membre), any())).thenReturn(5L);
+
+        assertThatThrownBy(() -> service.signaler(CibleCommunaute.QUESTION, questionId, membre, null))
+                .isInstanceOf(TropDeMessagesException.class);
+        verify(signalements, never()).save(any());
+    }
+
+    @Test
+    void signaler_une_reponse_dont_la_question_est_masquee_est_introuvable() {
+        UUID reponseId = UUID.randomUUID();
+        UUID questionId = UUID.randomUUID();
+        ReponseCommunaute r = mock(ReponseCommunaute.class);
+        when(r.getId()).thenReturn(reponseId);
+        when(r.getQuestionId()).thenReturn(questionId);
+        when(r.estVisible()).thenReturn(true);
+        when(r.getAuteurId()).thenReturn(UUID.randomUUID());
+        when(reponses.findById(reponseId)).thenReturn(Optional.of(r));
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.estVisible()).thenReturn(false);
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+
+        assertThatThrownBy(() -> service.signaler(CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), null))
+                .isInstanceOf(MessageCommunauteNotFoundException.class);
+    }
+
+    @Test
+    void decider_rejeter_laisse_le_contenu_en_ligne_et_clot_les_signalements() {
+        UUID questionId = UUID.randomUUID();
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+        SignalementCommunaute ouvert =
+                new SignalementCommunaute(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), null, null);
+        when(signalements.findByCibleTypeAndCibleIdAndStatut("question", questionId, "ouvert"))
+                .thenReturn(List.of(ouvert));
+
+        service.decider(CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), DecisionModeration.ACTION_REJETER, null);
+
+        verify(q, never()).masquer();
+        verify(q, never()).supprimer();
+        verify(q, never()).restaurer();
+        assertThat(ouvert.getStatut()).isEqualTo(SignalementCommunaute.STATUT_TRAITE);
+    }
+
+    @Test
+    void decider_restaurer_remet_en_ligne_un_contenu_masque() {
+        UUID reponseId = UUID.randomUUID();
+        ReponseCommunaute r = mock(ReponseCommunaute.class);
+        when(r.getStatut()).thenReturn("masque");
+        when(reponses.findById(reponseId)).thenReturn(Optional.of(r));
+
+        service.decider(CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), DecisionModeration.ACTION_RESTAURER, null);
+
+        verify(r).restaurer();
+    }
+
+    @Test
+    void decider_restaurer_un_contenu_supprime_est_refuse() {
+        UUID questionId = UUID.randomUUID();
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.getStatut()).thenReturn("supprime");
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+
+        assertThatThrownBy(() -> service.decider(
+                        CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), DecisionModeration.ACTION_RESTAURER, null))
+                .isInstanceOf(MessageInvalideException.class);
+        verify(q, never()).restaurer();
+        verify(decisions, never()).save(any());
+    }
+
+    @Test
+    void decider_masquer_un_contenu_supprime_est_refuse() {
+        UUID questionId = UUID.randomUUID();
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.getStatut()).thenReturn("supprime");
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+
+        assertThatThrownBy(() -> service.decider(
+                        CibleCommunaute.QUESTION, questionId, UUID.randomUUID(), DecisionModeration.ACTION_MASQUER, null))
+                .isInstanceOf(MessageInvalideException.class);
+        verify(q, never()).masquer();
+    }
+
+    @Test
+    void decider_revoquer_xp_laisse_les_signalements_ouverts() {
+        UUID reponseId = UUID.randomUUID();
+        reponseRetenue(reponseId, UUID.randomUUID());
+        SignalementCommunaute ouvert =
+                new SignalementCommunaute(CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), null, null);
+        when(signalements.findByCibleTypeAndCibleIdAndStatut("reponse", reponseId, "ouvert"))
+                .thenReturn(List.of(ouvert));
+
+        service.decider(CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), DecisionModeration.ACTION_REVOQUER_XP, null);
+
+        assertThat(ouvert.getStatut()).isEqualTo(SignalementCommunaute.STATUT_OUVERT);
+    }
+
+    @Test
+    void decider_revoquer_xp_dune_reponse_non_retenue_est_refuse() {
+        UUID reponseId = UUID.randomUUID();
+        ReponseCommunaute r = mock(ReponseCommunaute.class);
+        when(r.getId()).thenReturn(reponseId);
+        when(reponses.findById(reponseId)).thenReturn(Optional.of(r));
+
+        assertThatThrownBy(() -> service.decider(
+                        CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), DecisionModeration.ACTION_REVOQUER_XP, null))
+                .isInstanceOf(MessageInvalideException.class);
+        verify(evenements, never()).publishEvent(any());
+    }
+
+    @Test
+    void decider_revoquer_xp_deux_fois_est_refuse() {
+        UUID reponseId = UUID.randomUUID();
+        reponseRetenue(reponseId, UUID.randomUUID());
+        when(decisions.existsByCibleTypeAndCibleIdAndAction("reponse", reponseId, "revoquer_xp")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.decider(
+                        CibleCommunaute.REPONSE, reponseId, UUID.randomUUID(), DecisionModeration.ACTION_REVOQUER_XP, null))
+                .isInstanceOf(MessageInvalideException.class);
+        verify(evenements, never()).publishEvent(any());
+    }
+
+    @Test
+    void decider_sans_action_est_refuse() {
+        assertThatThrownBy(() -> service.decider(
+                        CibleCommunaute.QUESTION, UUID.randomUUID(), UUID.randomUUID(), null, null))
+                .isInstanceOf(MessageInvalideException.class);
+    }
+
+    @Test
+    void contester_un_contenu_en_ligne_est_refuse() {
+        UUID questionId = UUID.randomUUID();
+        UUID auteur = UUID.randomUUID();
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.getAuteurId()).thenReturn(auteur);
+        when(q.estVisible()).thenReturn(true);
+        when(q.getStatut()).thenReturn("publie");
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+        DecisionModeration decision = mock(DecisionModeration.class);
+        when(decision.getId()).thenReturn(UUID.randomUUID());
+        when(decisions.findFirstByCibleTypeAndCibleIdAndActionInOrderByCreatedAtDesc(any(), any(), any()))
+                .thenReturn(Optional.of(decision));
+
+        assertThatThrownBy(() -> service.contester(CibleCommunaute.QUESTION, questionId, auteur, "pourquoi ?"))
+                .isInstanceOf(MessageInvalideException.class);
+        verify(contestations, never()).save(any());
+    }
+
+    @Test
+    void contester_avec_un_message_vide_ou_trop_long_est_refuse() {
+        UUID questionId = UUID.randomUUID();
+        UUID auteur = UUID.randomUUID();
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.getAuteurId()).thenReturn(auteur);
+        when(q.getStatut()).thenReturn("masque");
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
+        DecisionModeration decision = mock(DecisionModeration.class);
+        when(decision.getId()).thenReturn(UUID.randomUUID());
+        when(decisions.findFirstByCibleTypeAndCibleIdAndActionInOrderByCreatedAtDesc(any(), any(), any()))
+                .thenReturn(Optional.of(decision));
+
+        assertThatThrownBy(() -> service.contester(CibleCommunaute.QUESTION, questionId, auteur, "   "))
+                .isInstanceOf(MessageInvalideException.class);
+        assertThatThrownBy(() -> service.contester(CibleCommunaute.QUESTION, questionId, auteur, "a".repeat(2_001)))
+                .isInstanceOf(MessageInvalideException.class);
+        verify(contestations, never()).save(any());
+    }
+
+    @Test
+    void accepter_une_contestation_sur_un_contenu_supprime_ne_le_republie_pas() {
+        UUID contestationId = UUID.randomUUID();
+        UUID cibleId = UUID.randomUUID();
+        ContestationModeration contestation = mock(ContestationModeration.class);
+        when(contestation.estOuverte()).thenReturn(true);
+        when(contestation.getCible()).thenReturn(CibleCommunaute.QUESTION);
+        when(contestation.getCibleId()).thenReturn(cibleId);
+        when(contestations.findById(contestationId)).thenReturn(Optional.of(contestation));
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.getStatut()).thenReturn("supprime");
+        when(questions.findById(cibleId)).thenReturn(Optional.of(q));
+
+        service.trancherContestation(contestationId, UUID.randomUUID(), true, "désolé");
+
+        verify(q, never()).restaurer();
+        verify(decisions, never()).save(any());
+        verify(contestation).trancher(eq(true), eq("désolé"), any(), any());
+    }
+
+    /** Une réponse visible, retenue comme utile par sa question visible. */
+    private void reponseRetenue(UUID reponseId, UUID repondeur) {
+        UUID questionId = UUID.randomUUID();
+        ReponseCommunaute r = mock(ReponseCommunaute.class);
+        when(r.getId()).thenReturn(reponseId);
+        when(r.getQuestionId()).thenReturn(questionId);
+        when(r.getAuteurId()).thenReturn(repondeur);
+        when(r.estVisible()).thenReturn(true);
+        when(reponses.findById(reponseId)).thenReturn(Optional.of(r));
+        QuestionCommunaute q = mock(QuestionCommunaute.class);
+        when(q.getReponseResolueId()).thenReturn(reponseId);
+        when(q.estVisible()).thenReturn(true);
+        when(questions.findById(questionId)).thenReturn(Optional.of(q));
     }
 }

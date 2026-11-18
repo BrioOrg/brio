@@ -159,15 +159,12 @@ class ProgressionServiceTest {
     @Test
     void revoquerXpSupprimeLAttributionEtRecalculeLeSolde() {
         UUID reponse = UUID.randomUUID();
-        EvenementXp attribution =
-                new EvenementXp(eleve, "entraide", reponse.toString(), "entraide_utile", (short) 15, Instant.now());
-        when(evenements.findByEleveIdAndSourceTypeAndSourceRef(eleve, "entraide", reponse.toString()))
-                .thenReturn(Optional.of(attribution));
+        when(evenements.supprimerParSource(eleve, "entraide", reponse.toString())).thenReturn(1);
         when(evenements.sommePointsPourEleve(eleve)).thenReturn(0);
 
         service.onReponseUtileRevoquee(new ReponseUtileRevoquee(eleve, reponse, Instant.now()));
 
-        verify(evenements).delete(attribution);
+        verify(evenements).supprimerParSource(eleve, "entraide", reponse.toString());
         ArgumentCaptor<Solde> captor = ArgumentCaptor.forClass(Solde.class);
         verify(soldes).save(captor.capture());
         assertThat(captor.getValue().getXpTotal()).isEqualTo(0);
@@ -176,12 +173,10 @@ class ProgressionServiceTest {
     @Test
     void revoquerXpSansAttributionNeFaitRien() {
         UUID reponse = UUID.randomUUID();
-        when(evenements.findByEleveIdAndSourceTypeAndSourceRef(eleve, "entraide", reponse.toString()))
-                .thenReturn(Optional.empty());
+        when(evenements.supprimerParSource(eleve, "entraide", reponse.toString())).thenReturn(0);
 
         service.onReponseUtileRevoquee(new ReponseUtileRevoquee(eleve, reponse, Instant.now()));
 
-        verify(evenements, never()).delete(any());
         verify(soldes, never()).save(any());
     }
 }

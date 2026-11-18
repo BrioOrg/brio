@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -25,6 +26,11 @@ public class ContestationModeration {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    /** Verrou optimiste (V44) : modération et auteur ne s'écrasent pas en silence. */
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
 
     @Column(name = "decision_id", nullable = false)
     private UUID decisionId;

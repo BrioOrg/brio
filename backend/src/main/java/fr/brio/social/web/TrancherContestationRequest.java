@@ -1,4 +1,6 @@
 package fr.brio.social.web;
 
+import jakarta.validation.constraints.NotNull;
+
 /** Corps du traitement d'une contestation : accepter (restaurer) ou non, avec une réponse au membre. */
-record TrancherContestationRequest(boolean accepter, String reponse) {}
+record TrancherContestationRequest(@NotNull Boolean accepter, String reponse) {}

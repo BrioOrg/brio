@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -19,6 +20,11 @@ public class ReponseCommunaute {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    /** Verrou optimiste (V44) : modération et auteur ne s'écrasent pas en silence. */
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
 
     @Column(name = "question_id", nullable = false)
     private UUID questionId;

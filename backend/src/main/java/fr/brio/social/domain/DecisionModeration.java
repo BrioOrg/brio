@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.Immutable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
  * Journal d'audit : une ligne par action, restauration comprise.
  */
 @Entity
+@Immutable
 @Table(name = "communaute_decisions", schema = "social")
 public class DecisionModeration {
 

@@ -4380,12 +4380,14 @@
         "type" : "object",
         "properties" : {
           "action" : {
-            "type" : "string"
+            "type" : "string",
+            "minLength" : 1
           },
           "motif" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "action" ]
       },
       "TrancherContestationRequest" : {
         "type" : "object",
@@ -4396,7 +4398,8 @@
           "reponse" : {
             "type" : "string"
           }
-        }
+        },
+        "required" : [ "accepter" ]
       },
       "RenommerInscriptionRequest" : {
         "type" : "object",
@@ -5503,6 +5506,9 @@
             "type" : "string"
           },
           "extrait" : {
+            "type" : "string"
+          },
+          "extraitAuSignalement" : {
             "type" : "string"
           },
           "statutContenu" : {

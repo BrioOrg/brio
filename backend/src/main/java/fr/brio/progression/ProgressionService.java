@@ -191,13 +191,13 @@ public class ProgressionService {
     @Transactional
     public void onReponseUtileRevoquee(ReponseUtileRevoquee e) {
         Instant quand = e.survenuLe() != null ? e.survenuLe() : Instant.now();
-        evenements
-                .findByEleveIdAndSourceTypeAndSourceRef(
-                        e.repondeurId(), SOURCE_ENTRAIDE, e.reponseId().toString())
-                .ifPresent(evenement -> {
-                    evenements.delete(evenement);
-                    recalculerSolde(e.repondeurId(), quand);
-                });
+        // Suppression en masse : deux révocations concurrentes ne lèvent pas d'erreur de ligne
+        // disparue, la seconde efface 0 ligne et ne recalcule rien.
+        int effaces = evenements.supprimerParSource(
+                e.repondeurId(), SOURCE_ENTRAIDE, e.reponseId().toString());
+        if (effaces > 0) {
+            recalculerSolde(e.repondeurId(), quand);
+        }
     }
 
     /** Current XP and level for a student (0/0 if none yet). */

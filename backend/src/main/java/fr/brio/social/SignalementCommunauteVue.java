@@ -15,7 +15,9 @@ import java.util.UUID;
  * @param cibleId            l'identifiant de la question ou de la réponse signalée
  * @param questionId         la question qui porte le contenu (elle-même si la cible est une question)
  * @param auteurPseudonyme   le pseudonyme de l'auteur du contenu
- * @param extrait            un extrait lisible du contenu signalé
+ * @param extrait            un extrait lisible du contenu, tel qu'il est maintenant
+ * @param extraitAuSignalement l'extrait tel que le premier membre l'a lu en signalant (l'auteur a pu
+ *                           éditer depuis ; null pour un signalement antérieur à ce champ)
  * @param statutContenu      le statut du contenu (publie / masque / supprime)
  * @param estReponseResolue  vrai si la cible est la réponse qui a résolu la question (XP en jeu)
  * @param xpDejaRevoquee     vrai si l'XP de cette réponse a déjà été révoquée
@@ -29,6 +31,7 @@ public record SignalementCommunauteVue(
         UUID questionId,
         String auteurPseudonyme,
         String extrait,
+        String extraitAuSignalement,
         String statutContenu,
         boolean estReponseResolue,
         boolean xpDejaRevoquee,

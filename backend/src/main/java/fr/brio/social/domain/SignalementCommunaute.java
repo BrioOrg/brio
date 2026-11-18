@@ -11,7 +11,8 @@ import java.util.UUID;
 
 /**
  * Signalement d'une question ou d'une réponse de la Communauté par un membre (suivi #338).
- * Un compte ne signale qu'une fois une cible donnée (contrainte d'unicité V44).
+ * Un compte n'a qu'un signalement ouvert par cible (index unique partiel V44) ; {@code extrait}
+ * fige ce que le membre a vu au moment de signaler.
  */
 @Entity
 @Table(name = "communaute_signalements", schema = "social")
@@ -36,6 +37,9 @@ public class SignalementCommunaute {
     @Column(name = "motif")
     private String motif;
 
+    @Column(name = "extrait")
+    private String extrait;
+
     @Column(name = "statut", nullable = false)
     private String statut = STATUT_OUVERT;
 
@@ -50,11 +54,13 @@ public class SignalementCommunaute {
 
     protected SignalementCommunaute() {}
 
-    public SignalementCommunaute(CibleCommunaute cible, UUID cibleId, UUID signalePar, String motif) {
+    public SignalementCommunaute(
+            CibleCommunaute cible, UUID cibleId, UUID signalePar, String motif, String extrait) {
         this.cibleType = cible.code();
         this.cibleId = cibleId;
         this.signalePar = signalePar;
         this.motif = motif;
+        this.extrait = extrait;
     }
 
     /** Clôt le signalement — un admin l'a tranché. */
@@ -82,6 +88,11 @@ public class SignalementCommunaute {
 
     public String getMotif() {
         return motif;
+    }
+
+    /** Ce que le membre a vu au moment de signaler (l'auteur a pu éditer depuis). */
+    public String getExtrait() {
+        return extrait;
     }
 
     public String getStatut() {

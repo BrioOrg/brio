@@ -28,33 +28,50 @@ Nous ajoutons une **console de modération réservée à `admin_brio`**, côté 
 
 1. **Signalement (membre).** Un élève signale une **question** ou une **réponse** (commentaire
    inclus : c'est une réponse avec un parent). Table `social.communaute_signalements`
-   (`cible_type ∈ {question, reponse}`, `cible_id`, `signale_par`, `motif`, `statut`), **un
-   signalement par (cible, membre)**. Routes `POST /api/communaute/{questions|reponses}/{id}/signalement`
-   (sous `brio.communaute.active`, rôle élève). Bouton « Signaler » sur chaque contenu qui n'est
-   pas le sien.
+   (`cible_type ∈ {question, reponse}`, `cible_id`, `signale_par`, `motif`, `extrait`, `statut`),
+   **un signalement ouvert par (cible, membre)** (index unique partiel) : une fois tranché, le
+   membre peut signaler de nouveau — sinon un auteur qui adoucit son texte, obtient un rejet puis
+   remet le texte blessant verrouillerait ses victimes. `extrait` fige ce que le membre a lu au
+   moment de signaler ; la console le montre à côté du texte actuel s'il a changé. Le serveur
+   refuse de signaler son propre message (403) ou un message que le membre ne peut plus lire (fil
+   masqué, 404), et freine les rafales avec le débit préventif commun (`DebitPreventif`, 429).
+   Routes `POST /api/communaute/{questions|reponses}/{id}/signalement` (sous
+   `brio.communaute.active`, rôle élève). Bouton « Signaler » sur chaque contenu qui n'est pas le
+   sien.
 
 2. **Décisions (admin).** `admin_brio` tranche sur une cible : **masquer** (`statut → masque`,
    contenu conservé pour restauration), **supprimer** (`statut → supprime`, corps effacé),
-   **rejeter** (contenu laissé en ligne) ou **restaurer**. Chaque décision laisse une trace dans
-   `social.communaute_decisions` (journal d'audit). Toute décision clôt les signalements ouverts
-   de la cible. Un contenu `masque`/`supprime` disparaît des lectures élèves (réutilise le filtre
-   `estVisible` existant).
+   **rejeter** (contenu laissé en ligne) ou **restaurer** (seulement un contenu `masque` ; un
+   contenu `supprime`, par l'auteur ou un admin, n'est jamais republié ni re-masqué : 422).
+   Chaque décision laisse une trace dans `social.communaute_decisions` (journal d'audit, entité
+   `@Immutable`). Toute décision **sauf `revoquer_xp`** clôt les signalements ouverts de la cible :
+   révoquer l'XP ne juge pas la visibilité, le contenu reste dans la file. Un contenu
+   `masque`/`supprime` disparaît des lectures élèves (réutilise le filtre `estVisible` existant).
+   **Concurrence** : `version` (verrou optimiste) sur les questions, réponses et contestations —
+   deux admins, ou un admin et l'auteur qui édite, ne s'écrasent pas en silence ; le second reçoit
+   un 409. Une contrainte d'unicité franchie par une requête doublée répond aussi 409, jamais 500.
 
 3. **Contestation avec intervention humaine.** L'**auteur** d'un contenu masqué/supprimé conteste
    la **décision** (table `social.communaute_contestations`, une par décision). Un admin tranche :
-   **accepter** restaure le contenu (décision `restaurer`) ou **rejeter** la laisse en place ; dans
-   les deux cas une réponse est consignée. La console affiche le fil (contenu, décision, message).
+   **accepter** restaure le contenu s'il est masqué (décision `restaurer`) — un contenu supprimé
+   n'est pas republié, la contestation est seulement acceptée — ou **rejeter** la laisse en place ;
+   dans les deux cas une réponse est consignée. On ne conteste qu'un contenu encore modéré. La
+   console affiche le fil (contenu, décision, message).
 
 4. **Révocation de l'XP « réponse utile ».** Nouvel événement `ReponseUtileRevoquee`
    (miroir de `ReponseUtileValidee`, même clé `source=entraide`, `source_ref=reponseId`), publié
    par `social` et consommé par `progression`, qui **supprime l'attribution et recadre le solde**,
-   **idempotent** (sans attribution correspondante, sans effet). Action admin `revoquer_xp`, offerte
-   sur une réponse marquée utile non encore révoquée.
+   **idempotent** (suppression en masse : sans attribution correspondante, ou si une révocation
+   concurrente l'a déjà effacée, sans effet). Action admin `revoquer_xp`, offerte **et exigée côté
+   serveur** sur une réponse retenue non encore révoquée (422 sinon). Les actions sans retour
+   arrière (`supprimer`, `revoquer_xp`) demandent une confirmation dans la console.
 
 5. **Rôle et gating.** Les routes admin vivent sous `/api/admin/communaute/**`, gardées
    `ADMIN_BRIO` dans `SecurityConfig` (comme `/api/admin/comptes/**`). Elles ne sont **pas**
    conditionnées par `brio.communaute.active` : traiter des signalements doit rester possible
-   réglage coupé. L'espace web `/admin` a sa propre garde de rôle (miroir de `/prof`).
+   réglage coupé. L'espace web `/admin` a sa propre garde de rôle (miroir de `/prof`). Point
+   d'entrée : un lien « Modération » dans la barre du haut, rendu pour `admin_brio` seulement
+   (miroir de « Espace enseignant ») ; l'atterrissage après connexion n'est pas changé.
 
 6. **Pseudonymat (#325).** La console n'affiche que le **pseudonyme** de l'auteur. Lever le
    pseudonyme (protocole de détresse) est hors v1 (différé par l'ADR 0035).
@@ -77,6 +94,17 @@ Nous ajoutons une **console de modération réservée à `admin_brio`**, côté 
   service, pas par le schéma (cohérent avec les références cross-module par id, ADR 0007).
 - Pas de classifieur IA ni de protocole de détresse : ce sont des conditions distinctes de #338,
   hors de cet ADR.
+
+- **Ouverture de la Communauté bloquée** (`brio.communaute.active` reste coupé) tant que :
+  l'écran membre « contenus modérés » n'existe pas (l'élève ne peut ni contester depuis l'interface
+  ni lire la réponse du modérateur), et que les tables de modération (`signale_par`, messages de
+  contestation écrits par des mineurs) n'ont pas de durée de conservation ni de purge (chantier de
+  rétention #338).
+- Une contestation acceptée ne rend pas l'XP révoquée, et `revoquer_xp` n'est pas contestable :
+  la révocation est une sanction distincte de la visibilité (à rediscuter avec l'écran membre).
+- Masquer la réponse retenue laisse la question « résolue » (comme avant cette console) : rouvrir
+  la question rendrait la révocation de l'XP impossible ensuite. Ordre conseillé : révoquer, puis
+  masquer.
 
 ### Follow-ups (v2)
 - Écran membre « contenus modérés » pour déclencher une contestation ; notification à l'auteur

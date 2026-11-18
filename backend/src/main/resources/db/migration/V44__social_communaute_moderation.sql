@@ -12,7 +12,10 @@
 -- donc pas de FK intra-schéma non plus : (cible_type, cible_id) est validé par le service.
 
 -- Un membre signale une question ou une réponse (commentaire inclus : c'est une réponse
--- avec un parent). Un compte ne signale qu'une fois une cible donnée.
+-- avec un parent). Un compte n'a qu'un signalement OUVERT par cible : une fois tranché, il
+-- peut signaler de nouveau (un auteur qui réécrit son message après un rejet ne verrouille
+-- pas ses victimes). `extrait` fige ce que le membre a vu au moment de signaler : l'auteur
+-- peut éditer ensuite, la console montre les deux.
 CREATE TABLE social.communaute_signalements (
     id          UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     cible_type  VARCHAR(10) NOT NULL
@@ -20,13 +23,18 @@ CREATE TABLE social.communaute_signalements (
     cible_id    UUID NOT NULL,
     signale_par UUID NOT NULL,                  -- identite.comptes (par id)
     motif       TEXT,
+    extrait     TEXT,
     statut      VARCHAR(10) NOT NULL DEFAULT 'ouvert'
         CHECK (statut IN ('ouvert', 'traite')),
     traite_par  UUID,                           -- admin_brio qui a tranché
     traite_at   TIMESTAMPTZ,
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (cible_type, cible_id, signale_par)
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX uq_communaute_signalements_ouvert
+    ON social.communaute_signalements (cible_type, cible_id, signale_par)
+    WHERE statut = 'ouvert';
+CREATE INDEX idx_communaute_signalements_signaleur
+    ON social.communaute_signalements (signale_par, created_at);
 CREATE INDEX idx_communaute_signalements_statut
     ON social.communaute_signalements (statut, created_at);
 CREATE INDEX idx_communaute_signalements_cible
@@ -68,8 +76,15 @@ CREATE TABLE social.communaute_contestations (
     traite_par         UUID,                    -- admin_brio qui a tranché
     traite_at          TIMESTAMPTZ,
     created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
-    -- Une seule contestation ouverte par décision : on ne rouvre pas le même débat.
+    -- Verrou optimiste : deux admins ne tranchent pas la même contestation en même temps.
+    version            BIGINT NOT NULL DEFAULT 0,
+    -- Une seule contestation par décision (ouverte ou tranchée) : on ne rouvre pas le même débat.
     UNIQUE (decision_id)
 );
 CREATE INDEX idx_communaute_contestations_statut
     ON social.communaute_contestations (statut, created_at);
+
+-- Verrou optimiste sur les contenus : une décision de modération et une édition ou une
+-- suppression de l'auteur ne s'écrasent pas en silence (la seconde reçoit un 409).
+ALTER TABLE social.communaute_questions ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE social.communaute_reponses ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
