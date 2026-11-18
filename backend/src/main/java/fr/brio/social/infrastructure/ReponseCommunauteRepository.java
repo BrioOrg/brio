@@ -46,14 +46,21 @@ public interface ReponseCommunauteRepository extends JpaRepository<ReponseCommun
     int anonymiserAvant(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
 
     /**
-     * Ids of the answers {@link #anonymiserAvant} is about to anonymise that resolved a question
-     * — the only ones that carry an XP reference in {@code progression}. Same predicate.
+     * Ids of the past-window answers that resolved a question — the only ones that carry an XP
+     * reference in {@code progression}: those about to be anonymised, plus those created in the
+     * last days before the threshold even if already anonymised ({@code rattrapage}), so an XP
+     * written by a {@code resoudre} racing the previous run is still cut. Bounded, and cutting
+     * twice is harmless.
      */
     @Query(
             """
             select r.id from ReponseCommunaute r
-             where r.createdAt < :seuil and r.auteurId <> :anonyme
+             where r.createdAt < :seuil
+               and (r.auteurId <> :anonyme or r.createdAt >= :rattrapage)
                and exists (select 1 from QuestionCommunaute q where q.reponseResolueId = r.id)
             """)
-    List<UUID> utilesAAnonymiser(@Param("seuil") Instant seuil, @Param("anonyme") UUID anonyme);
+    List<UUID> utilesAAnonymiser(
+            @Param("seuil") Instant seuil,
+            @Param("rattrapage") Instant rattrapage,
+            @Param("anonyme") UUID anonyme);
 }

@@ -1,6 +1,7 @@
 package fr.brio.progression.infrastructure;
 
 import fr.brio.progression.domain.EvenementXp;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Modifying;
@@ -34,4 +35,21 @@ interface XpAnonymisationRepository extends Repository<EvenementXp, UUID> {
             nativeQuery = true)
     int couperReferences(
             @Param("sourceType") String sourceType, @Param("refs") Collection<String> refs);
+
+    /**
+     * Backstop: cuts every entraide reference on an XP event itself older than the threshold. The
+     * content it points at is older still, hence already anonymised — always safe, and it covers a
+     * {@code ContenusAnonymises} delivery that failed.
+     */
+    @Modifying
+    @Query(
+            value =
+                    """
+                    update progression.evenements_xp
+                       set source_ref = 'anonymise:' || id::text
+                     where source_type = :sourceType and created_at < :seuil
+                       and source_ref not like 'anonymise:%'
+                    """,
+            nativeQuery = true)
+    int couperReferencesAvant(@Param("sourceType") String sourceType, @Param("seuil") Instant seuil);
 }

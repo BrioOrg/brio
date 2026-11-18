@@ -2,9 +2,7 @@ package fr.brio.social;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -34,6 +32,7 @@ class PurgeRetentionTest {
     private static final Clock HORLOGE =
             Clock.fixed(Instant.parse("2026-06-15T10:00:00Z"), ZoneOffset.UTC);
     private static final Instant SEUIL_12_MOIS = Instant.parse("2025-06-15T10:00:00Z");
+    private static final Instant RATTRAPAGE = Instant.parse("2025-06-08T10:00:00Z");
     private static final UUID ANONYME = PurgeRetention.COMPTE_ANONYME;
 
     private FilRepository fils;
@@ -97,11 +96,11 @@ class PurgeRetentionTest {
         PurgeRetention.Resultat resultat = service(12).purger();
 
         verify(fils).anonymiserAvant(SEUIL_12_MOIS, ANONYME);
-        verify(messages).utilesAAnonymiser(SEUIL_12_MOIS, ANONYME);
+        verify(messages).utilesAAnonymiser(SEUIL_12_MOIS, RATTRAPAGE, ANONYME);
         verify(messages).anonymiserAvant(SEUIL_12_MOIS, ANONYME);
         verify(salonMessages).anonymiserAvant(SEUIL_12_MOIS, ANONYME);
         verify(questions).anonymiserAvant(SEUIL_12_MOIS, ANONYME);
-        verify(reponses).utilesAAnonymiser(SEUIL_12_MOIS, ANONYME);
+        verify(reponses).utilesAAnonymiser(SEUIL_12_MOIS, RATTRAPAGE, ANONYME);
         verify(reponses).anonymiserAvant(SEUIL_12_MOIS, ANONYME);
         verifyNoMoreInteractions(fils, messages, salonMessages, questions, reponses);
 
@@ -114,19 +113,31 @@ class PurgeRetentionTest {
     void shouldPublishTheIdsOfAnonymisedUsefulContentsSoTheirXpReferenceIsCut() {
         UUID message = UUID.randomUUID();
         UUID reponse = UUID.randomUUID();
-        when(messages.utilesAAnonymiser(SEUIL_12_MOIS, ANONYME)).thenReturn(List.of(message));
-        when(reponses.utilesAAnonymiser(SEUIL_12_MOIS, ANONYME)).thenReturn(List.of(reponse));
+        when(messages.utilesAAnonymiser(SEUIL_12_MOIS, RATTRAPAGE, ANONYME)).thenReturn(List.of(message));
+        when(reponses.utilesAAnonymiser(SEUIL_12_MOIS, RATTRAPAGE, ANONYME)).thenReturn(List.of(reponse));
 
         service(12).purger();
 
-        verify(evenements).publishEvent(new ContenusAnonymises(List.of(message, reponse)));
+        verify(evenements).publishEvent(new ContenusAnonymises(List.of(message, reponse), SEUIL_12_MOIS));
     }
 
     @Test
-    void shouldPublishNothingWhenNoUsefulContentIsAnonymised() {
+    void shouldAnnounceTheThresholdEvenWhenNothingIsAnonymisedSoProgressionCanSweep() {
         assertThat(service(12).purger().total()).isZero();
 
-        verify(evenements, never()).publishEvent(any(Object.class));
+        verify(evenements).publishEvent(new ContenusAnonymises(List.of(), SEUIL_12_MOIS));
+    }
+
+    @Test
+    void shouldAnonymiseQuestionsBeforeSelectingTheAnswersThatResolvedThem() {
+        // resoudre() locks the question row: updating questions first waits for an in-flight
+        // resolution, so the answer selection that follows sees it.
+        service(12).purger();
+
+        org.mockito.InOrder ordre = org.mockito.Mockito.inOrder(questions, reponses);
+        ordre.verify(questions).anonymiserAvant(SEUIL_12_MOIS, ANONYME);
+        ordre.verify(reponses).utilesAAnonymiser(SEUIL_12_MOIS, RATTRAPAGE, ANONYME);
+        ordre.verify(reponses).anonymiserAvant(SEUIL_12_MOIS, ANONYME);
     }
 
     @Test

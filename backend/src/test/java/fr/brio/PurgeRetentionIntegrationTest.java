@@ -182,6 +182,12 @@ class PurgeRetentionIntegrationTest {
         assertThat(auteurDe("communaute_questions", Q_RECENT)).isEqualTo(AUTEUR_FIL);
         assertThat(auteurDe("communaute_reponses", REP_RECENT)).isEqualTo(AUTEUR);
 
+        // The "marked useful" instant falls back to the creation instant: the XP of that marking
+        // carries the original instant, a time join must not find the message.
+        assertThat(jdbc.queryForObject(
+                        "SELECT marque_utile_at = created_at FROM social.messages WHERE id = ?", Boolean.class, MSG_VIEUX))
+                .isTrue();
+
         // No row left anywhere in social linking a past-window content to a student.
         assertThat(jdbc.queryForObject(
                         """
@@ -327,6 +333,63 @@ class PurgeRetentionIntegrationTest {
                 .singleElement()
                 .asString()
                 .startsWith("anonymise:");
+    }
+
+    @Test
+    void shouldLeaveNoTimeJoinBetweenTheXpAndTheMessageItRewarded() {
+        Instant marqueLe = Instant.now().minus(Duration.ofDays(200)).truncatedTo(ChronoUnit.MICROS);
+        jdbc.update("UPDATE social.messages SET marque_utile_at = ? WHERE id = ?",
+                java.sql.Timestamp.from(marqueLe), MSG_VIEUX);
+        new TransactionTemplate(transactions).executeWithoutResult(s ->
+                evenements.publishEvent(new ReponseUtileValidee(AUTEUR, MSG_VIEUX, marqueLe)));
+        await().atMost(Duration.ofSeconds(10)).until(() -> xpReferencant(MSG_VIEUX) == 1);
+        assertThat(jointureTemporelle()).as("the leak exists before the purge").isEqualTo(1);
+
+        purgeRetention.purger();
+
+        await().atMost(Duration.ofSeconds(10)).until(() -> xpReferencant(MSG_VIEUX) == 0);
+        assertThat(jointureTemporelle()).isZero();
+    }
+
+    @Test
+    void shouldSweepAnEntraideXpOlderThanTheWindowEvenIfItsContentWasNeverAnnounced() {
+        // A delivery that failed: an XP row past the window still pointing at a content id.
+        UUID contenu = UUID.randomUUID();
+        jdbc.update(
+                "INSERT INTO progression.evenements_xp (id, eleve_id, source_type, source_ref, motif, points, created_at) "
+                        + "VALUES (gen_random_uuid(), ?, 'entraide', ?, 'entraide_utile', 15, now() - interval '13 months')",
+                AUTEUR, contenu.toString());
+
+        purgeRetention.purger();
+
+        await().atMost(Duration.ofSeconds(10)).until(() -> xpReferencant(contenu) == 0);
+    }
+
+    @Test
+    void shouldReannounceARecentlyAnonymisedResolvedAnswerSoARacingXpIsStillCut() {
+        // resoudre() raced the previous run: the answer is already anonymised but its XP, written
+        // after that run's cut, still points at it.
+        UUID reponse = UUID.randomUUID();
+        jdbc.update(
+                "INSERT INTO social.communaute_reponses (id, question_id, auteur_id, corps, created_at) "
+                        + "VALUES (?, ?, ?, '[]'::jsonb, now() - interval '12 months' - interval '2 days')",
+                reponse, Q_VIEUX, ANONYME);
+        jdbc.update("UPDATE social.communaute_questions SET reponse_resolue_id = ? WHERE id = ?", reponse, Q_VIEUX);
+        jdbc.update(
+                "INSERT INTO progression.evenements_xp (id, eleve_id, source_type, source_ref, motif, points, created_at) "
+                        + "VALUES (gen_random_uuid(), ?, 'entraide', ?, 'entraide_utile', 15, now())",
+                AUTEUR, reponse.toString());
+
+        purgeRetention.purger();
+
+        await().atMost(Duration.ofSeconds(10)).until(() -> xpReferencant(reponse) == 0);
+    }
+
+    private int jointureTemporelle() {
+        return jdbc.queryForObject(
+                "SELECT count(*) FROM progression.evenements_xp x JOIN social.messages m "
+                        + "ON x.created_at = m.marque_utile_at WHERE x.source_type = 'entraide' AND x.eleve_id = ?",
+                Integer.class, AUTEUR);
     }
 
     @Test

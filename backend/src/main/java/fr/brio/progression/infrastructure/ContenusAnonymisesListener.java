@@ -25,5 +25,6 @@ class ContenusAnonymisesListener {
         if (!refs.isEmpty()) {
             xp.couperReferences(XpAnonymisationRepository.SOURCE_ENTRAIDE, refs);
         }
+        xp.couperReferencesAvant(XpAnonymisationRepository.SOURCE_ENTRAIDE, evenement.seuil());
     }
 }

@@ -7,6 +7,7 @@ import fr.brio.social.infrastructure.QuestionCommunauteRepository;
 import fr.brio.social.infrastructure.ReponseCommunauteRepository;
 import fr.brio.social.infrastructure.SalonMessageRepository;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -44,6 +45,12 @@ public class PurgeRetention {
 
     /** Shortest window accepted: one year, the LCEN retention of identification data. */
     static final int FENETRE_MINIMALE_MOIS = 12;
+
+    /**
+     * Contents created this long before the threshold are re-announced on every run even when
+     * already anonymised, so an XP written by a request racing the previous run is still cut.
+     */
+    static final Duration RATTRAPAGE = Duration.ofDays(7);
 
     private static final Logger log = LoggerFactory.getLogger(PurgeRetention.class);
 
@@ -87,20 +94,20 @@ public class PurgeRetention {
     @Transactional
     public Resultat purger() {
         Instant seuil = seuil();
-        // Ids first: the update below changes the very predicate that selects them.
-        List<UUID> utiles = new ArrayList<>(messages.utilesAAnonymiser(seuil, COMPTE_ANONYME));
-        utiles.addAll(reponses.utilesAAnonymiser(seuil, COMPTE_ANONYME));
+        Instant rattrapage = seuil.minus(RATTRAPAGE);
+        // Ids before each update: the update changes the very predicate that selects them.
+        List<UUID> utiles = new ArrayList<>(messages.utilesAAnonymiser(seuil, rattrapage, COMPTE_ANONYME));
+        int nbFils = fils.anonymiserAvant(seuil, COMPTE_ANONYME);
+        int nbMessages = messages.anonymiserAvant(seuil, COMPTE_ANONYME);
+        int nbSalon = salonMessages.anonymiserAvant(seuil, COMPTE_ANONYME);
+        // Questions before answers: resoudre() holds the question's row lock, so this update waits
+        // for an in-flight resolution, and the answer selection below then sees it.
+        int nbQuestions = questions.anonymiserAvant(seuil, COMPTE_ANONYME);
+        utiles.addAll(reponses.utilesAAnonymiser(seuil, rattrapage, COMPTE_ANONYME));
+        int nbReponses = reponses.anonymiserAvant(seuil, COMPTE_ANONYME);
 
-        Resultat resultat =
-                new Resultat(
-                        fils.anonymiserAvant(seuil, COMPTE_ANONYME),
-                        messages.anonymiserAvant(seuil, COMPTE_ANONYME),
-                        salonMessages.anonymiserAvant(seuil, COMPTE_ANONYME),
-                        questions.anonymiserAvant(seuil, COMPTE_ANONYME),
-                        reponses.anonymiserAvant(seuil, COMPTE_ANONYME));
-        if (!utiles.isEmpty()) {
-            evenements.publishEvent(new ContenusAnonymises(utiles));
-        }
+        Resultat resultat = new Resultat(nbFils, nbMessages, nbSalon, nbQuestions, nbReponses);
+        evenements.publishEvent(new ContenusAnonymises(utiles, seuil));
         if (resultat.total() > 0) {
             log.info(
                     "Purge de rétention social : {} contenu(s) anonymisé(s) avant {} "
