@@ -161,7 +161,9 @@ describe('FilQuestion', () => {
     const commentaires = within(screen.getByRole('list', { name: 'Commentaires' }))
     expect(commentaires.getByText('Un commentaire.')).toBeInTheDocument()
     expect(commentaires.getByText(/modifié/)).toBeInTheDocument()
-    expect(commentaires.queryByRole('button')).toBeNull()
+    // No vote and no way to comment on a comment — the only action is reporting it (#338).
+    const boutons = commentaires.getAllByRole('button')
+    expect(boutons.map((b) => b.textContent?.trim())).toEqual(['Signaler'])
   })
 
   it('opens the comment composer on demand', async () => {

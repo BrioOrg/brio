@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -19,6 +20,11 @@ public class ReponseCommunaute {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    /** Verrou optimiste (V44) : modération et auteur ne s'écrasent pas en silence. */
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
 
     @Column(name = "question_id", nullable = false)
     private UUID questionId;
@@ -59,6 +65,20 @@ public class ReponseCommunaute {
     public void supprimer() {
         this.statut = QuestionCommunaute.STATUT_SUPPRIME;
         this.corps = QuestionCommunaute.CORPS_VIDE;
+    }
+
+    /** Modération : masque la réponse sans l'effacer, pour pouvoir la restaurer après contestation. */
+    public void masquer() {
+        this.statut = QuestionCommunaute.STATUT_MASQUE;
+    }
+
+    /** Modération : remet une réponse masquée en ligne (restauration après contestation acceptée). */
+    public void restaurer() {
+        this.statut = QuestionCommunaute.STATUT_PUBLIE;
+    }
+
+    public String getStatut() {
+        return statut;
     }
 
     public boolean estCommentaire() {
