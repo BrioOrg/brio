@@ -16,6 +16,43 @@ export function modeInitial(diapo: string | undefined, cookie: string | undefine
   return cookie === 'lecture' ? 'lecture' : 'interactif'
 }
 
+/** The value of the mode cookie in a `document.cookie` string; undefined when it is not set. */
+export function modeDuCookie(cookies: string): string | undefined {
+  for (const part of cookies.split(';')) {
+    const egal = part.indexOf('=')
+    if (egal === -1 || part.slice(0, egal).trim() !== MODE_COOKIE) continue
+    const valeur = part.slice(egal + 1).trim()
+    return valeur === '' ? undefined : valeur
+  }
+  return undefined
+}
+
+/** The mode and slide the interactive shell shows. */
+export type EtatChapitre = { mode: ModeChapitre; index: number }
+
+/**
+ * What the chapter shows once mounted on the client (ADR 0046 §4): the address wins over the
+ * server props, which a back/forward traversal may serve from an older render. A `?diapo` sets the
+ * interactive mode on the slide it resolves to; without it, a cookie sets the mode; where both are
+ * silent, the props stay. Without `?diapo` the address names no slide: the index stays the props'.
+ * Returns `props` itself when nothing changes.
+ */
+export function etatAuMontage(
+  deck: readonly Diapo[],
+  props: EtatChapitre,
+  search: string,
+  cookie: string | undefined
+): EtatChapitre {
+  const diapo = new URLSearchParams(search).get('diapo')
+  const voulu: EtatChapitre =
+    diapo !== null
+      ? { mode: 'interactif', index: indexDiapo(deck, diapo) }
+      : cookie !== undefined
+        ? { mode: modeInitial(undefined, cookie), index: props.index }
+        : props
+  return voulu.mode === props.mode && voulu.index === props.index ? props : voulu
+}
+
 /**
  * The index of the slide `id` designates: the slide itself, else the slide holding that block
  * (a link made before the content changed), else the first slide of that section (an in-page
