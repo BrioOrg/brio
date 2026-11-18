@@ -79,6 +79,8 @@ const TRADUCTIONS: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> =
   duplicateSinon: () => 'Un « si » n’a qu’un seul « sinon ».',
   unsupportedComparison: (p) =>
     `Scratch n’a pas de bloc « ${p.symbol} » : écris ${p.correct}, dans « ${p.source} ».`,
+  notNeedsBoolean: (p) =>
+    `« non » s’applique à un booléen, comme (non (x = 0)), dans « ${p.source} ».`,
   tooDeep: () => 'Trop de parenthèses ou de blocs imbriqués les uns dans les autres.',
 }
 

@@ -92,6 +92,7 @@ export type ScratchErrorCode =
   | 'duplicateSinon'
   // ≤ ≥ ≠ (and <= >= !=): Scratch has no such block; the copy says how to write it.
   | 'unsupportedComparison'
+  | 'notNeedsBoolean'
   // Brackets or blocks nested deeper than MAX_DEPTH (a held-down key, not a programme).
   | 'tooDeep'
 
@@ -167,6 +168,7 @@ const MESSAGES: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> = {
   duplicateSinon: () => 'a "si" has only one "sinon"',
   unsupportedComparison: (p) =>
     `Scratch has no ${p.symbol} block: write ${p.correct}, in "${p.source}"`,
+  notNeedsBoolean: (p) => `"non" applies to a boolean, as in (non (x = 0)), in "${p.source}"`,
   tooDeep: () => `brackets or blocks nested more than ${MAX_DEPTH} deep`,
 }
 
@@ -348,11 +350,19 @@ export function parseScratch(code: string): ScratchParseResult {
     if (text === 'sinon') {
       // Narrow on the statement's kind, which also narrows it to the `if` shape (elseBody).
       const statement = frame.block?.statement
-      if (statement === undefined || statement.kind !== 'if') {
-        // A `si` further out whose `sinon` this is: the inner block was left open.
-        const ifFrame = [...frames]
-          .reverse()
-          .find((f) => f.block?.statement.kind === 'if' && f.indent - INDENT === indent)
+      // A `si` further out, at this `sinon`'s indentation: the inner block (a `répéter`, or a `si`
+      // of its own) was left open before this line.
+      const outerIf = [...frames]
+        .reverse()
+        .find(
+          (f) => f !== frame && f.block?.statement.kind === 'if' && f.indent - INDENT === indent
+        )
+      if (
+        statement === undefined ||
+        statement.kind !== 'if' ||
+        (indent !== frame.indent - INDENT && outerIf !== undefined)
+      ) {
+        const ifFrame = outerIf
         const ifStatement = ifFrame?.block?.statement
         if (frame.block === null || ifFrame === undefined || ifStatement?.kind !== 'if') {
           add(lineNo, 'sinonWithoutIf')
@@ -412,8 +422,13 @@ export function parseScratch(code: string): ScratchParseResult {
             : null
       if (error === null) throw e
       errors.push({ line: lineNo, code: error.code, params: error.params, message: error.message })
+      // Only when the next line is indented as a body: a one-line `si … alors dire 5` has none,
+      // and a phantom block would then turn every following line into an error.
       const header = blockHeader(text)
-      if (header !== null) {
+      const next = lines[i + 1]
+      const bodyFollows =
+        next !== undefined && next.length - next.trimStart().length === indent + INDENT
+      if (header !== null && bodyFollows) {
         const statement = phantomBlock(header, lineNo)
         frames.push({
           indent: indent + INDENT,
@@ -560,8 +575,7 @@ function parseExpression(source: string): Parsed {
       pos++
       const operand = element()
       expectClose()
-      if (operand.type !== 'boolean')
-        throw new ScratchSyntaxError('logicalNeedsBooleans', { source })
+      if (operand.type !== 'boolean') throw new ScratchSyntaxError('notNeedsBoolean', { source })
       return { type: 'boolean', node: { kind: 'not', operand: operand.node } }
     }
     const left = element()

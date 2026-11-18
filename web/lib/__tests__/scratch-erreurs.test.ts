@@ -195,6 +195,12 @@ const CAS: Array<[string, string, number, string]> = [
     'Scratch écrit =, pas ==, dans « (x == 3) ».',
   ],
   [
+    'non d’une valeur',
+    'si (non (x + 1)) alors\n    dire 1\nfin',
+    1,
+    '« non » s’applique à un booléen, comme (non (x = 0)), dans « (non (x + 1)) ».',
+  ],
+  [
     'imbrication trop profonde',
     'dire ' + '('.repeat(40) + '1' + ')'.repeat(40),
     1,
