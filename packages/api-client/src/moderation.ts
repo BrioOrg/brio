@@ -12,14 +12,14 @@ import { signalerSessionExpiree } from './session-expiree.js'
  * pseudonyme (#325).
  *
  * Contrats serveur (fr.brio.social.web) :
- *   POST /api/communaute/questions/{id}/signalement         204
- *   POST /api/communaute/reponses/{id}/signalement          204
+ *   POST /api/communaute/questions/{id}/signalement         204 · 403 (le sien) · 404 · 409 · 429
+ *   POST /api/communaute/reponses/{id}/signalement          204 · 403 (le sien) · 404 · 409 · 429
  *   POST /api/communaute/questions/{id}/contestation        201 -> { id } · 403 · 404 · 422
  *   POST /api/communaute/reponses/{id}/contestation         201 -> { id } · 403 · 404 · 422
  *   GET  /api/admin/communaute/signalements                 200 -> SignalementCommunauteVue[]
- *   POST /api/admin/communaute/{cibleType}/{cibleId}/decision   201 -> { id } · 404 · 422
+ *   POST /api/admin/communaute/{cibleType}/{cibleId}/decision   201 -> { id } · 404 · 409 · 422
  *   GET  /api/admin/communaute/contestations                200 -> ContestationModerationVue[]
- *   POST /api/admin/communaute/contestations/{id}           204 · 404 · 422
+ *   POST /api/admin/communaute/contestations/{id}           204 · 404 · 409 · 422
  *
  * Les erreurs métier reviennent en `{ error }` en français ; ce texte est affiché tel quel.
  */
@@ -35,6 +35,8 @@ export const SignalementCommunauteVueSchema = z.object({
   questionId: z.string(),
   auteurPseudonyme: z.string(),
   extrait: z.string(),
+  /** Ce que le premier membre a lu en signalant ; l'auteur a pu éditer depuis. */
+  extraitAuSignalement: z.string().nullish(),
   statutContenu: z.string(),
   estReponseResolue: z.boolean(),
   xpDejaRevoquee: z.boolean(),
