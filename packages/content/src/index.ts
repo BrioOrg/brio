@@ -78,6 +78,47 @@ export {
 } from './chart-rules'
 
 export type {
+  TreeOrientation,
+  TreeNodeSpec,
+  TreeSpec,
+  TreeLabelRole,
+  TreeLabelContent,
+  TreeLabel,
+  TreeBranch,
+  TreePathRow,
+  TreeModel,
+  TreeLayoutOptions,
+} from './tree'
+export {
+  buildTreeModel,
+  estimateLatex,
+  estimateRichText,
+  outcomeText,
+  productLatex,
+  treeCollisions,
+} from './tree'
+
+export type {
+  Rational,
+  ParsedProbability,
+  TreeIssue,
+  TreeIssueCode,
+  TreeIssueSeverity,
+  TreeNodeInput,
+} from './tree-rules'
+export {
+  checkTree,
+  findPath,
+  leafPaths,
+  parseProbability,
+  probabilityValue,
+  rationalString,
+  TREE_MAX_CHILDREN,
+  TREE_MAX_DEPTH,
+  TREE_MAX_LEAVES,
+} from './tree-rules'
+
+export type {
   ScratchOperator,
   ScratchComparator,
   ScratchLogical,
@@ -95,5 +136,34 @@ export type {
 } from './scratch'
 export { parseScratch, buildScratchModel } from './scratch'
 
+export type {
+  CalculMode,
+  CalculLine,
+  CalculSpec,
+  CalculParts,
+  CalculSplit,
+  CalculSplitError,
+  CalculRow,
+  CalculModel,
+  CalculIssue,
+  CalculIssueCode,
+} from './calcul'
+export {
+  buildCalculModel,
+  calculSteps,
+  checkCalcul,
+  focusRanges,
+  scanLatex,
+  splitCalculLine,
+  wrapFocus,
+  CALCUL_FOCUS_TONE,
+  CALCUL_MAX_LINES,
+  CALCUL_MIN_LINES,
+  CALCUL_NOTE_MAX_LENGTH,
+} from './calcul'
+
 export type { DeckBlock, DeckSection, DeckInput, Diapo } from './deck'
 export { buildDeck, RESERVED_DIAPO_IDS } from './deck'
+
+export type { Tone, ToneIssue, ToneIssueCode } from './tone'
+export { TONES, MAX_TONES_PER_BLOCK, isTone, toneArguments, checkTones } from './tone'

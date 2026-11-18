@@ -29,6 +29,38 @@ describe('renderKatex', () => {
     expect(root.innerHTML).not.toContain(forbidden)
   })
 
+  describe('\\tone (ADR 0037)', () => {
+    it('writes its argument in the class of the tone, never in a colour', () => {
+      const root = rendered('\\tone{1}{a}^2 + \\tone{2}{b}^2 = \\tone{3}{c}^2')
+      expect(root.querySelector('.text-tone-1')?.textContent).toBe('a')
+      expect(root.querySelector('.text-tone-2')?.textContent).toBe('b')
+      expect(root.querySelector('.text-tone-3')?.textContent).toBe('c')
+      expect(root.innerHTML).not.toMatch(/color:/)
+    })
+
+    it('refuses a tone outside 1…4', () => {
+      const root = rendered('\\tone{5}{a}')
+      expect(root.querySelector('.text-tone-5')).toBeNull()
+      expect(root.innerHTML).toContain('var(--color-danger)')
+    })
+
+    it.each([
+      ['\\htmlClass{text-tone-1 evil}{x}', '.evil'],
+      ['\\tone{1 evil}{x}', '.evil'],
+      ['\\tone{1" onclick="alert(1)}{x}', '[onclick]'],
+      ['\\htmlClass{text-ink}{x}', '.text-ink'],
+    ])('trusts no other class: %s', (latex, selector) => {
+      expect(rendered(latex).querySelector(selector)).toBeNull()
+    })
+
+    it('cannot be redefined for the next formula', () => {
+      renderKatex('\\gdef\\tone#1#2{\\htmlStyle{color:red}{#2}}\\tone{1}{a}', false)
+      const root = rendered('\\tone{1}{a}')
+      expect(root.querySelector('.text-tone-1')?.textContent).toBe('a')
+      expect(root.innerHTML).not.toContain('color:red')
+    })
+  })
+
   it('does not let markup through a formula', () => {
     const root = rendered('<script>alert(1)</script><img src=x onerror=alert(1)>')
     expect(root.querySelector('script, img')).toBeNull()

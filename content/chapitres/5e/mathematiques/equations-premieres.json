@@ -142,26 +142,53 @@
       "estimatedDurationMinutes": 14,
       "blocks": [
         {
-          "id": "table-operations-inverses",
-          "type": "table",
-          "headers": [
-            "Équation",
-            "Opération inverse",
-            "Solution"
+          "id": "intro-operation-inverse",
+          "type": "prose",
+          "text": "Chaque opération se défait par l’opération inverse : une addition par une soustraction, une multiplication par une division. On fait la même opération sur les **deux membres** de l’égalité : elle reste vraie, et $x$ se retrouve seul."
+        },
+        {
+          "id": "calcul-x-plus-13",
+          "type": "calcul",
+          "mode": "equation",
+          "title": "Résoudre $x + 13 = 41$",
+          "lines": [
+            {
+              "latex": "x + 13 = 41"
+            },
+            {
+              "latex": "x = 41 - 13",
+              "op": "-13",
+              "focus": "- 13",
+              "note": "on soustrait 13 aux deux membres"
+            },
+            {
+              "latex": "x = 28",
+              "note": "on calcule"
+            }
           ],
-          "rows": [
-            [
-              "x + 13 = 41",
-              "on soustrait 13 : x = 41 − 13",
-              "x = 28"
-            ],
-            [
-              "4x = 28",
-              "on divise par 4 : x = 28 ÷ 4",
-              "x = 7"
-            ]
+          "conclusion": "La solution de l’équation est $28$."
+        },
+        {
+          "id": "calcul-4x",
+          "type": "calcul",
+          "mode": "equation",
+          "title": "Résoudre $4x = 28$",
+          "lines": [
+            {
+              "latex": "4x = 28"
+            },
+            {
+              "latex": "x = 28 \\div 4",
+              "op": "\\div 4",
+              "focus": "\\div 4",
+              "note": "on divise les deux membres par 4"
+            },
+            {
+              "latex": "x = 7",
+              "note": "on calcule"
+            }
           ],
-          "caption": "Chaque opération se défait par l'opération inverse."
+          "conclusion": "La solution de l’équation est $7$."
         },
         {
           "id": "tip-verifier",

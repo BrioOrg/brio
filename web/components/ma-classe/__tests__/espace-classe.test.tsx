@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -149,5 +149,94 @@ describe('EspaceClasse', () => {
     expect(await screen.findByText('DM de 3e')).toBeInTheDocument()
     expect(screen.getByText('Corrigé')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Ouvrir le chapitre' })).toBeNull()
+  })
+
+  // critère 7 (#370): a course homework opens its course, like a chapter one opens its chapter.
+  describe('a course homework', () => {
+    const COURS_ID = '0b6f2c1e-8d4a-4c3b-9f1e-2a7d5c9e1b40'
+    const AUTRE_COURS = '5c1d9e2f-3a4b-4c5d-8e6f-7a8b9c0d1e2f'
+
+    it('links to its course, carrying the homework id', async () => {
+      api.mesClasses.mockResolvedValue([classe4eB])
+      api.listerMesDevoirs.mockResolvedValue([
+        devoir('d1', 'Lire le cours', 'c1', { sourceType: 'cours', sourceRef: COURS_ID }),
+      ])
+      render(
+        <EspaceClasse>
+          <OngletAFaire cheminsChapitres={{}} />
+        </EspaceClasse>
+      )
+
+      const carte = (await screen.findByText('Lire le cours')).closest('li')!
+      expect(within(carte).getByRole('link', { name: 'Ouvrir le cours' })).toHaveAttribute(
+        'href',
+        `/cours/${COURS_ID}?devoir=d1`
+      )
+      expect(within(carte).queryByRole('link', { name: 'Ouvrir le chapitre' })).toBeNull()
+    })
+
+    it('links each homework to its own source, finished ones too', async () => {
+      api.mesClasses.mockResolvedValue([classe4eB])
+      api.listerMesDevoirs.mockResolvedValue([
+        devoir('d1', 'Cours à lire', 'c1', { sourceType: 'cours', sourceRef: COURS_ID }),
+        devoir('d2', 'Chapitre à revoir', 'c1', { sourceType: 'chapitre', sourceRef: 'fractions' }),
+        devoir('d3', 'Cours déjà rendu', 'c1', {
+          sourceType: 'cours',
+          sourceRef: AUTRE_COURS,
+          statutRendu: 'rendu',
+        }),
+        devoir('d4', 'Cours corrigé', 'c1', {
+          sourceType: 'cours',
+          sourceRef: COURS_ID,
+          corrige: true,
+        }),
+      ])
+      render(
+        <EspaceClasse>
+          <OngletAFaire cheminsChapitres={{ fractions: '/4e/mathematiques/fractions' }} />
+        </EspaceClasse>
+      )
+
+      const lien = async (titre: string, nom: string) =>
+        within((await screen.findByText(titre)).closest('li')!).getByRole('link', { name: nom })
+      expect(await lien('Cours à lire', 'Ouvrir le cours')).toHaveAttribute(
+        'href',
+        `/cours/${COURS_ID}?devoir=d1`
+      )
+      expect(await lien('Chapitre à revoir', 'Ouvrir le chapitre')).toHaveAttribute(
+        'href',
+        '/4e/mathematiques/fractions?devoir=d2'
+      )
+      // Terminés: the course stays one click away, as a finished chapter homework's does.
+      expect(screen.getByRole('heading', { name: 'Terminés' })).toBeInTheDocument()
+      expect(await lien('Cours déjà rendu', 'Ouvrir le cours')).toHaveAttribute(
+        'href',
+        `/cours/${AUTRE_COURS}?devoir=d3`
+      )
+      expect(await lien('Cours corrigé', 'Ouvrir le cours')).toHaveAttribute(
+        'href',
+        `/cours/${COURS_ID}?devoir=d4`
+      )
+    })
+
+    it('offers no link when the source cannot be placed', async () => {
+      api.mesClasses.mockResolvedValue([classe4eB])
+      api.listerMesDevoirs.mockResolvedValue([
+        devoir('d1', 'Type inconnu', 'c1', { sourceType: 'controle', sourceRef: COURS_ID }),
+        devoir('d2', 'Chapitre hors catalogue', 'c1', {
+          sourceType: 'chapitre',
+          sourceRef: 'inconnu',
+        }),
+      ])
+      render(
+        <EspaceClasse>
+          <OngletAFaire cheminsChapitres={{ fractions: '/4e/mathematiques/fractions' }} />
+        </EspaceClasse>
+      )
+
+      expect(await screen.findByText('Type inconnu')).toBeInTheDocument()
+      expect(screen.getByText('Chapitre hors catalogue')).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: /^Ouvrir le/ })).toBeNull()
+    })
   })
 })

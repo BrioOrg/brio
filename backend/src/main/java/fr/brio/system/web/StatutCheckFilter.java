@@ -1,6 +1,7 @@
 package fr.brio.system.web;
 
 import fr.brio.identite.CompteService;
+import fr.brio.identite.api.EtatAcces;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +15,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Re-checks compte.statut on every authenticated request.
+ * Re-checks compte.statut on every authenticated request, and holds a session whose password
+ * must be changed (ADR 0036 §5) to the change itself.
  * This closes the gap where a consent revocation would otherwise leave an existing
  * session valid until the cookie expires. Spring Security's UserDetails are cached
  * in the session and not re-loaded after login, so this filter is the enforcement
@@ -38,9 +40,19 @@ class StatutCheckFilter extends OncePerRequestFilter {
         if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserDetails) {
             try {
                 UUID compteId = UUID.fromString(auth.getName());
-                if (!compteService.estActif(compteId)) {
+                EtatAcces etat = compteService.etatAcces(compteId);
+                if (etat == EtatAcces.INACTIF) {
                     SecurityContextHolder.clearContext();
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
+                }
+                // After a teacher-led reset the student must choose their own password before
+                // anything else (ADR 0036 §5) — enforced here, not only by the web's redirect.
+                if (etat == EtatAcces.MOT_DE_PASSE_A_CHANGER && !permisAvantChangement(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write(
+                            "{\"error\":\"Choisis ton nouveau mot de passe avant de continuer.\"}");
                     return;
                 }
             } catch (IllegalArgumentException ignored) {
@@ -48,5 +60,13 @@ class StatutCheckFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(request, response);
+    }
+
+    /** The only calls a session may make while its password change is pending (logout is handled earlier). */
+    private static boolean permisAvantChangement(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String methode = request.getMethod();
+        return ("GET".equals(methode) && "/api/moi".equals(uri))
+                || ("POST".equals(methode) && "/api/moi/mot-de-passe".equals(uri));
     }
 }

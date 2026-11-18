@@ -12,6 +12,14 @@ public record CompteInfo(
         String statut,
         String nom,   // null for élève accounts (ADR 0016 §2)
         String email, // null for élève accounts
-        String pseudonyme, // élève accounts only: out-of-class identity (#325)
-        String niveau      // élève accounts only: active class's level, else the declared one
+        // élève accounts only: out-of-class identity (#325). Withheld while doitChangerMotDePasse:
+        // the adult holding the provisional password must not learn it (ADR 0036 §9).
+        String pseudonyme,
+        String niveau,     // élève accounts only: active class's level, else the declared one
+        // True after a teacher-led reset, until the student chooses their own password: the web
+        // sends them to /changer-mot-de-passe, the server refuses everything else (ADR 0036 §5).
+        boolean doitChangerMotDePasse,
+        // The last reset of this account, told to the student once the change is done and for
+        // ADR 0036 §8's horizon; null otherwise.
+        AvisReinitialisation accesReinitialise
 ) {}

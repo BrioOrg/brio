@@ -19,7 +19,7 @@
    -------------------------------------------------------------------------- */
 
 /* prettier-ignore */
-@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-concept bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised bg-surface-result-correct bg-surface-result-incorrect text-accent-ink text-streak text-xp text-danger text-warning text-info text-concept border-feedback-incorrect");
+@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-concept bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised bg-surface-result-correct bg-surface-result-incorrect text-accent-ink text-streak text-xp text-danger text-warning text-info text-concept border-feedback-incorrect bg-tone-1 bg-tone-2 bg-tone-3 bg-tone-4 bg-tone-1-soft bg-tone-2-soft bg-tone-3-soft bg-tone-4-soft");
 
 /* --------------------------------------------------------------------------
    Fonts — self-hosted, zero third-party requests
@@ -99,6 +99,12 @@
   --p-chart-pink: #ff7aa8;
   --p-chart-neutral: #c9d4ce;
 
+  /* Maths tones (#382, ADR 0037) — not in the mockups. Tone 1 is --p-info and
+     tone 2 --p-streak; magenta and teal are new, picked so the four stay apart
+     for protanopes and deuteranopes (verified by check-contrast.mjs). */
+  --p-tone-magenta: #ff4f86;
+  --p-tone-teal: #34e3cf;
+
   /* Light theme — sourced from screen 1 (connexion) + screen 2 .phone.day */
   --p-light-page: #eaf7ef;
   --p-light-panel: #ffffff;
@@ -115,6 +121,10 @@
   --p-light-danger-edge: #8f1f1f;
   --p-light-chart-pink: #c2185b;
   --p-light-chart-neutral: #6b7a72;
+  --p-light-tone-blue: #1670c0;
+  --p-light-tone-orange: #a35f00;
+  --p-light-tone-magenta: #9c2a78;
+  --p-light-tone-teal: #0e6e46;
 }
 
 /* --------------------------------------------------------------------------
@@ -276,6 +286,25 @@
   --color-cube-top: #4f7562;
   --color-cube-front: #33503f;
   --color-cube-side: #1f3329;
+
+  /* -- Maths tones --------------------------------------------------------- */
+  /* Meaningful colour in maths content (#382, ADR 0037): the same object wears
+     the same tone in a figure and in its formula (side a of the triangle and
+     the a² of a² + b² = c²). Rare by design: ink is the default, at most three
+     tones in a block. Never for state, never decoration.
+     A tone is formula text: ≥ 4.5 : 1 on panel, page and raised. -soft fills a
+     polygon under its stroke: ink ≥ 4.5 : 1 and the tone ≥ 3 : 1 on it. The
+     four tones stay apart for protanopes and deuteranopes (ΔE ≥ 20, simulated);
+     tone 1 and tone 2 (blue, orange) are the safest pair, use them first.
+     All verified by check-contrast.mjs. */
+  --color-tone-1: #4bb4ff;
+  --color-tone-2: #ff9600;
+  --color-tone-3: #ff4f86;
+  --color-tone-4: #34e3cf;
+  --color-tone-1-soft: #193640;
+  --color-tone-2-soft: #393012;
+  --color-tone-3-soft: #39242a;
+  --color-tone-4-soft: #153e37;
 }
 
 /* --------------------------------------------------------------------------
@@ -387,6 +416,16 @@
   --color-cube-top: #f4fbf7;
   --color-cube-front: #bddbc9;
   --color-cube-side: #8bb39d;
+
+  /* Maths tones, darkened to clear 4.5 : 1 on white and on the page. */
+  --color-tone-1: #1670c0;
+  --color-tone-2: #a35f00;
+  --color-tone-3: #9c2a78;
+  --color-tone-4: #0e6e46;
+  --color-tone-1-soft: #deebf6;
+  --color-tone-2-soft: #f2e9db;
+  --color-tone-3-soft: #f1e1ec;
+  --color-tone-4-soft: #ddebe5;
 }
 
 /* System preference fallback — applies when no data-theme attribute is set */
@@ -434,6 +473,15 @@
     --color-cube-top: #f4fbf7;
     --color-cube-front: #bddbc9;
     --color-cube-side: #8bb39d;
+
+    --color-tone-1: #1670c0;
+    --color-tone-2: #a35f00;
+    --color-tone-3: #9c2a78;
+    --color-tone-4: #0e6e46;
+    --color-tone-1-soft: #deebf6;
+    --color-tone-2-soft: #f2e9db;
+    --color-tone-3-soft: #f1e1ec;
+    --color-tone-4-soft: #ddebe5;
   }
 }
 
