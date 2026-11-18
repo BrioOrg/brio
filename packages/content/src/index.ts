@@ -120,11 +120,15 @@ export {
 
 export type {
   ScratchOperator,
+  ScratchComparator,
+  ScratchLogical,
+  ScratchBoolean,
   ScratchValue,
   ScratchStatement,
   ScratchError,
   ScratchErrorCode,
   ScratchErrorParams,
+  ScratchBlockType,
   ScratchParseResult,
   ScratchCategory,
   ScratchPart,

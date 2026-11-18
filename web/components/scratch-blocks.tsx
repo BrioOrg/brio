@@ -16,7 +16,37 @@ const FILL: Record<ScratchCategory, string> = {
   sensing: 'bg-scratch-sensing border-scratch-sensing-edge',
   operators: 'bg-scratch-operators border-scratch-operators-edge',
   variables: 'bg-scratch-variables border-scratch-variables-edge',
+  pen: 'bg-scratch-pen border-scratch-pen-edge',
 }
+
+// A boolean's outline: a clip-path also clips a border, so the hexagon is two clipped layers, the
+// edge colour behind the fill, 1px larger all round (literal class names, as above).
+const EDGE_BG: Record<ScratchCategory, string> = {
+  events: 'bg-scratch-events-edge',
+  control: 'bg-scratch-control-edge',
+  motion: 'bg-scratch-motion-edge',
+  looks: 'bg-scratch-looks-edge',
+  sensing: 'bg-scratch-sensing-edge',
+  operators: 'bg-scratch-operators-edge',
+  variables: 'bg-scratch-variables-edge',
+  pen: 'bg-scratch-pen-edge',
+}
+const FILL_BG: Record<ScratchCategory, string> = {
+  events: 'bg-scratch-events',
+  control: 'bg-scratch-control',
+  motion: 'bg-scratch-motion',
+  looks: 'bg-scratch-looks',
+  sensing: 'bg-scratch-sensing',
+  operators: 'bg-scratch-operators',
+  variables: 'bg-scratch-variables',
+  pen: 'bg-scratch-pen',
+}
+
+// A pointed hexagon, the shape of a boolean block (ADR 0031 §3); the horizontal padding (px-3)
+// leaves room for the points, which are in rem like it (spacing × 2.5 = 10px at the default size).
+// The clip-path is geometry; the colours come from the category's tokens (FILL_BG, EDGE_BG).
+const HEXAGON =
+  '[clip-path:polygon(calc(var(--spacing)*2.5)_0,calc(100%_-_var(--spacing)*2.5)_0,100%_50%,calc(100%_-_var(--spacing)*2.5)_100%,calc(var(--spacing)*2.5)_100%,0_50%)]'
 
 const ICON = {
   flag: 'flag',
@@ -40,10 +70,12 @@ export function ScratchBlocks({
   script: ScratchStatement[]
 }) {
   return (
+    // Focusable so a wide programme can be scrolled with the keyboard in every browser (WCAG 2.1.1).
     <figure
       id={id}
       aria-label="Programme Scratch"
-      className="my-1 overflow-x-auto rounded-md border border-line bg-surface-raised p-4"
+      tabIndex={0}
+      className="my-1 overflow-x-auto rounded-md border border-line bg-surface-raised p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div
         aria-hidden
@@ -86,19 +118,36 @@ function Block({ block, first }: { block: ScratchBlock; first: boolean }) {
     )
   }
   // A C block: its header, an arm along the left of the inner blocks, and a foot. The arm is
-  // drawn over the header's and the foot's borders, which leaves the C's inner edge only.
+  // drawn over the header's and the foot's borders, which leaves the C's inner edge only. A double
+  // C (`cElse`, the `si … sinon`) adds a « sinon » separator row and a second arm + body before
+  // the foot.
   return (
     <div className={`flex flex-col items-stretch ${overlap}`}>
       <div className={`${ROW} ${fill} self-start rounded-t-xs rounded-br-xs`}>
         <Parts parts={block.parts} />
       </div>
-      <div className="flex">
-        <div className={`${fill} relative z-10 -my-px w-4 shrink-0 border-x`} />
-        <div className="py-px">
-          <Stack blocks={block.body} />
-        </div>
-      </div>
+      <Arm fill={fill} blocks={block.body} />
+      {block.shape === 'cElse' && (
+        <>
+          <div className={`${ROW} ${fill} self-start rounded-xs`}>
+            <Parts parts={block.elseParts ?? []} />
+          </div>
+          <Arm fill={fill} blocks={block.elseBody ?? []} />
+        </>
+      )}
       <div className={`${fill} h-4 rounded-b-xs rounded-tr-xs border`} />
+    </div>
+  )
+}
+
+// The inner edge of a C block: a vertical arm, drawn over the rows above and below, beside a body.
+function Arm({ fill, blocks }: { fill: string; blocks: ScratchBlock[] }) {
+  return (
+    <div className="flex">
+      <div className={`${fill} relative z-10 -my-px w-4 shrink-0 border-x`} />
+      <div className="py-px">
+        <Stack blocks={blocks} />
+      </div>
     </div>
   )
 }
@@ -135,6 +184,16 @@ function Part({ part }: { part: ScratchPart }) {
           className={`${FILL[part.category]} flex items-center gap-1 rounded-pill border px-2 py-0.5`}
         >
           <Parts parts={part.parts} />
+        </span>
+      )
+    case 'boolean':
+      return (
+        <span className={`${EDGE_BG[part.category]} ${HEXAGON} flex p-px`}>
+          <span
+            className={`${FILL_BG[part.category]} ${HEXAGON} flex items-center gap-1 px-3 py-0.5`}
+          >
+            <Parts parts={part.parts} />
+          </span>
         </span>
       )
   }
