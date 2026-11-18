@@ -28,6 +28,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | Voir mes classes | enseignant | 🔥 | 1 | 1 | 1 | `/prof` → `/prof/classes` |
 | Traiter un signalement | enseignant |  | 1 | 1 | 1 | `/prof` → `/prof/signalements` |
 | Modérer le salon de classe | enseignant |  | 1 | 1 | 1 | `/prof` → `/prof/signalements-salon` |
+| Lire et écrire dans le salon d'une classe | enseignant | 🔥 | 2 | 2 | 2 | `/prof` → `/prof/classes` → `/prof/classes/[id]` |
 | Se connecter | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/connexion` |
 | Créer un compte élève | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/inscription` |
 | Rejoindre une classe avec un code | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/rejoindre` |
