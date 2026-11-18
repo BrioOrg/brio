@@ -35,7 +35,7 @@
     { "id": "eleve-salon-de-classe", "label": "Écrire dans le salon de ma classe", "persona": "eleve", "chaude": true, "arrivee": "/ma-classe/salon", "budget": 2, "cible": 2 },
     { "id": "eleve-lire-communaute", "label": "Lire les questions de la Communauté", "persona": "eleve", "chaude": false, "arrivee": "/communaute", "budget": 1, "cible": 1 },
     { "id": "eleve-poser-question", "label": "Poser une question à la Communauté", "persona": "eleve", "chaude": false, "arrivee": "/communaute/nouvelle", "budget": 2, "cible": 2 },
-    { "id": "eleve-annales", "label": "S'entraîner sur une annale", "persona": "eleve", "chaude": false, "arrivee": "/annales", "budget": 2, "cible": 2 },
+    { "id": "eleve-annales", "label": "S'entraîner sur une annale", "persona": "eleve", "chaude": false, "arrivee": "/annales", "budget": 1, "cible": 1 },
     { "id": "eleve-profil", "label": "Voir mon profil", "persona": "eleve", "chaude": false, "arrivee": "/profil", "budget": 1, "cible": 1 },
     { "id": "eleve-parametres", "label": "Ouvrir mes paramètres", "persona": "eleve", "chaude": false, "arrivee": "/parametres", "budget": 1, "cible": 1 },
     { "id": "eleve-rejoindre-classe", "label": "Rejoindre une classe avec un code", "persona": "eleve", "chaude": false, "arrivee": "/rejoindre", "budget": 2, "cible": 2 },

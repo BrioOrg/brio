@@ -23,6 +23,8 @@ type BottomNavProps = {
  * It takes its sections as props so both spaces use it: the student shell passes
  * navigationEleve() (with its setting off, the Communauté is rendered disabled rather than linking
  * nowhere), the teacher space PROF_SECTIONS.
+ *
+ * Every entry is a 44 × 44 px touch target; the student bar holds at most 6 of them (ADR 0046).
  */
 export function BottomNav({
   sections,
@@ -32,7 +34,7 @@ export function BottomNav({
   const activeKey = activeSectionKey(sections, usePathname() ?? '/')
 
   const shell =
-    'grid place-items-center rounded-md p-2 transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel'
+    'grid size-11 place-items-center rounded-md transition-colors duration-[var(--duration-fast)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel'
 
   const tabAVenir = (tab: UpcomingTab) => (
     <li key={tab.key}>
