@@ -66,8 +66,28 @@ test('a direct link opens its slide, even when it names a block inside a slide',
   await expectDiapo(page, 1, 'debut')
 })
 
-test('the back button goes back one slide at a time', async ({ page }) => {
-  await ouvrir(page, CHAPITRE)
+// One history entry per chapter visit (ADR 0046): back leaves the chapter, whatever the number of
+// slides seen; forward reopens the slide it was left on. More in retour-chapitre.spec.ts.
+test('one back leaves the chapter, forward reopens the slide', async ({ page }) => {
+  await page.goto('/explorer')
+  const titre = page.getByRole('heading', { level: 1 })
+  await expect(titre).toBeVisible()
+  // In by Next's client navigation, as a link does (exposed in development), once hydrated.
+  await expect
+    .poll(() =>
+      titre.evaluate(
+        (el) =>
+          typeof (window as unknown as { next?: { router?: unknown } }).next?.router === 'object' &&
+          Object.keys(el).some((k) => k.startsWith('__reactFiber'))
+      )
+    )
+    .toBe(true)
+  await page.evaluate((href) => {
+    const fenetre = window as unknown as { next: { router: { push: (h: string) => void } } }
+    fenetre.next.router.push(href)
+  }, CHAPITRE)
+  await expect(page.locator('[data-transitions="pretes"]')).toBeAttached({ timeout: 20_000 })
+  await expectDiapo(page, 1, 'debut')
   await page.keyboard.press('ArrowRight')
   await expectDiapo(page, 2, 'intro-prose')
   await page.keyboard.press('ArrowRight')
@@ -76,11 +96,10 @@ test('the back button goes back one slide at a time', async ({ page }) => {
   await expectDiapo(page, 4, 'ex-reconnaitre-hypotenuse')
 
   await page.goBack()
-  await expectDiapo(page, 3, 'enonce-prose')
-  await page.goBack()
-  await expectDiapo(page, 2, 'intro-prose')
+  await expect(page).toHaveURL('/explorer')
+  await expect(page.locator('[data-chapitre-mode]')).toHaveCount(0)
   await page.goForward()
-  await expectDiapo(page, 3, 'enonce-prose')
+  await expectDiapo(page, 4, 'ex-reconnaitre-hypotenuse')
 })
 
 test('switching modes keeps the position and the answer being typed', async ({ page }) => {
