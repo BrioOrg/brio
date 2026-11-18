@@ -37,14 +37,15 @@ const TEXTES = {
   toi: 'Toi',
   masque: 'Masqué',
   masquer: 'Masquer',
+  afficherContenu: 'Afficher le contenu',
+  cacherContenu: 'Cacher le contenu',
   annuler: 'Annuler',
   titreConfirmation: `Masquer ce message${NBSP}?`,
-  titreConfirmationMoi: `Masquer ton message${NBSP}?`,
   descriptionConfirmation: `Tes élèves ne le verront plus au prochain affichage de leur salon. Toi, tu le verras toujours ici, marqué «${NBSP}Masqué${NBSP}». Ses signalements en attente seront clos. Son auteur n'est pas prévenu, et tu ne pourras pas le réafficher.`,
-  descriptionConfirmationMoi: `Tes élèves ne le verront plus au prochain affichage de leur salon. Toi, tu le verras toujours ici, marqué «${NBSP}Masqué${NBSP}». Tu ne pourras pas le réafficher.`,
   labelChamp: 'Ton message à la classe',
   placeholder: 'Écris à ta classe…',
-  aide: `Toute la classe peut le lire. Pas de lien externe${NBSP}: il serait refusé.`,
+  // Exactly what the salon refuses: ModerationPreventive.java:17.
+  aide: 'Toute la classe peut le lire. Les liens commençant par http:// ou www. sont refusés.',
   envoyer: 'Envoyer',
   annonceChargement: 'Chargement des messages…',
   annonceOuvert: 'Salon ouvert.',
@@ -73,9 +74,10 @@ function nomAuteur(m: SalonMessageVue): string {
 }
 
 /**
- * The class salon seen by its teacher (PL-7, #399): every message, hidden ones included and marked
- * "Masqué", a "Masquer" action on each published message, and a composer. No live updates: a reload
- * after each send or hide, and an "Actualiser" button. The student screen is `SalonClasse`.
+ * The class salon seen by its teacher (PL-7, #399): every message, hidden ones included, marked
+ * "Masqué" and folded; a "Masquer" action on the students' published messages; a composer. No
+ * live updates: a reload after each send or hide, and an "Actualiser" button. The student screen
+ * is `SalonClasse`.
  */
 export function SalonClasseProf({
   salon,
@@ -179,7 +181,7 @@ export function SalonClasseProf({
       )}
 
       {chargement && (
-        <div className="flex flex-col gap-2">
+        <div className="flex min-h-52 flex-col gap-2">
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />
@@ -195,7 +197,8 @@ export function SalonClasseProf({
             aria-label={TEXTES.listeNom}
             // A scrollable region must be reachable by keyboard (WCAG 2.1.1).
             tabIndex={0}
-            className="flex max-h-96 flex-col gap-2 overflow-y-auto rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            // Same minimum height as the skeletons: no layout shift when the list arrives.
+            className="flex min-h-52 max-h-96 flex-col gap-2 overflow-y-auto rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {messages.map((m) => (
               <li key={m.id}>
@@ -228,6 +231,9 @@ function MessageProf({
 }) {
   const masque = m.statut === STATUT_MASQUE
   const auteur = nomAuteur(m)
+  // A hidden message's body stays folded (the page may be projected in class); local, not kept.
+  const [contenuVisible, setContenuVisible] = useState(false)
+  const corpsId = `corps-message-${m.id}`
 
   const cadre = masque
     ? 'border-dashed border-line bg-surface-page'
@@ -243,7 +249,8 @@ function MessageProf({
       aria-label={masque ? `Message masqué de ${auteur}` : `Message de ${auteur}`}
       tabIndex={masque ? -1 : undefined}
       className={[
-        'flex flex-col gap-1 rounded-lg border p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        // ring-inset: the scrolling list would clip an outer ring.
+        'flex flex-col gap-1 rounded-lg border p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent',
         cadre,
       ].join(' ')}
     >
@@ -255,19 +262,43 @@ function MessageProf({
             {TEXTES.masque}
           </Chip>
         )}
-        {m.statut === STATUT_PUBLIE && (
+        {/* Never on the teacher's own message: hiding it would close a report made against them. */}
+        {m.statut === STATUT_PUBLIE && !m.estMoi && (
           <span className="ml-auto">
             <MasquerMessage message={m} onMasque={onMasque} />
           </span>
         )}
       </div>
-      <p
-        className={['whitespace-pre-line text-sm', masque ? 'text-ink-muted' : 'text-ink'].join(
-          ' '
-        )}
-      >
-        {m.corps}
-      </p>
+      {masque ? (
+        <>
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              aria-expanded={contenuVisible}
+              aria-controls={corpsId}
+              aria-label={
+                contenuVisible
+                  ? `Cacher le contenu du message masqué de ${auteur}`
+                  : `Afficher le contenu du message masqué de ${auteur}`
+              }
+              onClick={() => setContenuVisible((v) => !v)}
+            >
+              {contenuVisible ? TEXTES.cacherContenu : TEXTES.afficherContenu}
+            </Button>
+          </div>
+          <p
+            id={corpsId}
+            hidden={!contenuVisible}
+            className="whitespace-pre-line text-sm text-ink-muted"
+          >
+            {m.corps}
+          </p>
+        </>
+      ) : (
+        <p className="whitespace-pre-line text-sm text-ink">{m.corps}</p>
+      )}
     </article>
   )
 }
@@ -287,10 +318,12 @@ function MasquerMessage({
   const reussi = useRef(false)
   const annulerRef = useRef<HTMLButtonElement | null>(null)
 
-  const nomAccessible = m.estMoi ? 'Masquer ton message' : `Masquer le message de ${m.auteurNom}`
+  const nomAccessible = `Masquer le message de ${m.auteurNom}`
 
   async function confirmer() {
+    // Deliberately doubles `loading`: the button only disables after a re-render, the ref at once.
     if (enCoursRef.current) return
+    reussi.current = false
     enCoursRef.current = true
     setEnCours(true)
     setErreur(null)
@@ -337,10 +370,10 @@ function MasquerMessage({
           className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface-panel p-5 font-prose text-ink focus-visible:outline-none"
         >
           <Dialog.Title className="font-display text-lg font-extrabold text-ink">
-            {m.estMoi ? TEXTES.titreConfirmationMoi : TEXTES.titreConfirmation}
+            {TEXTES.titreConfirmation}
           </Dialog.Title>
           <Dialog.Description className="mt-1 text-sm text-ink-muted">
-            {m.estMoi ? TEXTES.descriptionConfirmationMoi : TEXTES.descriptionConfirmation}
+            {TEXTES.descriptionConfirmation}
           </Dialog.Description>
           {erreur && (
             <p role="alert" className="mt-4 text-sm text-danger">
@@ -407,6 +440,8 @@ function Composer({
       // (ModerationPreventive.java:43-53; an empty message never leaves, the button is disabled).
       if (err instanceof MessagerieError && err.status === 422) setErreur(TEXTES.erreurRefuse)
       else setErreur(erreurAffichee(err, TEXTES.erreurEnvoi, TEXTES.erreurSalonIntrouvable))
+      // The submit button went disabled while sending: give the focus back to the text to fix.
+      champRef.current?.focus()
     } finally {
       setEnvoi(false)
     }

@@ -180,7 +180,7 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
         <>
           <p className="text-sm text-ink-muted">
             {
-              "Ouvre le salon de la classe\u00a0: tes élèves et toi pourrez y écrire. Tu le liras ici et tu pourras masquer n'importe quel message."
+              "Ouvre le salon de la classe\u00a0: tes élèves et toi pourrez y écrire. Tu le liras ici et tu pourras masquer les messages de tes élèves."
             }
           </p>
           <div>
