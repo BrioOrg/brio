@@ -13,8 +13,16 @@ import java.util.UUID;
  * établissement — they never create one (ADR 0029 §1).
  */
 public record InscriptionEnseignantRequest(
-        @NotBlank @Size(min = 8, max = 128) String motDePasse,
+        @NotBlank @Size(min = 8) @MotDePasseHachable(message = MotDePasseHachable.MESSAGE_VOUS)
+        String motDePasse,
         @NotBlank @Size(max = 200) String nom,
         @NotBlank @Email @Size(max = 100) String email,
         @NotNull UUID etablissementId
-) {}
+) {
+    /** Never prints the password: a record's default toString would put it in any log line. */
+    @Override
+    public String toString() {
+        return "InscriptionEnseignantRequest[motDePasse=***, nom=" + nom + ", email=***, etablissementId="
+                + etablissementId + "]";
+    }
+}
