@@ -80,8 +80,9 @@ socle de modération minimal mais structurel.
    >   de la réponse à côté de `eleve_id`. Chaque passe publie `ContenusAnonymises` (ids
    >   de contenus + seuil, jamais d'id d'élève) ; `progression` réécrit ces références en
    >   `anonymise:<id de la ligne XP>`, et en filet coupe toute XP d'entraide elle-même
-   >   antérieure au seuil (toujours sûr : un contenu est plus ancien que son XP ; couvre
-   >   une livraison échouée). Le solde de l'élève ne bouge pas.
+   >   antérieure au seuil (toujours sûr : un contenu est plus ancien que son XP). Une
+   >   livraison échouée est couverte par la réannonce si elle date de moins de 7 jours,
+   >   sinon par ce filet seulement, 12 mois après l'XP. Le solde de l'élève ne bouge pas.
    > - **Après purge**, un contenu anonymisé ne peut plus être retenu utile ni résoudre
    >   une question (pas d'XP versée au compte nul).
    > - **Concurrence** : `auteur_id` n'est jamais réécrit par une entité
@@ -102,7 +103,10 @@ socle de modération minimal mais structurel.
    > enregistrements d'audit dont la rétention propre reste à cadrer ; l'API de
    > modération les expose encore. **Résidus connus** : c'est au mieux une
    > **pseudonymisation** au sens du RGPD — le texte (signature, prénom, style), la
-   > classe, le niveau et les souvenirs des camarades restent ; une XP écrite après sa
+   > classe, le niveau et les souvenirs des camarades restent ; un `marquerUtile` validé
+   > dans les quelques millisecondes entre la sélection et la mise à jour d'une passe
+   > (surtout la première, sur le stock) ou pendant une tâche coupée plus de 7 jours
+   > laisse son XP liée jusqu'au filet ; une XP écrite après sa
    > coupure par une livraison rejouée plus de 7 jours plus tard garde son lien jusqu'au
    > filet (12 mois après l'XP) et pourrait être recréditée (la clé d'idempotence a
    > disparu) ; les publications d'événements Modulith en échec (`event_publication`,
