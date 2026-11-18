@@ -115,14 +115,14 @@ export async function signalerContenu(
   cibleId: string,
   motif?: string
 ): Promise<void> {
-  const chemin = cibleType === 'question' ? 'questions' : 'reponses'
-  const res = await post(
-    baseUrl,
-    `/api/communaute/${chemin}/${encodeURIComponent(cibleId)}/signalement`,
-    {
-      motif: motif?.trim() ? motif.trim() : null,
-    }
-  )
+  const id = encodeURIComponent(cibleId)
+  const chemin =
+    cibleType === 'question'
+      ? `/api/communaute/questions/${id}/signalement`
+      : `/api/communaute/reponses/${id}/signalement`
+  const res = await post(baseUrl, chemin, {
+    motif: motif?.trim() ? motif.trim() : null,
+  })
   if (!res.ok) throw await moderationError(res, 'Impossible de signaler ce contenu.')
 }
 
@@ -133,14 +133,14 @@ export async function contesterDecision(
   cibleId: string,
   message: string
 ): Promise<string> {
-  const chemin = cibleType === 'question' ? 'questions' : 'reponses'
-  const res = await post(
-    baseUrl,
-    `/api/communaute/${chemin}/${encodeURIComponent(cibleId)}/contestation`,
-    {
-      message,
-    }
-  )
+  const id = encodeURIComponent(cibleId)
+  const chemin =
+    cibleType === 'question'
+      ? `/api/communaute/questions/${id}/contestation`
+      : `/api/communaute/reponses/${id}/contestation`
+  const res = await post(baseUrl, chemin, {
+    message,
+  })
   if (!res.ok) throw await moderationError(res, "Impossible d'envoyer ta contestation.")
   return CreationSchema.parse(await res.json()).id
 }
