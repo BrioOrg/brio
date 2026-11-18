@@ -1,5 +1,6 @@
 import type { DrawingModel } from '@brio/content'
 
+import { HALO_CLASS } from '@/components/figure/halo'
 import { VectorArrows } from '@/components/figure/vector-arrows'
 
 // The same strokes as <FigureRenderer/>: hidden edges and construction lines in viewBox units.
@@ -74,7 +75,7 @@ export function FigureLayer({
           <line key={`lt-${i}-${j}`} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} {...stroke} />
         ))
       )}
-      <VectorArrows vectors={model.vectors} />
+      <VectorArrows vectors={model.vectors} part="arrows" />
       {model.dots.map((d, i) => (
         <circle key={`dt-${i}`} cx={d.cx} cy={d.cy} r={2} fill="currentColor" />
       ))}
@@ -88,10 +89,13 @@ export function FigureLayer({
           fontSize={13}
           fontFamily="serif"
           fill="currentColor"
+          className={HALO_CLASS}
         >
           {l.text}
         </text>
       ))}
+      {/* Names last, with a halo: no stroke of the layer runs through them (ADR 0038). */}
+      <VectorArrows vectors={model.vectors} part="names" />
     </>
   )
 }

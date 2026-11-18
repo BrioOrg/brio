@@ -13,6 +13,8 @@ import {
 
 import { FigureRenderer } from '@/components/figure-renderer'
 import { ChoixTeinte } from '@/components/prof/choix-teinte'
+import { FigureParametree } from '@/components/figure-parametree'
+import { FonctionsEditeur } from '@/components/prof/fonctions-editeur'
 import { marqueChamp, useChamp } from '@/components/prof/problemes-du-bloc'
 import { TransformationsEditeur } from '@/components/prof/transformations-editeur'
 import type { Bloc } from '@/lib/cours-editeur'
@@ -1073,6 +1075,8 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   />
                   Quadrillage
                 </label>
+                {/* Courbes de fonctions, lectures et curseurs (ADR 0038) */}
+                <FonctionsEditeur spec={spec} patchSpec={patchSpec} onFocus={onFocusBloc} />
               </div>
             )}
           </section>
@@ -1495,9 +1499,11 @@ function ApercuFigure({ spec, alt, caption }: { spec: FigureSpec; alt: string; c
     )
   }
 
+  // Avec des curseurs, l'aperçu les montre aussi : l'enseignant les essaie comme l'élève.
+  const Figure = (spec.parameters ?? []).length > 0 ? FigureParametree : FigureRenderer
   return (
     <div className="rounded-md border border-line bg-surface-page p-2">
-      <FigureRenderer spec={spec} alt={alt} caption={caption} />
+      <Figure spec={spec} alt={alt} caption={caption} />
     </div>
   )
 }

@@ -256,6 +256,27 @@ Pour lire ou placer des points, tracer une courbe ou un graphique de proportionn
   (trait de construction, axe de symétrie). Un seul côté d'un polygone en pointillés : un
   segment à part.
 
+#### Courbes de fonctions (ADR 0038)
+
+Une fonction se trace par son expression, jamais par une ligne brisée : une `polylines` reste
+réservée aux relevés (températures heure par heure).
+
+```json
+"functions":  [{ "name": "f", "expr": "4x", "domain": [0, 6], "label": true }],
+"readings":   [{ "function": "f", "x": 3 }, { "function": "f", "y": 20 }],
+"parameters": [{ "name": "a", "min": 0.5, "max": 4, "step": 0.5, "value": 1.5 }]
+```
+
+- `expr` s'écrit comme sur papier, sans « f(x) = » : `2x + 1`, `x² − 3`, `1/x`, `√x`, `3(x + 1)`,
+  virgule décimale permise. Seuls `x` et les lettres de `parameters` sont acceptés.
+  `1/2x` se lit (1/2) × x : écris `1/(2x)` pour l'autre sens.
+- `label: true` écrit 𝒞f près de la courbe ; un texte (`"Tarif A"`) l'écrit à la place. En 5e,
+  on n'écrit souvent aucun nom.
+- Une lecture `x` montre l'image, une lecture `y` tous les antécédents visibles : pointillés et
+  valeurs en couleur. Elle donne la réponse : jamais sur la figure d'un exercice qui la demande.
+- Un paramètre ajoute un curseur sous la figure ; l'impression utilise `value`.
+- `tone: 1…4` colore la courbe comme sa formule dans le texte, rien d'autre.
+
 #### Arcs et figures composées
 
 Un arc de cercle est un élément `arcs` (ADR 0013, amendement #227) : jamais une suite de petits

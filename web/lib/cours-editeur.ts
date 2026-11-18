@@ -9,6 +9,8 @@ import {
   checkCalcul,
   checkChart,
   checkTones,
+  checkFunctionPlot,
+  type FigureSpec,
   formatNumber,
   parseScratch,
   maxCategories,
@@ -737,6 +739,12 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
     case 'figure':
       if (!texteRempli(b.alt)) p.push({ code: 'MISSING_ALT', champ: 'alt' })
       p.push(...problemesGeometrieFigure(b.spec))
+      // Fonctions, lectures, curseurs (ADR 0038) : les règles et les mots de check-content.
+      if (b.spec && typeof b.spec === 'object') {
+        for (const i of checkFunctionPlot(b.spec as FigureSpec)) {
+          p.push({ code: 'FIGURE_FUNCTION', champ: `spec.${i.path}`, message: i.message })
+        }
+      }
       break
     case 'chart':
       p.push(...problemesGraphique(b))

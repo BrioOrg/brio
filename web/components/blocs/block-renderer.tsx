@@ -6,6 +6,7 @@ import { CalculRenderer } from '@/components/calcul-renderer'
 import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { TreeRenderer } from '@/components/tree-renderer'
+import { FigureParametree } from '@/components/figure-parametree'
 import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
 import { Etapes } from '@/components/chapitre-interactif/etapes'
@@ -72,17 +73,21 @@ export function BlockRenderer({
         </figure>
       )
 
-    case 'figure':
+    case 'figure': {
+      // A figure with sliders (ADR 0038) needs the client; every other one stays on the server.
+      const spec = block.spec as FigureSpec
+      const Figure = (spec.parameters ?? []).length > 0 ? FigureParametree : FigureRenderer
       return (
         <div id={block.id}>
-          <FigureRenderer
-            spec={block.spec as FigureSpec}
+          <Figure
+            spec={spec}
             alt={block.alt as string}
             caption={block.caption as string | undefined}
             blockId={block.id}
           />
         </div>
       )
+    }
 
     case 'chart':
       return (
