@@ -12,6 +12,13 @@ vi.mock('@brio/api-client', async () => {
     listerInscrits: vi.fn(),
     renommerEleve: vi.fn(),
     reinitialiserAccesEleve: vi.fn(),
+    // The class salon (PL-7, #399): mocked so the page never reaches the network.
+    listerSalons: vi.fn(),
+    creerSalon: vi.fn(),
+    messagesDuSalon: vi.fn(),
+    publierDansSalon: vi.fn(),
+    masquerMessageSalon: vi.fn(),
+    signalerMessageSalon: vi.fn(),
   }
 })
 
@@ -35,6 +42,12 @@ async function api() {
     listerInscrits: vi.mocked(client.listerInscrits),
     renommerEleve: vi.mocked(client.renommerEleve),
     reinitialiserAccesEleve: vi.mocked(client.reinitialiserAccesEleve),
+    listerSalons: vi.mocked(client.listerSalons),
+    creerSalon: vi.mocked(client.creerSalon),
+    messagesDuSalon: vi.mocked(client.messagesDuSalon),
+    publierDansSalon: vi.mocked(client.publierDansSalon),
+    masquerMessageSalon: vi.mocked(client.masquerMessageSalon),
+    signalerMessageSalon: vi.mocked(client.signalerMessageSalon),
   }
 }
 
@@ -50,6 +63,20 @@ describe('ClasseDetail', () => {
     a.listerMesClasses.mockResolvedValue([CLASSE])
     a.getCodeClasse.mockResolvedValue(null)
     a.listerInscrits.mockResolvedValue([])
+    // Default: the class has no salon yet (critère 5 below covers the open one). The salon
+    // mocks are reset, not only cleared: a queued answer must not leak into the next test.
+    for (const f of [
+      a.listerSalons,
+      a.creerSalon,
+      a.messagesDuSalon,
+      a.publierDansSalon,
+      a.masquerMessageSalon,
+      a.signalerMessageSalon,
+    ]) {
+      f.mockReset()
+    }
+    a.listerSalons.mockResolvedValue([])
+    a.messagesDuSalon.mockResolvedValue([])
   })
 
   afterEach(() => vi.unstubAllGlobals())
@@ -342,10 +369,138 @@ describe('ClasseDetail', () => {
         within(screen.getByRole('group')).getByRole('button', { name: 'Réinitialiser l’accès' })
       )
 
-      // The class salon (not mocked here) may raise its own alert: find this one by its text.
+      // The class salon may raise its own alert: find this one by its text.
       expect(await screen.findByText(/trop de réinitialisations/i)).toHaveAttribute('role', 'alert')
       expect(screen.getByText(/trop de réinitialisations/i)).toHaveTextContent(/jusqu’à 24 h/)
       expect(screen.queryByTestId('mot-de-passe-provisoire')).toBeNull()
+    })
+  })
+
+  // PL-7 (#399): the teacher reads and writes in the class salon from this page.
+  describe('salon de la classe', () => {
+    const SALON = {
+      id: 's1',
+      classeId: 'cl1',
+      titre: 'Salon de la 4e B',
+      statut: 'ouvert',
+      nbMessages: 1,
+      createdAt: '2026-10-12T08:00:00Z',
+    }
+    const DE_LEA = {
+      id: 'm1',
+      auteurId: 'a1',
+      auteurNom: 'Léa',
+      corps: 'Bonjour monsieur !',
+      statut: 'publie',
+      estMoi: false,
+      createdAt: '2026-10-12T09:05:00Z',
+    }
+
+    function section() {
+      return screen.getByRole('region', { name: 'Salon de la classe' })
+    }
+
+    // critère 6: the text of a class without salon promises only what the screen does
+    // (classe-detail.tsx:181 used to promise « masquer un message signalé » only).
+    it('offers to open the salon, with a text that matches the screen', async () => {
+      await renderClasse()
+
+      expect(await screen.findByRole('button', { name: 'Ouvrir le salon' })).toBeInTheDocument()
+      const salon = section()
+      expect(salon).toHaveTextContent(/tes élèves et toi pourrez y écrire/i)
+      expect(salon).toHaveTextContent(/tu le liras ici/i)
+      expect(salon).toHaveTextContent(/masquer n.importe quel message/i)
+      expect(salon).not.toHaveTextContent(/message signalé/i)
+      expect(salon).not.toHaveTextContent(/ton professeur/i)
+      const a = await api()
+      expect(a.messagesDuSalon).not.toHaveBeenCalled()
+    })
+
+    // critère 5
+    it('opens the salon and shows it in place, empty, with the field', async () => {
+      const a = await api()
+      a.listerSalons.mockResolvedValueOnce([]).mockResolvedValue([SALON])
+      a.creerSalon.mockResolvedValue('s1')
+      a.messagesDuSalon.mockResolvedValue([])
+      const user = userEvent.setup()
+      await renderClasse()
+      const avant = window.location.href
+
+      await user.click(await screen.findByRole('button', { name: 'Ouvrir le salon' }))
+
+      expect(a.creerSalon).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ classeId: 'cl1' })
+      )
+      const champ = await waitFor(
+        () => within(section()).getByLabelText('Ton message à la classe'),
+        { timeout: 5000 }
+      )
+      expect(within(section()).getByRole('button', { name: 'Envoyer' })).toBeInTheDocument()
+      expect(section()).toHaveTextContent(/Personne n.a encore écrit dans ce salon/)
+      expect(screen.queryByRole('button', { name: 'Ouvrir le salon' })).toBeNull()
+      expect(a.messagesDuSalon).toHaveBeenCalledWith(expect.any(String), 's1')
+      // Without leaving the page: same URL, the rest of the class page still there.
+      expect(window.location.href).toBe(avant)
+      expect(screen.getByRole('region', { name: 'Code de classe' })).toBeInTheDocument()
+      // The button is gone: focus moves to the field (spec UI, état « Salon pas ouvert »).
+      await waitFor(() => expect(champ).toHaveFocus())
+    })
+
+    // critère 5: a failed opening keeps the button, no dead end
+    it('keeps « Ouvrir le salon » when the opening fails', async () => {
+      const a = await api()
+      const { MessagerieError } = await import('@brio/api-client')
+      a.creerSalon.mockRejectedValue(new MessagerieError(403, "Vous n'enseignez pas cette classe."))
+      const user = userEvent.setup()
+      await renderClasse()
+
+      await user.click(await screen.findByRole('button', { name: 'Ouvrir le salon' }))
+
+      expect(await within(section()).findByRole('alert')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Ouvrir le salon' })).toBeInTheDocument()
+    })
+
+    // critère 1 + critère 6: an open salon shows its messages at the top of the page
+    it('shows the messages of the open salon, first on the page, for the teacher', async () => {
+      const a = await api()
+      a.listerSalons.mockResolvedValue([SALON])
+      a.messagesDuSalon.mockResolvedValue([DE_LEA])
+      await renderClasse()
+
+      // Three chained calls (classes, salons, messages) before the message shows: under the load
+      // of the full suite that can exceed findBy's default 1 s. The region is re-queried at each
+      // try, as the section may be re-rendered while the salon loads.
+      await waitFor(
+        () => expect(within(section()).getByText('Bonjour monsieur !')).toBeInTheDocument(),
+        { timeout: 5000 }
+      )
+      expect(a.messagesDuSalon).toHaveBeenCalledWith(expect.any(String), 's1')
+      expect(within(section()).getByText('Léa')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Ouvrir le salon' })).toBeNull()
+
+      // Copy for an adult, pointing to the moderation queue.
+      expect(section()).toHaveTextContent(/Tes élèves retrouvent ce salon dans « Ma classe »/)
+      expect(
+        within(section()).getByRole('link', { name: /Signalements du salon/ })
+      ).toHaveAttribute('href', '/prof/signalements-salon')
+      expect(document.body).not.toHaveTextContent(/ton professeur/i)
+      expect(screen.queryByRole('button', { name: /signaler/i })).toBeNull()
+
+      // Salon first, then the class code (spec UI: visible without scrolling at 360 px).
+      const code = screen.getByRole('region', { name: 'Code de classe' })
+      expect(
+        section().compareDocumentPosition(code) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+    })
+
+    it('shows only the salon of this class', async () => {
+      const a = await api()
+      a.listerSalons.mockResolvedValue([{ ...SALON, id: 's2', classeId: 'autre' }])
+      await renderClasse()
+
+      expect(await screen.findByRole('button', { name: 'Ouvrir le salon' })).toBeInTheDocument()
+      expect(a.messagesDuSalon).not.toHaveBeenCalled()
     })
   })
 })

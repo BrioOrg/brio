@@ -44,7 +44,8 @@
  *                                                 by Vitest, as it needs another server setting
  *   /api/communaute/**                            the Communauté (ADR 0035), kept in memory with
  *                                                 CommunauteService's rules; 403 for a teacher
- *   GET  /api/prof/classes                        the test teacher's class (PROF_CLASSE)
+ *   GET  /api/prof/classes                        the test teacher's classes (PROF_CLASSE, 3e C)
+ *   GET  /api/prof/etablissements                 their établissement (EtablissementPublicInfo)
  *   GET  /api/classes/{id}/inscriptions           its one student, for the teacher; 403 otherwise
  *   POST /api/classes/{id}/inscriptions/{compteId}/reinitialisation-acces
  *                                                 teacher-led access reset (ADR 0036): the student's
@@ -62,6 +63,18 @@
  *                                                 session is a 403, as StatutCheckFilter does — except
  *                                                 DELETE /api/sessions (logout runs before it).
  *                                                 Afterwards /api/moi carries accesReinitialise
+ *   3e C salon (PL-7, #399)                       a second class of the test teacher, with its own
+ *                                                 salon and two students (E2E_SESSION_3EC_NOE writes,
+ *                                                 E2E_SESSION_3EC_LOU reports), as MessagerieService
+ *                                                 serves it: the teacher reads hidden messages too
+ *                                                 (statut "masque"), the students only published ones;
+ *                                                 POST …/messages authored by the session's account,
+ *                                                 422 on a link, 400 on a blank body; signalement
+ *                                                 recorded, idempotent per reporter;
+ *                                                 GET /api/prof/salons/signalements (403 for a student);
+ *                                                 POST /api/prof/salons/messages/{id}/masquer 204,
+ *                                                 closing its open reports (400 non-UUID id, 404
+ *                                                 unknown, 403 for a student). 5e B is left untouched
  *   anything else                                 404 (the catalogue too: the page falls back
  *                                                 to codes, nothing is invented)
  *
@@ -125,6 +138,10 @@ export const E2E_SESSION_SANS_CLASSE = 'JSESSIONID=e2e-sans-classe'
 /** A logged-in teacher: /api/moi answers ENSEIGNANT, so the teacher space (/prof) opens. */
 export const E2E_SESSION_ENSEIGNANT = 'JSESSIONID=e2e-enseignant'
 
+/** Two students of the test teacher's 3e C (PL-7, #399): one writes, the other reports. */
+export const E2E_SESSION_3EC_NOE = 'JSESSIONID=e2e-eleve-3eC-noe'
+export const E2E_SESSION_3EC_LOU = 'JSESSIONID=e2e-eleve-3eC-lou'
+
 function cookies(req) {
   return (req.headers.cookie ?? '').split(/;\s*/)
 }
@@ -172,7 +189,11 @@ function sessionReinit(req) {
 /** Any live session. Another JSESSIONID (`e2e-expiree`…) is a session the backend has dropped. */
 function connecte(req) {
   return (
-    cookies(req).includes(E2E_SESSION) || sansClasse(req) || enseignant(req) || !!sessionReinit(req)
+    cookies(req).includes(E2E_SESSION) ||
+    sansClasse(req) ||
+    enseignant(req) ||
+    !!sessionReinit(req) ||
+    !!eleve3eC(req)
   )
 }
 
@@ -347,6 +368,256 @@ const salonMessages = [
   },
 ]
 const salonMessageVue = (m) => ({ ...m, estMoi: m.auteurId === ELEVE.id })
+
+// PL-7 (#399): the teacher's salon. A class apart from 5e B, whose salon ma-classe.spec reads in
+// strict mode (one more message from M. Dubois there would break it). The teacher teaches 3e C, so
+// /api/prof/classes lists it and /api/salons gives the teacher its salon only (the backend lists
+// the salons of the classes the caller is a member of). Message and salon ids are UUIDs: the
+// backend binds them as UUID path variables.
+const PROF_CLASSE_3EC = {
+  id: 'classe-3eC',
+  etablissementId: 'etab-e2e',
+  niveauCode: '3e',
+  libelle: '3e C',
+  anneeScolaire: '2026-2027',
+  statut: 'active',
+  enseignantPrincipalId: ENSEIGNANT.id,
+}
+/** cookie value -> the student's account and roster entry (InscriptionInfo) */
+const ELEVES_3EC = {
+  'e2e-eleve-3eC-noe': {
+    compteId: '00000000-0000-4000-8000-0000000003c1',
+    nomAffiche: 'Noé',
+    depuis: '2026-09-02',
+    homonyme: false,
+  },
+  'e2e-eleve-3eC-lou': {
+    compteId: '00000000-0000-4000-8000-0000000003c2',
+    nomAffiche: 'Lou',
+    depuis: '2026-09-02',
+    homonyme: false,
+  },
+}
+const SALON_3EC = {
+  id: '00000000-0000-4000-8000-0000000053c0',
+  classeId: PROF_CLASSE_3EC.id,
+  titre: 'Salon de la 3e C',
+  statut: 'ouvert',
+  createdAt: '2026-10-12T08:00:00Z',
+}
+// Seed: one from the teacher, one from a student, one already hidden. Specs never hide these:
+// each test hides only a message it wrote itself (both projects share this server).
+const messages3eC = [
+  {
+    id: '00000000-0000-4000-8000-0000000053c1',
+    auteurId: ENSEIGNANT.id,
+    corps: 'Bonjour la 3e C, le salon de la classe est ouvert.',
+    statut: 'publie',
+    createdAt: '2026-10-12T08:01:00Z',
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000053c2',
+    auteurId: ELEVES_3EC['e2e-eleve-3eC-noe'].compteId,
+    corps: 'Bonjour monsieur, bien reçu.',
+    statut: 'publie',
+    createdAt: '2026-10-12T08:05:00Z',
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000053c3',
+    auteurId: ELEVES_3EC['e2e-eleve-3eC-lou'].compteId,
+    corps: 'Un message hors sujet, déjà masqué.',
+    statut: 'masque',
+    createdAt: '2026-10-12T08:07:00Z',
+  },
+]
+/** { id, messageId, signalePar, motif, statut: 'ouvert' | 'traite', createdAt } */
+const signalements3eC = []
+
+/** The 3e C student of this session, or null. */
+function eleve3eC(req) {
+  const valeur = cookies(req)
+    .find((c) => c.startsWith('JSESSIONID='))
+    ?.slice('JSESSIONID='.length)
+  return (valeur && ELEVES_3EC[valeur]) || null
+}
+
+/** The account id of the session, for the 3e C salon (null: no member of it). */
+function membre3eC(req) {
+  if (enseignant(req)) return ENSEIGNANT.id
+  return eleve3eC(req)?.compteId ?? null
+}
+
+/** MessagerieService.resoudreNoms: the roster's names, then the teachers'; « Membre » otherwise. */
+function nom3eC(compteId) {
+  if (compteId === ENSEIGNANT.id) return ENSEIGNANT.nom
+  return Object.values(ELEVES_3EC).find((e) => e.compteId === compteId)?.nomAffiche ?? 'Membre'
+}
+
+/** SalonVue: nbMessages counts the visible messages only (MessagerieService.listerSalons). */
+function salon3eCVue() {
+  return {
+    ...SALON_3EC,
+    nbMessages: messages3eC.filter((m) => m.statut === 'publie').length,
+  }
+}
+
+const LIEN_EXTERNE = /(https?:\/\/|\bwww\.)/i
+
+/** The 3e C salon routes (PL-7, #399), in MessagerieService's order of checks. */
+async function salonDe3eC(req, res, pathname) {
+  const methode = req.method
+  const eleve = eleve3eC(req)
+
+  // The 3e C students' own class space: their class and salon, no homework or course.
+  if (eleve && methode === 'GET') {
+    if (pathname === '/api/moi') {
+      return send(res, 200, {
+        ...ELEVE,
+        id: eleve.compteId,
+        pseudonyme: `Eleve-${eleve.nomAffiche}`,
+        niveau: '3e',
+      })
+    }
+    if (pathname === '/api/moi/classes') {
+      return send(res, 200, [
+        {
+          id: PROF_CLASSE_3EC.id,
+          libelle: PROF_CLASSE_3EC.libelle,
+          niveauCode: PROF_CLASSE_3EC.niveauCode,
+          etablissementNom: 'Collège Jean Moulin',
+          anneeScolaire: PROF_CLASSE_3EC.anneeScolaire,
+          nomAffiche: eleve.nomAffiche,
+        },
+      ])
+    }
+    if (pathname === '/api/devoirs' || pathname === '/api/cours') return send(res, 200, [])
+    if (pathname === '/api/salons') return send(res, 200, [salon3eCVue()])
+  }
+
+  if (methode === 'GET' && pathname === `/api/classes/${PROF_CLASSE_3EC.id}/inscriptions`) {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    return send(res, 200, Object.values(ELEVES_3EC))
+  }
+
+  const routeMessages = pathname === `/api/salons/${SALON_3EC.id}/messages`
+  if (routeMessages && methode === 'GET') {
+    if (!connecte(req)) return send(res, 401)
+    const lecteur = membre3eC(req)
+    if (!lecteur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
+    // The class teacher (the moderator) sees the hidden messages too.
+    const moderateur = enseignant(req)
+    return send(
+      res,
+      200,
+      messages3eC
+        .filter((m) => moderateur || m.statut === 'publie')
+        .map((m) => ({
+          id: m.id,
+          auteurId: m.auteurId,
+          auteurNom: nom3eC(m.auteurId),
+          corps: m.corps,
+          statut: m.statut,
+          estMoi: m.auteurId === lecteur,
+          createdAt: m.createdAt,
+        }))
+    )
+  }
+  if (routeMessages && methode === 'POST') {
+    if (!connecte(req)) return send(res, 401)
+    const brut = (await corps(req))?.corps
+    // @NotBlank on PublierRequest: refused before the service (message in the server's locale).
+    if (typeof brut !== 'string' || brut.trim() === '') {
+      return send(res, 400, { error: 'corps: must not be blank' })
+    }
+    const auteur = membre3eC(req)
+    if (!auteur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
+    // ModerationPreventive.valider. The rate limit (429) is covered by Vitest, not simulated.
+    const texte = brut.trim()
+    if (texte.length > 2000) {
+      return send(res, 422, { error: 'Le message est trop long (max 2000 caractères).' })
+    }
+    if (LIEN_EXTERNE.test(texte)) {
+      return send(res, 422, { error: "Les liens externes ne sont pas autorisés dans l'entraide." })
+    }
+    const id = randomUUID()
+    messages3eC.push({
+      id,
+      auteurId: auteur,
+      corps: texte,
+      statut: 'publie',
+      createdAt: new Date().toISOString(),
+    })
+    return send(res, 201, { id })
+  }
+
+  const signalement = pathname.match(/^\/api\/salons\/messages\/([^/]+)\/signalement$/)
+  const signale = signalement && messages3eC.find((m) => m.id === signalement[1].toLowerCase())
+  if (signale && methode === 'POST') {
+    if (!connecte(req)) return send(res, 401)
+    const signaleur = membre3eC(req)
+    if (!signaleur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
+    // As on develop: the status of the message is not checked (#402).
+    if (!signalements3eC.some((s) => s.messageId === signale.id && s.signalePar === signaleur)) {
+      const motif = (await corps(req))?.motif ?? null
+      signalements3eC.push({
+        id: randomUUID(),
+        messageId: signale.id,
+        signalePar: signaleur,
+        motif,
+        statut: 'ouvert',
+        createdAt: new Date().toISOString(),
+      })
+    }
+    return send(res, 204)
+  }
+
+  // /api/prof/** is ENSEIGNANT only (SecurityConfig): 401 logged out, 403 with no body otherwise.
+  if (methode === 'GET' && pathname === '/api/prof/salons/signalements') {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    return send(
+      res,
+      200,
+      signalements3eC
+        .filter((s) => s.statut === 'ouvert')
+        .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
+        .map((s) => {
+          const m = messages3eC.find((x) => x.id === s.messageId)
+          return {
+            id: s.id,
+            messageId: m.id,
+            salonId: SALON_3EC.id,
+            salonTitre: SALON_3EC.titre,
+            auteurMessageId: m.auteurId,
+            auteurMessageNom: nom3eC(m.auteurId),
+            extraitMessage: m.corps.length <= 160 ? m.corps : `${m.corps.slice(0, 160)}…`,
+            signalePar: s.signalePar,
+            motif: s.motif,
+            createdAt: s.createdAt,
+          }
+        })
+    )
+  }
+  const masquer = pathname.match(/^\/api\/prof\/salons\/messages\/([^/]+)\/masquer$/)
+  if (masquer && methode === 'POST') {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    const id = decodeURIComponent(masquer[1])
+    if (!UUID_JAVA.test(id)) return send(res, 400, { error: 'Requête invalide' })
+    const cible = messages3eC.find((m) => m.id === id.toLowerCase())
+    // Only 3e C is taught by the test teacher here: any other UUID names no message of theirs.
+    if (!cible) return send(res, 404, { error: `Message de salon introuvable : ${id}` })
+    // Idempotent: hiding twice is a 204 with no further effect.
+    cible.statut = 'masque'
+    for (const s of signalements3eC) {
+      if (s.messageId === cible.id && s.statut === 'ouvert') s.statut = 'traite'
+    }
+    return send(res, 204)
+  }
+
+  return null
+}
 
 // The Communauté (ADR 0035). Two students, so that one can answer the other's question: a student
 // cannot keep their own answer. As in the real API, no response ever carries an account id.
@@ -777,6 +1048,9 @@ const server = createServer(async (req, res) => {
     return communaute(req, res, pathname, searchParams)
   }
 
+  // PL-7 (#399): the 3e C salon and its students. null when the request is none of them.
+  if ((await salonDe3eC(req, res, pathname)) !== null) return
+
   if (req.method === 'GET') {
     if (pathname === '/api/reglages/communaute') return send(res, 200, { active: true })
     const chapitre = pathname.match(/^\/api\/chapitres\/([^/]+)\/([^/]+)\/([^/]+)$/)
@@ -819,7 +1093,16 @@ const server = createServer(async (req, res) => {
     // The teacher's class and its roster (ADR 0029), for the access reset (ADR 0036).
     if (pathname === '/api/prof/classes') {
       if (!connecte(req)) return send(res, 401)
-      return enseignant(req) ? send(res, 200, [PROF_CLASSE]) : send(res, 403)
+      return enseignant(req) ? send(res, 200, [PROF_CLASSE, PROF_CLASSE_3EC]) : send(res, 403)
+    }
+    // The teacher's établissement (EtablissementPublicInfo), that /prof/classes groups the
+    // classes by (PL-7, #399): without it the page cannot list the classes to click.
+    if (pathname === '/api/prof/etablissements') {
+      if (!connecte(req)) return send(res, 401)
+      if (!enseignant(req)) return send(res, 403)
+      return send(res, 200, [
+        { id: PROF_CLASSE.etablissementId, nom: 'Collège Jean Moulin', type: 'college' },
+      ])
     }
     const inscrits = pathname.match(/^\/api\/classes\/([^/]+)\/inscriptions$/)
     if (inscrits) {
@@ -846,6 +1129,8 @@ const server = createServer(async (req, res) => {
     if (unCours) return coursPublie(req, res, unCours[1])
     if (pathname === '/api/salons') {
       if (!connecte(req)) return send(res, 401)
+      // The teacher teaches 4e A (no salon) and 3e C, not 5e B (PL-7, #399).
+      if (enseignant(req)) return send(res, 200, [salon3eCVue()])
       return send(res, 200, sansClasse(req) ? [] : [SALON])
     }
     const messagesDuSalon = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)
