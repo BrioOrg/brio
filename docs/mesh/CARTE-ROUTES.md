@@ -19,7 +19,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | Écrire dans le salon de ma classe | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/ma-classe/salon` |
 | Lire les questions de la Communauté | eleve |  | 1 | 1 | 1 | `/` → `/communaute` |
 | Poser une question à la Communauté | eleve |  | 2 | 2 | 2 | `/` → `/communaute` → `/communaute/nouvelle` |
-| S'entraîner sur une annale | eleve |  | 2 | 2 | 2 | `/` → `/explorer` → `/annales` |
+| S'entraîner sur une annale | eleve |  | 1 | 1 | 1 | `/` → `/annales` |
 | Voir mon profil | eleve |  | 1 | 1 | 1 | `/` → `/profil` |
 | Ouvrir mes paramètres | eleve |  | 1 | 1 | 1 | `/` → `/parametres` |
 | Rejoindre une classe avec un code | eleve |  | 2 | 2 | 2 | `/` → `/ma-classe` → `/rejoindre` |
@@ -40,6 +40,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 0 | `/` |
 | 1 | `/[niveau]/[matiere]` |
 | 1 | `/[niveau]/[matiere]/[slug]` |
+| 1 | `/annales` |
 | 1 | `/communaute` |
 | 1 | `/cours/[coursId]` |
 | 1 | `/devoirs` |
@@ -48,7 +49,6 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 1 | `/parametres` |
 | 1 | `/profil` |
 | 2 | `/[niveau]` |
-| 2 | `/annales` |
 | 2 | `/communaute/[questionId]` |
 | 2 | `/communaute/nouvelle` |
 | 2 | `/ma-classe/cours` |
