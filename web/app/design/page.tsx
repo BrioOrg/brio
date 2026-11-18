@@ -42,6 +42,7 @@ const SCRATCH_CATEGORIES = [
   ['sensing', 'Capteurs'],
   ['operators', 'Opérateurs'],
   ['variables', 'Variables'],
+  ['pen', 'Stylo'],
 ] as const
 
 // Maths tones (ADR 0037): the same object in the same tone in the figure and in the formula.

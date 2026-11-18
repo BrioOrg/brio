@@ -3,7 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 
+import { parseScratch } from '@brio/content'
+
 import { BlocEditeur } from '../bloc-editeur'
+import { CATALOGUE } from '../code-editeur'
 import { ProblemesDuBlocProvider } from '../problemes-du-bloc'
 import { nouveauBloc, problemesBloc, type Bloc } from '@/lib/cours-editeur'
 
@@ -133,5 +136,12 @@ describe('CodeEditeur', () => {
     fireEvent.keyDown(champ, { key: 'Tab' })
 
     expect(etat().code).toBe('    fin')
+  })
+})
+
+describe('CATALOGUE (aide de saisie Scratch)', () => {
+  it('should parse as a valid programme, so the help never shows a wrong example (#354)', () => {
+    const r = parseScratch(CATALOGUE.join('\n'))
+    expect(r.ok ? [] : r.errors).toEqual([])
   })
 })
