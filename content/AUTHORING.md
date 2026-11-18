@@ -476,8 +476,10 @@ qui ne s'analyse pas, ligne par ligne.
     départ, le corps ne s'exécute pas (contrairement au « Répéter … Jusqu'à » de l'algorithmique
     papier, qui teste après) ;
   - `=` ne distingue pas majuscules et minuscules : `(« Oui » = « oui »)` est vrai ;
-  - dans une comparaison, **n'utiliser que des entiers** : Scratch lit `2,5` comme du texte et
-    compare alors des textes (avec x = 10, `(x > 2,5)` est faux dans Scratch).
+  - dans un programme, **préférer les entiers** : Brio écrit les décimaux avec une virgule, mais
+    pour Scratch `2,5` n'est pas un nombre — il vaut 0 dans un calcul (`(x * 2,5)` donne 0) et
+    devient du texte dans une comparaison (avec x = 10, `(x > 2,5)` est faux). Un élève qui
+    recopie le programme dans Scratch obtiendrait un autre résultat.
 - **Le vrai signe de Scratch** : `*` et `/`, pas × ni ÷ (refusés). Le `code` n'est pas du texte
   riche, l'étoile n'y ouvre pas d'italique.
 - **Les blocs en C** (`répéter … fois`, `si … alors`, `répéter jusqu'à ce que …`) : le corps est

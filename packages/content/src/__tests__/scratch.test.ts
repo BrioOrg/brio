@@ -279,7 +279,7 @@ describe('parseScratch', () => {
     ['répéter 2 fois\n    dire 1\nsinon\n    dire 2\nfin', 'sinonWithoutIf', 3],
     ['si x > 0 alors\n    dire 1\nfin', 'operatorNeedsParentheses', 1],
     ['si (> 3) alors\n    dire 1\nfin', 'valueMissingBeforeOperator', 1],
-    ['si (non (x + 1)) alors\n    dire 1\nfin', 'logicalNeedsBooleans', 1],
+    ['si (non (x + 1)) alors\n    dire 1\nfin', 'notNeedsBoolean', 1],
   ])('should reject %j with code %s', (code, expected, line) => {
     const [error] = errors(parseScratch(code))
     expect(error).toMatchObject({ code: expected, line })
@@ -573,5 +573,59 @@ describe('buildScratchModel — porte 5/6 (#354)', () => {
         { kind: 'boolean', parts: [{}, { text: '=' }, {}] },
       ],
     })
+  })
+})
+
+describe('parseScratch — porte 5, tour 2 (#354)', () => {
+  it('should report one error for a one-line si or répéter, not one per following line', () => {
+    for (const first of ['si (x > 3) alors dire 5', 'répéter 10 fois dire 1']) {
+      expect(errors(parseScratch([first, 'dire 1', 'dire 2', 'dire 3'].join('\n')))).toEqual([
+        expect.objectContaining({ code: 'unknownInstruction', line: 1 }),
+      ])
+    }
+  })
+
+  it('should recover a sinon placed before the fin of an inner si', () => {
+    const code = [
+      'si (a = 1) alors',
+      '    si (b = 1) alors',
+      '        dire 1',
+      'sinon',
+      '    dire 2',
+      'fin',
+    ].join('\n')
+    expect(errors(parseScratch(code))).toEqual([
+      expect.objectContaining({
+        code: 'loopNotClosedBeforeLine',
+        line: 4,
+        params: { loopLine: 2, blockType: 'if' },
+      }),
+    ])
+  })
+
+  it('should recover even when the inner si already has its own sinon', () => {
+    const code = [
+      'si (a = 1) alors',
+      '    si (b = 1) alors',
+      '        dire 1',
+      '    sinon',
+      '        dire 2',
+      'sinon',
+      '    dire 3',
+      'fin',
+    ].join('\n')
+    expect(errors(parseScratch(code))).toEqual([
+      expect.objectContaining({
+        code: 'loopNotClosedBeforeLine',
+        line: 6,
+        params: { loopLine: 2, blockType: 'if' },
+      }),
+    ])
+  })
+
+  it('should still report a misaligned sinon of the current si', () => {
+    expect(
+      errors(parseScratch('si (x > 0) alors\n    dire 1\n  sinon\n    dire 2\nfin'))[0]
+    ).toMatchObject({ code: 'sinonIndent', line: 3 })
   })
 })
