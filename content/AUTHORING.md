@@ -499,6 +499,18 @@ qui ne s'analyse pas, ligne par ligne.
   le contenu devient une erreur de CI. Les `si … sinon`, `répéter jusqu'à ce que` et comparaisons
   s'exécutent comme dans Scratch (voir « Le sens des blocs » ci-dessus) ; une boucle qui ne
   s'arrête jamais, ou un `demander` sans valeur dans `inputs`, est aussi une erreur de CI.
+  Dans un programme relié :
+  - le dernier `dire` doit être **un nombre** (un texte, une `réponse` vide ne valent pas 0) ;
+  - les décimaux s'écrivent avec **un point** (`2.5`), dans le code comme dans `inputs` :
+    Scratch lit « 2,5 » comme du texte ;
+  - chaque valeur de `inputs` sert à un `demander`, et elle **redit l'énoncé** (« l'utilisateur
+    tape 5 ») : elle part chez l'élève, ce n'est jamais un corrigé caché ;
+  - chaque variable est **mise à une valeur avant d'être lue** (`mettre n à 0`) : Scratch garde
+    les variables d'un clic sur le drapeau à l'autre, la CI repart de 0 ;
+  - le nombre de tours d'un `répéter` est entier (Scratch arrondirait) ;
+  - un résultat décimal peut s'afficher avec un bruit d'arrondi dans Scratch
+    (`0.1 + 0.2` → 0.30000000000000004) : préférer des calculs entiers ;
+  - aucune mauvaise option d'un QCM ne vaut la valeur calculée.
 
   ```json
   { "id": "ex-prevoir-cinq", "type": "exercise", "exerciseType": "numeric",

@@ -43,6 +43,8 @@ export type ScratchEvalResult =
       says: ScratchRuntimeValue[]
       /** The final value of every variable that was set (unset variables default to 0). */
       variables: Record<string, ScratchRuntimeValue>
+      /** How many `inputs` the `demander` blocks consumed (fewer than given = a wrong link). */
+      inputsUsed: number
     }
   | { ok: false; error: ScratchEvalError }
 
@@ -50,7 +52,8 @@ export type ScratchEvalOptions = {
   /**
    * Values fed to successive `demander … et attendre` blocks, in order: the first `demander`
    * stores `inputs[0]` in `réponse`, the second `inputs[1]`, and so on. A number or a string;
-   * a string is coerced to a number by arithmetic exactly as Scratch does (see `toNumber`).
+   * a string is coerced to a number by arithmetic as Scratch does (see `toNumber`), except that
+   * Brio also reads a decimal comma — check-content refuses one in a checked programme.
    */
   inputs?: ScratchRuntimeValue[]
   /**
@@ -66,13 +69,15 @@ const DEFAULT_MAX_STEPS = 100_000
 const MESSAGES: Record<ScratchEvalErrorCode, string> = {
   missingInput: 'a « demander » ran but no input was provided for it',
   tooManySteps: 'the programme ran too long (a loop that never ends?)',
-  invalidRepeatCount: 'the number of repetitions must be a whole number ≥ 0',
+  invalidRepeatCount:
+    'the number of repetitions must be a whole number ≥ 0 (Scratch would round it or skip the loop; write it whole)',
 }
 
 // Mutable state threaded through execution. A class without parameter properties keeps the
 // module erasable (type stripping forbids `constructor(private …)`).
 class EvalState {
-  variables: Record<string, ScratchRuntimeValue> = {}
+  // No prototype: a variable named `constructor` or `__proto__` is an ordinary variable.
+  variables: Record<string, ScratchRuntimeValue> = Object.create(null)
   says: ScratchRuntimeValue[] = []
   /** The value stored by the last `demander`; read by the `réponse` reporter. */
   answer: ScratchRuntimeValue = ''
@@ -104,9 +109,20 @@ class ScratchEvalAbort extends Error {
  */
 export function evaluateScratch(
   script: ScratchStatement[],
-  options: ScratchEvalOptions = {}
+  options: ScratchEvalOptions | null = {}
 ): ScratchEvalResult {
-  const state = new EvalState(options.inputs ?? [], options.maxSteps ?? DEFAULT_MAX_STEPS)
+  // Defensive about callers outside TypeScript (check-content is plain JS): an input is a number
+  // or a text, as typed in Scratch; a budget that is not a finite number ≥ 0 would never stop.
+  const rawInputs: unknown = options?.inputs
+  const inputs = Array.isArray(rawInputs)
+    ? rawInputs.map((v: unknown) => (typeof v === 'number' ? v : String(v ?? '')))
+    : []
+  const rawMax = options?.maxSteps
+  const maxSteps =
+    typeof rawMax === 'number' && Number.isFinite(rawMax) && rawMax >= 0
+      ? rawMax
+      : DEFAULT_MAX_STEPS
+  const state = new EvalState(inputs, maxSteps)
   try {
     runBlock(script, state)
   } catch (e) {
@@ -115,7 +131,12 @@ export function evaluateScratch(
     }
     throw e
   }
-  return { ok: true, says: state.says, variables: state.variables }
+  return {
+    ok: true,
+    says: state.says,
+    variables: { ...state.variables },
+    inputsUsed: state.nextInput,
+  }
 }
 
 function runBlock(block: ScratchStatement[], state: EvalState): void {
@@ -239,9 +260,9 @@ export function compare(a: ScratchRuntimeValue, b: ScratchRuntimeValue): number 
 }
 
 /** The number a value reads as, or null when it is not numeric (blank text included). */
-function strictNumber(value: ScratchRuntimeValue): number | null {
+export function strictNumber(value: ScratchRuntimeValue): number | null {
   if (typeof value === 'number') return Number.isNaN(value) ? null : value
-  const trimmed = value.trim()
+  const trimmed = String(value).trim()
   if (trimmed === '') return null
   const n = Number(trimmed.replace(',', '.'))
   return Number.isNaN(n) ? null : n
@@ -249,7 +270,7 @@ function strictNumber(value: ScratchRuntimeValue): number | null {
 
 function readVariable(name: string, state: EvalState): ScratchRuntimeValue {
   // Scratch treats a never-set variable as 0.
-  return name in state.variables ? state.variables[name] : 0
+  return Object.hasOwn(state.variables, name) ? state.variables[name] : 0
 }
 
 // Evaluation of a value (reporter) block; exhaustive over `ScratchValue` (TypeScript checks the
@@ -289,8 +310,9 @@ function evalValue(value: ScratchValue, state: EvalState): ScratchRuntimeValue {
  * reads number literals), and anything non-numeric — including empty text — counts as 0.
  */
 export function toNumber(value: ScratchRuntimeValue): number {
-  if (typeof value === 'number') return value
-  const trimmed = value.trim()
+  // NaN (0 / 0) counts as 0, as in Scratch's Cast.toNumber: ((0 / 0) + 1) is 1, not NaN.
+  if (typeof value === 'number') return Number.isNaN(value) ? 0 : value
+  const trimmed = String(value).trim()
   if (trimmed === '') return 0
   const n = Number(trimmed.replace(',', '.'))
   return Number.isNaN(n) ? 0 : n

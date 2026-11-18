@@ -245,7 +245,7 @@ describe('evaluateScratch — 4e blocks', () => {
       'avancer de 50 pas',
       'relever le stylo',
     ])
-    expect(result).toEqual({ ok: true, says: [], variables: {} })
+    expect(result).toEqual({ ok: true, says: [], variables: {}, inputsUsed: 0 })
   })
 
   it('evaluates a si nested in a loop', () => {
@@ -311,5 +311,97 @@ describe('evaluateScratch — 4e blocks', () => {
       expect(!result.ok && result.error.code).toBe('tooManySteps')
       expect(Date.now() - start).toBeLessThan(1000)
     })
+  })
+})
+
+describe('evaluateScratch — porte 6 (#355, saboteur)', () => {
+  it('reads NaN as 0 in arithmetic, as Scratch’s Cast.toNumber', () => {
+    expect(says(['dire ((0 / 0) + 1)'])).toEqual([1])
+    expect(toNumber(NaN)).toBe(0)
+  })
+
+  it('treats variables named constructor, toString or __proto__ as ordinary variables', () => {
+    expect(
+      says([
+        'dire (constructor)',
+        'ajouter 1 à toString',
+        'mettre __proto__ à 5',
+        'dire (toString)',
+        'dire (__proto__)',
+      ])
+    ).toEqual([0, 1, 5])
+  })
+
+  it('falls back to the default budget for a maxSteps that would never stop', () => {
+    for (const maxSteps of [NaN, Infinity, -1]) {
+      const result = run(["répéter jusqu'à ce que (1 = 2)", '    dire 1', 'fin'], { maxSteps })
+      expect(!result.ok && result.error.code).toBe('tooManySteps')
+    }
+  })
+
+  it('never throws on ill-typed options from JavaScript callers', () => {
+    const parsed = parseScratch('demander « ? » et attendre\ndire ((réponse) + 1)')
+    if (!parsed.ok) throw new Error('fixture')
+    expect(evaluateScratch(parsed.script, null)).toMatchObject({ ok: false })
+    for (const inputs of [{}, [null], [{}], [[1]]]) {
+      expect(() =>
+        evaluateScratch(parsed.script, { inputs } as unknown as ScratchEvalOptions)
+      ).not.toThrow()
+    }
+  })
+
+  it('reports how many inputs were used', () => {
+    const result = run(['demander « ? » et attendre', 'dire (réponse)'], { inputs: ['1', '2'] })
+    expect(result).toMatchObject({ ok: true, inputsUsed: 1 })
+  })
+})
+
+describe('evaluateScratch — porte 5 (#355, mutants survivants de V3)', () => {
+  it('counts one step per turn of répéter jusqu’à, budget compared with >', () => {
+    // 1 (mettre) + 1 (boucle) + 3 × (corps + tour) + 1 (dire) = 9 pas.
+    const prog = [
+      'mettre n à 0',
+      "répéter jusqu'à ce que (n = 3)",
+      '    ajouter 1 à n',
+      'fin',
+      'dire (n)',
+    ]
+    expect(says(prog, { maxSteps: 9 })).toEqual([3])
+    expect(run(prog, { maxSteps: 8 })).toMatchObject({ ok: false, error: { code: 'tooManySteps' } })
+  })
+
+  it('reads a decimal comma in a text compared as a number', () => {
+    expect(compare('2,5', '10')).toBeLessThan(0)
+  })
+
+  it('feeds each demander its own input, in order', () => {
+    expect(
+      says(
+        [
+          'demander « a ? » et attendre',
+          'dire (réponse)',
+          'demander « b ? » et attendre',
+          'dire (réponse)',
+        ],
+        { inputs: ['3', '4'] }
+      )
+    ).toEqual(['3', '4'])
+  })
+
+  it('subtracts right from left', () => {
+    expect(says(['dire (10 - 3)'])).toEqual([7])
+  })
+
+  it('reports tooManySteps on the statement that exceeded the budget', () => {
+    const result = run(['répéter 1000 fois', '    ajouter 1 à n', 'fin'], { maxSteps: 50 })
+    expect(!result.ok && result.error).toMatchObject({ code: 'tooManySteps', line: 2 })
+  })
+
+  it('does not read blank text as the number 0 in a comparison', () => {
+    expect(compare('   ', 0)).not.toBe(0)
+  })
+
+  it('starts réponse as an empty text, as Scratch does', () => {
+    expect(says(['dire (réponse)'])).toEqual([''])
   })
 })

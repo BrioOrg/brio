@@ -34,8 +34,10 @@ renderer, and the teacher editor, show the text as before.
    4 spaces and closed by `fin` at the block's indentation; a bare `sinon` at the `si`'s
    indentation starts the second branch of a `si`. At most 32 levels of brackets or of nested
    blocks (`tooDeep`): far beyond any programme, far below the call stack. The ASCII and the
-   typographic apostrophe are both accepted in the block wordings; input is NFC-normalised. Text is written between « ». A variable is a bare name (`x`), optionally in
-   parentheses (`(x)`). Numbers use `.` or `,` as the decimal separator and are shown as written.
+   typographic apostrophe are both accepted in the block wordings; input is NFC-normalised.
+   Text is written between « ». A variable is a bare name (`x`), optionally in parentheses
+   (`(x)`). Numbers use `.` or `,` as the decimal separator and are shown as written (but a
+   programme checked by CI writes `.`, as Scratch does: point 7).
    The code is not rich text, so `*` is Scratch's real multiplication sign.
 2. **A closed catalogue**, Scratch 3's French wording, with its category:
 
@@ -127,9 +129,20 @@ renderer, and the teacher editor, show the text as before.
      Comparisons follow Scratch (`Cast.compare`): numbers when both sides read as numbers,
      otherwise texts **ignoring case**; blank text is not a number. One Brio convention differs:
      a decimal comma reads as a number (§1), where Scratch would compare « 2,5 » as text — hence
-     AUTHORING's rule to compare integers only. The three switches (statements, values,
-     booleans) are exhaustive and end in a `never`, so a block kind added to the parser is a
-     type error until it is evaluated.
+     AUTHORING's rule to compare integers only. The switches over statements and booleans end
+     in a `never`, and the one over values is checked by its return type, so a block kind added
+     to the parser is a type error until it is evaluated.
+   - **Guards (porte 5/6, 2026-11-18).** NaN counts as 0 in a calculation, as Scratch's
+     `Cast.toNumber` (`((0 / 0) + 1)` is 1). `check-content` fails when the last `dire` is not
+     strictly a finite number (a text, an empty `réponse`, NaN or Infinity is not read as 0),
+     when a linked programme or its `inputs` write a decimal with a comma (Scratch reads « 2,5 »
+     as text, so the CI would validate what Scratch does not do — write `2.5` or whole numbers),
+     when some `inputs` are never consumed by a `demander`, and when a wrong choice of a QCM
+     equals the computed value. A `répéter` count that is negative or not whole is an error
+     where Scratch rounds it or skips the loop: the content must write it whole. Variables
+     start at 0 on every run, whereas Scratch keeps them from one green-flag click to the next:
+     a checked programme sets each variable before reading it (AUTHORING). `program.inputs`
+     reach the client: they must restate what the prompt already says, never a hidden answer.
 8. **Teacher editor** (#233, amendment 2026-10-26). The code block of the course editor
    (« Programme ») offers « Texte » (no `language`) or « Scratch » (`language: "scratch"`, the
    default for a new block). In Scratch it runs the same `parseScratch` on every keystroke, lists
