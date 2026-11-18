@@ -205,7 +205,9 @@ describe('parseScratch', () => {
   })
 
   it('should parse répéter jusqu’à ce que as a C block with a boolean condition', () => {
-    const parsed = script(["répéter jusqu'à ce que (n = 0)", '    ajouter -1 à n', 'fin'].join('\n'))
+    const parsed = script(
+      ["répéter jusqu'à ce que (n = 0)", '    ajouter -1 à n', 'fin'].join('\n')
+    )
     expect(parsed[0]).toMatchObject({
       kind: 'repeatUntil',
       condition: { kind: 'comparison', op: '=', right: { kind: 'number', value: 0 } },
@@ -272,6 +274,12 @@ describe('parseScratch', () => {
       'duplicateSinon',
       5,
     ],
+    // A boolean in an arithmetic operator, a sinon under a répéter, comparators misplaced (#354, V3).
+    ['dire ((a > b) + 1)', 'booleanInValueSlot', 1],
+    ['répéter 2 fois\n    dire 1\nsinon\n    dire 2\nfin', 'sinonWithoutIf', 3],
+    ['si x > 0 alors\n    dire 1\nfin', 'operatorNeedsParentheses', 1],
+    ['si (> 3) alors\n    dire 1\nfin', 'valueMissingBeforeOperator', 1],
+    ['si (non (x + 1)) alors\n    dire 1\nfin', 'logicalNeedsBooleans', 1],
   ])('should reject %j with code %s', (code, expected, line) => {
     const [error] = errors(parseScratch(code))
     expect(error).toMatchObject({ code: expected, line })
@@ -297,9 +305,10 @@ describe('parseScratch', () => {
       code: 'loopNeverClosed',
       params: { blockType: 'if' },
     })
-    expect(
-      errors(parseScratch('si (x > 0) alors\n    dire 1\n  fin'))[0]
-    ).toMatchObject({ code: 'finIndent', params: { blockType: 'if', loopLine: 1 } })
+    expect(errors(parseScratch('si (x > 0) alors\n    dire 1\n  fin'))[0]).toMatchObject({
+      code: 'finIndent',
+      params: { blockType: 'if', loopLine: 1 },
+    })
   })
 })
 
@@ -391,9 +400,7 @@ describe('buildScratchModel', () => {
   })
 
   it('should nest booleans: a logical holds two hexagonal comparisons', () => {
-    const [b] = buildScratchModel(
-      script('si ((x > 0) et (x < 10)) alors\n    dire 1\nfin')
-    )
+    const [b] = buildScratchModel(script('si ((x > 0) et (x < 10)) alors\n    dire 1\nfin'))
     expect(b.parts[1]).toMatchObject({
       kind: 'boolean',
       parts: [
@@ -426,5 +433,145 @@ describe('buildScratchModel', () => {
       ['pen', 'stack'],
     ])
     expect(model[0].parts).toEqual([{ kind: 'label', text: "stylo en position d'écriture" }])
+  })
+})
+
+describe('parseScratch — porte 5/6 (#354)', () => {
+  it('should report an empty si without sinon on the si line', () => {
+    expect(errors(parseScratch('si (x > 0) alors\nfin'))[0]).toMatchObject({
+      code: 'emptyLoop',
+      line: 1,
+      params: { blockType: 'if' },
+    })
+  })
+
+  it('should report an empty sinon on the sinon line, not on its si', () => {
+    expect(errors(parseScratch('si (x > 0) alors\n    dire 1\nsinon\nfin'))).toEqual([
+      expect.objectContaining({ code: 'emptyLoop', line: 3, params: { blockType: 'else' } }),
+    ])
+  })
+
+  it('should name the block left open when a sinon comes before its fin, then recover', () => {
+    const code = [
+      'si (x > 0) alors',
+      '    répéter 2 fois',
+      '        dire 1',
+      'sinon',
+      '    dire 2',
+      'fin',
+    ].join('\n')
+    expect(errors(parseScratch(code))).toEqual([
+      expect.objectContaining({
+        code: 'loopNotClosedBeforeLine',
+        line: 4,
+        params: { loopLine: 2, blockType: 'repeat' },
+      }),
+    ])
+  })
+
+  it.each([
+    ['si x > 0 alors\n    dire 1\nsinon\n    dire 2\nfin', 'operatorNeedsParentheses'],
+    ['si (x <= 3) alors\n    dire 1\nfin', 'unsupportedComparison'],
+    ["répéter jusqu'à ce que (a < b et c)\n    dire 1\nfin", 'oneOperatorPerPair'],
+    ['répéter (a < b) fois\n    dire 1\nfin', 'booleanInValueSlot'],
+  ])('should report only the faulty header of %j, not its body and fin', (code, expected) => {
+    expect(errors(parseScratch(code))).toEqual([
+      expect.objectContaining({ code: expected, line: 1 }),
+    ])
+  })
+
+  it.each([
+    ['≤', '((a < b) ou (a = b))'],
+    ['<=', '((a < b) ou (a = b))'],
+    ['≥', '((a > b) ou (a = b))'],
+    ['>=', '((a > b) ou (a = b))'],
+    ['≠', '(non (a = b))'],
+    ['!=', '(non (a = b))'],
+  ])('should explain that Scratch has no %s', (symbol, correct) => {
+    expect(errors(parseScratch(`si (x ${symbol} 3) alors\n    dire 1\nfin`))[0]).toMatchObject({
+      code: 'unsupportedComparison',
+      params: { symbol, correct },
+    })
+  })
+
+  it('should say Scratch writes = for ==', () => {
+    expect(errors(parseScratch('si (x == 3) alors\n    dire 1\nfin'))[0]).toMatchObject({
+      code: 'wrongOperatorSymbol',
+      params: { symbol: '==', correct: '=' },
+    })
+  })
+
+  it('should parse non as Scratch’s « non » before a bracket, and as a variable elsewhere', () => {
+    expect(script('si (non (x = 3)) alors\n    dire 1\nfin')[0]).toMatchObject({
+      kind: 'if',
+      condition: { kind: 'not', operand: { kind: 'comparison', op: '=' } },
+    })
+    expect(script('dire (non + 1)')[0]).toMatchObject({
+      message: { kind: 'operator', left: { kind: 'variable', name: 'non' } },
+    })
+  })
+
+  it('should refuse brackets nested too deep with an error, never a stack overflow', () => {
+    for (const depth of [33, 5000]) {
+      const result = parseScratch('dire ' + '('.repeat(depth) + '1' + ')'.repeat(depth))
+      expect(errors(result)).toEqual([expect.objectContaining({ code: 'tooDeep', line: 1 })])
+    }
+    expect(errors(parseScratch('dire ' + '('.repeat(5000)))[0]).toMatchObject({ code: 'tooDeep' })
+    expect(parseScratch('dire ' + '('.repeat(32) + '1' + ')'.repeat(32)).ok).toBe(true)
+  })
+
+  it('should refuse C blocks nested too deep', () => {
+    const lines: string[] = []
+    for (let d = 0; d < 33; d++) lines.push(' '.repeat(4 * d) + 'si (x > 0) alors')
+    lines.push(' '.repeat(4 * 33) + 'dire 1')
+    for (let d = 32; d >= 0; d--) lines.push(' '.repeat(4 * d) + 'fin')
+    expect(errors(parseScratch(lines.join('\n')))).toEqual([
+      expect.objectContaining({ code: 'tooDeep', line: 33 }),
+    ])
+  })
+
+  it('should accept typographic apostrophes, decomposed accents and a byte-order mark', () => {
+    expect(script('répéter jusqu’à ce que (n = 0)\n    ajouter -1 à n\nfin')[0].kind).toBe(
+      'repeatUntil'
+    )
+    expect(script('stylo en position d’écriture')[0].kind).toBe('penDown')
+    expect(script('mettre x à (re\u0301ponse)')[0]).toMatchObject({ value: { kind: 'answer' } })
+    expect(script('\uFEFFquand le drapeau vert est cliqué')[0].kind).toBe('whenFlagClicked')
+  })
+
+  it('should keep a typographic apostrophe inside a text unchanged', () => {
+    expect(script('dire « l’eau »')[0]).toMatchObject({ message: { kind: 'text', text: 'l’eau' } })
+  })
+
+  it('should report a whole emoji as the unexpected character', () => {
+    expect(errors(parseScratch('dire (🐱 + 1)'))[0]).toMatchObject({
+      code: 'unexpectedCharacter',
+      params: { character: '🐱' },
+    })
+  })
+
+  it('should name the right block in the English message', () => {
+    expect(errors(parseScratch('si (x > 0) alors\n    dire 1'))[0].message).toBe(
+      '"si" is never closed by "fin"'
+    )
+  })
+})
+
+describe('buildScratchModel — porte 5/6 (#354)', () => {
+  it('should label a ou in the model', () => {
+    const [b] = buildScratchModel(script('si ((x > 0) ou (x < 10)) alors\n    dire 1\nfin'))
+    expect(b.parts[1]).toMatchObject({ parts: [{}, { kind: 'label', text: 'ou' }, {}] })
+  })
+
+  it('should draw non as a hexagon holding « non » and its boolean', () => {
+    const [b] = buildScratchModel(script('si (non (x = 3)) alors\n    dire 1\nfin'))
+    expect(b.parts[1]).toMatchObject({
+      kind: 'boolean',
+      category: 'operators',
+      parts: [
+        { kind: 'label', text: 'non' },
+        { kind: 'boolean', parts: [{}, { text: '=' }, {}] },
+      ],
+    })
   })
 })

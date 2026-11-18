@@ -26,6 +26,8 @@ export type ScratchLogical = 'et' | 'ou'
 export type ScratchBoolean =
   | { kind: 'comparison'; op: ScratchComparator; left: ScratchValue; right: ScratchValue }
   | { kind: 'logical'; op: ScratchLogical; left: ScratchBoolean; right: ScratchBoolean }
+  /** Scratch's « non <> »: written `(non <booléen>)`, it is how « différent de » is said. */
+  | { kind: 'not'; operand: ScratchBoolean }
 
 export type ScratchStatement =
   | { kind: 'whenFlagClicked'; line: number }
@@ -88,6 +90,10 @@ export type ScratchErrorCode =
   | 'sinonWithoutIf'
   | 'sinonIndent'
   | 'duplicateSinon'
+  // ≤ ≥ ≠ (and <= >= !=): Scratch has no such block; the copy says how to write it.
+  | 'unsupportedComparison'
+  // Brackets or blocks nested deeper than MAX_DEPTH (a held-down key, not a programme).
+  | 'tooDeep'
 
 /** Which block a "block" code is about, so the copy names it (« répéter », « si »…). */
 export type ScratchBlockType = 'repeat' | 'repeatUntil' | 'if' | 'else'
@@ -105,10 +111,6 @@ export type ScratchErrorParams = {
   character?: string
 }
 
-/**
- * The English message for each code — shown by check-content, read by developers. Reword freely:
- * the web translates by `code`, not by this text (ADR 0031, #307).
- */
 /** The block keyword a "block" code names in the English message; defaults to "répéter". */
 function englishBlock(blockType?: ScratchBlockType): string {
   switch (blockType) {
@@ -123,6 +125,10 @@ function englishBlock(blockType?: ScratchBlockType): string {
   }
 }
 
+/**
+ * The English message for each code — shown by check-content, read by developers. Reword freely:
+ * the web translates by `code`, not by this text (ADR 0031, #307).
+ */
 const MESSAGES: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> = {
   blankLine: () => 'blank line — a programme is one block of lines',
   tabs: (p) => `indent with ${p.expected} spaces, not tabs`,
@@ -156,9 +162,12 @@ const MESSAGES: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> = {
   booleanInValueSlot: (p) => `a boolean sits where a value is expected, in "${p.source}"`,
   comparisonNeedsValues: (p) => `a comparison compares values, not booleans, in "${p.source}"`,
   logicalNeedsBooleans: (p) => `"et"/"ou" combine booleans, not values, in "${p.source}"`,
-  sinonWithoutIf: () => '"sinon" closes no "si"',
+  sinonWithoutIf: () => '"sinon" belongs to no "si"',
   sinonIndent: (p) => `"sinon" must be at the indentation of its "si" (line ${p.loopLine})`,
   duplicateSinon: () => 'a "si" has only one "sinon"',
+  unsupportedComparison: (p) =>
+    `Scratch has no ${p.symbol} block: write ${p.correct}, in "${p.source}"`,
+  tooDeep: () => `brackets or blocks nested more than ${MAX_DEPTH} deep`,
 }
 
 /**
@@ -209,6 +218,9 @@ export type ScratchBlock = {
 // --- Parser ---
 
 const INDENT = 4
+/** Deepest nesting of brackets, or of C blocks, accepted — far beyond any teaching programme, far
+ * below the call stack (the parser, the drawing model and the renderer all recurse). */
+const MAX_DEPTH = 32
 const IDENTIFIER = /^[\p{L}_][\p{L}\p{N}_]*$/u
 const ANSWER = 'réponse'
 
@@ -233,7 +245,14 @@ class ScratchSyntaxError extends Error {
 
 /** The statements that open a C block and so a frame. */
 type LoopStatement = Extract<ScratchStatement, { kind: 'repeat' | 'repeatUntil' | 'if' }>
-type OpenBlock = { kind: LoopStatement['kind']; statement: LoopStatement }
+type OpenBlock = {
+  statement: LoopStatement
+  /** Line of the `sinon` once seen, so an empty else branch is reported there. */
+  elseLine?: number
+  /** Opened for a header that failed to parse, only so its body and `fin` do not cascade into
+   * false errors; the result is `ok: false` anyway, so this statement is never read. */
+  phantom?: boolean
+}
 
 type AddError = (line: number, code: ScratchErrorCode, params?: ScratchErrorParams) => void
 
@@ -241,19 +260,48 @@ type AddError = (line: number, code: ScratchErrorCode, params?: ScratchErrorPara
  * `sinon` at `fin`, a loop body at its `fin`. */
 function reportEmptyBranch(block: OpenBlock, add: AddError): void {
   const s = block.statement
+  if (block.phantom) return
   if (s.kind === 'if') {
     if (s.elseBody === null) {
       if (s.body.length === 0) add(s.line, 'emptyLoop', { blockType: 'if' })
     } else if (s.elseBody.length === 0) {
-      add(s.line, 'emptyLoop', { blockType: 'else' })
+      add(block.elseLine ?? s.line, 'emptyLoop', { blockType: 'else' })
     }
   } else if (s.body.length === 0) {
     add(s.line, 'emptyLoop', { blockType: s.kind })
   }
 }
 
+/** The header kind of a line that opens a C block, recognised before its condition or count is
+ * parsed, so a malformed header still opens its block (no cascade on its body and `fin`). */
+function blockHeader(text: string): LoopStatement['kind'] | null {
+  if (/^si .+/.test(text)) return 'if'
+  if (/^répéter jusqu['’ʼ]à /.test(text)) return 'repeatUntil'
+  if (/^répéter .+/.test(text)) return 'repeat'
+  return null
+}
+
+function phantomBlock(kind: LoopStatement['kind'], line: number): LoopStatement {
+  const zero: ScratchValue = { kind: 'number', text: '0', value: 0 }
+  const condition: ScratchBoolean = { kind: 'comparison', op: '=', left: zero, right: zero }
+  switch (kind) {
+    case 'if':
+      return { kind, condition, body: [], elseBody: null, line }
+    case 'repeatUntil':
+      return { kind, condition, body: [], line }
+    case 'repeat':
+      return { kind, times: zero, body: [], line }
+  }
+}
+
 export function parseScratch(code: string): ScratchParseResult {
-  const lines = code.replace(/\n$/, '').split('\n')
+  // A leading byte-order mark is invisible; decomposed accents (NFD, as pasted from macOS) would
+  // split « é » into two characters. Neither changes what the author meant.
+  const lines = code
+    .replace(/^\uFEFF/, '')
+    .normalize('NFC')
+    .replace(/\n$/, '')
+    .split('\n')
   const errors: ScratchError[] = []
   const add = (line: number, code: ScratchErrorCode, params: ScratchErrorParams = {}) =>
     errors.push({ line, code, params, message: MESSAGES[code](params) })
@@ -284,7 +332,10 @@ export function parseScratch(code: string): ScratchParseResult {
       if (frame.block === null) {
         add(lineNo, 'finWithoutLoop')
       } else if (indent !== frame.indent - INDENT) {
-        add(lineNo, 'finIndent', { loopLine: frame.block.statement.line, blockType: frame.block.kind })
+        add(lineNo, 'finIndent', {
+          loopLine: frame.block.statement.line,
+          blockType: frame.block.statement.kind,
+        })
       } else {
         reportEmptyBranch(frame.block, add)
         frames.pop()
@@ -298,7 +349,29 @@ export function parseScratch(code: string): ScratchParseResult {
       // Narrow on the statement's kind, which also narrows it to the `if` shape (elseBody).
       const statement = frame.block?.statement
       if (statement === undefined || statement.kind !== 'if') {
-        add(lineNo, 'sinonWithoutIf')
+        // A `si` further out whose `sinon` this is: the inner block was left open.
+        const ifFrame = [...frames]
+          .reverse()
+          .find((f) => f.block?.statement.kind === 'if' && f.indent - INDENT === indent)
+        const ifStatement = ifFrame?.block?.statement
+        if (frame.block === null || ifFrame === undefined || ifStatement?.kind !== 'if') {
+          add(lineNo, 'sinonWithoutIf')
+          continue
+        }
+        add(lineNo, 'loopNotClosedBeforeLine', {
+          loopLine: frame.block.statement.line,
+          blockType: frame.block.statement.kind,
+        })
+        // Recover: treat the inner blocks as closed and take the `sinon` for its `si`.
+        while (frames[frames.length - 1] !== ifFrame) frames.pop()
+        if (ifStatement.elseBody !== null) {
+          add(lineNo, 'duplicateSinon')
+          continue
+        }
+        ifStatement.elseBody = []
+        ifFrame.body = ifStatement.elseBody
+        if (ifFrame.block) ifFrame.block.elseLine = lineNo
+        continue
       } else if (statement.elseBody !== null) {
         add(lineNo, 'duplicateSinon')
       } else if (indent !== frame.indent - INDENT) {
@@ -309,6 +382,7 @@ export function parseScratch(code: string): ScratchParseResult {
         }
         statement.elseBody = []
         frame.body = statement.elseBody
+        if (frame.block) frame.block.elseLine = lineNo
       }
       continue
     }
@@ -317,7 +391,7 @@ export function parseScratch(code: string): ScratchParseResult {
       if (indent < frame.indent && frame.block !== null) {
         add(lineNo, 'loopNotClosedBeforeLine', {
           loopLine: frame.block.statement.line,
-          blockType: frame.block.kind,
+          blockType: frame.block.statement.kind,
         })
       } else {
         add(lineNo, 'unexpectedIndent', { expected: frame.indent })
@@ -329,8 +403,24 @@ export function parseScratch(code: string): ScratchParseResult {
     try {
       parsed = parseStatement(text, lineNo)
     } catch (e) {
-      if (!(e instanceof ScratchSyntaxError)) throw e
-      errors.push({ line: lineNo, code: e.code, params: e.params, message: e.message })
+      const error =
+        e instanceof ScratchSyntaxError
+          ? e
+          : // A safety net: MAX_DEPTH should stop any nesting long before the stack does.
+            e instanceof RangeError
+            ? new ScratchSyntaxError('tooDeep')
+            : null
+      if (error === null) throw e
+      errors.push({ line: lineNo, code: error.code, params: error.params, message: error.message })
+      const header = blockHeader(text)
+      if (header !== null) {
+        const statement = phantomBlock(header, lineNo)
+        frames.push({
+          indent: indent + INDENT,
+          body: statement.body,
+          block: { statement, phantom: true },
+        })
+      }
       continue
     }
     if (parsed.kind === 'whenFlagClicked' && lineNo !== 1) {
@@ -339,13 +429,15 @@ export function parseScratch(code: string): ScratchParseResult {
     }
     frame.body.push(parsed)
     if (parsed.kind === 'repeat' || parsed.kind === 'repeatUntil' || parsed.kind === 'if') {
-      frames.push({ indent: indent + INDENT, body: parsed.body, block: { kind: parsed.kind, statement: parsed } })
+      // The root frame is not a block, so frames.length is the depth of the block being opened.
+      if (frames.length > MAX_DEPTH) add(lineNo, 'tooDeep')
+      frames.push({ indent: indent + INDENT, body: parsed.body, block: { statement: parsed } })
     }
   }
 
   for (const frame of frames.slice(1).reverse()) {
     if (frame.block) {
-      add(frame.block.statement.line, 'loopNeverClosed', { blockType: frame.block.kind })
+      add(frame.block.statement.line, 'loopNeverClosed', { blockType: frame.block.statement.kind })
     }
   }
 
@@ -356,7 +448,8 @@ function parseStatement(text: string, line: number): ScratchStatement {
   if (text === 'quand le drapeau vert est cliqué') return { kind: 'whenFlagClicked', line }
 
   // Pen extension: three exact lines, matched like the green flag.
-  if (text === "stylo en position d'écriture") return { kind: 'penDown', line }
+  // Typographic apostrophes (’, as macOS types them and as the editor's help prints them) too.
+  if (/^stylo en position d['’ʼ]écriture$/.test(text)) return { kind: 'penDown', line }
   if (text === 'relever le stylo') return { kind: 'penUp', line }
   if (text === 'effacer tout') return { kind: 'clear', line }
 
@@ -364,7 +457,7 @@ function parseStatement(text: string, line: number): ScratchStatement {
   if (m) return { kind: 'if', condition: parseBoolean(m[1]), body: [], elseBody: null, line }
 
   // Before `répéter … fois`: Scratch 3's real wording is « répéter jusqu'à ce que » (ADR 0031).
-  m = /^répéter jusqu'à ce que (.+)$/.exec(text)
+  m = /^répéter jusqu['’ʼ]à ce que (.+)$/.exec(text)
   if (m) return { kind: 'repeatUntil', condition: parseBoolean(m[1]), body: [], line }
 
   m = /^demander (.+) et attendre$/.exec(text)
@@ -405,15 +498,14 @@ function variableName(text: string): string {
  * makes a 'value', a comparison or a et/ou makes a 'boolean'. Parentheses are required around
  * every operator (comparison and logical alike), exactly as around arithmetic — no precedence.
  */
-type Parsed =
-  | { type: 'value'; node: ScratchValue }
-  | { type: 'boolean'; node: ScratchBoolean }
+type Parsed = { type: 'value'; node: ScratchValue } | { type: 'boolean'; node: ScratchBoolean }
 
 /** Parse one value-or-boolean expression. `et`/`ou` are operators only in operator position;
  * elsewhere they stay variable names. The root's type is checked by the caller. */
 function parseExpression(source: string): Parsed {
   const tokens = tokenize(source)
   let pos = 0
+  let depth = 0
 
   // One operand: a parenthesised group, or a leaf (number, text, word, négative number).
   function element(): Parsed {
@@ -452,6 +544,26 @@ function parseExpression(source: string): Parsed {
   // `(` left <operator> right `)` — the operator decides the type and what the operands must be.
   function group(): Parsed {
     pos++ // consume '('
+    if (++depth > MAX_DEPTH) throw new ScratchSyntaxError('tooDeep')
+    try {
+      return groupBody()
+    } finally {
+      depth--
+    }
+  }
+
+  function groupBody(): Parsed {
+    // `(non <booléen>)`: `non` followed by a bracket is Scratch's « non »; elsewhere `non` stays a
+    // variable name, like `et`/`ou` outside operator position.
+    const first = tokens[pos]
+    if (first?.kind === 'word' && first.text === 'non' && tokens[pos + 1]?.kind === 'open') {
+      pos++
+      const operand = element()
+      expectClose()
+      if (operand.type !== 'boolean')
+        throw new ScratchSyntaxError('logicalNeedsBooleans', { source })
+      return { type: 'boolean', node: { kind: 'not', operand: operand.node } }
+    }
     const left = element()
     const op = tokens[pos]
     if (op?.kind === 'close') {
@@ -465,7 +577,10 @@ function parseExpression(source: string): Parsed {
       if (left.type !== 'value' || right.type !== 'value') {
         throw new ScratchSyntaxError('booleanInValueSlot', { source })
       }
-      return { type: 'value', node: { kind: 'operator', op: op.op, left: left.node, right: right.node } }
+      return {
+        type: 'value',
+        node: { kind: 'operator', op: op.op, left: left.node, right: right.node },
+      }
     }
     if (op?.kind === 'cmp') {
       pos++
@@ -546,6 +661,22 @@ function tokenize(source: string): Token[] {
     } else if (c === '+' || c === '-' || c === '*' || c === '/') {
       tokens.push({ kind: 'op', op: c })
       i++
+    } else if (c === '=' && source[i + 1] === '=') {
+      throw new ScratchSyntaxError('wrongOperatorSymbol', { symbol: '==', correct: '=', source })
+    } else if (
+      c === '≤' ||
+      c === '≥' ||
+      c === '≠' ||
+      ((c === '<' || c === '>' || c === '!') && source[i + 1] === '=')
+    ) {
+      const symbol = c === '≤' || c === '≥' || c === '≠' ? c : c + '='
+      const correct =
+        c === '<' || c === '≤'
+          ? '((a < b) ou (a = b))'
+          : c === '>' || c === '≥'
+            ? '((a > b) ou (a = b))'
+            : '(non (a = b))'
+      throw new ScratchSyntaxError('unsupportedComparison', { symbol, correct, source })
     } else if (c === '<' || c === '=' || c === '>') {
       tokens.push({ kind: 'cmp', op: c })
       i++
@@ -566,7 +697,9 @@ function tokenize(source: string): Token[] {
             source,
           })
         }
-        throw new ScratchSyntaxError('unexpectedCharacter', { character: c, source })
+        // The whole character, not half of a surrogate pair (an emoji).
+        const character = String.fromCodePoint(source.codePointAt(i) ?? 0xfffd)
+        throw new ScratchSyntaxError('unexpectedCharacter', { character, source })
       }
       tokens.push(/^\d/.test(m[0]) ? { kind: 'number', text: m[0] } : { kind: 'word', text: m[0] })
       i += m[0].length
@@ -671,6 +804,13 @@ function block(s: ScratchStatement): ScratchBlock {
 /** A hexagonal boolean block in a condition slot: a comparison of two values, or a et/ou of two
  * booleans. Same category ('operators', green) as the arithmetic reporters; only the shape differs. */
 function booleanSlot(b: ScratchBoolean): ScratchPart {
+  if (b.kind === 'not') {
+    return {
+      kind: 'boolean',
+      category: 'operators',
+      parts: [{ kind: 'label', text: 'non' }, booleanSlot(b.operand)],
+    }
+  }
   if (b.kind === 'comparison') {
     return {
       kind: 'boolean',

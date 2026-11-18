@@ -71,8 +71,8 @@ export function appliqueIndentation(
   }
 }
 
-// Le catalogue de l'ADR 0031 §2, pour l'aide de saisie.
-const CATALOGUE = [
+// Le catalogue de l'ADR 0031 §2, pour l'aide de saisie (exporté : un test vérifie qu'il se parse).
+export const CATALOGUE = [
   'quand le drapeau vert est cliqué',
   'demander « Choisis un nombre » et attendre',
   'mettre x à (réponse)',
@@ -88,12 +88,13 @@ const CATALOGUE = [
   'sinon',
   '    dire « petit »',
   'fin',
-  "répéter jusqu'à ce que (x = 0)",
+  "répéter jusqu'à ce que (x < 1)",
   '    ajouter -1 à x',
   'fin',
-  "stylo en position d'écriture",
-  'relever le stylo',
   'effacer tout',
+  "stylo en position d'écriture",
+  'avancer de 100 pas',
+  'relever le stylo',
 ]
 
 export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
@@ -251,14 +252,14 @@ export function CodeEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   Instructions reconnues
                 </summary>
                 <p className="mt-1.5">
-                  Une instruction par ligne. Le corps d’un « répéter », d’un « si » ou d’un
-                  « répéter jusqu’à ce que » est indenté de 4 espaces (touche Tab, Maj+Tab pour
-                  revenir) et fermé par « fin » ; « sinon » ouvre la seconde branche d’un « si ».
-                  Un texte s’écrit entre « », un calcul entre parenthèses, une paire par
-                  opérateur : ((x * 3) + 4). Une condition est un booléen entre parenthèses :
-                  une comparaison (x &gt; 10), (n = 0), ou un « et »/« ou » de deux comparaisons :
-                  ((x &gt; 0) et (x &lt; 10)). Le stylo : « stylo en position d’écriture »,
-                  « relever le stylo », « effacer tout ».
+                  Une instruction par ligne. Le corps d’un « répéter », d’un « si » ou d’un «
+                  répéter jusqu’à ce que » est indenté de 4 espaces (touche Tab, Maj+Tab pour
+                  revenir) et fermé par « fin » ; « sinon » ouvre la seconde branche d’un « si ». Un
+                  texte s’écrit entre « », un calcul entre parenthèses, une paire par opérateur :
+                  ((x * 3) + 4). Une condition est un booléen entre parenthèses : une comparaison (x
+                  &gt; 10), (n = 0), ou un « et »/« ou » de deux comparaisons : ((x &gt; 0) et (x
+                  &lt; 10)), ou un « non » : (non (x = 0)). Le stylo : « stylo en position
+                  d’écriture », « relever le stylo », « effacer tout ».
                 </p>
                 <pre className="mt-1.5 overflow-x-auto rounded-md border border-line bg-surface-page p-2 font-mono text-ink">
                   {CATALOGUE.join('\n')}

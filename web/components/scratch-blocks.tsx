@@ -19,10 +19,34 @@ const FILL: Record<ScratchCategory, string> = {
   pen: 'bg-scratch-pen border-scratch-pen-edge',
 }
 
-// A pointed hexagon, the shape of a boolean block; the horizontal padding leaves room for the
-// points. The clip-path is geometry, not a token (ADR 0031 §4); the fill stays the operators token.
+// A boolean's outline: a clip-path also clips a border, so the hexagon is two clipped layers, the
+// edge colour behind the fill, 1px larger all round (literal class names, as above).
+const EDGE_BG: Record<ScratchCategory, string> = {
+  events: 'bg-scratch-events-edge',
+  control: 'bg-scratch-control-edge',
+  motion: 'bg-scratch-motion-edge',
+  looks: 'bg-scratch-looks-edge',
+  sensing: 'bg-scratch-sensing-edge',
+  operators: 'bg-scratch-operators-edge',
+  variables: 'bg-scratch-variables-edge',
+  pen: 'bg-scratch-pen-edge',
+}
+const FILL_BG: Record<ScratchCategory, string> = {
+  events: 'bg-scratch-events',
+  control: 'bg-scratch-control',
+  motion: 'bg-scratch-motion',
+  looks: 'bg-scratch-looks',
+  sensing: 'bg-scratch-sensing',
+  operators: 'bg-scratch-operators',
+  variables: 'bg-scratch-variables',
+  pen: 'bg-scratch-pen',
+}
+
+// A pointed hexagon, the shape of a boolean block (ADR 0031 §3); the horizontal padding (px-3)
+// leaves room for the points, which are in rem like it (spacing × 2.5 = 10px at the default size).
+// The clip-path is geometry; the colours come from the category's tokens (FILL_BG, EDGE_BG).
 const HEXAGON =
-  '[clip-path:polygon(10px_0,calc(100%_-_10px)_0,100%_50%,calc(100%_-_10px)_100%,10px_100%,0_50%)]'
+  '[clip-path:polygon(calc(var(--spacing)*2.5)_0,calc(100%_-_var(--spacing)*2.5)_0,100%_50%,calc(100%_-_var(--spacing)*2.5)_100%,calc(var(--spacing)*2.5)_100%,0_50%)]'
 
 const ICON = {
   flag: 'flag',
@@ -46,10 +70,12 @@ export function ScratchBlocks({
   script: ScratchStatement[]
 }) {
   return (
+    // Focusable so a wide programme can be scrolled with the keyboard in every browser (WCAG 2.1.1).
     <figure
       id={id}
       aria-label="Programme Scratch"
-      className="my-1 overflow-x-auto rounded-md border border-line bg-surface-raised p-4"
+      tabIndex={0}
+      className="my-1 overflow-x-auto rounded-md border border-line bg-surface-raised p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div
         aria-hidden
@@ -162,8 +188,12 @@ function Part({ part }: { part: ScratchPart }) {
       )
     case 'boolean':
       return (
-        <span className={`${FILL[part.category]} ${HEXAGON} flex items-center gap-1 border px-3 py-0.5`}>
-          <Parts parts={part.parts} />
+        <span className={`${EDGE_BG[part.category]} ${HEXAGON} flex p-px`}>
+          <span
+            className={`${FILL_BG[part.category]} ${HEXAGON} flex items-center gap-1 px-3 py-0.5`}
+          >
+            <Parts parts={part.parts} />
+          </span>
         </span>
       )
   }

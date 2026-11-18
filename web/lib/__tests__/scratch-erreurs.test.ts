@@ -71,13 +71,13 @@ const CAS: Array<[string, string, number, string]> = [
     'deux opérateurs',
     'dire (1 + 2 * 3)',
     1,
-    'Un seul opérateur par paire de parenthèses, comme ((a + b) * c), dans « (1 + 2 * 3) ».',
+    'Un seul opérateur par paire de parenthèses, comme ((a + b) * c) ou ((x > 0) et (x < 10)), dans « (1 + 2 * 3) ».',
   ],
   [
     'opérateur sans parenthèses',
     'dire x * 2',
     1,
-    'Un bloc opérateur s’écrit entre parenthèses, comme (a * b), dans « x * 2 ».',
+    'Un bloc opérateur s’écrit entre parenthèses, comme (a * b) ou (x > 10), dans « x * 2 ».',
   ],
   ['texte en trop', 'dire x y', 1, 'Texte en trop après la valeur dans « x y ».'],
   ['texte non fermé', 'dire « Bonjour', 1, 'Un texte ouvert par « n’est pas fermé dans « Bonjour.'],
@@ -109,7 +109,12 @@ const CAS: Array<[string, string, number, string]> = [
     1,
     '« et » et « ou » combinent des booléens, pas des valeurs, dans « (x et y) ».',
   ],
-  ['sinon orphelin', 'sinon', 1, '« sinon » ne ferme aucun « si ».'],
+  [
+    'sinon orphelin',
+    'sinon',
+    1,
+    '« sinon » n’appartient à aucun « si » : il se place sous un « si … alors », aligné sur lui.',
+  ],
   [
     'sinon mal aligné',
     'si (x > 0) alors\n    dire 1\n  sinon\n    dire 2\nfin',
@@ -131,7 +136,7 @@ const CAS: Array<[string, string, number, string]> = [
   [
     'sinon vide',
     'si (x > 0) alors\n    dire 1\nsinon\nfin',
-    1,
+    3,
     'Le « sinon » est vide : indente au moins une instruction dessous.',
   ],
   [
@@ -157,6 +162,43 @@ const CAS: Array<[string, string, number, string]> = [
     'si (x > 0) alors\n    dire 1\n  dire 2\nfin',
     3,
     'Ferme le « si » de la ligne 1 par « fin » avant cette ligne.',
+  ],
+  // Porte 5/6 (#354).
+  [
+    'sinon avant le fin d’un répéter',
+    'si (x > 0) alors\n    répéter 2 fois\n        dire 1\nsinon\n    dire 2\nfin',
+    4,
+    'Ferme le « répéter » de la ligne 2 par « fin » avant cette ligne.',
+  ],
+  [
+    'si vide sans sinon',
+    'si (x > 0) alors\nfin',
+    1,
+    'Le « si » est vide : indente au moins une instruction dessous.',
+  ],
+  [
+    'signe ≤',
+    'si (x ≤ 3) alors\n    dire 1\nfin',
+    1,
+    'Scratch n’a pas de bloc « ≤ » : écris ((a < b) ou (a = b)), dans « (x ≤ 3) ».',
+  ],
+  [
+    'signe !=',
+    'si (x != 3) alors\n    dire 1\nfin',
+    1,
+    'Scratch n’a pas de bloc « != » : écris (non (a = b)), dans « (x != 3) ».',
+  ],
+  [
+    'signe ==',
+    'si (x == 3) alors\n    dire 1\nfin',
+    1,
+    'Scratch écrit =, pas ==, dans « (x == 3) ».',
+  ],
+  [
+    'imbrication trop profonde',
+    'dire ' + '('.repeat(40) + '1' + ')'.repeat(40),
+    1,
+    'Trop de parenthèses ou de blocs imbriqués les uns dans les autres.',
   ],
 ]
 

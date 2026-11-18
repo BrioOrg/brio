@@ -32,7 +32,8 @@ const TRADUCTIONS: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> =
   blankLine: () => 'Ligne vide : un programme s’écrit d’un seul tenant, sans ligne vide.',
   tabs: (p) => `Indente avec ${p.expected} espaces, pas une tabulation.`,
   finWithoutLoop: () => '« fin » ne ferme aucun bloc (« répéter », « si »…).',
-  finIndent: (p) => `« fin » doit être aligné sur son ${nomBloc(p.blockType)} (ligne ${p.loopLine}).`,
+  finIndent: (p) =>
+    `« fin » doit être aligné sur son ${nomBloc(p.blockType)} (ligne ${p.loopLine}).`,
   emptyLoop: (p) =>
     p.blockType === 'if'
       ? 'Le « si » est vide : indente au moins une instruction dessous.'
@@ -45,8 +46,7 @@ const TRADUCTIONS: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> =
     p.expected === 0
       ? 'Cette ligne ne doit pas être indentée.'
       : `Indentation inattendue : ${p.expected} espaces attendus.`,
-  flagNotFirst: () =>
-    '« quand le drapeau vert est cliqué » ne peut être que la première ligne.',
+  flagNotFirst: () => '« quand le drapeau vert est cliqué » ne peut être que la première ligne.',
   loopNeverClosed: (p) => `Ce ${nomBloc(p.blockType)} n’est jamais fermé par « fin ».`,
   unknownInstruction: (p) => `Instruction inconnue : « ${p.text} ».`,
   invalidVariableName: (p) =>
@@ -57,9 +57,9 @@ const TRADUCTIONS: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> =
   valueMissingBeforeClose: (p) => `Il manque une valeur avant « ) » dans « ${p.source} ».`,
   closeMissing: (p) => `Il manque une parenthèse fermante dans « ${p.source} ».`,
   oneOperatorPerPair: (p) =>
-    `Un seul opérateur par paire de parenthèses, comme ((a + b) * c), dans « ${p.source} ».`,
+    `Un seul opérateur par paire de parenthèses, comme ((a + b) * c) ou ((x > 0) et (x < 10)), dans « ${p.source} ».`,
   operatorNeedsParentheses: (p) =>
-    `Un bloc opérateur s’écrit entre parenthèses, comme (a * b), dans « ${p.source} ».`,
+    `Un bloc opérateur s’écrit entre parenthèses, comme (a * b) ou (x > 10), dans « ${p.source} ».`,
   unexpectedTextAfterValue: (p) => `Texte en trop après la valeur dans « ${p.source} ».`,
   textNeverClosed: (p) => `Un texte ouvert par « n’est pas fermé dans ${p.source}.`,
   emptyText: (p) => `Texte vide « » dans ${p.source}.`,
@@ -73,9 +73,13 @@ const TRADUCTIONS: Record<ScratchErrorCode, (p: ScratchErrorParams) => string> =
     `Une comparaison compare des valeurs, pas des booléens, dans « ${p.source} ».`,
   logicalNeedsBooleans: (p) =>
     `« et » et « ou » combinent des booléens, pas des valeurs, dans « ${p.source} ».`,
-  sinonWithoutIf: () => '« sinon » ne ferme aucun « si ».',
+  sinonWithoutIf: () =>
+    '« sinon » n’appartient à aucun « si » : il se place sous un « si … alors », aligné sur lui.',
   sinonIndent: (p) => `« sinon » doit être aligné sur son « si » (ligne ${p.loopLine}).`,
   duplicateSinon: () => 'Un « si » n’a qu’un seul « sinon ».',
+  unsupportedComparison: (p) =>
+    `Scratch n’a pas de bloc « ${p.symbol} » : écris ${p.correct}, dans « ${p.source} ».`,
+  tooDeep: () => 'Trop de parenthèses ou de blocs imbriqués les uns dans les autres.',
 }
 
 /** Le message français d'une erreur de parseScratch (le message d'origine si le code est inconnu). */
