@@ -14,6 +14,7 @@ import {
 import { FigureRenderer } from '@/components/figure-renderer'
 import { ChoixTeinte } from '@/components/prof/choix-teinte'
 import { marqueChamp, useChamp } from '@/components/prof/problemes-du-bloc'
+import { TransformationsEditeur } from '@/components/prof/transformations-editeur'
 import type { Bloc } from '@/lib/cours-editeur'
 
 // Constructeur de `spec` d'une figure déclarative (ADR 0013). On saisit des points nommés avec
@@ -1116,6 +1117,9 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               )}
             </section>
           )}
+
+          {/* Droites, vecteurs, transformations (ADR 0041) */}
+          <TransformationsEditeur spec={spec} patchSpec={patchSpec} onFocusBloc={onFocusBloc} />
         </div>
 
         {/* Aperçu en direct */}
