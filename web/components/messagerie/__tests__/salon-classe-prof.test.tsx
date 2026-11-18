@@ -75,10 +75,17 @@ const MASQUE = message({
 /** A promise the test settles itself, to order concurrent responses. */
 function differe<T>() {
   let resoudre: (valeur: T) => void = () => {}
-  const promesse = new Promise<T>((r) => {
+  let rejeter: (raison: unknown) => void = () => {}
+  const promesse = new Promise<T>((r, j) => {
     resoudre = r
+    rejeter = j
   })
-  return { promesse, resoudre }
+  return { promesse, resoudre, rejeter }
+}
+
+/** A hidden message's <article>: its body is folded, so it is found by its accessible name. */
+function articleMasque(auteur: string): HTMLElement {
+  return screen.getByRole('article', { name: `Message masqué de ${auteur}` })
 }
 
 /** The <article> that holds a message body. */
@@ -112,7 +119,9 @@ describe('SalonClasseProf', () => {
     expect(textes).toHaveLength(3)
     expect(textes[0]).toContain('Bonjour la 3e C, le salon est ouvert.')
     expect(textes[1]).toContain('Bonjour monsieur !')
-    expect(textes[2]).toContain('Un message hors sujet')
+    // The hidden one (body folded, see below) is third: its author and chip.
+    expect(textes[2]).toContain('Noé')
+    expect(textes[2]).toContain('Masqué')
 
     // Author: « Toi » for the teacher's own, the name otherwise; each one carries its date.
     expect(within(article('Bonjour la 3e C, le salon est ouvert.')).getByText('Toi')).toBeVisible()
@@ -123,16 +132,17 @@ describe('SalonClasseProf', () => {
     }
 
     // critère 4: the hidden message is there, marked, and distinct from a visible one.
-    expect(within(article('Un message hors sujet')).getByText('Masqué')).toBeVisible()
-    expect(within(article('Un message hors sujet')).getByText('Noé')).toBeVisible()
+    expect(within(articleMasque('Noé')).getByText('Masqué')).toBeVisible()
+    expect(within(articleMasque('Noé')).getByText('Noé')).toBeVisible()
     expect(within(article('Bonjour monsieur !')).queryByText('Masqué')).toBeNull()
     expect(
       within(article('Bonjour la 3e C, le salon est ouvert.')).queryByText('Masqué')
     ).toBeNull()
   })
 
-  // critère 4 + critère 3: « Masquer » on every visible message, never on a hidden one
-  it('offers « Masquer » on visible messages only, and never « Signaler »', async () => {
+  // critère 4 + critère 3: « Masquer » on the students' visible messages only (porte 5, V5:
+  // never on the teacher's own, which would close a report aimed at them), never « Signaler »
+  it('offers « Masquer » on the students’ visible messages only, and never « Signaler »', async () => {
     api.messagesDuSalon.mockResolvedValue([DU_PROF, DE_LEA, MASQUE])
     render(<SalonClasseProf salon={SALON} />)
     await screen.findByText('Bonjour monsieur !')
@@ -143,11 +153,11 @@ describe('SalonClasseProf', () => {
       })
     ).toBeVisible()
     expect(
-      within(article('Bonjour la 3e C, le salon est ouvert.')).getByRole('button', {
-        name: 'Masquer ton message',
+      within(article('Bonjour la 3e C, le salon est ouvert.')).queryByRole('button', {
+        name: /masquer/i,
       })
-    ).toBeVisible()
-    expect(within(article('Un message hors sujet')).queryByRole('button')).toBeNull()
+    ).toBeNull()
+    expect(within(articleMasque('Noé')).queryByRole('button', { name: /^masquer/i })).toBeNull()
 
     // No student tool on the teacher's screen.
     expect(screen.queryByRole('button', { name: /signaler/i })).toBeNull()
@@ -164,8 +174,14 @@ describe('SalonClasseProf', () => {
     expect(screen.queryByText(/ton professeur/i)).toBeNull()
     expect(document.body).not.toHaveTextContent(/ton professeur/i)
     expect(document.body).not.toHaveTextContent(/ton prof\b/i)
-    // The help under the field promises only what the salon checks (no phone number: issue 403).
-    expect(screen.getByText(/Pas de lien externe/)).toBeInTheDocument()
+    // The help under the field says exactly what the salon refuses (ModerationPreventive: only
+    // http(s):// and www. links; no phone number check, issue 403).
+    expect(
+      screen.getByText(
+        /Toute la classe peut le lire\. Les liens commençant par http:\/\/ ou www\. sont refusés\./
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Pas de lien externe/)).toBeNull()
     expect(document.body).not.toHaveTextContent(/téléphone/i)
     // The field is labelled for the teacher.
     expect(screen.getByLabelText(ZONE)).toBeInTheDocument()
@@ -308,22 +324,65 @@ describe('SalonClasseProf', () => {
       expect(api.masquerMessageSalon).toHaveBeenCalledWith(expect.any(String), 'm1')
     )
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(await within(article('Bonjour monsieur !')).findByText('Masqué')).toBeVisible()
+    const masque = await screen.findByRole('article', { name: 'Message masqué de Léa' })
+    expect(within(masque).getByText('Masqué')).toBeVisible()
+    // Folded once hidden: the body is no longer shown on the (projected) page.
+    expect(screen.getByText('Bonjour monsieur !')).not.toBeVisible()
     expect(screen.queryByRole('button', { name: 'Masquer le message de Léa' })).toBeNull()
     expect(api.messagesDuSalon).toHaveBeenCalledTimes(2)
   })
 
-  // critère 3: the teacher's own message has its own confirmation title
-  it('asks « Masquer ton message ? » for the teacher’s own message', async () => {
-    const user = userEvent.setup()
-    api.messagesDuSalon.mockResolvedValue([DU_PROF])
+  // critère 3 (porte 5, V5): no « Masquer » at all on the teacher's own messages
+  it('offers no « Masquer » on the teacher’s own messages', async () => {
+    api.messagesDuSalon.mockResolvedValue([
+      DU_PROF,
+      message({
+        id: 'm8',
+        auteurId: 'p1',
+        auteurNom: 'M. Dubois',
+        corps: 'Et demain ?',
+        estMoi: true,
+      }),
+    ])
     render(<SalonClasseProf salon={SALON} />)
     await screen.findByText('Bonjour la 3e C, le salon est ouvert.')
 
-    await user.click(screen.getByRole('button', { name: 'Masquer ton message' }))
-    expect(
-      within(await screen.findByRole('dialog')).getByText('Masquer ton message ?')
-    ).toBeVisible()
+    expect(screen.queryAllByRole('button', { name: /masquer/i })).toHaveLength(0)
+    expect(document.body).not.toHaveTextContent(/ton message \?/i)
+  })
+
+  // critère 4 (porte 5, V5): a hidden message's body is folded until the teacher asks for it
+  it('folds the body of a hidden message until « Afficher le contenu »', async () => {
+    const user = userEvent.setup()
+    api.messagesDuSalon.mockResolvedValue([DE_LEA, MASQUE])
+    render(<SalonClasseProf salon={SALON} />)
+    await screen.findByText('Bonjour monsieur !')
+
+    // Folded: the chip and the author stay, the body is not shown (kept in the DOM, `hidden`).
+    const masque = articleMasque('Noé')
+    expect(within(masque).getByText('Masqué')).toBeVisible()
+    expect(within(masque).getByText('Noé')).toBeVisible()
+    expect(screen.getByText('Un message hors sujet')).not.toBeVisible()
+
+    const bascule = within(masque).getByRole('button', {
+      name: 'Afficher le contenu du message masqué de Noé',
+    })
+    expect(bascule).toHaveTextContent('Afficher le contenu')
+    expect(bascule).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(bascule)
+    expect(within(masque).getByText('Un message hors sujet')).toBeVisible()
+    expect(bascule).toHaveAttribute('aria-expanded', 'true')
+    expect(bascule).toHaveTextContent('Cacher le contenu')
+    expect(within(masque).getByText('Masqué')).toBeVisible()
+    expect(within(masque).getByText('Noé')).toBeVisible()
+    // A visible message is not folded, and the hidden one still has no « Masquer ».
+    expect(screen.getByText('Bonjour monsieur !')).toBeVisible()
+    expect(within(masque).queryByRole('button', { name: /^masquer/i })).toBeNull()
+
+    await user.click(bascule)
+    expect(screen.getByText('Un message hors sujet')).not.toBeVisible()
+    expect(bascule).toHaveAttribute('aria-expanded', 'false')
   })
 
   // critère 3: a 404 shows the screen's own text, never the server's UUID
@@ -407,7 +466,11 @@ describe('SalonClasseProf', () => {
     expect(api.masquerMessageSalon).toHaveBeenCalledTimes(1)
 
     masquage.resoudre()
-    expect(await within(article('Bonjour monsieur !')).findByText('Masqué')).toBeVisible()
+    expect(
+      within(await screen.findByRole('article', { name: 'Message masqué de Léa' })).getByText(
+        'Masqué'
+      )
+    ).toBeVisible()
     expect(api.masquerMessageSalon).toHaveBeenCalledTimes(1)
   })
 
@@ -460,5 +523,100 @@ describe('SalonClasseProf', () => {
       expect(screen.getByText('Pensez au contrôle de jeudi.')).toBeInTheDocument()
     )
     expect(screen.getByText('Noé est arrivé')).toBeInTheDocument()
+  })
+
+  // critère 2 (porte 5, U7): after any failed send, focus goes back to the field, text kept
+  it.each([
+    ['422', new MessagerieError(422, "Les liens externes ne sont pas autorisés dans l'entraide.")],
+    ['429', new MessagerieError(429, 'Vous écrivez trop vite. Patientez un instant.')],
+    ['403', new MessagerieError(403, 'Votre accès à la messagerie est en lecture seule.')],
+    ['réseau', new TypeError('Failed to fetch')],
+  ])('puts the focus back in the field after a failed send (%s)', async (_cas, erreur) => {
+    const user = userEvent.setup()
+    api.messagesDuSalon.mockResolvedValue([DE_LEA])
+    api.publierDansSalon.mockRejectedValue(erreur)
+    render(<SalonClasseProf salon={SALON} />)
+
+    const zone = await screen.findByLabelText(ZONE)
+    await user.type(zone, 'Regardez www.exemple.org')
+    await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+    await screen.findByRole('alert')
+    await waitFor(() => expect(screen.getByLabelText(ZONE)).toHaveFocus())
+    expect(screen.getByLabelText(ZONE)).toHaveValue('Regardez www.exemple.org')
+  })
+
+  // critère 9′ (contre-épreuve, porte 5 V3-3) — an older reload that FAILS after a newer one
+  // succeeded must not raise an alert. Reload #2 (after a publication) is pending when
+  // « Actualiser » starts #3; #3 succeeds, then #2 rejects. Without the sequence guard on the
+  // error path (only on the success path), #2's catch sets the error: an alert « Impossible de
+  // charger les messages… » shows over an up-to-date list and `queryByRole('alert')` fails.
+  it('ignores the failure of an older reload once a newer one succeeded', async () => {
+    const user = userEvent.setup()
+    const recharge2 = differe<SalonMessageVue[]>()
+    const recharge3 = differe<SalonMessageVue[]>()
+    api.messagesDuSalon
+      .mockResolvedValueOnce([DE_LEA]) // #1, on mount
+      .mockReturnValueOnce(recharge2.promesse) // #2, after the publication
+      .mockReturnValueOnce(recharge3.promesse) // #3, « Actualiser »
+    api.publierDansSalon.mockResolvedValue('m9')
+    render(<SalonClasseProf salon={SALON} />)
+    await screen.findByText('Bonjour monsieur !')
+
+    await user.type(screen.getByLabelText(ZONE), 'Pensez au contrôle de jeudi.')
+    await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+    await waitFor(() => expect(api.messagesDuSalon).toHaveBeenCalledTimes(2))
+    await user.click(screen.getByRole('button', { name: 'Actualiser' }))
+    await waitFor(() => expect(api.messagesDuSalon).toHaveBeenCalledTimes(3))
+
+    recharge3.resoudre([
+      DE_LEA,
+      message({
+        id: 'm9',
+        auteurNom: 'M. Dubois',
+        corps: 'Pensez au contrôle de jeudi.',
+        estMoi: true,
+      }),
+    ])
+    expect(await screen.findByText('Pensez au contrôle de jeudi.')).toBeInTheDocument()
+    recharge2.rejeter(new TypeError('Failed to fetch'))
+    await new Promise((r) => setTimeout(r, 0))
+    // Give a stale catch every chance to render before asserting there is no alert.
+    await waitFor(() =>
+      expect(screen.getByText('Pensez au contrôle de jeudi.')).toBeInTheDocument()
+    )
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  // critère 9′ (contre-épreuve, porte 5 V3-3) — unmounting before the answer: no error, no warning.
+  // The answer arrives after the section is gone (the teacher left the page). Without a guard on
+  // the post-load work, its effects run on a dead component: a scroll or focus on a null list ref
+  // throws (unhandled rejection), or React logs an error/act warning. Either is caught below. Note:
+  // React 18+ no longer warns on a bare setState after unmount, so the guard is what keeps the
+  // post-load scroll/focus from touching a detached ref.
+  it('neither throws nor warns when unmounted before the answer', async () => {
+    const chargement = differe<SalonMessageVue[]>()
+    api.messagesDuSalon.mockReturnValue(chargement.promesse)
+    const erreurs = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const avertissements = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const rejets: unknown[] = []
+    const surRejet = (raison: unknown) => rejets.push(raison)
+    process.on('unhandledRejection', surRejet)
+    try {
+      const { unmount } = render(<SalonClasseProf salon={SALON} />)
+      await waitFor(() => expect(api.messagesDuSalon).toHaveBeenCalledTimes(1))
+      unmount()
+
+      chargement.resoudre([DE_LEA, MASQUE])
+      await new Promise((r) => setTimeout(r, 20))
+
+      expect(rejets).toEqual([])
+      expect(erreurs).not.toHaveBeenCalled()
+      expect(avertissements).not.toHaveBeenCalled()
+    } finally {
+      process.off('unhandledRejection', surRejet)
+      erreurs.mockRestore()
+      avertissements.mockRestore()
+    }
   })
 })

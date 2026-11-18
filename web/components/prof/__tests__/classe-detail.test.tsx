@@ -409,7 +409,7 @@ describe('ClasseDetail', () => {
       const salon = section()
       expect(salon).toHaveTextContent(/tes élèves et toi pourrez y écrire/i)
       expect(salon).toHaveTextContent(/tu le liras ici/i)
-      expect(salon).toHaveTextContent(/masquer n.importe quel message/i)
+      expect(salon).toHaveTextContent(/tu pourras masquer les messages de tes élèves/i)
       expect(salon).not.toHaveTextContent(/message signalé/i)
       expect(salon).not.toHaveTextContent(/ton professeur/i)
       const a = await api()

@@ -74,7 +74,11 @@
  *                                                 GET /api/prof/salons/signalements (403 for a student);
  *                                                 POST /api/prof/salons/messages/{id}/masquer 204,
  *                                                 closing its open reports (400 non-UUID id, 404
- *                                                 unknown, 403 for a student). 5e B is left untouched
+ *                                                 unknown, 403 for a student or a 5e B message).
+ *                                                 POST /api/prof/salons 201 { id } (403 for a class
+ *                                                 not taught, 400/422 on the title), the salon kept
+ *                                                 per teacher session (`e2e-enseignant-<uuid>`).
+ *                                                 5e B is left untouched
  *   anything else                                 404 (the catalogue too: the page falls back
  *                                                 to codes, nothing is invented)
  *
@@ -198,7 +202,20 @@ function connecte(req) {
 }
 
 function enseignant(req) {
-  return cookies(req).includes(E2E_SESSION_ENSEIGNANT)
+  return sessionEnseignant(req) !== null
+}
+
+/**
+ * The teacher session's cookie value: `e2e-enseignant`, or `e2e-enseignant-<uuid>` for a spec that
+ * needs state of its own (PL-7, #399: opening a salon must not be seen by the other project).
+ */
+function sessionEnseignant(req) {
+  const valeur = cookies(req)
+    .find((c) => c.startsWith('JSESSIONID='))
+    ?.slice('JSESSIONID='.length)
+  return valeur === 'e2e-enseignant' || /^e2e-enseignant-[0-9a-f-]{36}$/.test(valeur ?? '')
+    ? valeur
+    : null
 }
 
 function sansClasse(req) {
@@ -463,6 +480,48 @@ function salon3eCVue() {
 
 const LIEN_EXTERNE = /(https?:\/\/|\bwww\.)/i
 
+/**
+ * Why a salon message is refused, as [status, body], or null: @NotBlank on PublierRequest (400,
+ * before the service; message in the server's locale), then ModerationPreventive.valider (422).
+ * The rate limit (429) is covered by Vitest, not simulated.
+ */
+function refusDuMessage(brut) {
+  if (typeof brut !== 'string' || brut.trim() === '') {
+    return [400, { error: 'corps: must not be blank' }]
+  }
+  const texte = brut.trim()
+  if (texte.length > 2000) {
+    return [422, { error: 'Le message est trop long (max 2000 caractères).' }]
+  }
+  if (LIEN_EXTERNE.test(texte)) {
+    return [422, { error: "Les liens externes ne sont pas autorisés dans l'entraide." }]
+  }
+  return null
+}
+
+// Salons opened by a teacher session (POST /api/prof/salons, critère 5 of PL-7): kept per session
+// cookie, so that the desktop and mobile projects each open their own (the real backend has one
+// account and would see both). session -> [{ id, classeId, titre, statut, createdAt, messages }]
+const salonsOuverts = new Map()
+const CLASSES_ENSEIGNEES = () => [PROF_CLASSE.id, PROF_CLASSE_3EC.id]
+const TITRE_MAX = 120
+
+function salonsDeLaSession(req) {
+  return salonsOuverts.get(sessionEnseignant(req)) ?? []
+}
+
+/** SalonVue of a salon opened by this session (its messages are the teacher's only). */
+function salonOuvertVue(salon) {
+  return {
+    id: salon.id,
+    classeId: salon.classeId,
+    titre: salon.titre,
+    statut: salon.statut,
+    nbMessages: salon.messages.filter((m) => m.statut === 'publie').length,
+    createdAt: salon.createdAt,
+  }
+}
+
 /** The 3e C salon routes (PL-7, #399), in MessagerieService's order of checks. */
 async function salonDe3eC(req, res, pathname) {
   const methode = req.method
@@ -526,20 +585,12 @@ async function salonDe3eC(req, res, pathname) {
   if (routeMessages && methode === 'POST') {
     if (!connecte(req)) return send(res, 401)
     const brut = (await corps(req))?.corps
-    // @NotBlank on PublierRequest: refused before the service (message in the server's locale).
-    if (typeof brut !== 'string' || brut.trim() === '') {
-      return send(res, 400, { error: 'corps: must not be blank' })
-    }
+    const refus = refusDuMessage(brut)
+    if (refus?.[0] === 400) return send(res, ...refus)
     const auteur = membre3eC(req)
     if (!auteur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
-    // ModerationPreventive.valider. The rate limit (429) is covered by Vitest, not simulated.
+    if (refus) return send(res, ...refus)
     const texte = brut.trim()
-    if (texte.length > 2000) {
-      return send(res, 422, { error: 'Le message est trop long (max 2000 caractères).' })
-    }
-    if (LIEN_EXTERNE.test(texte)) {
-      return send(res, 422, { error: "Les liens externes ne sont pas autorisés dans l'entraide." })
-    }
     const id = randomUUID()
     messages3eC.push({
       id,
@@ -599,14 +650,79 @@ async function salonDe3eC(req, res, pathname) {
         })
     )
   }
+  // ProfMessagerieController.creer → MessagerieService.creerSalon: bean validation (400), then
+  // « teaches this class » (403), then validerTitre (422). No uniqueness per class in the backend.
+  if (methode === 'POST' && pathname === '/api/prof/salons') {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    const demande = await corps(req)
+    if (typeof demande?.classeId !== 'string') {
+      return send(res, 400, { error: 'classeId: must not be null' })
+    }
+    if (typeof demande?.titre !== 'string' || demande.titre.trim() === '') {
+      return send(res, 400, { error: 'titre: must not be blank' })
+    }
+    if (!CLASSES_ENSEIGNEES().includes(demande.classeId)) {
+      return send(res, 403, { error: "Vous n'enseignez pas cette classe." })
+    }
+    const titre = demande.titre.trim()
+    if (titre.length > TITRE_MAX) {
+      return send(res, 422, { error: `Le titre est trop long (max ${TITRE_MAX} caractères).` })
+    }
+    const salon = {
+      id: randomUUID(),
+      classeId: demande.classeId,
+      titre,
+      statut: 'ouvert',
+      createdAt: new Date().toISOString(),
+      messages: [],
+    }
+    const session = sessionEnseignant(req)
+    salonsOuverts.set(session, [...(salonsOuverts.get(session) ?? []), salon])
+    return send(res, 201, { id: salon.id })
+  }
+
+  // The messages of a salon this session opened: its teacher is the only member with a session.
+  const routeOuvert = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)
+  const ouvert = routeOuvert && salonsDeLaSession(req).find((x) => x.id === routeOuvert[1])
+  if (ouvert && methode === 'GET') {
+    return send(
+      res,
+      200,
+      ouvert.messages.map((m) => ({ ...m, auteurNom: ENSEIGNANT.nom, estMoi: true }))
+    )
+  }
+  if (ouvert && methode === 'POST') {
+    const brut = (await corps(req))?.corps
+    const refus = refusDuMessage(brut)
+    if (refus) return send(res, ...refus)
+    const id = randomUUID()
+    ouvert.messages.push({
+      id,
+      auteurId: ENSEIGNANT.id,
+      corps: brut.trim(),
+      statut: 'publie',
+      createdAt: new Date().toISOString(),
+    })
+    return send(res, 201, { id })
+  }
+
   const masquer = pathname.match(/^\/api\/prof\/salons\/messages\/([^/]+)\/masquer$/)
   if (masquer && methode === 'POST') {
     if (!connecte(req)) return send(res, 401)
     if (!enseignant(req)) return send(res, 403)
     const id = decodeURIComponent(masquer[1])
+    // A message of 5e B, a class the test teacher does not teach: PasModerateurException. (5e B's
+    // ids are not UUIDs, an existing simplification of this fake: the real ones would be.)
+    if (salonMessages.some((m) => m.id === id)) {
+      return send(res, 403, { error: 'Vous ne modérez pas cette classe.' })
+    }
     if (!UUID_JAVA.test(id)) return send(res, 400, { error: 'Requête invalide' })
-    const cible = messages3eC.find((m) => m.id === id.toLowerCase())
-    // Only 3e C is taught by the test teacher here: any other UUID names no message of theirs.
+    const cible =
+      messages3eC.find((m) => m.id === id.toLowerCase()) ??
+      salonsDeLaSession(req)
+        .flatMap((x) => x.messages)
+        .find((m) => m.id === id.toLowerCase())
     if (!cible) return send(res, 404, { error: `Message de salon introuvable : ${id}` })
     // Idempotent: hiding twice is a 204 with no further effect.
     cible.statut = 'masque'
@@ -1130,7 +1246,9 @@ const server = createServer(async (req, res) => {
     if (pathname === '/api/salons') {
       if (!connecte(req)) return send(res, 401)
       // The teacher teaches 4e A (no salon) and 3e C, not 5e B (PL-7, #399).
-      if (enseignant(req)) return send(res, 200, [salon3eCVue()])
+      if (enseignant(req)) {
+        return send(res, 200, [salon3eCVue(), ...salonsDeLaSession(req).map(salonOuvertVue)])
+      }
       return send(res, 200, sansClasse(req) ? [] : [SALON])
     }
     const messagesDuSalon = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)

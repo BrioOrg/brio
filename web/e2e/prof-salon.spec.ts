@@ -52,14 +52,28 @@ test('reads the salon of a class in 2 clicks from /prof', async ({ page }) => {
   expect(rang(DE_NOE)).toBeLessThan(rang(DEJA_MASQUE))
   const duProf = liste.getByRole('article').filter({ hasText: DU_PROF })
   await expect(duProf.getByText('Toi')).toBeVisible()
+  // Porte 5 (V5): no « Masquer » on the teacher's own message.
+  await expect(duProf.getByRole('button', { name: /masquer/i })).toHaveCount(0)
   await expect(
     liste.getByRole('article').filter({ hasText: DE_NOE }).getByText('Noé')
   ).toBeVisible()
 
-  // critère 4: the hidden message is shown to the teacher, marked; no « Signaler » anywhere.
-  const masque = liste.getByRole('article').filter({ hasText: DEJA_MASQUE })
+  // critère 4: the hidden message is shown to the teacher, marked, its body folded until asked
+  // (porte 5, V5: the page may be projected); no « Signaler » anywhere.
+  const masque = liste.getByRole('article', { name: 'Message masqué de Lou' })
   await expect(masque.getByText('Masqué', { exact: true })).toBeVisible()
-  await expect(masque.getByRole('button')).toHaveCount(0)
+  await expect(masque.getByText('Lou')).toBeVisible()
+  await expect(masque.getByText(DEJA_MASQUE)).toBeHidden()
+  await expect(masque.getByRole('button', { name: /^masquer/i })).toHaveCount(0)
+  const bascule = masque.getByRole('button', {
+    name: 'Afficher le contenu du message masqué de Lou',
+  })
+  await expect(bascule).toHaveAttribute('aria-expanded', 'false')
+  await bascule.click()
+  await expect(masque.getByText(DEJA_MASQUE)).toBeVisible()
+  await expect(
+    masque.getByRole('button', { name: /contenu du message masqué de Lou/ })
+  ).toHaveAttribute('aria-expanded', 'true')
   await expect(page.getByRole('button', { name: /signaler/i })).toHaveCount(0)
 })
 
@@ -150,7 +164,9 @@ test('hides a reported student message: « Masqué » for the teacher, out of th
   await dialogue.getByRole('button', { name: 'Masquer', exact: true }).click()
   await expect(dialogue).toBeHidden()
   await expect(message.getByText('Masqué', { exact: true })).toBeVisible()
-  await expect(message.getByRole('button', { name: /Masquer/ })).toHaveCount(0)
+  await expect(message.getByRole('button', { name: /^Masquer/ })).toHaveCount(0)
+  // Folded once hidden.
+  await expect(message.getByText(texte)).toBeHidden()
   // Without leaving the page.
   await expect(page).toHaveURL(CLASSE_3EC)
 
@@ -168,6 +184,34 @@ test('hides a reported student message: « Masqué » for the teacher, out of th
   await page.goto('/ma-classe/salon')
   await expect(page.getByText(DE_NOE)).toBeVisible({ timeout: 20_000 })
   await expect(page.getByText(texte)).toHaveCount(0)
+})
+
+// critère 5: a class without salon; opening it shows the salon in place. The teacher session is
+// unique to this test (`e2e-enseignant-<uuid>`): the fake backend keeps the opened salon per
+// session, so the desktop and mobile projects each start from a class without salon.
+test('opens the salon of a class and shows it without leaving the page', async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  await sessionDe(context, baseURL, `e2e-enseignant-${randomUUID()}`)
+  await page.goto('/prof/classes')
+  await expect(page.getByRole('link', { name: /3e C/ }).first()).toBeVisible({ timeout: 20_000 })
+  await page.getByRole('link', { name: /4e A/ }).first().click()
+  await expect(page).toHaveURL('/prof/classes/classe-4eA', { timeout: 20_000 })
+
+  const salon = page.getByRole('region', { name: 'Salon de la classe' })
+  const ouvrir = salon.getByRole('button', { name: 'Ouvrir le salon' })
+  await expect(ouvrir).toBeVisible({ timeout: 20_000 })
+  await ouvrir.click()
+
+  const champ = salon.getByLabel('Ton message à la classe')
+  await expect(champ).toBeVisible()
+  await expect(champ).toBeFocused()
+  await expect(salon.getByRole('button', { name: 'Envoyer' })).toBeVisible()
+  await expect(ouvrir).toHaveCount(0)
+  await expect(page.getByRole('status').filter({ hasText: 'Salon ouvert.' })).toBeAttached()
+  await expect(page).toHaveURL('/prof/classes/classe-4eA')
 })
 
 // critère 7: the student screen keeps its behaviour
