@@ -453,19 +453,75 @@ qui ne s'analyse pas, ligne par ligne.
   | `dire …` | apparence |
   | `avancer de … pas` / `tourner à droite de … degrés` (ou `à gauche`) | mouvement |
   | `répéter … fois` … `fin` | contrôle |
+  | `si <booléen> alors` … `fin` | contrôle |
+  | `si <booléen> alors` … `sinon` … `fin` | contrôle |
+  | `répéter jusqu'à ce que <booléen>` … `fin` | contrôle |
+  | `stylo en position d'écriture` / `relever le stylo` / `effacer tout` | stylo |
 
 - **Une valeur** est un nombre (`3`, `2,5`, `-1`), un texte entre « », une variable (`x`, ou
   `(x)`), `réponse`, ou une opération **entre parenthèses** : `(x * 3)`. Une parenthèse par
   opération, comme les blocs emboîtés : `((x * 3) + 4)`, jamais `(x * 3 + 4)`.
+- **Un booléen** (hexagone, pour une condition) est une **comparaison** `(x > 10)`, `(n = 0)`
+  avec `<`, `=` ou `>`, un **« et »/« ou »** de deux booléens : `((x > 0) et (x < 10))`, ou un
+  **« non »** d'un booléen : `(non (x = 0))`. Une parenthèse par opérateur, comme les valeurs —
+  aucune priorité. En position d'opérateur, `et`/`ou` sont toujours l'opérateur logique et
+  exigent deux booléens (`(x et y)` est une erreur) ; `non` l'est quand une parenthèse le suit ;
+  en opérande, ce sont des noms de variables. La condition d'un `si` ou d'un `répéter jusqu'à ce
+  que` **doit** être un booléen, jamais un nombre ; et un booléen ne peut pas occuper une place
+  de valeur (`dire (a < b)` est refusé : Scratch l'accepte, mais Brio s'en tient aux conditions).
+- **Scratch n'a ni ≤, ni ≥, ni ≠** : écrire `((x < 3) ou (x = 3))` ou `(non (x = 3))` (le
+  parseur le rappelle si on tape `≤`, `<=`, `≠` ou `!=`).
+- **Le sens des blocs, comme dans Scratch** (piège pour un exercice « prévoir la valeur ») :
+  - `répéter jusqu'à ce que` teste la condition **avant** chaque tour : si elle est vraie dès le
+    départ, le corps ne s'exécute pas (contrairement au « Répéter … Jusqu'à » de l'algorithmique
+    papier, qui teste après) ;
+  - `=` ne distingue pas majuscules et minuscules : `(« Oui » = « oui »)` est vrai ;
+  - dans un programme, **préférer les entiers** : Brio écrit les décimaux avec une virgule, mais
+    pour Scratch `2,5` n'est pas un nombre — il vaut 0 dans un calcul (`(x * 2,5)` donne 0) et
+    devient du texte dans une comparaison (avec x = 10, `(x > 2,5)` est faux). Un élève qui
+    recopie le programme dans Scratch obtiendrait un autre résultat.
 - **Le vrai signe de Scratch** : `*` et `/`, pas × ni ÷ (refusés). Le `code` n'est pas du texte
   riche, l'étoile n'y ouvre pas d'italique.
-- **La boucle** : le corps est décalé de **4 espaces** (pas de tabulation), et `fin` revient à la
-  hauteur de `répéter`. Une boucle vide est refusée.
+- **Les blocs en C** (`répéter … fois`, `si … alors`, `répéter jusqu'à ce que …`) : le corps est
+  décalé de **4 espaces** (pas de tabulation) et fermé par `fin` à la hauteur du bloc. `sinon`
+  (aligné sur son `si`) ouvre la seconde branche d'un `si`. Un corps vide est refusé.
 - Pas de ligne vide. Les noms de variables n'ont pas d'espace (`résultat`, `nb_pas`).
-- **Hors catalogue** (conditions, comparaisons, « répéter jusqu'à », stylo) : garder un bloc `code`
-  en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute (#234).
+- **Hors catalogue** : tout autre bloc (p. ex. `répéter indéfiniment`, attendre, messages, autres
+  blocs stylo) — garder un bloc `code` en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute.
+- Les apostrophes droite ' et typographique ’ sont acceptées dans `répéter jusqu'à ce que` et
+  `stylo en position d'écriture`. Pas plus de 32 niveaux de parenthèses ou de blocs imbriqués.
 - Un énoncé ou une option de QCM est du texte riche : un programme y reste écrit en texte, avec ×.
   Un exercice sur un programme suit le bloc `code`.
+- **« Prévoir la valeur » vérifié par la CI** (#232) : un exercice `numeric` (ou un QCM dont la
+  seule bonne réponse est un nombre) peut se relier au programme qu'il interroge avec un champ
+  `program`. `check:content` exécute alors le programme et refuse l'exercice si ce que dit le
+  lutin (le dernier `dire`) ne correspond pas à la réponse attendue — une erreur de calcul dans
+  le contenu devient une erreur de CI. Les `si … sinon`, `répéter jusqu'à ce que` et comparaisons
+  s'exécutent comme dans Scratch (voir « Le sens des blocs » ci-dessus) ; une boucle qui ne
+  s'arrête jamais, ou un `demander` sans valeur dans `inputs`, est aussi une erreur de CI.
+  Dans un programme relié :
+  - le dernier `dire` doit être **un nombre** (un texte, une `réponse` vide ne valent pas 0) ;
+  - les décimaux s'écrivent avec **un point** (`2.5`), dans le code comme dans `inputs` :
+    Scratch lit « 2,5 » comme du texte ;
+  - chaque valeur de `inputs` sert à un `demander`, et elle **redit l'énoncé** (« l'utilisateur
+    tape 5 ») : elle part chez l'élève, ce n'est jamais un corrigé caché ;
+  - chaque variable est **mise à une valeur avant d'être lue** (`mettre n à 0`) : Scratch garde
+    les variables d'un clic sur le drapeau à l'autre, la CI repart de 0 ;
+  - le nombre de tours d'un `répéter` est entier (Scratch arrondirait) ;
+  - un résultat décimal peut s'afficher avec un bruit d'arrondi dans Scratch
+    (`0.1 + 0.2` → 0.30000000000000004) : préférer des calculs entiers ;
+  - aucune mauvaise option d'un QCM ne vaut la valeur calculée.
+
+  ```json
+  { "id": "ex-prevoir-cinq", "type": "exercise", "exerciseType": "numeric",
+    "prompt": "L'utilisateur tape 5. Quel nombre dit le lutin ?", "answer": 19,
+    "program": { "ref": "code-programme-calcul", "inputs": ["5"] } }
+  ```
+
+  `ref` = l'`id` d'un bloc `code` Scratch **n'importe où dans le chapitre** (il peut être dans une
+  section précédente : « le programme du début »). `inputs` (optionnel) alimente les `demander`
+  dans l'ordre. Les programmes de **mouvement** (`avancer`/`tourner`) ne disent rien : ils ne se
+  relient pas à un exercice (une distance parcourue n'est pas ce que dit le lutin).
 
 ### Formules
 

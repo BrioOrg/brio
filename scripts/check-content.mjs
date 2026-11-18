@@ -45,7 +45,10 @@
  * 4. Scratch programmes (ADR 0031): a code block with language "scratch" must parse with the
  *    renderer's own parser (packages/content/src/scratch.ts), every faulty line reported. The
  *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
- *    Scratch's multiplication sign there.
+ *    Scratch's multiplication sign there. An exercise that carries a `program` field
+ *    ({ ref, inputs? }, #232) is evaluated with the renderer's own evaluator
+ *    (packages/content/src/scratch-eval.ts): what the sprite says must match the answer the
+ *    exercise expects, so a wrong computation in the content is a CI error.
  *
  * 4b. Worked calculations (ADR 0042): 2 to 12 lines, none blank; each line splits on its
  *    relation (balanced groups; one relation per equation line; a chain line holds none but a
@@ -76,6 +79,8 @@ import { join, relative } from 'node:path'
 
 let parseRichText
 let parseScratch
+let evaluateScratch
+let strictScratchNumber
 let RESERVED_DIAPO_IDS
 let checkChart
 let checkTones
@@ -84,6 +89,12 @@ let checkTree
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
+  ;({
+    evaluateScratch,
+    strictNumber: strictScratchNumber,
+  } = await import(
+    '../packages/content/src/scratch-eval.ts'
+  ))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
   ;({ checkTones } = await import('../packages/content/src/tone.ts'))
@@ -207,6 +218,8 @@ function walkStrings(node, file, path) {
     for (const [key, value] of Object.entries(node)) {
       // A code block's text is shown as written, never as rich text (ADR 0031).
       if (node.type === 'code' && key === 'code') continue
+      // An exercise's `program` link (#232) holds an id and Scratch inputs, not rich text.
+      if (node.type === 'exercise' && key === 'program') continue
       walkStrings(value, file, path ? `${path}.${key}` : key)
     }
   }
@@ -668,6 +681,172 @@ function checkScratchBlock(block, file, path) {
   }
 }
 
+// --- "Prévoir la valeur" exercises (ADR 0031 amendment, #232) ---
+//
+// An exercise opts in to evaluation with a `program` field: { ref, inputs? }. `ref` is the id
+// of a Scratch `code` block anywhere in the chapter; `inputs` feeds its `demander` blocks.
+// check-content runs the renderer's own evaluator on that programme and compares what the
+// sprite says (the last « dire ») to the answer the exercise expects, so a wrong computation
+// in the content is a CI error. Linking is explicit, not positional: a reference crosses
+// sections ("le programme du début"), survives a block being reordered, and never catches an
+// exercise that merely follows a programme but asks something else (a distance, a shape, a
+// transformation). Motion programmes (avancer/tourner) say nothing, so they are not evaluated
+// this way in v1.
+
+// The numeric answer an exercise expects, with its tolerance — or null when it carries none
+// a programme can be checked against.
+function expectedScratchAnswer(ex) {
+  if (ex.exerciseType === 'numeric' && typeof ex.answer === 'number') {
+    return { value: ex.answer, tolerance: typeof ex.tolerance === 'number' ? ex.tolerance : 0 }
+  }
+  if (ex.exerciseType === 'multiple-choice' && Array.isArray(ex.choices)) {
+    const correct = ex.choices.filter((c) => c && c.correct)
+    if (correct.length === 1) {
+      // Strict: an empty or non-numeric choice is not 0.
+      const n = strictScratchNumber(String(correct[0].text ?? ''))
+      if (n !== null && Number.isFinite(n)) return { value: n, tolerance: 0 }
+    }
+  }
+  return null
+}
+
+// Float noise: 1,1 * 3 is 3.3000000000000003 — the same value for a reader.
+const SCRATCH_EPSILON = 1e-9
+
+// A decimal written with a comma is a number for Brio but not for Scratch, which reads « 2,5 » as
+// text: 0 in a calculation, a text in a comparison. A checked programme, and its inputs, must
+// therefore write decimals with a point, or the CI would validate what Scratch does not do.
+function commaDecimals(node, found = []) {
+  if (Array.isArray(node)) node.forEach((n) => commaDecimals(n, found))
+  else if (node !== null && typeof node === 'object') {
+    if (node.kind === 'number' && typeof node.text === 'string' && node.text.includes(',')) {
+      found.push(node.text)
+    }
+    for (const value of Object.values(node)) commaDecimals(value, found)
+  }
+  return found
+}
+const COMMA_DECIMAL = /^\s*-?\d+,\d+\s*$/
+
+function checkScratchExercises(doc, file) {
+  const programs = new Map()
+  for (const section of doc.sections ?? []) {
+    for (const block of section.blocks ?? []) {
+      if (block.type === 'code' && block.language === 'scratch') programs.set(block.id, block)
+    }
+  }
+  for (const section of doc.sections ?? []) {
+    for (let i = 0; i < (section.blocks ?? []).length; i++) {
+      const block = section.blocks[i]
+      if (block.type !== 'exercise' || block.program === undefined) continue
+      const path = `sections[id=${section.id}].blocks[${i}].program`
+      const link = block.program
+      if (typeof link !== 'object' || link === null || typeof link.ref !== 'string') {
+        fail(file, path, 'program must be an object with a string "ref" (the Scratch block id)')
+        continue
+      }
+      if (
+        link.inputs !== undefined &&
+        (!Array.isArray(link.inputs) ||
+          link.inputs.some((v) => typeof v !== 'string' && typeof v !== 'number'))
+      ) {
+        fail(file, path + '.inputs', 'inputs must be an array of strings or numbers')
+        continue
+      }
+      const program = programs.get(link.ref)
+      if (!program) {
+        fail(file, path + '.ref', `no Scratch programme with id "${link.ref}" in this chapter`)
+        continue
+      }
+      const parsed = parseScratch(program.code)
+      // A parse error on the programme is already reported by checkScratchBlock; don't repeat it.
+      if (!parsed.ok) continue
+      const expected = expectedScratchAnswer(block)
+      if (!expected) {
+        fail(
+          file,
+          path,
+          'an exercise linked to a programme must be numeric, or multiple-choice with a single ' +
+            'numeric correct answer, so the computed value can be compared',
+        )
+        continue
+      }
+      const commas = commaDecimals(parsed.script)
+      const commaInputs = (link.inputs ?? []).filter((v) => typeof v === 'string' && COMMA_DECIMAL.test(v))
+      if (commas.length > 0 || commaInputs.length > 0) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" writes a decimal with a comma (${[...commas, ...commaInputs].join(', ')}): ` +
+            'Scratch reads it as text, so write it with a point (2.5) or use whole numbers',
+        )
+        continue
+      }
+      const result = evaluateScratch(parsed.script, { inputs: link.inputs ?? [] })
+      if (!result.ok) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" cannot be evaluated: ${result.error.message} (line ${result.error.line})`,
+        )
+        continue
+      }
+      if (result.says.length === 0) {
+        fail(
+          file,
+          path + '.ref',
+          `programme "${link.ref}" says nothing (no « dire »), so there is no value to check`,
+        )
+        continue
+      }
+      const said = result.says[result.says.length - 1]
+      const computed = strictScratchNumber(said)
+      if (computed === null || !Number.isFinite(computed)) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" makes the sprite say « ${said} », not a number, so it cannot be ` +
+            'compared with the expected answer',
+        )
+        continue
+      }
+      const inputCount = (link.inputs ?? []).length
+      if (result.inputsUsed < inputCount) {
+        fail(
+          file,
+          path + '.inputs',
+          `programme "${link.ref}" uses ${result.inputsUsed} of the ${inputCount} inputs given ` +
+            '(one per « demander »): wrong programme, or inputs to remove',
+        )
+        continue
+      }
+      if (Math.abs(computed - expected.value) > expected.tolerance + SCRATCH_EPSILON) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" makes the sprite say ${computed}, but the exercise expects ${expected.value}` +
+            (expected.tolerance ? ` (± ${expected.tolerance})` : ''),
+        )
+        continue
+      }
+      // A wrong choice of a multiple-choice that equals the computed value would be marked wrong
+      // while the programme says it.
+      if (block.exerciseType === 'multiple-choice') {
+        for (const choice of block.choices.filter((c) => c && !c.correct)) {
+          const n = strictScratchNumber(String(choice.text ?? ''))
+          if (n !== null && Math.abs(n - computed) <= SCRATCH_EPSILON) {
+            fail(
+              file,
+              path,
+              `programme "${link.ref}" says ${computed}, which is also the wrong choice « ${choice.text} »`,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
 function checkFigures(doc, file) {
   for (const section of doc.sections ?? []) {
     for (let i = 0; i < (section.blocks ?? []).length; i++) {
@@ -732,10 +911,16 @@ function jsonFilesUnder(dir) {
     .map((e) => join(e.parentPath, e.name))
 }
 
-const contentFiles = [
-  ...jsonFilesUnder(join(repoRoot, 'content')).filter((f) => !f.includes('/referentiel/')),
-  ...jsonFilesUnder(join(repoRoot, 'docs/schema/examples')),
-]
+// `--root <dir>` checks the JSON files under <dir> instead of the catalogue (tests use it with
+// fixture chapters; CI runs without it).
+const rootFlag = process.argv.indexOf('--root')
+const contentFiles =
+  rootFlag !== -1
+    ? jsonFilesUnder(process.argv[rootFlag + 1])
+    : [
+        ...jsonFilesUnder(join(repoRoot, 'content')).filter((f) => !f.includes('/referentiel/')),
+        ...jsonFilesUnder(join(repoRoot, 'docs/schema/examples')),
+      ]
 
 // Chapter files only: _index.json manifests and annale *.meta.json carry no chapter id.
 function isChapterFile(file) {
@@ -751,10 +936,17 @@ const filesById = new Map()
 
 let fileCount = 0
 for (const file of contentFiles) {
+  let doc
   try {
-    const doc = JSON.parse(readFileSync(file, 'utf8'))
+    doc = JSON.parse(readFileSync(file, 'utf8'))
+  } catch (e) {
+    errors.push(`${relative(repoRoot, file)}: invalid JSON: ${e.message}`)
+    continue
+  }
+  try {
     walkStrings(doc, file, '')
     checkFigures(doc, file)
+    checkScratchExercises(doc, file)
     checkToneBlocks(doc, file)
     checkBlockIds(doc, file)
     if (isChapterFile(file) && typeof doc.id === 'string') {
@@ -762,7 +954,8 @@ for (const file of contentFiles) {
     }
     fileCount++
   } catch (e) {
-    errors.push(`${relative(repoRoot, file)}: invalid JSON: ${e.message}`)
+    // A check that throws is a bug in this script, not in the content: say so, don't blame JSON.
+    errors.push(`${relative(repoRoot, file)}: internal error while checking: ${e.stack ?? e}`)
   }
 }
 

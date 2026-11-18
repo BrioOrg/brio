@@ -120,17 +120,30 @@ export {
 
 export type {
   ScratchOperator,
+  ScratchComparator,
+  ScratchLogical,
+  ScratchBoolean,
   ScratchValue,
   ScratchStatement,
   ScratchError,
   ScratchErrorCode,
   ScratchErrorParams,
+  ScratchBlockType,
   ScratchParseResult,
   ScratchCategory,
   ScratchPart,
   ScratchBlock,
 } from './scratch'
 export { parseScratch, buildScratchModel } from './scratch'
+
+export type {
+  ScratchRuntimeValue,
+  ScratchEvalError,
+  ScratchEvalErrorCode,
+  ScratchEvalResult,
+  ScratchEvalOptions,
+} from './scratch-eval'
+export { evaluateScratch, toNumber } from './scratch-eval'
 
 export type {
   CalculMode,
