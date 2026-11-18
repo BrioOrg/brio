@@ -114,6 +114,11 @@ public class EntraideService {
         if (message.getAuteurId().equals(fil.getAuteurId())) {
             throw new MessageInvalideException("On ne retient pas sa propre réponse.");
         }
+        if (message.getAuteurId().equals(PurgeRetention.COMPTE_ANONYME)) {
+            // Anonymised by the retention purge: no one to credit, and crediting the nil account
+            // would only create a ghost balance (ADR 0023 §6).
+            throw new MessageInvalideException("Cette réponse est trop ancienne pour être retenue.");
+        }
         if (message.estUtile()) {
             return; // déjà retenue — idempotent, pas de double XP
         }
