@@ -168,8 +168,9 @@ function courseSectionOf(section: Section): CourseSection | undefined {
 }
 
 /**
- * The number of steps of each `steps` and `calcul` block, by block id: what the interactive mode
- * reveals one at a time (a calculation's lines, then its conclusion).
+ * The number of steps of each block the interactive mode reveals one at a time, by block id: a
+ * `steps` block, one step each; a `calcul` block, its lines then its conclusion; a figure with
+ * transformations, its source then each image (ADR 0041).
  */
 export function etapesParBloc(chapitre: ChapitreResponse): Record<string, number> {
   return Object.fromEntries(
@@ -177,10 +178,16 @@ export function etapesParBloc(chapitre: ChapitreResponse): Record<string, number
       section.blocks.flatMap((b): [string, number][] => {
         if (b.type === 'steps' && Array.isArray(b.steps)) return [[b.id, b.steps.length]]
         if (b.type === 'calcul' && Array.isArray(b.lines)) return [[b.id, calculSteps(b)]]
-        return []
+        const transformations = b.type === 'figure' ? figureTransformations(b.spec) : 0
+        return transformations > 0 ? [[b.id, transformations + 1]] : []
       })
     )
   )
+}
+
+function figureTransformations(spec: unknown): number {
+  if (typeof spec !== 'object' || spec === null || !('transformations' in spec)) return 0
+  return Array.isArray(spec.transformations) ? spec.transformations.length : 0
 }
 
 /**

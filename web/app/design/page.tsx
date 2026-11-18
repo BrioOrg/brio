@@ -6,6 +6,8 @@ import { EditeurMessageDemo } from './editeur-message-demo'
 import { CalculDemo } from './calcul-demo'
 import { MotionDemo } from './motion-demo'
 import { SoundDemo } from './sound-demo'
+import { TransformationsDemo } from './transformations-demo'
+import { SolidRenderer } from '@/components/solid-renderer'
 import { BlocsCommunaute } from '@/components/blocs/blocs-communaute'
 import { CalculRenderer } from '@/components/calcul-renderer'
 import { Button } from '@/components/ui/button'
@@ -29,6 +31,7 @@ import { FigureRenderer } from '@/components/figure-renderer'
 import { renderKatex } from '@/lib/katex'
 import { TreeRenderer } from '@/components/tree-renderer'
 import type { FigureSpec, TreeSpec } from '@brio/content'
+import { FigureParametree } from '@/components/figure-parametree'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -326,7 +329,9 @@ export default function DesignPage() {
               }}
             />
           </div>
-          <Label>Équation : l’opération sous les deux membres, ligne par ligne en mode interactif</Label>
+          <Label>
+            Équation : l’opération sous les deux membres, ligne par ligne en mode interactif
+          </Label>
           <CalculDemo />
         </Section>
 
@@ -425,6 +430,144 @@ export default function DesignPage() {
             <TreeRenderer
               spec={ARBRE_CONTRAIRE}
               alt="Arbre vertical des événements A, non A, B et non B."
+            />
+          </div>
+        </Section>
+
+        <Section title="Transformations, vecteurs et droites" id="transformations">
+          <Label>
+            Source en ink, image en tone-1, construction en ink-muted · images et codages calculés
+            (ADR 0041)
+          </Label>
+          <TransformationsDemo />
+        </Section>
+
+        {/* ── Function curves (ADR 0038) ────────────────────────────────────── */}
+        <Section title="Courbes de fonctions" id="courbes">
+          <Label>La courbe en ink, la lecture seule en couleur — guides, point et valeurs</Label>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FigureRenderer
+              alt="Parabole de f(x) = x²/2 − 2 ; les antécédents de 2 par f sont −2,83 et 2,83 environ."
+              caption="Antécédents de 2 par f."
+              spec={{
+                axes: {
+                  x: { from: -4, to: 4, step: 1 },
+                  y: { from: -3, to: 5, step: 1 },
+                  grid: true,
+                },
+                functions: [{ name: 'f', expr: 'x²/2 − 2', label: true }],
+                readings: [{ function: 'f', y: 2 }],
+              }}
+            />
+            <FigureRenderer
+              alt="Hyperbole de la fonction inverse, en deux branches, et l’image de 0,5 : 2."
+              caption="Fonction inverse : la courbe s’interrompt en 0."
+              spec={{
+                axes: {
+                  x: { from: -4, to: 4, step: 1 },
+                  y: { from: -4, to: 4, step: 1 },
+                  grid: true,
+                },
+                functions: [{ name: 'g', expr: '1/x', label: true }],
+                readings: [{ function: 'g', x: 0.5 }],
+              }}
+            />
+            <FigureRenderer
+              alt="Courbe de la racine carrée sur [0 ; 9] et droite de h(x) = x/3 en pointillés."
+              caption="Deux courbes, chacune dans le ton de sa formule (tone-1, tone-2)."
+              spec={{
+                axes: {
+                  x: { from: 0, to: 9, step: 1 },
+                  y: { from: 0, to: 4, step: 1 },
+                  grid: true,
+                },
+                functions: [
+                  { name: 'r', expr: '√x', label: true, tone: 1 },
+                  { name: 'h', expr: 'x/3', label: true, style: 'dashed', tone: 2 },
+                ],
+              }}
+            />
+            <FigureParametree
+              alt="Droite d’équation y = ax + 1 ; un curseur règle a de −2 à 2."
+              caption="Un curseur par paramètre."
+              spec={{
+                axes: {
+                  x: { from: -4, to: 4, step: 1 },
+                  y: { from: -4, to: 4, step: 1 },
+                  grid: true,
+                },
+                functions: [{ name: 'f', expr: 'ax + 1', label: true }],
+                parameters: [{ name: 'a', min: -2, max: 2, step: 0.25, value: 0.5 }],
+                readings: [{ function: 'f', x: 2 }],
+              }}
+            />
+          </div>
+        </Section>
+
+        <Section title="Solides à faire tourner">
+          <Label>
+            Vue de départ du manuel, arêtes cachées en pointillés, section en ton 1 (ADR 0039)
+          </Label>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <SolidRenderer
+              spec={{
+                kind: 'pave',
+                width: 4,
+                height: 3,
+                depth: 2,
+                names: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+              }}
+              alt="Un pavé droit ABCDEFGH ; les arêtes [AE], [EF] et [EH] sont cachées."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'pyramide',
+                base: [
+                  { x: 0, y: 0 },
+                  { x: 4, y: 0 },
+                  { x: 4, y: 4 },
+                  { x: 0, y: 4 },
+                ],
+                height: 4,
+                names: ['A', 'B', 'C', 'D', 'S'],
+                section: { at: 2 },
+              }}
+              alt="Une pyramide SABCD à base carrée, coupée à mi-hauteur par un plan parallèle à sa base."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'cone',
+                radius: 2,
+                height: 4.5,
+                names: ['O', 'S'],
+                section: { at: 1.5 },
+              }}
+              alt="Un cône de sommet S et de base le disque de centre O, coupé par un plan parallèle à sa base."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'cylindre',
+                radius: 2,
+                height: 4,
+                section: { parallelTo: 'axis', at: 1 },
+              }}
+              alt="Un cylindre coupé par un plan parallèle à son axe : la section est un rectangle."
+            />
+            <SolidRenderer
+              spec={{
+                kind: 'boule',
+                radius: 3,
+                names: ['O'],
+                equator: true,
+                parallels: [45],
+                meridians: [0, 60],
+                points: [{ name: 'M', latitude: 45, longitude: 60 }],
+              }}
+              alt="Une sphère de centre O avec l’équateur, le parallèle 45° N, les méridiens 0° et 60° E, et le point M (45° N ; 60° E)."
+            />
+            <SolidRenderer
+              spec={{ kind: 'boule', radius: 3, names: ['O'], section: { at: 1.5 } }}
+              alt="Une boule de centre O coupée par un plan à 1,5 du centre : la section est un disque."
             />
           </div>
         </Section>

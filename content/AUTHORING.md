@@ -256,6 +256,27 @@ Pour lire ou placer des points, tracer une courbe ou un graphique de proportionn
   (trait de construction, axe de symétrie). Un seul côté d'un polygone en pointillés : un
   segment à part.
 
+#### Courbes de fonctions (ADR 0038)
+
+Une fonction se trace par son expression, jamais par une ligne brisée : une `polylines` reste
+réservée aux relevés (températures heure par heure).
+
+```json
+"functions":  [{ "name": "f", "expr": "4x", "domain": [0, 6], "label": true }],
+"readings":   [{ "function": "f", "x": 3 }, { "function": "f", "y": 20 }],
+"parameters": [{ "name": "a", "min": 0.5, "max": 4, "step": 0.5, "value": 1.5 }]
+```
+
+- `expr` s'écrit comme sur papier, sans « f(x) = » : `2x + 1`, `x² − 3`, `1/x`, `√x`, `3(x + 1)`,
+  virgule décimale permise. Seuls `x` et les lettres de `parameters` sont acceptés.
+  `1/2x` se lit (1/2) × x : écris `1/(2x)` pour l'autre sens.
+- `label: true` écrit 𝒞f près de la courbe ; un texte (`"Tarif A"`) l'écrit à la place. En 5e,
+  on n'écrit souvent aucun nom.
+- Une lecture `x` montre l'image, une lecture `y` tous les antécédents visibles : pointillés et
+  valeurs en couleur. Elle donne la réponse : jamais sur la figure d'un exercice qui la demande.
+- Un paramètre ajoute un curseur sous la figure ; l'impression utilise `value`.
+- `tone: 1…4` colore la courbe comme sa formule dans le texte, rien d'autre.
+
 #### Arcs et figures composées
 
 Un arc de cercle est un élément `arcs` (ADR 0013, amendement #227) : jamais une suite de petits
@@ -370,6 +391,46 @@ Recette — dessiner l'assemblage dont le plan coté est « fond 2, 1, 0 ; devan
   montre déjà la réponse. Le plan coté seul fait travailler le raisonnement.
 - Les **vues** (dessus, face, côté) ne sont pas dessinées par le renderer.
 
+#### Transformations, vecteurs et droites
+
+Une image par symétrie, translation, rotation ou homothétie ne se calcule **jamais** à la main
+(ADR 0041) : on écrit la figure de départ et la transformation, le renderer place les images,
+les nomme A′, B′, C′ (vrai prime) et trace la figure image en couleur.
+
+```json
+"spec": {
+  "points": [
+    { "name": "P", "x": 0, "y": -2, "dot": false, "showName": false },
+    { "name": "Q", "x": 0, "y": 5, "dot": false, "showName": false },
+    { "name": "A", "x": -5, "y": -1 }, { "name": "B", "x": -2, "y": 1 }, { "name": "C", "x": -3, "y": 4 }
+  ],
+  "polygons": [{ "vertices": ["A", "B", "C"] }],
+  "lines": [{ "through": ["P", "Q"], "label": "(d)" }],
+  "transformations": [
+    { "kind": "symetrie-axiale", "axis": ["P", "Q"], "source": ["A", "B", "C"],
+      "show": { "construction": true } }
+  ]
+}
+```
+
+1. `kind` et ses paramètres : `symetrie-axiale` (`axis`), `symetrie-centrale` (`center`),
+   `translation` (`from`, `to`), `rotation` (`center`, `angle` en degrés, sens direct si positif),
+   `homothetie` (`center`, `ratio`, négatif possible).
+2. `source` : les points à transformer. Tout polygone, segment, ligne brisée ou cercle dont les
+   points sont tous dans la source a son image.
+3. `show.construction` : `true` (ou une liste de points de la source) ajoute les tracés du
+   manuel (perpendiculaire codée, milieu codé, arc de compas…). Sur un polygone chargé, n'en
+   construire qu'un ou deux points.
+4. Les images sont des points : un segment `[AA′]` ou une transformation suivante peut les
+   nommer. Un nom d'image ne doit pas déjà exister.
+5. L'axe d'une symétrie axiale doit être tracé : une entrée `lines` (ou un segment).
+- `lines` : la droite (AB) traverse toute la figure ; `label` la nomme « (d) ».
+  `rays` : la demi-droite [AB), de A jusqu'au bord.
+- `vectors` : une flèche de `from` à `to`, `label` en LaTeX (`\\vec{u}`, `\\overrightarrow{AB}`).
+- En mode interactif, l'image arrive sur une étape : la figure de départ glisse, tourne ou se
+  retourne jusqu'à elle. Rien à écrire pour cela.
+- Dans le texte, écrire les images avec le même prime : `A′` (ou `$A'$` en formule).
+
 ### Diagrammes statistiques
 
 Un diagramme en barres, circulaire ou une courbe à abscisses catégorielles est un bloc `chart`,
@@ -431,6 +492,38 @@ niveau par niveau ; le renderer place les nœuds, les probabilités et les issue
   du produit.
 - Horizontal par défaut ; `orientation: "vertical"` pour un petit arbre. Sur téléphone, tout
   arbre est dessiné horizontalement.
+
+### Solides à faire tourner
+
+Un solide que l'élève fait tourner (glisser, flèches du clavier) est un bloc `solid`, pas une
+`figure` (ADR 0039). On donne la sorte et les dimensions ; le renderer calcule les arêtes
+cachées (en pointillés), les sections et les repères de la sphère. La vue de départ est celle du
+manuel (de face, un peu par la droite et par-dessus) ; c'est elle que décrit `alt`.
+
+Recette — un cône coupé par un plan parallèle à sa base :
+
+```json
+{ "id": "solide-cone", "type": "solid", "kind": "cone", "radius": 2, "height": 4.5,
+  "names": ["O", "S"], "section": { "parallelTo": "base", "at": 1.5 },
+  "alt": "Un cône de sommet S et de base le disque de centre O, coupé par un plan parallèle à sa base." }
+```
+
+- `kind` : `pave` (`width`, `height`, `depth`), `cube` (`edge`), `prisme` (`base` = face avant en
+  vraie grandeur, `depth`), `cylindre` (`radius`, `height`), `pyramide` (`base` vue de dessus,
+  `height`, `apex` facultatif = pied de la hauteur, par défaut le centre de la base), `cone`
+  (`radius`, `height`), `boule` (`radius`).
+- `names` : les sommets dans l'ordre de `figure.solids` (face avant puis face arrière ; base
+  puis sommet pour une pyramide) ; les centres des bases d'un cylindre ; le centre de la base
+  puis le sommet d'un cône ; le centre d'une boule. Nommer les centres trace l'axe en pointillés.
+- `section` : `parallelTo` vaut `base` (par défaut), `front` ou `side` (pavé, cube), `axis`
+  (cylindre) ; `at` est la distance à cette face ou à l'axe, strictement à l'intérieur. Pour une
+  boule, pas de `parallelTo` : `at` est la distance du centre au plan, parallèle à l'équateur.
+- Boule seulement : `equator`, `parallels` (latitudes), `meridians` (longitudes) et `points`
+  (`name`, `latitude`, `longitude`), en degrés, nord et est positifs ; la longitude 0 est face à
+  l'élève.
+- Ce dessin n'est **pas** en perspective cavalière (la face avant n'est pas en vraie grandeur) :
+  pour enseigner la cavalière, garder `figure.solids` et le dire dans le texte.
+- Un exercice qui demande de faire tourner le solide suit le bloc et dit quel geste faire.
 
 ### Programmes Scratch
 

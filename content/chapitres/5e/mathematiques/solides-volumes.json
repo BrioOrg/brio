@@ -296,6 +296,66 @@
           "explanation": "La face avant ABCD et la face arrière EFGH sont parallèles à la feuille : elles sont dessinées en vraie grandeur, ce sont deux rectangles de 4 sur 3. Les autres faces contiennent des fuyantes, raccourcies et en biais : ce sont des parallélogrammes qui ne sont pas en vraie grandeur."
         },
         {
+          "id": "pave-point-de-vue",
+          "type": "prose",
+          "text": "Le dessin d'un solide dépend du **point de vue**. Fais tourner le pavé ci-dessous : tant que tu vois trois de ses faces, exactement trois arêtes sont cachées, celles qui partent du seul sommet que tu ne vois pas. Ce dessin-ci n'est pas en perspective cavalière : la face avant n'y est pas en vraie grandeur. Il montre le pavé comme on le verrait de loin, en le tenant devant soi."
+        },
+        {
+          "id": "solide-pave-tourner",
+          "type": "solid",
+          "kind": "pave",
+          "width": 4,
+          "height": 3,
+          "depth": 2,
+          "names": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+          ],
+          "alt": "Le pavé droit ABCDEFGH, vu de face, un peu par la droite et par-dessus : face avant ABCD, face arrière EFGH. Les arêtes [AE], [EF] et [EH] sont cachées, en pointillés. On peut le faire tourner.",
+          "caption": "Le même pavé ABCDEFGH : fais-le tourner, puis reviens à la vue de départ."
+        },
+        {
+          "id": "ex-pave-vu-dessous",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Fais tourner le pavé pour le voir **par-dessous**, toujours de face et un peu par la droite : tu vois les faces ABCD, BCGF et ABFE. Quel sommet est alors caché ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-h",
+              "text": "H",
+              "correct": true
+            },
+            {
+              "id": "choix-e",
+              "text": "E",
+              "correct": false
+            },
+            {
+              "id": "choix-d",
+              "text": "D",
+              "correct": false
+            },
+            {
+              "id": "choix-g",
+              "text": "G",
+              "correct": false
+            }
+          ],
+          "explanation": "Le sommet caché est celui qui n'appartient à aucune des trois faces que l'on voit. A, B, C et D sont sur la face avant, F sur la face de droite, E sur la face du dessous ; il reste H, en haut à gauche de la face arrière. Les arêtes cachées sont donc [DH], [HE] et [HG]."
+        },
+        {
           "id": "ex-longueur-fuyante",
           "type": "exercise",
           "exerciseType": "numeric",
@@ -1028,6 +1088,54 @@
           "tolerance": 0,
           "unit": "cm³",
           "explanation": "Aire de la base : 3 × 4 ÷ 2 = 6 cm². Volume : 6 × 10 = 60 cm³. Oublier la division par 2 donnerait 120 cm³."
+        },
+        {
+          "id": "solide-cylindre-tourner",
+          "type": "solid",
+          "kind": "cylindre",
+          "radius": 2,
+          "height": 4,
+          "names": [
+            "O",
+            "O′"
+          ],
+          "alt": "Un cylindre de révolution de rayon 2 et de hauteur 4, posé sur sa base de centre O ; O′ est le centre de la base du haut et l'axe [OO′] est en pointillés. On peut le faire tourner.",
+          "caption": "Un cylindre de rayon 2 cm et de hauteur 4 cm : ses deux bases sont des disques superposables, de centres O et O′."
+        },
+        {
+          "id": "ex-cylindre-vu-dessus",
+          "type": "exercise",
+          "exerciseType": "multiple-choice",
+          "prompt": "Fais tourner le cylindre pour le regarder exactement **de dessus** (flèche vers le bas du clavier, ou en le faisant glisser vers le bas). Quelle figure vois-tu ?",
+          "competencies": [
+            "c4.geo.espace.representer-perspective"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 1,
+          "multiple": false,
+          "choices": [
+            {
+              "id": "choix-disque",
+              "text": "Un disque",
+              "correct": true
+            },
+            {
+              "id": "choix-rectangle",
+              "text": "Un rectangle",
+              "correct": false
+            },
+            {
+              "id": "choix-rectangle-ovale",
+              "text": "Un rectangle surmonté d'un ovale",
+              "correct": false
+            },
+            {
+              "id": "choix-carre",
+              "text": "Un carré",
+              "correct": false
+            }
+          ],
+          "explanation": "De dessus, on ne voit que la base du haut : un disque de centre O′ et de rayon 2 cm. De face, on verrait au contraire un rectangle de 4 cm sur 4 cm (le diamètre sur la hauteur)."
         },
         {
           "id": "ex-volume-cylindre",

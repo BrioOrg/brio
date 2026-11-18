@@ -37,12 +37,14 @@ export type {
   DrawingAxis,
   DrawingAxes,
   DrawingModel,
+  DrawingOptions,
   SolidEdge,
   SolidArc,
   SolidDrawing,
   SolidFace,
   CubeShade,
   DrawingCubeFace,
+  DrawingTransformation,
 } from './figure'
 export {
   buildDrawingModel,
@@ -52,6 +54,74 @@ export {
   euclideanLength,
   isCollinear,
 } from './figure'
+
+export type {
+  TransformationKind,
+  FigureTransformation,
+  FigureVector,
+  FigureLine,
+  FigureRay,
+  TransformationMotion,
+  Affine,
+  SvgFrame,
+  SvgBox,
+  DrawingVector,
+  FigureGeometryIssue,
+  FigureGeometryIssueCode,
+} from './transformations'
+export {
+  PRIME,
+  affineAt,
+  applyAffine,
+  checkFigureGeometry,
+  expandTransformations,
+  imageName,
+  imageOf,
+  motionOf,
+  placementToward,
+  svgAffineAt,
+  svgMatrix,
+} from './transformations'
+
+export type {
+  ExpressionNode,
+  ExpressionFunction,
+  ExpressionError,
+  Expression,
+  ParseResult,
+  ParseOptions,
+} from './expression'
+export { parseExpression } from './expression'
+
+export type {
+  FigureFunction,
+  FigureReading,
+  FigureParameter,
+  FunctionPlotSpec,
+  CompiledFunction,
+  DrawingFunctionCurve,
+  DrawingCurveLabel,
+  DrawingReading,
+  DrawingFunctionPlot,
+} from './function-plot'
+export {
+  buildFunctionPlot,
+  bindFunction,
+  compileFunctions,
+  formatReadingValue,
+  parameterScope,
+  sampleCurve,
+  solveFor,
+} from './function-plot'
+
+export type { FunctionIssue } from './function-rules'
+export {
+  checkFunctionPlot,
+  MAX_FUNCTIONS,
+  MAX_PARAMETER_NOTCHES,
+  MAX_PARAMETERS,
+  MAX_READINGS,
+} from './function-rules'
 
 export type {
   ChartKind,
@@ -117,6 +187,51 @@ export {
   TREE_MAX_DEPTH,
   TREE_MAX_LEAVES,
 } from './tree-rules'
+
+export type {
+  SolidKind,
+  SolidPlanePoint,
+  SolidSectionPlane,
+  SolidSection,
+  SpherePoint,
+  SolidSpec,
+  SolidView,
+  SolidShade,
+  SolidLabel,
+  SolidFrame,
+  SolidGeometry,
+  SolidKey,
+  SolidStrokeState,
+  SolidRun,
+} from './solid'
+export {
+  buildSolidGeometry,
+  projectSolid,
+  solidStrokes,
+  solidSphereRuns,
+  clampView,
+  dragView,
+  stepView,
+  dragVelocity,
+  coastView,
+  interpolateView,
+  sameView,
+  SOLID_INITIAL_VIEW,
+  SOLID_SIZE,
+  SOLID_VIEWBOX,
+} from './solid'
+
+export type { SolidIssue, SolidIssueCode } from './solid-rules'
+export {
+  checkSolid,
+  solidNameCount,
+  SOLID_KINDS,
+  SOLID_DIMENSIONS,
+  SOLID_SECTION_PLANES,
+  SOLID_MAX_BASE_VERTICES,
+  SOLID_MAX_SPHERE_LINES,
+  SPHERE_ONLY_FIELDS,
+} from './solid-rules'
 
 export type {
   ScratchOperator,

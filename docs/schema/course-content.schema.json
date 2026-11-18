@@ -118,6 +118,7 @@
         { "$ref": "#/$defs/figureBlock" },
         { "$ref": "#/$defs/chartBlock" },
         { "$ref": "#/$defs/treeBlock" },
+        { "$ref": "#/$defs/solidBlock" },
         { "$ref": "#/$defs/calloutBlock" },
         { "$ref": "#/$defs/codeBlock" },
         { "$ref": "#/$defs/exerciseBlock" },
@@ -653,6 +654,101 @@
       }
     },
 
+    "solidBlock": {
+      "description": "A solid the student can turn: pavé, cube, prisme, cylindre, pyramide, cône or boule, drawn with its hidden edges dashed, an optional plane section and, for a ball, lines and points of latitude and longitude. Dimensions in the chapter's units. See ADR 0039.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "kind", "alt"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "solid" },
+        "kind": { "enum": ["pave", "cube", "prisme", "cylindre", "pyramide", "cone", "boule"] },
+        "width": { "type": "number", "exclusiveMinimum": 0 },
+        "height": { "type": "number", "exclusiveMinimum": 0 },
+        "depth": { "type": "number", "exclusiveMinimum": 0 },
+        "edge": { "type": "number", "exclusiveMinimum": 0 },
+        "radius": { "type": "number", "exclusiveMinimum": 0 },
+        "base": {
+          "description": "prisme: its front face in true size (x to the right, y up). pyramide: its base seen from above (x to the right, y away from the viewer). Convex, 3 to 12 vertices.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/solidPlanePoint" }
+        },
+        "apex": {
+          "description": "pyramide only: the foot of the apex in the plane of the base (seen from above). Defaults to the centre of the base.",
+          "$ref": "#/$defs/solidPlanePoint"
+        },
+        "names": {
+          "description": "pavé, cube, prisme: vertices, front face then back face in the same order. pyramide: base vertices then apex. cylindre: centres of the lower and upper bases. cône: base centre then apex. boule: centre. Naming the centres of a cylinder or cone draws its axis.",
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "section": {
+          "description": "A plane section, computed by the renderer. parallelTo: base (default; a prism's base is its front face), front or side (pavé, cube), axis (cylindre: a plane at distance `at` from the axis). at: distance from that face or axis, or, for a ball (no parallelTo), from the centre to a plane parallel to the equator.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["at"],
+          "properties": {
+            "parallelTo": { "enum": ["base", "front", "side", "axis"] },
+            "at": { "type": "number" }
+          }
+        },
+        "equator": { "description": "boule only: draws the equator.", "type": "boolean" },
+        "parallels": {
+          "description": "boule only: latitudes in degrees, north positive, strictly between −90 and 90.",
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "number" }
+        },
+        "meridians": {
+          "description": "boule only: longitudes in degrees, east positive, each drawn from pole to pole. Longitude 0 faces the viewer at the starting view.",
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "number" }
+        },
+        "points": {
+          "description": "boule only: named points on the sphere by latitude and longitude, in degrees.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "latitude", "longitude"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+              "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+            }
+          }
+        },
+        "alt": {
+          "description": "Accessibility text describing the solid at its starting view. Required, as for a figure.",
+          "$ref": "#/$defs/plainText"
+        },
+        "caption": { "$ref": "#/$defs/richText" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "pave" } } }, "then": { "required": ["width", "height", "depth"] } },
+        { "if": { "properties": { "kind": { "const": "cube" } } }, "then": { "required": ["edge"] } },
+        { "if": { "properties": { "kind": { "const": "prisme" } } }, "then": { "required": ["base", "depth"] } },
+        { "if": { "properties": { "kind": { "const": "cylindre" } } }, "then": { "required": ["radius", "height"] } },
+        { "if": { "properties": { "kind": { "const": "pyramide" } } }, "then": { "required": ["base", "height"] }, "else": { "properties": { "apex": false } } },
+        { "if": { "properties": { "kind": { "const": "cone" } } }, "then": { "required": ["radius", "height"] } },
+        {
+          "if": { "properties": { "kind": { "const": "boule" } } },
+          "then": { "required": ["radius"] },
+          "else": { "properties": { "equator": false, "parallels": false, "meridians": false, "points": false } }
+        }
+      ]
+    },
+
+    "solidPlanePoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+    },
+
     "figureSpec": {
       "description": "Geometric primitives in logical math coordinates. coordinateSpace is optional: when absent the renderer derives it from the bounding box of all points plus a 15 % margin.",
       "type": "object",
@@ -670,7 +766,54 @@
         "numberLines": { "type": "array", "items": { "$ref": "#/$defs/figureNumberLine" } },
         "polylines":   { "type": "array", "items": { "$ref": "#/$defs/figurePolyline" } },
         "axes":        { "$ref": "#/$defs/figureAxes" },
-        "solids":      { "type": "array", "items": { "$ref": "#/$defs/figureSolid" } }
+        "solids":      { "type": "array", "items": { "$ref": "#/$defs/figureSolid" } },
+        "transformations": { "type": "array", "items": { "$ref": "#/$defs/figureTransformation" } },
+        "vectors":     { "type": "array", "items": { "$ref": "#/$defs/figureVector" } },
+        "lines":       { "type": "array", "items": { "$ref": "#/$defs/figureLine" } },
+        "rays":        { "type": "array", "items": { "$ref": "#/$defs/figureRay" } },
+        "functions":   { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/figureFunction" } },
+        "readings":    { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/figureReading" } },
+        "parameters":  { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/figureParameter" } }
+      }
+    },
+
+    "figureFunction": {
+      "description": "A curve given by the expression of f(x), drawn in a figure with axes (ADR 0038). The expression is read by packages/content/src/expression.ts: decimal comma or point, x, + − × / ^ ² ³, implicit products (2x, 3(x + 1)), brackets, sqrt/racine/√, abs/|…|, π, and the letters of `parameters`. check-content parses it and keeps the domain inside the x axis.",
+      "type": "object",
+      "required": ["name", "expr"],
+      "additionalProperties": false,
+      "properties": {
+        "name":   { "description": "One letter, optionally followed by a digit (f, g, h, f1); readings refer to it.", "type": "string", "pattern": "^[a-zA-Z][0-9]?$" },
+        "expr":   { "description": "The expression of f(x), without « f(x) = »: \"2x + 1\", \"x² − 3\", \"1/x\", \"√x\".", "type": "string", "minLength": 1, "maxLength": 200 },
+        "domain": { "description": "[from, to]: where the curve is drawn, inside the x axis. Default: the whole x axis.", "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+        "label":  { "description": "true writes 𝒞_f next to the curve, where it touches nothing; a string writes that text instead (\"Tarif A\").", "oneOf": [{ "type": "boolean" }, { "$ref": "#/$defs/plainText" }] },
+        "style":  { "enum": ["solid", "dashed"] },
+        "tone":   { "$ref": "#/$defs/figureTone" }
+      }
+    },
+    "figureReading": {
+      "description": "A reading on a curve, drawn as dashed guides to the axes with the values written there: the image of x, or the antecedents of y (solved numerically). check-content requires it to be reachable in the window.",
+      "type": "object",
+      "required": ["function"],
+      "additionalProperties": false,
+      "properties": {
+        "function": { "type": "string", "pattern": "^[a-zA-Z][0-9]?$" },
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      },
+      "oneOf": [{ "required": ["x"] }, { "required": ["y"] }]
+    },
+    "figureParameter": {
+      "description": "A letter of the expressions that a slider moves on screen (« a = 1,5 »); print and the first render use value. check-content requires value to be a notch: min + k × step.",
+      "type": "object",
+      "required": ["name", "min", "max", "step", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "name":  { "type": "string", "pattern": "^[a-zA-Z]$" },
+        "min":   { "type": "number" },
+        "max":   { "type": "number" },
+        "step":  { "type": "number", "exclusiveMinimum": 0 },
+        "value": { "type": "number" }
       }
     },
 
@@ -936,6 +1079,112 @@
         "title":      { "description": "What the axis measures, e.g. \"Heure (h)\".", "type": "string", "minLength": 1 }
       }
     },
+    "figureTransformation": {
+      "description": "A plane transformation applied to the named source points (ADR 0041). The renderer computes each image, names it with the suffix (default a prime, U+2032: A → A′) and draws the image figure: every polygon, segment, polyline and circle whose points are all in the source. Later transformations may take earlier images as their source. show.construction adds the textbook construction marks, for every source point (true) or for those listed. CI checks the points exist, the transformation is not the identity and the image names are free.",
+      "type": "object",
+      "required": ["kind", "source"],
+      "properties": {
+        "kind":   { "enum": ["symetrie-axiale", "symetrie-centrale", "translation", "rotation", "homothetie"] },
+        "source": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "suffix": { "type": "string", "minLength": 1 },
+        "show": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "construction": {
+              "oneOf": [
+                { "type": "boolean" },
+                { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+              ]
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "kind": { "const": "symetrie-axiale" },
+            "axis": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "minLength": 1 } },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["axis"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "symetrie-centrale" },
+            "center": { "type": "string", "minLength": 1 },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["center"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "translation" },
+            "from": { "type": "string", "minLength": 1 },
+            "to":   { "type": "string", "minLength": 1 },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["from", "to"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "rotation" },
+            "center": { "type": "string", "minLength": 1 },
+            "angle":  { "description": "Degrees, counter-clockwise when positive; strictly between −360 and 360, not 0.", "type": "number", "exclusiveMinimum": -360, "exclusiveMaximum": 360 },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["center", "angle"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": { "const": "homothetie" },
+            "center": { "type": "string", "minLength": 1 },
+            "ratio":  { "description": "Not 0 nor 1; negative puts the image on the other side of the centre.", "type": "number" },
+            "source": true, "suffix": true, "show": true
+          },
+          "required": ["center", "ratio"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "figureVector": {
+      "description": "An arrow from one named point to another (ADR 0041). label is TeX rendered by KaTeX beside the arrow, e.g. \\vec{u}.",
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from":  { "type": "string", "minLength": 1 },
+        "to":    { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "style": { "$ref": "#/$defs/figureLineStyle" }
+      }
+    },
+    "figureLine": {
+      "description": "A line (droite) through two named points, drawn across the whole frame (ADR 0041). label names it near one end, e.g. \"(d)\".",
+      "type": "object",
+      "required": ["through"],
+      "additionalProperties": false,
+      "properties": {
+        "through": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "minLength": 1 } },
+        "label":   { "type": "string", "minLength": 1 },
+        "style":   { "$ref": "#/$defs/figureLineStyle" }
+      }
+    },
+    "figureRay": {
+      "description": "A ray (demi-droite) from a named point through another, to the edge of the frame (ADR 0041).",
+      "type": "object",
+      "required": ["from", "through"],
+      "additionalProperties": false,
+      "properties": {
+        "from":    { "type": "string", "minLength": 1 },
+        "through": { "type": "string", "minLength": 1 },
+        "style":   { "$ref": "#/$defs/figureLineStyle" }
+      }
+    },
     "figureNumberLine": {
       "description": "A graduated horizontal axis. Tick positions are derived from from/to/step; labelEvery controls which ticks get a label (defaults to step). marks adds emphasis dots at arbitrary values.",
       "type": "object",
@@ -1178,6 +1427,7 @@
               "figure",
               "chart",
               "tree",
+              "solid",
               "callout",
               "code",
               "exercise",

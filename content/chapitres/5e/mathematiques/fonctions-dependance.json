@@ -353,6 +353,62 @@
             }
           ],
           "explanation": "La première ligne du tableau (x) se lit sur l'axe horizontal, la deuxième (y) sur l'axe vertical : le point a pour coordonnées (3 ; 7). Inverser les deux donne un autre point."
+        },
+        {
+          "id": "intro-perimetre-graphique",
+          "type": "prose",
+          "text": "Quand on connaît la formule, on peut tracer la courbe en entier, sans relever de points. Voici le périmètre P = 4c d'un carré en fonction de la longueur c de son côté : la courbe est une droite qui part de l'origine. Les pointillés montrent une lecture : pour un côté de 3 cm, le périmètre est de 12 cm."
+        },
+        {
+          "id": "fig-perimetre-carre",
+          "type": "figure",
+          "alt": "Graphique du périmètre P d'un carré en fonction de son côté c, pour c de 0 à 6 cm : une droite qui part de l'origine et monte jusqu'à 24 cm. Des pointillés partent de 3 sur l'axe horizontal, montent jusqu'à la droite puis rejoignent 12 sur l'axe vertical : un carré de 3 cm de côté a un périmètre de 12 cm.",
+          "caption": "Le périmètre d'un carré en fonction de son côté.",
+          "spec": {
+            "axes": {
+              "x": {
+                "from": 0,
+                "to": 6,
+                "step": 1,
+                "title": "Côté c (cm)"
+              },
+              "y": {
+                "from": 0,
+                "to": 24,
+                "step": 2,
+                "labelEvery": 4,
+                "title": "Périmètre P (cm)"
+              },
+              "grid": true
+            },
+            "functions": [
+              {
+                "name": "f",
+                "expr": "4x"
+              }
+            ],
+            "readings": [
+              {
+                "function": "f",
+                "x": 3
+              }
+            ]
+          }
+        },
+        {
+          "id": "ex-lire-cote-perimetre",
+          "type": "exercise",
+          "exerciseType": "numeric",
+          "prompt": "D'après le graphique du périmètre, quel est le côté d'un carré dont le périmètre mesure 20 cm ?",
+          "competencies": [
+            "c4.ogd.fonctions.lire-graphique"
+          ],
+          "difficulty": "standard",
+          "estimatedDurationMinutes": 2,
+          "answer": 5,
+          "tolerance": 0,
+          "unit": "cm",
+          "explanation": "On part de 20 sur l'axe vertical, on va horizontalement jusqu'à la droite, puis on descend jusqu'à l'axe horizontal : on lit 5. On vérifie avec la formule : 4 × 5 = 20."
         }
       ]
     },

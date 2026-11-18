@@ -4,8 +4,14 @@ import {
   type DrawingText,
   type FigureSpec,
 } from '@brio/content'
+import type { ReactNode } from 'react'
+
+import { FunctionPlotStrokes, FunctionPlotTexts } from '@/components/function-plot-layer'
+import { HALO_CLASS } from '@/components/figure/halo'
 
 import { TONE_FILL, TONE_STROKE, toneClass, tonedShapeClass } from '@/lib/math-tones'
+import { TransformationLayers } from '@/components/figure/transformation-layers'
+import { VectorArrows } from '@/components/figure/vector-arrows'
 
 // Hidden edges and construction lines, in viewBox units like the stroke widths (ADR 0013, #215).
 const DASH = '5 4'
@@ -21,12 +27,21 @@ export function FigureRenderer({
   spec,
   alt,
   caption,
+  blockId,
+  parameterValues,
+  controls,
 }: {
   spec: FigureSpec
   alt: string
   caption?: string
+  /** The block's id: the interactive mode reveals the images of its transformations as steps. */
+  blockId?: string
+  /** The values the sliders give the parameters (ADR 0038); their `value` otherwise. */
+  parameterValues?: Readonly<Record<string, number>>
+  /** Shown under the drawing, above the caption: the sliders of a figure with parameters. */
+  controls?: ReactNode
 }) {
-  const model = buildDrawingModel(spec)
+  const model = buildDrawingModel(spec, { parameterValues })
 
   return (
     <figure className="my-1 text-ink">
@@ -58,9 +73,11 @@ export function FigureRenderer({
             <g>
               <Axis axis={model.axes.x} />
               <Axis axis={model.axes.y} />
-              {model.axes.origin && <AxisText text={model.axes.origin} fontSize={11} />}
             </g>
           )}
+
+          {/* Curves of functions and their readings (ADR 0038), over the axes */}
+          <FunctionPlotStrokes plot={model.functionPlot} />
 
           {/* Cube assemblages: filled faces in drawing order, under the author's elements */}
           {model.cubeFaces.map((face, i) => (
@@ -181,6 +198,20 @@ export function FigureRenderer({
             ))
           )}
 
+          {/* Vectors (ADR 0041): arrows with the strokes, names with the texts below */}
+          <VectorArrows vectors={model.vectors} part="arrows" />
+          {/* Every axis number and title, and the read values, over the strokes, with a halo:
+              a curve passing behind a graduation number stops short of it, as in a textbook. */}
+          {model.axes && (
+            <g>
+              <AxisLabels axis={model.axes.x} />
+              <AxisLabels axis={model.axes.y} />
+              {model.axes.origin && <AxisText text={model.axes.origin} fontSize={11} />}
+            </g>
+          )}
+          <FunctionPlotTexts plot={model.functionPlot} />
+          <VectorArrows vectors={model.vectors} part="names" />
+
           {/* Point dots */}
           {model.dots.map((dot, i) => (
             <circle
@@ -204,7 +235,7 @@ export function FigureRenderer({
               fontSize={13}
               fontFamily="serif"
               fill="currentColor"
-              className={toneClass(TONE_FILL, lbl.tone)}
+              className={[toneClass(TONE_FILL, lbl.tone), HALO_CLASS].filter(Boolean).join(' ')}
             >
               {lbl.text}
             </text>
@@ -220,7 +251,7 @@ export function FigureRenderer({
               dominantBaseline="middle"
               fontSize={12}
               fill="currentColor"
-              className={toneClass(TONE_FILL, lbl.tone)}
+              className={[toneClass(TONE_FILL, lbl.tone), HALO_CLASS].filter(Boolean).join(' ')}
             >
               {lbl.text}
             </text>
@@ -255,6 +286,7 @@ export function FigureRenderer({
                       dominantBaseline={tick.labelBaseline}
                       fontSize={11}
                       fill="currentColor"
+                      className={HALO_CLASS}
                     >
                       {tick.label}
                     </text>
@@ -263,8 +295,15 @@ export function FigureRenderer({
               ))}
             </g>
           ))}
+
+          {/* Images of the transformations, over everything else (ADR 0041) */}
+          {model.transformations.length > 0 && (
+            <TransformationLayers layers={model.transformations} blockId={blockId} />
+          )}
         </svg>
       </div>
+
+      {controls}
 
       {caption && (
         <figcaption className="mt-1.5 text-center font-prose text-xs text-ink-muted">
@@ -284,6 +323,7 @@ function AxisText({ text, fontSize }: { text: DrawingText; fontSize: number }) {
       dominantBaseline={text.baseline}
       fontSize={fontSize}
       fill="currentColor"
+      className={HALO_CLASS}
     >
       {text.text}
     </text>
@@ -312,9 +352,18 @@ function Axis({ axis }: { axis: DrawingAxis }) {
             stroke="currentColor"
             strokeWidth={1.5}
           />
-          {tick.label && <AxisText text={tick.label} fontSize={11} />}
         </g>
       ))}
+    </g>
+  )
+}
+
+function AxisLabels({ axis }: { axis: DrawingAxis }) {
+  return (
+    <g>
+      {axis.ticks.map((tick, i) =>
+        tick.label ? <AxisText key={i} text={tick.label} fontSize={11} /> : null
+      )}
       {axis.title && <AxisText text={axis.title} fontSize={12} />}
     </g>
   )
