@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Resolves a competency code to the lesson section that teaches it, computed on the fly from the
- * published content (ADR 0037). Nothing is stored: the answer is a pure function of the catalogue.
+ * published content (ADR 0043). Nothing is stored: the answer is a pure function of the catalogue.
  */
 @Service
 public class LeconCompetenceService {

@@ -37,7 +37,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * #371 (PL-2, ADR 0037) : {@code GET /api/referentiel/lecon} relie une compétence à la section de
+ * #371 (PL-2, ADR 0043) : {@code GET /api/referentiel/lecon} relie une compétence à la section de
  * cours qui l'enseigne. Écrit depuis la fiche besoin et le plan technique (contrat : 200 DTO,
  * 204 sans corps si non rattachable, 401 sans session, 400 sans {@code competence}).
  *

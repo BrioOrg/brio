@@ -31,7 +31,7 @@ public interface ExerciceRepository extends JpaRepository<Exercice, UUID> {
     /**
      * Published catalogue chapters (annales excluded) holding a non-retired exercise that carries
      * the competency, in catalogue order (niveau, matière, chapter order). Teacher courses are
-     * excluded by the join on {@code chapitre_id}. Feeds the competency-to-lesson lookup (ADR 0037).
+     * excluded by the join on {@code chapitre_id}. Feeds the competency-to-lesson lookup (ADR 0043).
      */
     @Query(value = """
             SELECT c.* FROM contenu.chapitres c

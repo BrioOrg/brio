@@ -23,7 +23,7 @@ export async function listerCompetences(baseUrl: string): Promise<Competence[]> 
 }
 
 /**
- * The lesson section that teaches a competency (`GET /api/referentiel/lecon`, ADR 0037). The
+ * The lesson section that teaches a competency (`GET /api/referentiel/lecon`, ADR 0043). The
  * endpoint answers 204 when no lesson is attachable; callers treat that as "nothing to show".
  */
 export const LeconCompetenceSchema = z.object({

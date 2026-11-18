@@ -17,7 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** ADR 0037 : résolution d'une compétence vers la première section « lesson » qui l'enseigne. */
+/** ADR 0043 : résolution d'une compétence vers la première section « lesson » qui l'enseigne. */
 @ExtendWith(MockitoExtension.class)
 class LeconCompetenceServiceTest {
 

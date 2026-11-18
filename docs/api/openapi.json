@@ -2410,7 +2410,7 @@
       "get" : {
         "tags" : [ "Référentiel de compétences" ],
         "summary" : "Trouve la leçon qui enseigne une compétence",
-        "description" : "Première section de leçon portant la compétence ; les chapitres du niveau demandé passent d'abord (ADR 0037).",
+        "description" : "Première section de leçon portant la compétence ; les chapitres du niveau demandé passent d'abord (ADR 0043).",
         "operationId" : "lecon",
         "parameters" : [ {
           "name" : "competence",

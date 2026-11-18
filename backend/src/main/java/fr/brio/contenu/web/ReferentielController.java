@@ -51,7 +51,7 @@ class ReferentielController {
     @Operation(
             summary = "Trouve la leçon qui enseigne une compétence",
             description = "Première section de leçon portant la compétence ; les chapitres du niveau demandé"
-                    + " passent d'abord (ADR 0037).")
+                    + " passent d'abord (ADR 0043).")
     @ApiResponse(responseCode = "200", description = "Leçon à revoir")
     @ApiResponse(responseCode = "204", description = "Aucune leçon rattachable à cette compétence", content = @Content)
     @ApiResponse(responseCode = "400", description = "Compétence absente ou vide", content = @Content)

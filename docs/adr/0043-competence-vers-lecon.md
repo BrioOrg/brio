@@ -1,4 +1,4 @@
-# 0037 — Résoudre « compétence → leçon » à la volée sur le contenu publié
+# 0043 — Résoudre « compétence → leçon » à la volée sur le contenu publié
 
 - **Status**: Accepted — signé par l’humain (Gabrielle) le 2026-11-17, porte 3 de #371
 - **Date**: 2026-11-17

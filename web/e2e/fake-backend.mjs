@@ -577,7 +577,7 @@ async function libelles() {
 const NIVEAUX = ['6e', '5e', '4e', '3e']
 
 /**
- * The lesson section that teaches a competence (#371, ADR 0037), the same rule as the backend:
+ * The lesson section that teaches a competence (#371, ADR 0043), the same rule as the backend:
  * published chapters of content/chapitres (annales and teacher courses live elsewhere) with a
  * `lesson` section whose exercise block carries the code; the requested level's chapters first,
  * then level order, matiere, `_index.json` order; in the chapter, the first such section.
