@@ -24,7 +24,7 @@ const NIVEAUX: { value: InscrireEleveInput['niveauDeclare']; label: string }[] =
 function messageForStatus(status: number): string {
   switch (status) {
     case 400:
-      return `Vérifie tes informations : l'e-mail du parent doit être valide et le mot de passe faire au moins ${MOT_DE_PASSE_MIN} caractères.`
+      return `Vérifie tes informations : l'e-mail du parent doit être valide et le mot de passe faire au moins ${MOT_DE_PASSE_MIN} caractères, sans être trop long (les lettres accentuées et les emojis comptent pour plusieurs caractères).`
     default:
       return 'La demande a échoué. Réessaie dans un instant.'
   }

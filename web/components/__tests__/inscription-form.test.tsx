@@ -93,7 +93,10 @@ describe('InscriptionForm', () => {
     await fillValidForm(user)
     await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/vérifie tes informations/i)
+    const alerte = await screen.findByRole('alert')
+    expect(alerte).toHaveTextContent(/vérifie tes informations/i)
+    // A 400 the form did not foresee may be a password too long for the server (#368).
+    expect(alerte).toHaveTextContent(/au moins 8 caractères, sans être trop long/i)
   })
 
   it('affiche un message générique sur erreur inattendue', async () => {

@@ -20,7 +20,7 @@ const NOM_AFFICHE_MAX = 30
 function messageForStatus(status: number): string {
   switch (status) {
     case 400:
-      return `Vérifie tes informations : le mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`
+      return `Vérifie tes informations : le mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères, sans être trop long (les lettres accentuées et les emojis comptent pour plusieurs caractères).`
     case 404:
       return 'Ce code de classe est introuvable. Revérifie-le avec ton prof.'
     case 410:

@@ -22,7 +22,7 @@ function messageForStatus(status: number): string {
     case 422:
       return "Cet établissement n'est plus proposé. Rechargez la page et choisissez-en un autre."
     case 400:
-      return `Vérifiez vos informations : l'e-mail doit être valide et le mot de passe faire au moins ${MOT_DE_PASSE_MIN} caractères.`
+      return `Vérifiez vos informations : l'e-mail doit être valide et le mot de passe faire au moins ${MOT_DE_PASSE_MIN} caractères, sans être trop long (les lettres accentuées et les emojis comptent pour plusieurs caractères).`
     default:
       return 'La demande a échoué. Réessayez dans un instant.'
   }

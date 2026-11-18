@@ -78,6 +78,19 @@ describe('RejoindreForm', () => {
     expect(rejoindreClasse).not.toHaveBeenCalled()
   })
 
+  it('cite les deux bornes du mot de passe sur un 400 du serveur (#368)', async () => {
+    const { rejoindreClasse } = await setup()
+    rejoindreClasse.mockRejectedValue(new RejoindreError(400))
+
+    const user = userEvent.setup()
+    await fillValidForm(user)
+    await user.click(screen.getByRole('button', { name: /rejoindre ma classe/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /au moins 8 caractères, sans être trop long/i
+    )
+  })
+
   it('affiche un message clair quand le code est introuvable (404)', async () => {
     const { rejoindreClasse } = await setup()
     rejoindreClasse.mockRejectedValue(new RejoindreError(404))

@@ -110,8 +110,11 @@ class MotDePasseLongueurIntegrationTest {
     // ── Élève, code de classe : POST /api/classes/rejoindre ────────────────────
 
     @Test
-    void givenSeventyTwoBytes_whenEleveJoinsWithCode_thenCreated() throws Exception {
-        rejoindre("é".repeat(36)).andExpect(status().isCreated());
+    void givenSeventyTwoBytes_whenEleveJoinsWithCode_thenCreatedAndCanLogIn() throws Exception {
+        String motDePasse = "é".repeat(36); // 72 bytes
+        String reponse = rejoindre(motDePasse).andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        SessionCookies.login(mockMvc, JSON.readTree(reponse).path("identifiantConnexion").asText(), motDePasse);
     }
 
     @Test
@@ -122,6 +125,7 @@ class MotDePasseLongueurIntegrationTest {
                 .andExpect(jsonPath("$.error", containsString(MotDePasseHachable.MESSAGE_TU)));
         rejoindre("é".repeat(37)).andExpect(status().isBadRequest());
         rejoindre(EMOJI.repeat(200)).andExpect(status().isBadRequest());
+        rejoindre("a".repeat(10_000)).andExpect(status().isBadRequest());
         assertThat(compteRepository.count()).isEqualTo(avant);
     }
 
@@ -143,6 +147,7 @@ class MotDePasseLongueurIntegrationTest {
                 .andExpect(jsonPath("$.error", containsString(MotDePasseHachable.MESSAGE_VOUS)));
         inscrireEnseignant("é".repeat(37), "prof.trop.long@ecole.fr").andExpect(status().isBadRequest());
         inscrireEnseignant(EMOJI.repeat(200), "prof.trop.long@ecole.fr").andExpect(status().isBadRequest());
+        inscrireEnseignant("a".repeat(10_000), "prof.trop.long@ecole.fr").andExpect(status().isBadRequest());
         assertThat(compteRepository.count()).isEqualTo(avant);
     }
 

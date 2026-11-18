@@ -43,8 +43,10 @@ public @interface MotDePasseHachable {
     final class Validateur implements ConstraintValidator<MotDePasseHachable, CharSequence> {
         @Override
         public boolean isValid(CharSequence motDePasse, ConstraintValidatorContext context) {
-            return motDePasse == null
-                    || motDePasse.toString().getBytes(StandardCharsets.UTF_8).length <= MAX_OCTETS;
+            if (motDePasse == null) return true;
+            // Every char is at least one byte: a longer string is refused without encoding it.
+            return motDePasse.length() <= MAX_OCTETS
+                    && motDePasse.toString().getBytes(StandardCharsets.UTF_8).length <= MAX_OCTETS;
         }
     }
 }

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 // Unknown fields (e.g. "prenom") are rejected globally by spring.jackson.deserialization.fail-on-unknown-properties=true
 public record InscriptionEleveRequest(
         @NotBlank @Pattern(regexp = "6e|5e|4e|3e", message = "Niveau invalide") String niveauDeclare,
-        @NotBlank @Size(min = 8) @MotDePasseHachable String motDePasse,
+        @NotBlank @Size(min = 8, max = MotDePasseHachable.MAX_OCTETS) @MotDePasseHachable String motDePasse,
         @NotBlank @Email @Size(max = 200) String emailParent
 ) {
     /** Never prints the password: a record's default toString would put it in any log line. */

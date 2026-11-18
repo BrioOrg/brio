@@ -131,7 +131,10 @@ describe('InscriptionEnseignantForm', () => {
     await fillValidForm(user)
     await user.click(screen.getByRole('button', { name: /créer mon compte/i }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/vérifiez vos informations/i)
+    const alerte = await screen.findByRole('alert')
+    expect(alerte).toHaveTextContent(/vérifiez vos informations/i)
+    // A 400 the form did not foresee may be a password too long for the server (#368).
+    expect(alerte).toHaveTextContent(/au moins 8 caractères, sans être trop long/i)
   })
 
   describe('mot de passe de plus de 72 octets (#368)', () => {
