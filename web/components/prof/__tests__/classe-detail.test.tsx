@@ -494,6 +494,27 @@ describe('ClasseDetail', () => {
       ).toBeTruthy()
     })
 
+    // Porte 5 (U6): while the salon loads, a skeleton holds its place (no layout shift) with an
+    // accessible announcement, instead of a bare « Chargement… » paragraph.
+    it('holds the salon place with an announced skeleton while it loads', async () => {
+      const a = await api()
+      let resoudre: (salons: Awaited<ReturnType<typeof a.listerSalons>>) => void = () => {}
+      a.listerSalons.mockReturnValue(new Promise((r) => (resoudre = r)))
+      a.messagesDuSalon.mockResolvedValue([])
+      await renderClasse()
+
+      const salon = await screen.findByRole('region', { name: 'Salon de la classe' })
+      const annonce = within(salon).getByRole('status')
+      expect(annonce.textContent?.trim()).not.toBe('')
+      expect(
+        within(salon).queryByText('Chargement…', { exact: true, ignore: '[role="status"]' })
+      ).toBeNull()
+      expect(within(salon).queryByRole('button', { name: 'Ouvrir le salon' })).toBeNull()
+
+      resoudre([{ ...SALON }])
+      expect(await within(section()).findByLabelText('Ton message à la classe')).toBeInTheDocument()
+    })
+
     it('shows only the salon of this class', async () => {
       const a = await api()
       a.listerSalons.mockResolvedValue([{ ...SALON, id: 's2', classeId: 'autre' }])

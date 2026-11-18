@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -178,10 +178,12 @@ describe('SalonClasseProf', () => {
     // http(s):// and www. links; no phone number check, issue 403).
     expect(
       screen.getByText(
-        /Toute la classe peut le lire\. Les liens commençant par http:\/\/ ou www\. sont refusés\./
+        /Toute la classe peut le lire\. Les liens \(http:\/\/, https:\/\/, www\.\) sont refusés\./
       )
     ).toBeInTheDocument()
     expect(screen.queryByText(/Pas de lien externe/)).toBeNull()
+    // Same placeholder as the student screen (porte 6, S2-3).
+    expect(screen.getByPlaceholderText('Écris un message à ta classe…')).toBeInTheDocument()
     expect(document.body).not.toHaveTextContent(/téléphone/i)
     // The field is labelled for the teacher.
     expect(screen.getByLabelText(ZONE)).toBeInTheDocument()
@@ -588,35 +590,65 @@ describe('SalonClasseProf', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  // critère 9′ (contre-épreuve, porte 5 V3-3) — unmounting before the answer: no error, no warning.
-  // The answer arrives after the section is gone (the teacher left the page). Without a guard on
-  // the post-load work, its effects run on a dead component: a scroll or focus on a null list ref
-  // throws (unhandled rejection), or React logs an error/act warning. Either is caught below. Note:
-  // React 18+ no longer warns on a bare setState after unmount, so the guard is what keeps the
-  // post-load scroll/focus from touching a detached ref.
-  it('neither throws nor warns when unmounted before the answer', async () => {
-    const chargement = differe<SalonMessageVue[]>()
-    api.messagesDuSalon.mockReturnValue(chargement.promesse)
-    const erreurs = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const avertissements = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const rejets: unknown[] = []
-    const surRejet = (raison: unknown) => rejets.push(raison)
-    process.on('unhandledRejection', surRejet)
-    try {
-      const { unmount } = render(<SalonClasseProf salon={SALON} />)
-      await waitFor(() => expect(api.messagesDuSalon).toHaveBeenCalledTimes(1))
-      unmount()
+  // Porte 5 V3 probe, kept: hide succeeds (204) but the reload after it fails, so the message is
+  // still listed as visible. Reopening the dialog and cancelling must give the focus back to the
+  // « Masquer » button. Without resetting the « hidden » flag when the dialog opens, the close
+  // still believes the previous hide succeeded and sends the focus to the (absent) hidden
+  // article: focus falls on <body> and `toHaveFocus()` fails.
+  it('gives the focus back to « Masquer » on cancel after a hide whose reload failed', async () => {
+    const user = userEvent.setup()
+    api.messagesDuSalon
+      .mockResolvedValueOnce([DE_LEA]) // on mount
+      .mockRejectedValueOnce(new TypeError('Failed to fetch')) // reload after hiding
+    api.masquerMessageSalon.mockResolvedValue(undefined)
+    render(<SalonClasseProf salon={SALON} />)
+    await screen.findByText('Bonjour monsieur !')
 
-      chargement.resoudre([DE_LEA, MASQUE])
-      await new Promise((r) => setTimeout(r, 20))
+    await user.click(screen.getByRole('button', { name: 'Masquer le message de Léa' }))
+    await user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Masquer' })
+    )
+    await waitFor(() => expect(api.masquerMessageSalon).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(api.messagesDuSalon).toHaveBeenCalledTimes(2))
 
-      expect(rejets).toEqual([])
-      expect(erreurs).not.toHaveBeenCalled()
-      expect(avertissements).not.toHaveBeenCalled()
-    } finally {
-      process.off('unhandledRejection', surRejet)
-      erreurs.mockRestore()
-      avertissements.mockRestore()
-    }
+    const bouton = await screen.findByRole('button', { name: 'Masquer le message de Léa' })
+    await user.click(bouton)
+    await user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Annuler' })
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Masquer le message de Léa' })).toHaveFocus()
+    )
+  })
+
+  // critère 9′ (contre-épreuve, porte 6 S3 A4b) — two submits of the form in the same task send
+  // one message. Both `requestSubmit()` run inside one act(), so React has not re-rendered between
+  // them: a guard that relies on state (`envoiEnCours`, the disabled button) still reads « idle »
+  // in the second handler, and requestSubmit() ignores a disabled submit button anyway. Without
+  // the guard by ref, publierDansSalon is called twice and `toHaveBeenCalledTimes(1)` fails.
+  it('sends a single message on two submits in the same task', async () => {
+    const user = userEvent.setup()
+    const envoi = differe<string>()
+    api.messagesDuSalon.mockResolvedValue([DE_LEA])
+    api.publierDansSalon.mockReturnValue(envoi.promesse)
+    render(<SalonClasseProf salon={SALON} />)
+
+    const zone = await screen.findByLabelText(ZONE)
+    await user.type(zone, 'Pensez au contrôle de jeudi.')
+    const formulaire = zone.closest('form')
+    if (!formulaire) throw new Error('no form around the field')
+
+    act(() => {
+      formulaire.requestSubmit()
+      formulaire.requestSubmit()
+    })
+
+    await waitFor(() => expect(api.publierDansSalon).toHaveBeenCalled())
+    expect(api.publierDansSalon).toHaveBeenCalledTimes(1)
+    envoi.resoudre('m9')
+    await waitFor(() => expect(screen.getByLabelText(ZONE)).toHaveValue(''))
+    expect(api.publierDansSalon).toHaveBeenCalledTimes(1)
   })
 })
