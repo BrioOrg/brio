@@ -72,16 +72,9 @@ test('one back leaves the chapter, forward reopens the slide', async ({ page }) 
   await page.goto('/explorer')
   const titre = page.getByRole('heading', { level: 1 })
   await expect(titre).toBeVisible()
-  // In by Next's client navigation, as a link does (exposed in development), once hydrated.
-  await expect
-    .poll(() =>
-      titre.evaluate(
-        (el) =>
-          typeof (window as unknown as { next?: { router?: unknown } }).next?.router === 'object' &&
-          Object.keys(el).some((k) => k.startsWith('__reactFiber'))
-      )
-    )
-    .toBe(true)
+  // In by Next's client navigation, as a link does (`window.next.router`, which next 15.5 exposes
+  // on every page "for debugging purposes"), once Next's app router owns the entry.
+  await expect.poll(() => page.evaluate(() => window.history.state?.__NA === true)).toBe(true)
   await page.evaluate((href) => {
     const fenetre = window as unknown as { next: { router: { push: (h: string) => void } } }
     fenetre.next.router.push(href)
