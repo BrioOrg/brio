@@ -114,6 +114,33 @@ export function useModeChapitre(): ModeChapitreContext | null {
 
 const UN_AN = 60 * 60 * 24 * 365
 
+/** The mode cookie, or undefined when it cannot be read (a sandboxed frame throws). */
+function lireCookieMode(): string | undefined {
+  try {
+    return modeDuCookie(document.cookie)
+  } catch {
+    return undefined
+  }
+}
+
+const TITRE = ':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6'
+
+/**
+ * Hands the keyboard to an in-page link's target, in reading mode (ADR 0046 §7): its own heading
+ * when it has one (a section's `h2`, named, unlike the section), else the target itself. Made
+ * focusable on demand, with the same focus style as a slide title. Never scrolls.
+ */
+export function focaliserAncre(cible: HTMLElement) {
+  const titre = cible.matches('h1, h2, h3, h4, h5, h6')
+    ? cible
+    : (cible.querySelector<HTMLElement>(TITRE) ?? cible)
+  if (titre.tabIndex < 0 && !titre.hasAttribute('tabindex')) {
+    titre.setAttribute('tabindex', '-1')
+    titre.classList.add('focus:outline-none')
+  }
+  titre.focus({ preventScroll: true })
+}
+
 function ecrireCookie(mode: ModeChapitre) {
   document.cookie = `${MODE_COOKIE}=${mode}; path=/; max-age=${UN_AN}; samesite=lax`
 }
@@ -529,7 +556,7 @@ export function ModeChapitreProvider({
     if (monte.current) return
     monte.current = true
     const props = { mode: initialMode, index: initialIndex }
-    const voulu = etatAuMontage(deck, props, window.location.search, modeDuCookie(document.cookie))
+    const voulu = etatAuMontage(deck, props, window.location.search, lireCookieMode())
     if (voulu !== props) {
       etat.current = { ...etat.current, mode: voulu.mode, index: voulu.index }
       changerEtapes({})
@@ -723,9 +750,15 @@ export function ModeChapitreProvider({
       if (!(e.target instanceof Element)) return
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
       const lien = e.target.closest<HTMLAnchorElement>('a[href^="#"]')
-      const id = lien?.getAttribute('href')?.slice(1)
+      if (!lien) return
+      const id = lien.getAttribute('href')?.slice(1) ?? ''
       const cible = id ? racine.current?.querySelector<HTMLElement>(`[id="${attr(id)}"]`) : null
-      if (!id || !cible) return
+      if (!cible) {
+        // `#` or an id found nowhere: a jump to nowhere would only add a dead entry. An id outside
+        // the chapter (a skip link to the main content) stays the browser's.
+        if (!id || !document.getElementById(id)) e.preventDefault()
+        return
+      }
       e.preventDefault()
       if (etat.current.mode === 'interactif') {
         aller(indexDiapo(deck, id))
@@ -733,9 +766,7 @@ export function ModeChapitreProvider({
       }
       // `block: 'start'` honours the sections' scroll margin, like the native jump.
       cible.scrollIntoView({ block: 'start' })
-      if (cible.tabIndex < 0 && !cible.hasAttribute('tabindex'))
-        cible.setAttribute('tabindex', '-1')
-      cible.focus({ preventScroll: true })
+      focaliserAncre(cible)
     },
     [aller, deck]
   )

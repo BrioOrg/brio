@@ -264,6 +264,18 @@ describe('the address at mount (ADR 0046 §4)', () => {
     expect(window.location.search).toBe('')
   })
 
+  it('keeps the props when the cookie cannot be read', () => {
+    const lire = vi.spyOn(Document.prototype, 'cookie', 'get').mockImplementation(() => {
+      throw new DOMException('Sandboxed', 'SecurityError')
+    })
+    const { container } = renderChapitre('interactif', 2)
+    lire.mockRestore()
+
+    expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', 'interactif')
+    expect(visibles(container)).toEqual(['ex1'])
+    expect(window.location.search).toBe('?diapo=ex1')
+  })
+
   it('normalises a ?diapo naming a block to the slide shown, without adding an entry', () => {
     window.history.replaceState(null, '', `${CHEMIN}?diapo=def&a=1#x`)
     const before = window.history.length
@@ -290,6 +302,22 @@ describe('in-page links (ADR 0046 §7)', () => {
     return lien
   }
 
+  it('hands the keyboard to the heading of a section, not to the unnamed section', () => {
+    const { container } = renderChapitre('lecture')
+    const section = container.querySelector<HTMLElement>('section#exercices')!
+
+    expect(fireEvent.click(lienVers(container, 'exercices', '#p1'))).toBe(false)
+
+    const titre = screen.getByRole('heading', { level: 2, name: 'Exercices' })
+    expect(section.scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
+    expect(titre).toHaveFocus()
+    expect(titre).toHaveAttribute('tabindex', '-1')
+    // The focus style of a slide title, nothing else.
+    expect(titre).toHaveClass('focus:outline-none')
+    expect(section).not.toHaveAttribute('tabindex')
+    expect(window.location.hash).toBe('')
+  })
+
   it('scrolls to the target in reading mode and hands it the keyboard, the address untouched', () => {
     const { container } = renderChapitre('lecture')
     const before = window.history.length
@@ -309,11 +337,34 @@ describe('in-page links (ADR 0046 §7)', () => {
 
   it('leaves a link with a modifier key, or one to outside the chapter, to the browser', () => {
     const { container } = renderChapitre('lecture')
+    // A skip link's target, say: outside the chapter's root.
+    const dehors = document.createElement('main')
+    dehors.id = 'contenu'
+    document.body.appendChild(dehors)
 
     expect(fireEvent.click(lienVers(container, 'def'), { metaKey: true })).toBe(true)
-    expect(fireEvent.click(lienVers(container, 'ailleurs'))).toBe(true)
+    expect(fireEvent.click(lienVers(container, 'contenu'))).toBe(true)
     expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled()
+    dehors.remove()
   })
+
+  it.each(['lecture', 'interactif'] as const)(
+    'stops a link to nowhere, and does nothing else (%s)',
+    (mode) => {
+      const { container } = renderChapitre(mode, 3)
+      const before = window.history.length
+      const focus = document.activeElement
+
+      expect(fireEvent.click(lienVers(container, 'nulle-part'))).toBe(false)
+      expect(fireEvent.click(lienVers(container, ''))).toBe(false)
+
+      expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(focus)
+      expect(container.firstElementChild).toHaveAttribute('data-chapitre-mode', mode)
+      expect(window.location.hash).toBe('')
+      expect(window.history.length).toBe(before)
+    }
+  )
 })
 
 describe('interactive mode — side strip', () => {

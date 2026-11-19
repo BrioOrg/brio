@@ -16,15 +16,22 @@ export function modeInitial(diapo: string | undefined, cookie: string | undefine
   return cookie === 'lecture' ? 'lecture' : 'interactif'
 }
 
-/** The value of the mode cookie in a `document.cookie` string; undefined when it is not set. */
+/**
+ * The value of the mode cookie in a `document.cookie` string, read as the server reads it (Next's
+ * `parseCookie`): the last occurrence wins, URI-decoded. Undefined when it is not set.
+ */
 export function modeDuCookie(cookies: string): string | undefined {
+  let valeur: string | undefined
   for (const part of cookies.split(';')) {
     const egal = part.indexOf('=')
     if (egal === -1 || part.slice(0, egal).trim() !== MODE_COOKIE) continue
-    const valeur = part.slice(egal + 1).trim()
-    return valeur === '' ? undefined : valeur
+    try {
+      valeur = decodeURIComponent(part.slice(egal + 1).trim())
+    } catch {
+      // Malformed: skipped, as Next skips it.
+    }
   }
-  return undefined
+  return valeur
 }
 
 /** The mode and slide the interactive shell shows. */
@@ -35,6 +42,7 @@ export type EtatChapitre = { mode: ModeChapitre; index: number }
  * server props, which a back/forward traversal may serve from an older render. A `?diapo` sets the
  * interactive mode on the slide it resolves to; without it, a cookie sets the mode; where both are
  * silent, the props stay. Without `?diapo` the address names no slide: the index stays the props'.
+ * A repeated `?diapo` counts as absent, as on the server (which then receives an array).
  * Returns `props` itself when nothing changes.
  */
 export function etatAuMontage(
@@ -43,7 +51,8 @@ export function etatAuMontage(
   search: string,
   cookie: string | undefined
 ): EtatChapitre {
-  const diapo = new URLSearchParams(search).get('diapo')
+  const diapos = new URLSearchParams(search).getAll('diapo')
+  const diapo = diapos.length === 1 ? diapos[0] : null
   const voulu: EtatChapitre =
     diapo !== null
       ? { mode: 'interactif', index: indexDiapo(deck, diapo) }

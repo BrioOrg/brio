@@ -41,10 +41,18 @@ describe('modeDuCookie', () => {
     expect(modeDuCookie('brio_mode_chapitre=interactif')).toBe('interactif')
   })
 
-  it('should give nothing when the cookie is absent or empty', () => {
+  it('should give nothing when the cookie is absent', () => {
     expect(modeDuCookie('')).toBeUndefined()
     expect(modeDuCookie('a=1; autre_brio_mode_chapitre=lecture')).toBeUndefined()
-    expect(modeDuCookie('brio_mode_chapitre=')).toBeUndefined()
+  })
+
+  it('should read it as the server does: the last one wins, decoded, an empty one kept', () => {
+    expect(modeDuCookie('brio_mode_chapitre=interactif; brio_mode_chapitre=lecture')).toBe(
+      'lecture'
+    )
+    expect(modeDuCookie('brio_mode_chapitre=lect%75re')).toBe('lecture')
+    expect(modeDuCookie('brio_mode_chapitre=lecture; brio_mode_chapitre=%E0')).toBe('lecture')
+    expect(modeDuCookie('brio_mode_chapitre=')).toBe('')
   })
 })
 
@@ -85,6 +93,12 @@ describe('etatAuMontage (ADR 0046 §4)', () => {
       mode: 'interactif',
       index: 0,
     })
+  })
+
+  it('should take a repeated ?diapo for no ?diapo, as the server does', () => {
+    const lecture = { mode: 'lecture', index: 0 } as const
+    expect(etatAuMontage(DECK, lecture, '?diapo=a&diapo=b', 'lecture')).toBe(lecture)
+    expect(etatAuMontage(DECK, props, '?diapo=ex1&diapo=ex2', undefined)).toBe(props)
   })
 
   it('should keep the props when the address and the cookie are silent', () => {
