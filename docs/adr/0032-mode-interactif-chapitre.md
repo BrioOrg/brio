@@ -245,7 +245,8 @@ with the same tokens and the same `buildDeck`.
 - No content to rewrite: the 45 catalogue chapters work in interactive mode as they are.
 - `buildDeck` is pure and framework-free: unit-tested in `packages/content`, reused by Expo.
 - One renderer for both modes: a block fixed in one mode is fixed in the other.
-- Every slide has a URL, so the back button and direct links work.
+- Every slide has a URL, so direct links and reload work (back leaves the chapter since
+  [ADR 0046](0046-historique-mode-interactif.md)).
 - The reading mode keeps its weight and its calm.
 
 ### Negative / trade-offs

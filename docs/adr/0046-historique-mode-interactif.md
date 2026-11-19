@@ -99,13 +99,19 @@ number of slides seen, and treat the address as a mirror of the state, never as 
 7. **In-page anchors are intercepted in both modes.** The provider's existing delegated
    `onClickCapture` (today interactive only) also handles reading mode: a click on
    `a[href^="#"]` whose target is in the chapter is prevented, the target is scrolled into view
-   (`scrollIntoView({ block: 'start' })`, which honours the sections' `scroll-mt-20` like the
-   native jump), the keyboard starting point is kept (the target receives focus with
-   `preventScroll`, `tabindex="-1"` set on demand), and **the address is not written** (the
-   reading position is not in the URL today either). React's synthetic events bubble through
+   (`scrollIntoView({ block: 'start' })`), the keyboard starting point is kept on the target's
+   **heading** (its direct `h1`–`h6`, or the target itself when it has none; `tabindex="-1"` set
+   on demand, `focus` with `preventScroll`, the slide titles' focus style), and **the address is
+   not written** (the reading position is not in the URL today either). A link to `#` or to an
+   id found nowhere in the document is prevented and does nothing; a link to an id outside the
+   chapter (a skip link) is left to the browser. React's synthetic events bubble through
    portals, so « Sur cette page » in the mobile tools sheet is covered; the sheet's own
-   `onNavigate` still closes it. Modifier clicks (Cmd/Ctrl/Shift, middle button) keep the
-   browser's behaviour. Neither `chapter-rail.tsx` nor `exercice-widget.tsx` changes.
+   `onNavigate` still closes it, and `chapter-tools-sheet.tsx` keeps the focus on that heading
+   when it closes after such a link (any other close hands focus back to its trigger). Modifier
+   clicks (Cmd/Ctrl/Shift/Alt, middle button) keep the browser's behaviour. Neither
+   `chapter-rail.tsx` nor `exercice-widget.tsx` changes.
+   _Known, pre-existing, out of scope:_ the sections' `scroll-mt-20` computes to `0px`, so the
+   heading lands under the sticky header after the jump, as with the native jump before (U7).
 
 ## Consequences
 
@@ -182,9 +188,12 @@ number of slides seen, and treat the address as a mirror of the state, never as 
 - **B1 (technical architect)** — agrees. Smallest change that meets the three human decisions
   and U6's six risks; contained in the chapter provider, no backend, no API, no migration;
   reversible by reverting one PR.
-- **P2 (product strategist)** — _to be recorded by P3_ (the needs sheet and the three human
-  decisions are the input of this ADR).
-- **U7 (guardian)** — _to be recorded by P3_ (checks the reading-mode anchor behaviour,
-  focus included, and the absence of a flash when leaving).
+- **P2 (product strategist)** — agrees: the ADR applies the needs sheet of #396 and the three
+  human decisions of gate 1 as written (back returns to the previous page, the URL follows the
+  slide without an entry, no jump creates an entry).
+- **U7 (guardian)** — agrees, no veto (gate 5, PR #412): focus on the slide title and the
+  `aria-live` announcement kept, no flash on back or forward, reduced motion and 200 % zoom
+  fine. Its two reservations (focus on an unnamed section; focus lost in the mobile sheet) were
+  fixed in round 1 by sending focus to the section's heading, in both cases.
 - **U6 (consulted, performance veto)** — no veto; the veto on `router.replace`/`router.push`
   is honoured (decision 1).
