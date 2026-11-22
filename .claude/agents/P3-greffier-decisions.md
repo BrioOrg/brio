@@ -20,6 +20,9 @@ Fin d'un conseil N2 ; PR qui touche une décision existante.
 
 ## Produit
 - **ADR** (copie de `docs/adr/template.md`, numéro suivant, statut `Proposed`→`Accepted`).
+- **Réservation de numéro** (rétro PL-4) : avant d'écrire un ADR, consigne dans l'issue
+  « ADR NNNN réservé » après `node scripts/mesh/check-numerotation.mjs --base origin/develop
+  --open-prs` ; « le numéro suivant » sur sa branche n'est pas une réservation.
 - **PR de remise à jour des docs** quand docs et code divergent.
 
 ## Outils

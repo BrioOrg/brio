@@ -44,7 +44,9 @@ Never work on develop or main.
 - Push the branch without asking, never `develop` or `main`.
 
 ## Phase 6 — Verify and hand back
-1. Run the build and tests. Report real output, not a summary.
+1. Run the build and tests. Report real output, not a summary. Before pushing,
+   also run the mesh checks of `.claude/rules/mesh-hygiene.md` (each
+   `scripts/mesh/__tests__/*.test.mjs`, `route-budget`, `check-numerotation`).
 2. Walk the user through the diff file by file, explaining WHY each
    change exists, not what it does.
 3. List anything you did that wasn't in the plan.

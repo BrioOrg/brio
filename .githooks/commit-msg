@@ -16,8 +16,11 @@ set -eu
 msg_file="$1"
 
 # First non-empty, non-comment line = the subject we validate.
+# `|| [ -n "$line" ]` keeps a last line with no trailing newline: `git merge --no-edit`
+# writes "Merge branch …" that way, and without it the merge was rejected with an empty
+# subject (PL-4 retro, #358).
 subject=""
-while IFS= read -r line; do
+while IFS= read -r line || [ -n "$line" ]; do
   case "$line" in
     '#'*) continue ;;
     '') continue ;;

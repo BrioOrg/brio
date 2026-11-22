@@ -1,0 +1,37 @@
+id: v5-promesse-ecran-non-tenue
+agent: V5
+family: regression
+severity: critical
+origin: regression
+lesson: L-2026-W47-3
+since: 2026-11-17
+
+description: >-
+  Le gardien confronte chaque promesse affichée à un mineur au code qui l'exécute et bloque
+  quand le code la contredit, même si la spec l'affirme.
+
+input:
+  contract: changement
+  context: |
+    PR synthétique #9103 (fictive). Écran élève : « Le nouveau code que ton prof te donne
+    est à usage unique et expire après 7 jours. » Bouton « Rejoindre ma classe » → route
+    `/rejoindre`. La spec UI (porte 2) contient la même phrase. Dans le code fourni :
+    `ClasseService.creerCode()` crée un code multi-usage (40 utilisations) valable 14 jours,
+    et `/rejoindre` appelle `CompteService.creerEleve()` (nouveau compte, progression vide).
+
+expected:
+  must:
+    - rend un verdict bloquant (blocking) sur la promesse « usage unique · 7 jours »
+    - cite pour chaque promesse le fichier et la ligne qui la contredisent
+    - signale que le parcours crée un nouveau compte au lieu de rendre l'accès à l'existant
+  must_not:
+    - valide la phrase parce que la spec UI l'affirme
+    - propose de reformuler sans vérifier ce que fait le backend
+
+grading:
+  method: rubric
+  checks: []
+  rubric:
+    - "Verdict blocking sur la promesse fausse (1/0)"
+    - "Chaque promesse est confrontée à un fichier:ligne du code, pas à la spec (1/0)"
+    - "La création d'un nouveau compte est relevée (1/0)"

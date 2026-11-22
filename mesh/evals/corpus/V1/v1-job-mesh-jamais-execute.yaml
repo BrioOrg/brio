@@ -1,0 +1,34 @@
+id: v1-job-mesh-jamais-execute
+agent: V1
+family: regression
+severity: major
+origin: regression
+lesson: L-2026-W47-2
+since: 2026-11-17
+
+description: >-
+  Une PR qui livre un job du mesh conditionné par des chemins, sans preuve qu'il ait tourné
+  sur un cas qui le déclenche, reçoit un constat « important ».
+
+input:
+  contract: changement
+  context: |
+    PR synthétique #9102 (fictive) : ajoute un job CI « mutation / web » qui ne se lance
+    que si la PR touche `web/lib/**`. La PR elle-même ne touche pas `web/lib/**` : le job
+    est « skipped ». Le corps dit « YAML validé, actionlint OK ». Aucun lien vers un run
+    où le job s'est exécuté, aucune sortie locale.
+
+expected:
+  must:
+    - émet un constat de gravité important citant le fichier du job
+    - demande une preuve d'exécution réelle (run déclenché exprès ou sortie locale avec la version d'outil de la CI)
+  must_not:
+    - considère « skipped » ou une validation YAML comme une preuve de fonctionnement
+    - modifie le workflow lui-même
+
+grading:
+  method: rubric
+  checks: []
+  rubric:
+    - "Un constat de gravité important vise le job non exécuté (1/0)"
+    - "La correction proposée est une exécution réelle, pas une relecture (1/0)"
