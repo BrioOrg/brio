@@ -22,8 +22,10 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
+import { Skeleton } from '@/components/ui/skeleton'
 import { TextInput } from '@/components/ui/text-input'
 import { messageErreur } from '@/components/messagerie/messagerie-format'
+import { SalonClasseProf } from '@/components/messagerie/salon-classe-prof'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Une classe de l'enseignant : son code, à transmettre aux élèves, et la liste des élèves qui
@@ -108,8 +110,8 @@ export function ClasseDetail({ classeId }: { classeId: string }) {
         {classe === null && <p className="text-ink-muted">Cette classe est introuvable.</p>}
         {classe && (
           <>
-            <CodeDeClasse classeId={classeId} />
             <SalonDeClasse classeId={classeId} libelle={classe.libelle} />
+            <CodeDeClasse classeId={classeId} />
             <Eleves classeId={classeId} />
           </>
         )}
@@ -122,6 +124,8 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
   // undefined: loading · null: no salon yet · SalonVue: open
   const [salon, setSalon] = useState<SalonVue | null | undefined>(undefined)
   const [ouvre, setOuvre] = useState(false)
+  // Opened from this page: the salon shows in place, focus moves to its composer.
+  const [vientDOuvrir, setVientDOuvrir] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
 
   const charger = useCallback(async () => {
@@ -142,9 +146,10 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
     setErreur(null)
     try {
       await creerSalon(apiBaseUrl(), { classeId, titre: `Salon de ${libelle}` })
+      setVientDOuvrir(true)
       await charger()
     } catch (e) {
-      setErreur(messageErreur(e, "L'ouverture du salon a échoué. Réessayez."))
+      setErreur(messageErreur(e, "L'ouverture du salon a échoué. Réessaie."))
     } finally {
       setOuvre(false)
     }
@@ -155,9 +160,15 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
       aria-label="Salon de la classe"
       className="flex flex-col gap-3 rounded-xl border border-line bg-surface-panel p-6"
     >
-      <h2 className="font-display text-sm font-extrabold uppercase tracking-widest text-ink-muted">
-        Salon de la classe
-      </h2>
+      {/* Once open, the salon renders its own heading row, with « Actualiser » beside it. */}
+      {!salon && (
+        // Same height as the open salon's heading row, where « Actualiser » sits beside it.
+        <div className="flex min-h-9 items-center">
+          <h2 className="font-display text-sm font-extrabold uppercase tracking-widest text-ink-muted">
+            Salon de la classe
+          </h2>
+        </div>
+      )}
 
       {erreur && (
         <p role="alert" className="text-sm text-danger">
@@ -165,21 +176,16 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
         </p>
       )}
 
-      {salon === undefined && !erreur && <p className="text-ink-muted">Chargement…</p>}
+      {salon === undefined && !erreur && <SalonSquelette />}
 
-      {salon && (
-        <p className="text-sm text-ink-muted">
-          Le salon <span className="font-semibold text-ink">{salon.titre}</span> est ouvert. Tes
-          élèves le retrouvent dans « Ma classe ». Les messages signalés arrivent dans{' '}
-          <span className="text-ink">Signalements du salon</span>.
-        </p>
-      )}
+      {salon && <SalonClasseProf salon={salon} vientDOuvrir={vientDOuvrir} />}
 
       {salon === null && (
         <>
           <p className="text-sm text-ink-muted">
-            Ouvre un salon de discussion pour la classe : chaque élève et toi pouvez y écrire. Tu
-            peux masquer un message signalé à tout moment.
+            {
+              'Ouvre le salon de la classe\u00a0: tes élèves et toi pourrez y écrire. Tu le liras ici et tu pourras masquer les messages de tes élèves.'
+            }
           </p>
           <div>
             <Button size="sm" onClick={() => void ouvrir()} loading={ouvre}>
@@ -190,6 +196,27 @@ function SalonDeClasse({ classeId, libelle }: { classeId: string; libelle: strin
         </>
       )}
     </section>
+  )
+}
+
+/**
+ * Reserves the height of the open salon (intro, list, composer) while it loads, so that the
+ * sections below do not move when it arrives.
+ */
+function SalonSquelette() {
+  return (
+    <>
+      <p role="status" className="sr-only">
+        Chargement…
+      </p>
+      <Skeleton className="h-20 w-full sm:h-10" />
+      <Skeleton className="h-52 w-full" />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-8 w-full sm:h-4" />
+        <Skeleton className="h-9 w-24 self-end" />
+      </div>
+    </>
   )
 }
 
