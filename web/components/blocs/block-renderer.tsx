@@ -1,9 +1,19 @@
 import { Fragment } from 'react'
-import { type FigureSpec, type ChartSpec } from '@brio/content'
+import {
+  type FigureSpec,
+  type ChartSpec,
+  type CalculSpec,
+  type SolidSpec,
+  type TreeSpec,
+} from '@brio/content'
 
 import { ExerciceWidget, PaperExercise, type CourseSection } from '@/components/exercice-widget'
+import { CalculRenderer } from '@/components/calcul-renderer'
 import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
+import { SolidRenderer } from '@/components/solid-renderer'
+import { TreeRenderer } from '@/components/tree-renderer'
+import { FigureParametree } from '@/components/figure-parametree'
 import { CitationChip } from '@/components/ui/chat/citation-chip'
 import { Icon } from '@/components/ui/icon'
 import { Etapes } from '@/components/chapitre-interactif/etapes'
@@ -70,16 +80,21 @@ export function BlockRenderer({
         </figure>
       )
 
-    case 'figure':
+    case 'figure': {
+      // A figure with sliders (ADR 0038) needs the client; every other one stays on the server.
+      const spec = block.spec as FigureSpec
+      const Figure = (spec.parameters ?? []).length > 0 ? FigureParametree : FigureRenderer
       return (
         <div id={block.id}>
-          <FigureRenderer
-            spec={block.spec as FigureSpec}
+          <Figure
+            spec={spec}
             alt={block.alt as string}
             caption={block.caption as string | undefined}
+            blockId={block.id}
           />
         </div>
       )
+    }
 
     case 'chart':
       return (
@@ -93,6 +108,29 @@ export function BlockRenderer({
         </div>
       )
 
+    case 'tree':
+      return (
+        <div id={block.id}>
+          <TreeRenderer
+            spec={block as unknown as TreeSpec}
+            alt={block.alt as string}
+            title={block.title as string | undefined}
+            caption={block.caption as string | undefined}
+          />
+        </div>
+      )
+
+    case 'solid':
+      return (
+        <div id={block.id}>
+          <SolidRenderer
+            spec={block as unknown as SolidSpec}
+            alt={block.alt as string}
+            caption={block.caption as string | undefined}
+          />
+        </div>
+      )
+
     case 'exercise':
       return (
         <ExerciseBlock id={block.id} block={block} apercu={apercu} courseSection={courseSection} />
@@ -100,6 +138,9 @@ export function BlockRenderer({
 
     case 'steps':
       return <StepsBlock id={block.id} block={block} />
+
+    case 'calcul':
+      return <CalculRenderer id={block.id} spec={block as unknown as CalculSpec} />
 
     case 'objectives':
       return <ObjectivesBlock id={block.id} block={block} />

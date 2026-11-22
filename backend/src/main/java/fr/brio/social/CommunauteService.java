@@ -193,6 +193,10 @@ public class CommunauteService {
         if (reponse.getAuteurId().equals(demandeurId)) {
             throw new MessageInvalideException("On ne retient pas sa propre réponse.");
         }
+        if (reponse.getAuteurId().equals(PurgeRetention.COMPTE_ANONYME)) {
+            // Anonymised by the retention purge: no one to credit (ADR 0023 §6).
+            throw new MessageInvalideException("Cette réponse est trop ancienne pour être retenue.");
+        }
         if (reponseId.equals(question.getReponseResolueId())) {
             return;
         }

@@ -220,4 +220,29 @@ class PublicationValidatorTest {
                 .extracting(e -> ((InvalidContentException) e).violations())
                 .isEqualTo(List.of(new ContentViolation(ContentViolation.MISSING_ALT, "s1", "chart1", "alt")));
     }
+
+    @Test
+    void shouldRejectATreeWithABlankAlt() {
+        // A tree is a figure for a screen reader too (ADR 0040 §10).
+        String tree = """
+                { "id": "arbre1", "type": "tree", "alt": "   ",
+                  "root": { "children": [ { "label": "P" }, { "label": "F" } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(doc(tree)))
+                .isInstanceOf(InvalidContentException.class)
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(ContentViolation.MISSING_ALT, "s1", "arbre1", "alt")));
+    }
+
+    @Test
+    void shouldBlockPublicationWhenASolidHasABlankAltText() throws Exception {
+        // A solid the student turns needs a real textual equivalent of its starting view (ADR 0039 §7).
+        String solid = """
+                { "id": "solide1", "type": "solid", "kind": "cube", "edge": 2, "alt": "  " }
+                """;
+        assertThatThrownBy(() -> validator.validate(doc(solid)))
+                .isInstanceOf(InvalidContentException.class)
+                .extracting(e -> ((InvalidContentException) e).violations())
+                .isEqualTo(List.of(new ContentViolation(ContentViolation.MISSING_ALT, "s1", "solide1", "alt")));
+    }
 }

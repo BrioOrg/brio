@@ -1,5 +1,6 @@
 package fr.brio.identite;
 
+import fr.brio.identite.api.MotDePasseHachable;
 import fr.brio.identite.api.ReinitialisationAccesInfo;
 import fr.brio.identite.api.ReinitialisePar;
 import fr.brio.identite.domain.Classe;
@@ -43,9 +44,8 @@ public class ReinitialisationAccesService {
      * Longest password bcrypt can hash: 72 BYTES of UTF-8, not characters (#364). An accented
      * letter takes two, an emoji four. Beyond it the encoder throws: refused first with a 400.
      */
-    public static final int MOT_DE_PASSE_MAX_OCTETS = 72;
-    static final String MESSAGE_TROP_LONG = "Ton mot de passe est trop long. Raccourcis-le : "
-            + "les lettres accentuées et les emojis comptent pour plusieurs caractères.";
+    public static final int MOT_DE_PASSE_MAX_OCTETS = MotDePasseHachable.MAX_OCTETS;
+    static final String MESSAGE_TROP_LONG = MotDePasseHachable.MESSAGE_TU;
 
     /**
      * HTTP-session attribute set on the ONE session the provisional password opened: the

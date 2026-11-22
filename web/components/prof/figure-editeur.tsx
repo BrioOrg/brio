@@ -8,10 +8,15 @@ import {
   type FigureSolid,
   type FigureSpec,
   type LabelPlacement,
+  type Tone,
 } from '@brio/content'
 
 import { FigureRenderer } from '@/components/figure-renderer'
+import { ChoixTeinte } from '@/components/prof/choix-teinte'
+import { FigureParametree } from '@/components/figure-parametree'
+import { FonctionsEditeur } from '@/components/prof/fonctions-editeur'
 import { marqueChamp, useChamp } from '@/components/prof/problemes-du-bloc'
+import { TransformationsEditeur } from '@/components/prof/transformations-editeur'
 import type { Bloc } from '@/lib/cours-editeur'
 
 // Constructeur de `spec` d'une figure déclarative (ADR 0013). On saisit des points nommés avec
@@ -36,13 +41,14 @@ type Point = {
   dot?: boolean
   showName?: boolean
   label?: { placement?: LabelPlacement }
+  tone?: Tone
 }
-type Segment = { from: string; to: string; style?: FigureLineStyle }
+type Segment = { from: string; to: string; style?: FigureLineStyle; tone?: Tone }
 type Polyline = { points: string[]; style?: FigureLineStyle }
 type Axis = { from: number; to: number; step: number; labelEvery?: number; title?: string }
 type Axes = { x: Axis; y: Axis; grid?: boolean }
-type Polygon = { vertices: string[]; style?: FigureLineStyle }
-type Circle = { center: string; through?: string; radius?: number }
+type Polygon = { vertices: string[]; style?: FigureLineStyle; tone?: Tone; fill?: 'soft' }
+type Circle = { center: string; through?: string; radius?: number; tone?: Tone }
 // Arc : de `from` à `to` (points), ou rayon + angles, tracé dans le sens direct (ADR 0013, #227).
 type Arc = {
   center: string
@@ -53,10 +59,11 @@ type Arc = {
   endAngle?: number
   closed?: 'sector' | 'chord'
   style?: FigureLineStyle
+  tone?: Tone
 }
-type AngleMark = { vertex: string; from: string; to: string; right?: boolean }
+type AngleMark = { vertex: string; from: string; to: string; right?: boolean; tone?: Tone }
 type LengthMark = { segment: string; ticks: 1 | 2 | 3 }
-type FreeLabel = { text: string; x: number; y: number }
+type FreeLabel = { text: string; x: number; y: number; tone?: Tone }
 type NumberLine = {
   from: number
   to: number
@@ -355,6 +362,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       />
                       nom
                     </label>
+                    <ChoixTeinte
+                      tone={p.tone}
+                      onChange={(tone) => majP({ tone })}
+                      ariaLabel={`Teinte du point ${p.name || i + 1}`}
+                    />
                     <Supprimer
                       label={`Supprimer le point ${p.name || i + 1}`}
                       onClick={() => patchSpec({ points: points.filter((_, j) => j !== i) })}
@@ -401,6 +413,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                     style={seg.style}
                     onChange={(style) => maj({ style })}
                     ariaLabel={`Segment ${i + 1} en pointillés`}
+                  />
+                  <ChoixTeinte
+                    tone={seg.tone}
+                    onChange={(tone) => maj({ tone })}
+                    ariaLabel={`Teinte du segment ${i + 1}`}
                   />
                 </>
               )
@@ -508,6 +525,24 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       onChange={(style) => majPoly({ style })}
                       ariaLabel={`Polygone ${i + 1} en pointillés`}
                     />
+                    {/* Un fond doux n'existe qu'avec une teinte : sans elle, on le retire. */}
+                    <ChoixTeinte
+                      tone={poly.tone}
+                      onChange={(tone) => majPoly(tone ? { tone } : { tone, fill: undefined })}
+                      ariaLabel={`Teinte du polygone ${i + 1}`}
+                    />
+                    {poly.tone && (
+                      <label className="flex items-center gap-1 font-prose text-xs text-ink-muted">
+                        <input
+                          type="checkbox"
+                          className="accent-accent"
+                          aria-label={`Polygone ${i + 1} rempli d’un fond doux`}
+                          checked={poly.fill === 'soft'}
+                          onChange={(e) => majPoly({ fill: e.target.checked ? 'soft' : undefined })}
+                        />
+                        fond doux
+                      </label>
+                    )}
                     <Supprimer
                       label={`Supprimer le polygone ${i + 1}`}
                       onClick={() => patchSpec({ polygons: polygons.filter((_, j) => j !== i) })}
@@ -553,8 +588,8 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       onChange={(e) =>
                         maj(
                           e.target.value === 'radius'
-                            ? { center: c.center, radius: 1 }
-                            : { center: c.center, through: '' }
+                            ? { center: c.center, radius: 1, tone: c.tone }
+                            : { center: c.center, through: '', tone: c.tone }
                         )
                       }
                     >
@@ -565,17 +600,22 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       <ChoixPoint
                         value={c.through ?? ''}
                         points={points}
-                        onChange={(through) => maj({ center: c.center, through })}
+                        onChange={(through) => maj({ center: c.center, through, tone: c.tone })}
                         ariaLabel={`Cercle ${i + 1} — point de passage`}
                       />
                     ) : (
                       <ChampNombre
                         value={c.radius ?? 1}
-                        onChange={(radius) => maj({ center: c.center, radius })}
+                        onChange={(radius) => maj({ center: c.center, radius, tone: c.tone })}
                         onFocus={onFocusBloc}
                         ariaLabel={`Cercle ${i + 1} — rayon`}
                       />
                     )}
+                    <ChoixTeinte
+                      tone={c.tone}
+                      onChange={(tone) => maj({ ...c, tone })}
+                      ariaLabel={`Teinte du cercle ${i + 1}`}
+                    />
                     <Supprimer
                       label={`Supprimer le cercle ${i + 1}`}
                       onClick={() =>
@@ -612,7 +652,7 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                     // Même recollage que pour les cercles : union « points | angles » côté schéma.
                     arcs: arcs.map((x, j) => (j === i ? next : x)) as FigureSpec['arcs'],
                   })
-                const commun = { center: a.center, closed: a.closed, style: a.style }
+                const commun = { center: a.center, closed: a.closed, style: a.style, tone: a.tone }
                 return (
                   <li key={i} className="flex flex-wrap items-center gap-1.5">
                     <span className="font-prose text-xs text-ink-muted">centre</span>
@@ -700,6 +740,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       onChange={(style) => maj({ ...a, style })}
                       ariaLabel={`Arc ${i + 1} en pointillés`}
                     />
+                    <ChoixTeinte
+                      tone={a.tone}
+                      onChange={(tone) => maj({ ...a, tone })}
+                      ariaLabel={`Teinte de l’arc ${i + 1}`}
+                    />
                     <Supprimer
                       label={`Supprimer l’arc ${i + 1}`}
                       onClick={() =>
@@ -769,6 +814,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                       />
                       droit
                     </label>
+                    <ChoixTeinte
+                      tone={am.tone}
+                      onChange={(tone) => maj({ tone })}
+                      ariaLabel={`Teinte de la marque d’angle ${i + 1}`}
+                    />
                     <Supprimer
                       label={`Supprimer la marque d’angle ${i + 1}`}
                       onClick={() =>
@@ -883,6 +933,11 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                     ariaLabel={`Étiquette ${i + 1} — ordonnée`}
                   />
                   <span className="text-ink-muted">)</span>
+                  <ChoixTeinte
+                    tone={lbl.tone}
+                    onChange={(tone) => maj({ tone })}
+                    ariaLabel={`Teinte de l’étiquette ${i + 1}`}
+                  />
                 </>
               )
             }}
@@ -1020,6 +1075,8 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
                   />
                   Quadrillage
                 </label>
+                {/* Courbes de fonctions, lectures et curseurs (ADR 0038) */}
+                <FonctionsEditeur spec={spec} patchSpec={patchSpec} onFocus={onFocusBloc} />
               </div>
             )}
           </section>
@@ -1064,6 +1121,9 @@ export function FigureEditeur({ bloc, onModifier, onFocusBloc }: Props) {
               )}
             </section>
           )}
+
+          {/* Droites, vecteurs, transformations (ADR 0041) */}
+          <TransformationsEditeur spec={spec} patchSpec={patchSpec} onFocusBloc={onFocusBloc} />
         </div>
 
         {/* Aperçu en direct */}
@@ -1439,9 +1499,11 @@ function ApercuFigure({ spec, alt, caption }: { spec: FigureSpec; alt: string; c
     )
   }
 
+  // Avec des curseurs, l'aperçu les montre aussi : l'enseignant les essaie comme l'élève.
+  const Figure = (spec.parameters ?? []).length > 0 ? FigureParametree : FigureRenderer
   return (
     <div className="rounded-md border border-line bg-surface-page p-2">
-      <FigureRenderer spec={spec} alt={alt} caption={caption} />
+      <Figure spec={spec} alt={alt} caption={caption} />
     </div>
   )
 }

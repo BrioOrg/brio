@@ -256,6 +256,27 @@ Pour lire ou placer des points, tracer une courbe ou un graphique de proportionn
   (trait de construction, axe de symétrie). Un seul côté d'un polygone en pointillés : un
   segment à part.
 
+#### Courbes de fonctions (ADR 0038)
+
+Une fonction se trace par son expression, jamais par une ligne brisée : une `polylines` reste
+réservée aux relevés (températures heure par heure).
+
+```json
+"functions":  [{ "name": "f", "expr": "4x", "domain": [0, 6], "label": true }],
+"readings":   [{ "function": "f", "x": 3 }, { "function": "f", "y": 20 }],
+"parameters": [{ "name": "a", "min": 0.5, "max": 4, "step": 0.5, "value": 1.5 }]
+```
+
+- `expr` s'écrit comme sur papier, sans « f(x) = » : `2x + 1`, `x² − 3`, `1/x`, `√x`, `3(x + 1)`,
+  virgule décimale permise. Seuls `x` et les lettres de `parameters` sont acceptés.
+  `1/2x` se lit (1/2) × x : écris `1/(2x)` pour l'autre sens.
+- `label: true` écrit 𝒞f près de la courbe ; un texte (`"Tarif A"`) l'écrit à la place. En 5e,
+  on n'écrit souvent aucun nom.
+- Une lecture `x` montre l'image, une lecture `y` tous les antécédents visibles : pointillés et
+  valeurs en couleur. Elle donne la réponse : jamais sur la figure d'un exercice qui la demande.
+- Un paramètre ajoute un curseur sous la figure ; l'impression utilise `value`.
+- `tone: 1…4` colore la courbe comme sa formule dans le texte, rien d'autre.
+
 #### Arcs et figures composées
 
 Un arc de cercle est un élément `arcs` (ADR 0013, amendement #227) : jamais une suite de petits
@@ -370,6 +391,46 @@ Recette — dessiner l'assemblage dont le plan coté est « fond 2, 1, 0 ; devan
   montre déjà la réponse. Le plan coté seul fait travailler le raisonnement.
 - Les **vues** (dessus, face, côté) ne sont pas dessinées par le renderer.
 
+#### Transformations, vecteurs et droites
+
+Une image par symétrie, translation, rotation ou homothétie ne se calcule **jamais** à la main
+(ADR 0041) : on écrit la figure de départ et la transformation, le renderer place les images,
+les nomme A′, B′, C′ (vrai prime) et trace la figure image en couleur.
+
+```json
+"spec": {
+  "points": [
+    { "name": "P", "x": 0, "y": -2, "dot": false, "showName": false },
+    { "name": "Q", "x": 0, "y": 5, "dot": false, "showName": false },
+    { "name": "A", "x": -5, "y": -1 }, { "name": "B", "x": -2, "y": 1 }, { "name": "C", "x": -3, "y": 4 }
+  ],
+  "polygons": [{ "vertices": ["A", "B", "C"] }],
+  "lines": [{ "through": ["P", "Q"], "label": "(d)" }],
+  "transformations": [
+    { "kind": "symetrie-axiale", "axis": ["P", "Q"], "source": ["A", "B", "C"],
+      "show": { "construction": true } }
+  ]
+}
+```
+
+1. `kind` et ses paramètres : `symetrie-axiale` (`axis`), `symetrie-centrale` (`center`),
+   `translation` (`from`, `to`), `rotation` (`center`, `angle` en degrés, sens direct si positif),
+   `homothetie` (`center`, `ratio`, négatif possible).
+2. `source` : les points à transformer. Tout polygone, segment, ligne brisée ou cercle dont les
+   points sont tous dans la source a son image.
+3. `show.construction` : `true` (ou une liste de points de la source) ajoute les tracés du
+   manuel (perpendiculaire codée, milieu codé, arc de compas…). Sur un polygone chargé, n'en
+   construire qu'un ou deux points.
+4. Les images sont des points : un segment `[AA′]` ou une transformation suivante peut les
+   nommer. Un nom d'image ne doit pas déjà exister.
+5. L'axe d'une symétrie axiale doit être tracé : une entrée `lines` (ou un segment).
+- `lines` : la droite (AB) traverse toute la figure ; `label` la nomme « (d) ».
+  `rays` : la demi-droite [AB), de A jusqu'au bord.
+- `vectors` : une flèche de `from` à `to`, `label` en LaTeX (`\\vec{u}`, `\\overrightarrow{AB}`).
+- En mode interactif, l'image arrive sur une étape : la figure de départ glisse, tourne ou se
+  retourne jusqu'à elle. Rien à écrire pour cela.
+- Dans le texte, écrire les images avec le même prime : `A′` (ou `$A'$` en formule).
+
 ### Diagrammes statistiques
 
 Un diagramme en barres, circulaire ou une courbe à abscisses catégorielles est un bloc `chart`,
@@ -403,6 +464,67 @@ Recette — un diagramme en barres :
   « quel diagramme correspond à ce tableau ? », un `table`, puis des `chart` titrés
   « Diagramme A », « Diagramme B »…, puis un QCM sur ces titres.
 
+### Arbres de probabilités
+
+Un arbre des possibles ou un arbre pondéré est un bloc `tree` (ADR 0040). On donne les branches,
+niveau par niveau ; le renderer place les nœuds, les probabilités et les issues.
+
+```json
+{ "id": "arbre-urne", "type": "tree", "outcomes": true, "products": true,
+  "highlightPath": ["R", "B"],
+  "root": { "children": [
+    { "label": "R", "probability": "3/5", "children": [
+      { "label": "R", "probability": "2/4" }, { "label": "B", "probability": "2/4" } ] },
+    { "label": "B", "probability": "2/5", "children": [
+      { "label": "R", "probability": "3/4" }, { "label": "B", "probability": "1/4" } ] } ] },
+  "alt": "Deux tirages sans remise dans une urne de 3 boules rouges et 2 bleues." }
+```
+
+- Sans `probability`, c'est un arbre des possibles (5e). Une probabilité s'écrit `3/5` (dessinée
+  en vraie fraction, jamais simplifiée), `0,4` (virgule), `25 %`, `?` (case à compléter) ou une
+  formule entre `$` (`$p$`, `$1-p$`). `label` accepte `$\overline{A}$`.
+- Au plus 3 niveaux, 6 branches par nœud, 12 issues. Les probabilités de branches sœurs toutes
+  chiffrées font **exactement 1** (check-content calcule en fractions).
+- `outcomes: true` écrit les issues, `(R ; B)` ; une feuille peut donner la sienne avec `outcome`
+  (`$A \cap B$`). `products: true` écrit leur probabilité : à éviter dans un exercice, elle
+  donnerait la réponse.
+- `highlightPath` (les noms du chemin, de la racine à une feuille) colore un chemin : la règle
+  du produit.
+- Horizontal par défaut ; `orientation: "vertical"` pour un petit arbre. Sur téléphone, tout
+  arbre est dessiné horizontalement.
+
+### Solides à faire tourner
+
+Un solide que l'élève fait tourner (glisser, flèches du clavier) est un bloc `solid`, pas une
+`figure` (ADR 0039). On donne la sorte et les dimensions ; le renderer calcule les arêtes
+cachées (en pointillés), les sections et les repères de la sphère. La vue de départ est celle du
+manuel (de face, un peu par la droite et par-dessus) ; c'est elle que décrit `alt`.
+
+Recette — un cône coupé par un plan parallèle à sa base :
+
+```json
+{ "id": "solide-cone", "type": "solid", "kind": "cone", "radius": 2, "height": 4.5,
+  "names": ["O", "S"], "section": { "parallelTo": "base", "at": 1.5 },
+  "alt": "Un cône de sommet S et de base le disque de centre O, coupé par un plan parallèle à sa base." }
+```
+
+- `kind` : `pave` (`width`, `height`, `depth`), `cube` (`edge`), `prisme` (`base` = face avant en
+  vraie grandeur, `depth`), `cylindre` (`radius`, `height`), `pyramide` (`base` vue de dessus,
+  `height`, `apex` facultatif = pied de la hauteur, par défaut le centre de la base), `cone`
+  (`radius`, `height`), `boule` (`radius`).
+- `names` : les sommets dans l'ordre de `figure.solids` (face avant puis face arrière ; base
+  puis sommet pour une pyramide) ; les centres des bases d'un cylindre ; le centre de la base
+  puis le sommet d'un cône ; le centre d'une boule. Nommer les centres trace l'axe en pointillés.
+- `section` : `parallelTo` vaut `base` (par défaut), `front` ou `side` (pavé, cube), `axis`
+  (cylindre) ; `at` est la distance à cette face ou à l'axe, strictement à l'intérieur. Pour une
+  boule, pas de `parallelTo` : `at` est la distance du centre au plan, parallèle à l'équateur.
+- Boule seulement : `equator`, `parallels` (latitudes), `meridians` (longitudes) et `points`
+  (`name`, `latitude`, `longitude`), en degrés, nord et est positifs ; la longitude 0 est face à
+  l'élève.
+- Ce dessin n'est **pas** en perspective cavalière (la face avant n'est pas en vraie grandeur) :
+  pour enseigner la cavalière, garder `figure.solids` et le dire dans le texte.
+- Un exercice qui demande de faire tourner le solide suit le bloc et dit quel geste faire.
+
 ### Programmes Scratch
 
 Un programme Scratch est un bloc `code` en `"language": "scratch"` (ADR 0031). Il s'écrit en
@@ -424,19 +546,75 @@ qui ne s'analyse pas, ligne par ligne.
   | `dire …` | apparence |
   | `avancer de … pas` / `tourner à droite de … degrés` (ou `à gauche`) | mouvement |
   | `répéter … fois` … `fin` | contrôle |
+  | `si <booléen> alors` … `fin` | contrôle |
+  | `si <booléen> alors` … `sinon` … `fin` | contrôle |
+  | `répéter jusqu'à ce que <booléen>` … `fin` | contrôle |
+  | `stylo en position d'écriture` / `relever le stylo` / `effacer tout` | stylo |
 
 - **Une valeur** est un nombre (`3`, `2,5`, `-1`), un texte entre « », une variable (`x`, ou
   `(x)`), `réponse`, ou une opération **entre parenthèses** : `(x * 3)`. Une parenthèse par
   opération, comme les blocs emboîtés : `((x * 3) + 4)`, jamais `(x * 3 + 4)`.
+- **Un booléen** (hexagone, pour une condition) est une **comparaison** `(x > 10)`, `(n = 0)`
+  avec `<`, `=` ou `>`, un **« et »/« ou »** de deux booléens : `((x > 0) et (x < 10))`, ou un
+  **« non »** d'un booléen : `(non (x = 0))`. Une parenthèse par opérateur, comme les valeurs —
+  aucune priorité. En position d'opérateur, `et`/`ou` sont toujours l'opérateur logique et
+  exigent deux booléens (`(x et y)` est une erreur) ; `non` l'est quand une parenthèse le suit ;
+  en opérande, ce sont des noms de variables. La condition d'un `si` ou d'un `répéter jusqu'à ce
+  que` **doit** être un booléen, jamais un nombre ; et un booléen ne peut pas occuper une place
+  de valeur (`dire (a < b)` est refusé : Scratch l'accepte, mais Brio s'en tient aux conditions).
+- **Scratch n'a ni ≤, ni ≥, ni ≠** : écrire `((x < 3) ou (x = 3))` ou `(non (x = 3))` (le
+  parseur le rappelle si on tape `≤`, `<=`, `≠` ou `!=`).
+- **Le sens des blocs, comme dans Scratch** (piège pour un exercice « prévoir la valeur ») :
+  - `répéter jusqu'à ce que` teste la condition **avant** chaque tour : si elle est vraie dès le
+    départ, le corps ne s'exécute pas (contrairement au « Répéter … Jusqu'à » de l'algorithmique
+    papier, qui teste après) ;
+  - `=` ne distingue pas majuscules et minuscules : `(« Oui » = « oui »)` est vrai ;
+  - dans un programme, **préférer les entiers** : Brio écrit les décimaux avec une virgule, mais
+    pour Scratch `2,5` n'est pas un nombre — il vaut 0 dans un calcul (`(x * 2,5)` donne 0) et
+    devient du texte dans une comparaison (avec x = 10, `(x > 2,5)` est faux). Un élève qui
+    recopie le programme dans Scratch obtiendrait un autre résultat.
 - **Le vrai signe de Scratch** : `*` et `/`, pas × ni ÷ (refusés). Le `code` n'est pas du texte
   riche, l'étoile n'y ouvre pas d'italique.
-- **La boucle** : le corps est décalé de **4 espaces** (pas de tabulation), et `fin` revient à la
-  hauteur de `répéter`. Une boucle vide est refusée.
+- **Les blocs en C** (`répéter … fois`, `si … alors`, `répéter jusqu'à ce que …`) : le corps est
+  décalé de **4 espaces** (pas de tabulation) et fermé par `fin` à la hauteur du bloc. `sinon`
+  (aligné sur son `si`) ouvre la seconde branche d'un `si`. Un corps vide est refusé.
 - Pas de ligne vide. Les noms de variables n'ont pas d'espace (`résultat`, `nb_pas`).
-- **Hors catalogue** (conditions, comparaisons, « répéter jusqu'à », stylo) : garder un bloc `code`
-  en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute (#234).
+- **Hors catalogue** : tout autre bloc (p. ex. `répéter indéfiniment`, attendre, messages, autres
+  blocs stylo) — garder un bloc `code` en `"language": "text"` jusqu'à ce que l'ADR 0031 l'ajoute.
+- Les apostrophes droite ' et typographique ’ sont acceptées dans `répéter jusqu'à ce que` et
+  `stylo en position d'écriture`. Pas plus de 32 niveaux de parenthèses ou de blocs imbriqués.
 - Un énoncé ou une option de QCM est du texte riche : un programme y reste écrit en texte, avec ×.
   Un exercice sur un programme suit le bloc `code`.
+- **« Prévoir la valeur » vérifié par la CI** (#232) : un exercice `numeric` (ou un QCM dont la
+  seule bonne réponse est un nombre) peut se relier au programme qu'il interroge avec un champ
+  `program`. `check:content` exécute alors le programme et refuse l'exercice si ce que dit le
+  lutin (le dernier `dire`) ne correspond pas à la réponse attendue — une erreur de calcul dans
+  le contenu devient une erreur de CI. Les `si … sinon`, `répéter jusqu'à ce que` et comparaisons
+  s'exécutent comme dans Scratch (voir « Le sens des blocs » ci-dessus) ; une boucle qui ne
+  s'arrête jamais, ou un `demander` sans valeur dans `inputs`, est aussi une erreur de CI.
+  Dans un programme relié :
+  - le dernier `dire` doit être **un nombre** (un texte, une `réponse` vide ne valent pas 0) ;
+  - les décimaux s'écrivent avec **un point** (`2.5`), dans le code comme dans `inputs` :
+    Scratch lit « 2,5 » comme du texte ;
+  - chaque valeur de `inputs` sert à un `demander`, et elle **redit l'énoncé** (« l'utilisateur
+    tape 5 ») : elle part chez l'élève, ce n'est jamais un corrigé caché ;
+  - chaque variable est **mise à une valeur avant d'être lue** (`mettre n à 0`) : Scratch garde
+    les variables d'un clic sur le drapeau à l'autre, la CI repart de 0 ;
+  - le nombre de tours d'un `répéter` est entier (Scratch arrondirait) ;
+  - un résultat décimal peut s'afficher avec un bruit d'arrondi dans Scratch
+    (`0.1 + 0.2` → 0.30000000000000004) : préférer des calculs entiers ;
+  - aucune mauvaise option d'un QCM ne vaut la valeur calculée.
+
+  ```json
+  { "id": "ex-prevoir-cinq", "type": "exercise", "exerciseType": "numeric",
+    "prompt": "L'utilisateur tape 5. Quel nombre dit le lutin ?", "answer": 19,
+    "program": { "ref": "code-programme-calcul", "inputs": ["5"] } }
+  ```
+
+  `ref` = l'`id` d'un bloc `code` Scratch **n'importe où dans le chapitre** (il peut être dans une
+  section précédente : « le programme du début »). `inputs` (optionnel) alimente les `demander`
+  dans l'ordre. Les programmes de **mouvement** (`avancer`/`tourner`) ne disent rien : ils ne se
+  relient pas à un exercice (une distance parcourue n'est pas ce que dit le lutin).
 
 ### Formules
 
@@ -464,6 +642,25 @@ la prose sans balisage : un `$a + b$` inline pour une expression simple est du b
 Un délimiteur non fermé (`**gras`, `$formule`) s'affiche tel quel, délimiteur compris —
 c'est une erreur visible plutôt qu'une perte silencieuse. `pnpm check:content`
 détecte ces cas avant le commit.
+
+### Couleurs signifiantes (ADR 0037)
+
+Une couleur dit qu'**un même objet** apparaît à deux endroits : le côté [AB] du triangle et le
+$AB^2$ de l'égalité, le terme $ka$ de la figure d'aires et celui du développement. Elle ne sert
+jamais à décorer ni à signaler un état (juste, faux, important) : l'encre reste le défaut.
+
+- **Dans une formule** (`formula.latex`, `$...$` d'un `richText`, `steps[].formula`) :
+  `\tone{n}{…}`, `n` de 1 à 4. Exemple : `"\\tone{3}{BC}^2 = \\tone{1}{AB}^2 + \\tone{2}{AC}^2"`.
+  Colore l'objet (`\tone{1}{AB}^2`), pas son exposant ni le signe qui le précède.
+- **Dans une figure** : `"tone": n` sur un point (point et nom), un segment, un polygone, un
+  cercle, un arc, une marque d'angle ou une étiquette. Un polygone teinté peut prendre
+  `"fill": "soft"` (fond doux sous son trait) ; pour garder des contours à l'encre, redessine le
+  contour par-dessus avec un polygone sans teinte.
+- **Même numéro, même objet**, dans tout le chapitre. Commence par 1 et 2 (bleu et orange, le
+  couple que les élèves daltoniens distinguent le mieux).
+- **Au plus trois teintes par bloc** : au-delà, `pnpm check:content` avertit. Une teinte hors
+  1…4 est une erreur. Une teinte présente dans une figure et dans aucune formule est permise.
+- La couleur n'est jamais le seul indice : l'objet reste nommé (lettre, nombre) aux deux endroits.
 
 ### Callouts
 

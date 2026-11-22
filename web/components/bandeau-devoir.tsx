@@ -9,9 +9,10 @@ import { apiBaseUrl } from '@/lib/api-base-url'
 import { formatEcheance } from '@/lib/echeance'
 
 /**
- * The reminder above a chapter opened from a homework (`?devoir=` on its URL). Everything comes
- * from the student's own homework list: an id that isn't theirs, or that points to another
- * chapter, shows nothing. A failed load shows nothing either: the chapter stays readable.
+ * The reminder above a catalogue chapter opened from a homework (`?devoir=` on its URL), loaded in
+ * the browser. Everything comes from the student's own homework list: an id that isn't theirs, or
+ * that points to another chapter, shows nothing. A failed load shows nothing either: the page stays
+ * readable. A teacher course finds its homework on the server and renders `BandeauDevoirVue`.
  */
 export function BandeauDevoir({ devoirId, slug }: { devoirId: string; slug: string }) {
   const [devoir, setDevoir] = useState<DevoirEleveVue | null>(null)
@@ -32,12 +33,23 @@ export function BandeauDevoir({ devoirId, slug }: { devoirId: string; slug: stri
   }, [devoirId, slug])
 
   if (!devoir) return null
+  return <BandeauDevoirVue enseignant={devoir.enseignant} echeanceAt={devoir.echeanceAt} />
+}
 
-  const qui = devoir.enseignant ? `Devoir de ${devoir.enseignant}` : 'Devoir'
+/**
+ * The banner itself, for a homework already found: no data loading, so the server can render it.
+ * It takes only the two fields it shows: a server page passing it props serializes them into the
+ * RSC payload, so the homework's title, instructions and class never reach the browser that way.
+ */
+export function BandeauDevoirVue({
+  enseignant,
+  echeanceAt,
+}: Pick<DevoirEleveVue, 'enseignant' | 'echeanceAt'>) {
+  const qui = enseignant ? `Devoir de ${enseignant}` : 'Devoir'
   return (
     <p className="mb-4 flex items-center gap-2 rounded-lg border border-accent bg-accent-soft px-4 py-2 font-prose text-sm font-semibold text-accent-ink">
       <Icon name="check" size={16} aria-hidden="true" />
-      {qui} · à rendre le {formatEcheance(devoir.echeanceAt)}
+      {qui} · à rendre le {formatEcheance(echeanceAt)}
     </p>
   )
 }

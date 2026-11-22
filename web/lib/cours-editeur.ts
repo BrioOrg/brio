@@ -6,17 +6,31 @@
 // (créer / enregistrer / publier un brouillon) est une étape suivante — ici on persiste en local.
 
 import {
+  checkCalcul,
   checkChart,
+  checkSolid,
+  checkTones,
+  checkFunctionPlot,
+  type FigureSpec,
   formatNumber,
   parseScratch,
   maxCategories,
+  checkTree,
+  findPath,
   CHART_AXIS_FIELDS,
+  type CalculIssue,
   type ChartIssue,
   type ChartKind,
   type ChartSpec,
+  type TreeIssue,
+  type TreeNodeSpec,
+  type TreeSpec,
+  type SolidIssue,
+  type SolidSpec,
 } from '@brio/content'
 
 import type { ChapitreResponse } from '@/components/chapter-view'
+import { problemesGeometrieFigure } from '@/lib/figure-geometrie'
 
 // Les types de blocs que l'afficheur élève sait rendre AUJOURD'HUI (chapter-view.tsx). On s'y
 // limite volontairement : inutile de laisser écrire des blocs qui n'apparaîtraient pas.
@@ -27,12 +41,18 @@ export type BlocType =
   | 'formula'
   | 'callout'
   | 'steps'
+  | 'calcul'
   | 'table'
   | 'reference'
   | 'figure'
   | 'chart'
+  | 'tree'
+  | 'solid'
   | 'code'
   | 'exercise'
+
+/** Une ligne d'un bloc « calcul » (ADR 0042) : la ligne en LaTeX, et ses champs facultatifs. */
+export type LigneCalcul = { latex: string; note?: string; focus?: string; op?: string }
 
 /** Une étape d'un bloc « exemple en étapes » : un texte, et éventuellement une formule. */
 export type Etape = { text: string; formula?: string }
@@ -95,6 +115,12 @@ export const BLOCS: {
   { type: 'callout', label: 'Encadré', description: 'Définition, exemple, attention…', icone: '▣' },
   { type: 'steps', label: 'Étapes', description: 'Un exemple résolu, étape par étape', icone: '≣' },
   {
+    type: 'calcul',
+    label: 'Calcul',
+    description: 'Un calcul en ligne ou une équation, aligné sur le signe =',
+    icone: '=',
+  },
+  {
     type: 'table',
     label: 'Tableau',
     description: 'Un tableau de données ou de conversion',
@@ -117,6 +143,18 @@ export const BLOCS: {
     label: 'Diagramme',
     description: 'Un diagramme en barres, circulaire ou une courbe',
     icone: '◔',
+  },
+  {
+    type: 'tree',
+    label: 'Arbre',
+    description: 'Un arbre des possibles ou un arbre de probabilités',
+    icone: '⋲',
+  },
+  {
+    type: 'solid',
+    label: 'Solide',
+    description: 'Un solide que l’élève fait tourner : pavé, cylindre, pyramide, cône, boule…',
+    icone: '⬡',
   },
   {
     type: 'code',
@@ -176,10 +214,13 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   formula: 'Formule',
   callout: 'Encadré',
   steps: 'Étapes',
+  calcul: 'Calcul',
   table: 'Tableau',
   reference: 'Référence',
   figure: 'Figure',
   chart: 'Diagramme',
+  tree: 'Arbre',
+  solid: 'Solide',
   code: 'Programme',
   exercise: 'Exercice',
 }
@@ -259,6 +300,16 @@ export function nouveauBloc(
     case 'steps':
       // Un exemple résolu : un titre optionnel et une première étape prête à remplir.
       return { id: genId(), type, title: '', steps: [{ text: '' }] as Etape[] }
+    case 'calcul':
+      // Une équation par défaut (le cas le plus fréquent au collège), deux lignes à remplir : le
+      // schéma en exige au moins deux.
+      return {
+        id: genId(),
+        type,
+        mode: 'equation',
+        title: '',
+        lines: [{ latex: '' }, { latex: '' }] as LigneCalcul[],
+      }
     case 'table':
       // Une grille 2×1 prête à remplir : une ligne d'en-têtes (facultative dans le schéma, mais
       // proposée par défaut) et une première ligne de corps. Le schéma exige au moins une ligne
@@ -292,6 +343,20 @@ export function nouveauBloc(
         ],
         alt: '',
       }
+    case 'tree':
+      // Arbre (ADR 0040) : deux branches à nommer, sans probabilité (un arbre des possibles) ;
+      // l'enseignant en ajoute une par branche pour en faire un arbre pondéré.
+      return {
+        id: genId(),
+        type,
+        outcomes: true,
+        root: { children: [{ label: '' }, { label: '' }] as NoeudArbre[] },
+        alt: '',
+      }
+    case 'solid':
+      // Solide à faire tourner (ADR 0039) : un pavé par défaut, aux dimensions du manuel.
+      // `alt` est obligatoire, vérifié avant la publication comme pour une figure.
+      return { id: genId(), type, kind: 'pave', width: 4, height: 3, depth: 2, alt: '' }
     case 'code':
       // Scratch par défaut : c'est le seul langage de programmation du collège (cycle 4,
       // algorithmique). « Texte » reste à un clic pour du pseudo-code ou une sortie.
@@ -441,6 +506,20 @@ function blocServi(bloc: Bloc): Bloc {
         b.steps = (b.steps as Etape[]).map((e) => (vide(e.formula) ? { text: e.text } : e))
       }
       return b
+    case 'calcul':
+      // Note, partie en évidence et opération laissées vides ne partent pas ; une opération n'a
+      // de sens qu'en mode équation (le schéma la refuse ailleurs).
+      if (Array.isArray(b.lines)) {
+        b.lines = (b.lines as LigneCalcul[]).map((l) => {
+          const ligne: LigneCalcul = { latex: l.latex }
+          if (!vide(l.note) && l.note !== undefined) ligne.note = l.note
+          if (!vide(l.focus) && l.focus !== undefined) ligne.focus = l.focus
+          if (!vide(l.op) && l.op !== undefined && b.mode === 'equation') ligne.op = l.op
+          return ligne
+        })
+      }
+      if (vide(b.conclusion)) delete b.conclusion
+      return b
     case 'table':
       if (Array.isArray(b.headers) && (b.headers as unknown[]).every(vide)) delete b.headers
       return b
@@ -450,6 +529,12 @@ function blocServi(bloc: Bloc): Bloc {
       // par défaut : inutile de l'écrire.
       if (b.kind === 'pie') for (const champ of CHART_AXIS_FIELDS) delete b[champ]
       if (b.showValues !== true) delete b.showValues
+      return b
+    case 'tree':
+      return arbreServi(b)
+    case 'solid':
+      // Changer de sorte laisse les champs de l'ancienne à undefined : ils ne partent pas.
+      for (const champ of Object.keys(b)) if (b[champ] === undefined) delete b[champ]
       return b
     case 'exercise':
       return b.exerciseType === 'fill-blank' ? { ...b, bank: banqueServie(b.bank) } : b
@@ -672,9 +757,27 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       break
     case 'figure':
       if (!texteRempli(b.alt)) p.push({ code: 'MISSING_ALT', champ: 'alt' })
+      p.push(...problemesGeometrieFigure(b.spec))
+      // Fonctions, lectures, curseurs (ADR 0038) : les règles et les mots de check-content.
+      if (b.spec && typeof b.spec === 'object') {
+        for (const i of checkFunctionPlot(b.spec as FigureSpec)) {
+          p.push({ code: 'FIGURE_FUNCTION', champ: `spec.${i.path}`, message: i.message })
+        }
+      }
       break
     case 'chart':
       p.push(...problemesGraphique(b))
+      break
+    case 'calcul':
+      for (const i of checkCalcul(b)) {
+        p.push({ code: `CALCUL_${i.code}`, champ: i.path, message: libelleCalcul(i) })
+      }
+      break
+    case 'tree':
+      p.push(...problemesArbre(b))
+      break
+    case 'solid':
+      p.push(...problemesSolide(b))
       break
     case 'code':
       exiger('code', b.code)
@@ -698,7 +801,25 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       p.push(...problemesExercice(b))
       break
   }
+  p.push(...problemesTeintes(b))
   return p
+}
+
+/** Les teintes d'un bloc (ADR 0037) : `\tone` de 1 à 4, au plus trois teintes par bloc. */
+function problemesTeintes(b: Bloc): ProblemeBrut[] {
+  return checkTones(b).issues.map((i) =>
+    i.code === 'UNKNOWN_TONE'
+      ? {
+          code: `TONE_${i.code}`,
+          champ: i.path,
+          message: `La teinte « ${i.value} » n’existe pas : choisis 1, 2, 3 ou 4.`,
+        }
+      : {
+          code: `TONE_${i.code}`,
+          gravite: 'avertissement',
+          message: `Ce bloc utilise ${i.tones.length} teintes : garde-en au plus ${i.max}, pour que chaque couleur dise quelque chose.`,
+        }
+  )
 }
 
 function problemesExercice(b: Bloc): ProblemeBrut[] {
@@ -818,6 +939,43 @@ function libelleGraphique(i: ChartIssue): string {
   }
 }
 
+// --- Calcul ---------------------------------------------------------------------
+// Les règles sont celles de check-content (packages/content, calcul.ts) ; le libellé français ici.
+
+export function libelleCalcul(i: CalculIssue): string {
+  const ligne = 'index' in i ? `Ligne ${i.index + 1} : ` : ''
+  switch (i.code) {
+    case 'LINE_COUNT':
+      return i.count < i.min
+        ? `Un calcul a au moins ${i.min} lignes.`
+        : `Un calcul a au plus ${i.max} lignes : coupe-le en deux.`
+    case 'BLANK_LINE':
+      return `${ligne}écris la ligne.`
+    case 'UNBALANCED':
+      return `${ligne}une accolade ou une parenthèse \\left…\\right n’est pas fermée.`
+    case 'NO_RELATION':
+      return `${ligne}une équation a un signe =, <, ≤…`
+    case 'SEVERAL_RELATIONS':
+      return `${ligne}un seul signe = par ligne : passe à la ligne suivante.`
+    case 'RELATION_INSIDE':
+      return `${ligne}écris seulement l’expression suivante, le = est ajouté tout seul.`
+    case 'EMPTY_MEMBER':
+      return `${ligne}il manque un membre de part et d’autre du signe.`
+    case 'BLANK_NOTE':
+      return `${ligne}la note est vide.`
+    case 'NOTE_TOO_LONG':
+      return `${ligne}la note fait ${i.length} caractères, ${i.max} au plus : garde-la courte.`
+    case 'FOCUS_NOT_FOUND':
+      return `${ligne}la partie mise en évidence ne se trouve pas dans la ligne.`
+    case 'OP_IN_EGALITES':
+      return `${ligne}l’opération sur les deux membres n’existe qu’en mode équation.`
+    case 'OP_ON_FIRST_LINE':
+      return 'La première ligne n’a pas d’opération : elle mène d’une ligne à la suivante.'
+    case 'OP_INVALID':
+      return `${ligne}l’opération s’écrit sans signe =, par exemple -13 ou \\div 4.`
+  }
+}
+
 function problemesGraphique(b: Bloc): ProblemeBrut[] {
   const p: ProblemeBrut[] = []
   if (!texteRempli(b.alt)) {
@@ -881,6 +1039,357 @@ export function graphiquePourApercu(b: Bloc): ChartSpec | null {
     if (typeof b.yStep === 'number') spec.yStep = b.yStep
   }
   return spec
+}
+
+// --- Arbre ----------------------------------------------------------------------
+// Les règles sont celles de check-content (packages/content, tree-rules.ts) ; seul leur libellé
+// français est ici. Un avertissement (probabilités données pour une partie des branches sœurs)
+// ne bloque pas : un arbre à compléter est légitime.
+
+/** Une branche d'arbre telle que saisie : une probabilité vide est une chaîne vide. */
+export type NoeudArbre = {
+  label: string
+  probability?: string
+  children?: NoeudArbre[]
+}
+
+/** Les branches qui partent de la racine. */
+export function branchesArbre(b: Bloc): NoeudArbre[] {
+  const root = b.root as { children?: unknown } | undefined
+  return Array.isArray(root?.children) ? (root.children as NoeudArbre[]) : []
+}
+
+function noeudServi(n: NoeudArbre): NoeudArbre {
+  const servi: NoeudArbre = { ...n }
+  if (vide(servi.probability)) delete servi.probability
+  if (Array.isArray(servi.children)) {
+    if (servi.children.length === 0) delete servi.children
+    else servi.children = servi.children.map(noeudServi)
+  }
+  return servi
+}
+
+function arbreServi(b: Bloc): Bloc {
+  b.root = { children: branchesArbre(b).map(noeudServi) }
+  if (b.outcomes !== true) delete b.outcomes
+  if (b.products !== true) delete b.products
+  if (b.orientation !== 'vertical') delete b.orientation
+  if (!Array.isArray(b.highlightPath) || b.highlightPath.length === 0) delete b.highlightPath
+  return b
+}
+
+/** Le chemin d'une feuille, écrit pour un sélecteur : « R puis B ». */
+export function cheminsArbre(b: Bloc): string[][] {
+  const chemins: string[][] = []
+  const parcourir = (noeuds: NoeudArbre[], chemin: string[]) => {
+    for (const n of noeuds) {
+      const ici = [...chemin, n.label ?? '']
+      if (Array.isArray(n.children) && n.children.length > 0) parcourir(n.children, ici)
+      else chemins.push(ici)
+    }
+  }
+  parcourir(branchesArbre(b), [])
+  return chemins
+}
+
+function rangBranche(chemin: string): string {
+  // `root.children[1].children[0]` → « branche 2.1 »
+  const rangs = [...chemin.matchAll(/children\[(\d+)\]/g)].map((m) => Number(m[1]) + 1)
+  return rangs.length > 0 ? `la branche ${rangs.join('.')}` : 'la racine'
+}
+
+/** `root.children[0].children` → « issues de la branche 1 ». */
+function depuis(chemin: string): string {
+  return `issues de ${rangBranche(chemin.replace(/\.children$/, ''))}`
+}
+
+function libelleArbre(i: TreeIssue): string {
+  switch (i.code) {
+    case 'NO_BRANCH':
+      return 'Ajoute au moins une branche.'
+    case 'TOO_DEEP':
+      return `Un arbre a au plus ${i.max} niveaux.`
+    case 'TOO_MANY_CHILDREN':
+      return `Au plus ${i.max} branches partent d’un même nœud (${rangBranche(i.path)}).`
+    case 'TOO_MANY_LEAVES':
+      return `Cet arbre a ${i.count} issues, au plus ${i.max} : retire des branches.`
+    case 'BLANK_LABEL':
+      return `Nomme ${rangBranche(i.path)}.`
+    case 'DUPLICATE_LABEL':
+      return `Deux branches sœurs s’appellent « ${i.label} » : donne-leur des noms différents.`
+    case 'INVALID_PROBABILITY':
+      return i.reason === 'decimal-point'
+        ? `Écris « ${i.value} » avec une virgule (${rangBranche(i.path)}).`
+        : i.reason === 'zero-denominator'
+          ? `« ${i.value} » a un dénominateur nul (${rangBranche(i.path)}).`
+          : `« ${i.value} » n’est pas une probabilité : écris 3/5, 0,4, 25 %, ? ou une formule entre $ (${rangBranche(i.path)}).`
+    case 'PROBABILITY_ABOVE_ONE':
+      return `Une probabilité ne dépasse pas 1 (« ${i.value} », ${rangBranche(i.path)}).`
+    case 'SUM_NOT_ONE':
+      return `Les probabilités des branches ${depuis(i.path)} font ${i.sum} au lieu de 1.`
+    case 'SUM_ABOVE_ONE':
+      return `Les probabilités données aux branches ${depuis(i.path)} dépassent déjà 1.`
+    case 'PARTIAL_PROBABILITIES':
+      return `Seules ${i.given} branches sur ${i.count} ${depuis(i.path)} ont une probabilité : écris ? pour une case à compléter.`
+    case 'OUTCOME_ON_BRANCH':
+      return 'Seule une feuille a une issue.'
+    case 'PRODUCT_NEEDS_PROBABILITIES':
+      return 'Pour écrire les produits, donne une probabilité chiffrée à chaque branche.'
+    case 'HIGHLIGHT_NOT_A_PATH':
+      return 'Le chemin mis en évidence ne mène plus à une feuille : choisis-en un autre.'
+  }
+}
+
+function problemesArbre(b: Bloc): ProblemeBrut[] {
+  const p: ProblemeBrut[] = []
+  if (!texteRempli(b.alt)) {
+    p.push({
+      code: 'MISSING_ALT',
+      champ: 'alt',
+      message: 'Décris l’arbre dans le texte alternatif.',
+    })
+  }
+  for (const i of checkTree(b)) {
+    p.push({
+      code: `TREE_${i.code}`,
+      champ: i.path,
+      gravite: i.severity === 'warning' ? 'avertissement' : 'bloquant',
+      message: libelleArbre(i),
+    })
+  }
+  return p
+}
+
+// --- Solide ---------------------------------------------------------------------
+// Les règles sont celles de check-content (packages/content, solid-rules.ts) ; seul leur libellé
+// français est ici.
+
+/** Les sortes de solide, dans l'ordre du sélecteur, avec leurs dimensions et leurs sections. */
+export const SOLIDE_SORTES: {
+  valeur: SolidSpec['kind']
+  label: string
+  dimensions: { champ: string; label: string }[]
+  sections: { valeur: string; label: string }[]
+  noms: string
+}[] = [
+  {
+    valeur: 'pave',
+    label: 'Pavé droit',
+    dimensions: [
+      { champ: 'width', label: 'Largeur' },
+      { champ: 'height', label: 'Hauteur' },
+      { champ: 'depth', label: 'Profondeur' },
+    ],
+    sections: [
+      { valeur: 'base', label: 'à la base' },
+      { valeur: 'front', label: 'à la face avant' },
+      { valeur: 'side', label: 'à la face de gauche' },
+    ],
+    noms: 'face avant, puis face arrière (8)',
+  },
+  {
+    valeur: 'cube',
+    label: 'Cube',
+    dimensions: [{ champ: 'edge', label: 'Arête' }],
+    sections: [
+      { valeur: 'base', label: 'à la base' },
+      { valeur: 'front', label: 'à la face avant' },
+      { valeur: 'side', label: 'à la face de gauche' },
+    ],
+    noms: 'face avant, puis face arrière (8)',
+  },
+  {
+    valeur: 'prisme',
+    label: 'Prisme droit',
+    dimensions: [{ champ: 'depth', label: 'Profondeur' }],
+    sections: [{ valeur: 'base', label: 'à la base' }],
+    noms: 'base avant, puis base arrière',
+  },
+  {
+    valeur: 'cylindre',
+    label: 'Cylindre',
+    dimensions: [
+      { champ: 'radius', label: 'Rayon' },
+      { champ: 'height', label: 'Hauteur' },
+    ],
+    sections: [
+      { valeur: 'base', label: 'à la base' },
+      { valeur: 'axis', label: 'à l’axe' },
+    ],
+    noms: 'centre du bas, centre du haut (2)',
+  },
+  {
+    valeur: 'pyramide',
+    label: 'Pyramide',
+    dimensions: [{ champ: 'height', label: 'Hauteur' }],
+    sections: [{ valeur: 'base', label: 'à la base' }],
+    noms: 'sommets de la base, puis le sommet',
+  },
+  {
+    valeur: 'cone',
+    label: 'Cône',
+    dimensions: [
+      { champ: 'radius', label: 'Rayon' },
+      { champ: 'height', label: 'Hauteur' },
+    ],
+    sections: [{ valeur: 'base', label: 'à la base' }],
+    noms: 'centre de la base, puis le sommet (2)',
+  },
+  {
+    valeur: 'boule',
+    label: 'Boule',
+    dimensions: [{ champ: 'radius', label: 'Rayon' }],
+    sections: [],
+    noms: 'centre (1)',
+  },
+]
+
+/** Les champs propres à une sorte : changer de sorte retire ceux de l'ancienne. */
+export const SOLIDE_CHAMPS = [
+  'width',
+  'height',
+  'depth',
+  'edge',
+  'radius',
+  'base',
+  'apex',
+  'names',
+  'section',
+  'equator',
+  'parallels',
+  'meridians',
+  'points',
+] as const
+
+/** Les champs d'un bloc solide passé à la sorte `kind`, avec des valeurs de départ. */
+export function solideDeSorte(kind: SolidSpec['kind']): Record<string, unknown> {
+  const vide = Object.fromEntries(SOLIDE_CHAMPS.map((c) => [c, undefined]))
+  switch (kind) {
+    case 'pave':
+      return { ...vide, kind, width: 4, height: 3, depth: 2 }
+    case 'cube':
+      return { ...vide, kind, edge: 3 }
+    case 'prisme':
+      return {
+        ...vide,
+        kind,
+        depth: 4,
+        base: [
+          { x: 0, y: 0 },
+          { x: 3, y: 0 },
+          { x: 0, y: 2 },
+        ],
+      }
+    case 'cylindre':
+      return { ...vide, kind, radius: 2, height: 4 }
+    case 'pyramide':
+      return {
+        ...vide,
+        kind,
+        height: 4,
+        base: [
+          { x: 0, y: 0 },
+          { x: 4, y: 0 },
+          { x: 4, y: 4 },
+          { x: 0, y: 4 },
+        ],
+      }
+    case 'cone':
+      return { ...vide, kind, radius: 2, height: 4 }
+    case 'boule':
+      return { ...vide, kind, radius: 3 }
+  }
+}
+
+function libelleSolide(i: SolidIssue): string {
+  switch (i.code) {
+    case 'UNKNOWN_KIND':
+      return 'Choisis une sorte de solide.'
+    case 'DIMENSION_NOT_POSITIVE':
+      return 'Chaque dimension doit être plus grande que 0.'
+    case 'BASE_SIZE':
+      return `La base a de 3 à ${i.max} sommets.`
+    case 'BASE_NOT_CONVEX':
+      return 'La base doit être un polygone convexe : donne ses sommets dans l’ordre du tour.'
+    case 'NAMES_COUNT':
+      return `Ce solide prend ${i.expected} noms, il y en a ${i.count}.`
+    case 'BLANK_NAME':
+      return 'Un nom est vide.'
+    case 'DUPLICATE_NAME':
+      return `Le nom « ${i.name} » apparaît deux fois.`
+    case 'SECTION_PLANE':
+      return 'Ce solide n’a pas de section dans ce plan.'
+    case 'SECTION_OUT_OF_RANGE':
+      return `La section doit couper le solide : une distance entre ${formatNumber(i.min)} et ${formatNumber(i.max)}${i.minIncluded ? '' : ', bornes exclues'}.`
+    case 'SPHERE_ONLY_FIELD':
+      return 'Les parallèles, méridiens et points repérés sont réservés à la boule.'
+    case 'LATITUDE_OUT_OF_RANGE':
+      return 'Une latitude est comprise entre −90° et 90° (un parallèle n’est jamais un pôle).'
+    case 'LONGITUDE_OUT_OF_RANGE':
+      return 'Une longitude est comprise entre −180° et 180°.'
+    case 'TOO_MANY_LINES':
+      return `Au plus ${i.max} parallèles ou méridiens.`
+  }
+}
+
+function problemesSolide(b: Bloc): ProblemeBrut[] {
+  const p: ProblemeBrut[] = []
+  if (!texteRempli(b.alt)) {
+    p.push({
+      code: 'MISSING_ALT',
+      champ: 'alt',
+      message: 'Décris le solide dans le texte alternatif.',
+    })
+  }
+  for (const i of checkSolid(b)) {
+    p.push({ code: `SOLID_${i.code}`, champ: i.path, message: libelleSolide(i) })
+  }
+  return p
+}
+
+/**
+ * Ce que l'aperçu peut dessiner d'un arbre en cours de saisie : les branches nommées seulement,
+ * les probabilités vides retirées, le chemin mis en évidence s'il existe encore. Null s'il ne
+ * reste aucune branche nommée ou si l'arbre a une erreur de structure (trop profond, trop large).
+ */
+export function arbrePourApercu(b: Bloc): TreeSpec | null {
+  const nommees = (noeuds: NoeudArbre[]): TreeNodeSpec[] =>
+    noeuds
+      .filter((n) => texteRempli(n.label))
+      .map((n) => {
+        const noeud: TreeNodeSpec = { label: n.label.trim() }
+        if (texteRempli(n.probability)) noeud.probability = String(n.probability).trim()
+        const enfants = Array.isArray(n.children) ? nommees(n.children) : []
+        if (enfants.length > 0) noeud.children = enfants
+        return noeud
+      })
+  const children = nommees(branchesArbre(b))
+  if (children.length === 0) return null
+  const spec: TreeSpec = { root: { children } }
+  const structure = checkTree({ root: spec.root }).some((i) =>
+    ['TOO_DEEP', 'TOO_MANY_CHILDREN', 'TOO_MANY_LEAVES'].includes(i.code)
+  )
+  if (structure) return null
+  if (b.orientation === 'vertical') spec.orientation = 'vertical'
+  if (b.outcomes === true) spec.outcomes = true
+  const produitsPossibles = !checkTree({ root: spec.root, products: true }).some(
+    (i) => i.code === 'PRODUCT_NEEDS_PROBABILITIES'
+  )
+  if (b.products === true && produitsPossibles) spec.products = true
+  if (Array.isArray(b.highlightPath) && findPath(spec.root, b.highlightPath) !== null) {
+    spec.highlightPath = b.highlightPath as string[]
+  }
+  return spec
+}
+
+/** Le solide que l'aperçu peut dessiner, ou null tant qu'une règle n'est pas respectée. */
+export function solidePourApercu(b: Bloc): SolidSpec | null {
+  if (checkSolid(b).length > 0) return null
+  const spec: Record<string, unknown> = {}
+  for (const champ of ['kind', ...SOLIDE_CHAMPS]) {
+    if (b[champ] !== undefined) spec[champ] = b[champ]
+  }
+  return spec as SolidSpec
 }
 
 function probleme(
@@ -1042,6 +1551,10 @@ export function exerciceComplet(bloc: Bloc): boolean {
 const CHAMPS_CORRECTION = ['expected', 'acceptedAnswers', 'answer', 'tolerance', 'caseSensitive']
 
 function blocPourApercu(bloc: Bloc): Bloc {
+  if (bloc.type === 'tree') {
+    const { id, type, title, alt, caption } = bloc
+    return { id, type, title, alt, caption, ...arbrePourApercu(bloc) }
+  }
   if (bloc.type === 'chart') {
     // Le diagramme dessinable (graphiquePourApercu), avec ses textes : l'afficheur élève ne
     // reçoit jamais une valeur manquante ou une graduation invalide.
@@ -1074,6 +1587,9 @@ export function brouillonVersApercu(b: Brouillon): {
       .filter((bloc) => {
         // Un diagramme de moins de deux catégories remplies n'a rien à dessiner.
         if (bloc.type === 'chart') return graphiquePourApercu(bloc) !== null
+        if (bloc.type === 'tree') return arbrePourApercu(bloc) !== null
+        // Un solide qui enfreint une règle n'a pas de dessin sûr : il attend d'être corrigé.
+        if (bloc.type === 'solid') return solidePourApercu(bloc) !== null
         // Un programme vide n'a rien à montrer. Un programme Scratch qui ne s'analyse pas reste :
         // l'afficheur le montre en texte, comme il le ferait pour l'élève.
         if (bloc.type === 'code') return texteRempli(bloc.code)

@@ -21,10 +21,19 @@ export const RESERVED_DIAPO_IDS = ['debut', 'fin'] as const
 
 type Role = 'lead' | 'support' | 'aside' | 'exercise'
 
-const SUPPORT_TYPES = new Set(['figure', 'formula', 'chart', 'code', 'table', 'image'])
+const SUPPORT_TYPES = new Set([
+  'figure',
+  'formula',
+  'chart',
+  'tree',
+  'solid',
+  'code',
+  'table',
+  'image',
+])
 const LEAD_CALLOUTS = new Set(['definition', 'example'])
-/** Supports a student looks at while answering (#277): a figure, an image, a chart. */
-const FIGURE_TYPES = new Set(['figure', 'image', 'chart'])
+/** Supports a student looks at while answering (#277): a figure, an image, a chart, a tree, a solid. */
+const FIGURE_TYPES = new Set(['figure', 'image', 'chart', 'tree', 'solid'])
 
 function roleOf(block: DeckBlock): Role {
   if (block.type === 'exercise') return 'exercise'

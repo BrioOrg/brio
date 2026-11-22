@@ -25,7 +25,10 @@ public class SalonMessage {
     @Column(name = "salon_id", nullable = false)
     private UUID salonId;
 
-    @Column(name = "auteur_id", nullable = false)
+    // Never changed through the entity: only the retention purge rewrites it, in bulk. Keeping it
+    // out of Hibernate's UPDATE stops a stale entity, loaded before the purge and flushed after,
+    // from writing the student's id back (ADR 0023 §6).
+    @Column(name = "auteur_id", nullable = false, updatable = false)
     private UUID auteurId;
 
     @Column(name = "corps", nullable = false)

@@ -1,4 +1,30 @@
+import type { Tone } from './tone'
+import {
+  drawLines,
+  drawVectors,
+  expandTransformations,
+  frameOf,
+  type DrawingVector,
+  type FigureLine,
+  type FigureRay,
+  type FigureTransformation,
+  type FigureVector,
+  type SvgFrame,
+  type TransformationMotion,
+} from './transformations'
+import {
+  buildFunctionPlot,
+  clearReadValues,
+  type DrawingFunctionPlot,
+  type FigureFunction,
+  type FigureParameter,
+  type FigureReading,
+} from './function-plot'
+
 // --- Spec types (mirror the JSON schema) ---
+
+/** A meaningful colour shared with a formula (ADR 0037); ink when absent. */
+type Toned = { tone?: Tone }
 
 export type LabelPlacement =
   | 'auto'
@@ -20,7 +46,7 @@ export type FigurePoint = {
   /** false hides the name; the name still identifies the point in the spec. */
   showName?: boolean
   label?: { placement?: LabelPlacement }
-}
+} & Toned
 
 /** "dashed" draws a hidden edge or a construction line (ADR 0013, amendment #215). */
 export type FigureLineStyle = 'solid' | 'dashed'
@@ -29,16 +55,20 @@ export type FigureSegment = {
   from: string
   to: string
   style?: FigureLineStyle
-}
+} & Toned
 
 export type FigurePolygon = {
   vertices: string[]
   style?: FigureLineStyle
-}
+  /** "soft" fills the polygon with its tone's soft fill, under its stroke (ADR 0037). */
+  fill?: 'soft'
+} & Toned
 
-export type FigureCircle =
+export type FigureCircle = (
   | { center: string; through: string; radius?: never }
   | { center: string; radius: number; through?: never }
+) &
+  Toned
 
 /**
  * An arc of a circle, drawn counter-clockwise (ADR 0013, amendment #227). Either from the named
@@ -51,7 +81,8 @@ export type FigureArc = {
   center: string
   style?: FigureLineStyle
   closed?: 'sector' | 'chord'
-} & (
+} & Toned &
+  (
   | { from: string; to: string; radius?: never; startAngle?: never; endAngle?: never }
   | { radius: number; startAngle: number; endAngle: number; from?: never; to?: never }
 )
@@ -61,7 +92,7 @@ export type FigureAngleMark = {
   from: string
   to: string
   right?: boolean
-}
+} & Toned
 
 export type FigureLengthMark = {
   segment: string
@@ -72,7 +103,7 @@ export type FigureLabel = {
   text: string
   x: number
   y: number
-}
+} & Toned
 
 export type FigureNumberLine = {
   from: number
@@ -161,29 +192,39 @@ export type FigureSpec = {
   polylines?: FigurePolyline[]
   axes?: FigureAxes
   solids?: FigureSolid[]
+  // ADR 0041
+  transformations?: FigureTransformation[]
+  vectors?: FigureVector[]
+  lines?: FigureLine[]
+  rays?: FigureRay[]
+  /** Curves given by their expression, in a figure with axes (ADR 0038). */
+  functions?: FigureFunction[]
+  readings?: FigureReading[]
+  parameters?: FigureParameter[]
 }
 
 // --- Drawing model (SVG-ready, all coordinates in SVG pixels) ---
 
 export type DrawingSegment = { x1: number; y1: number; x2: number; y2: number }
-export type DrawingStroke = DrawingSegment & { dashed: boolean }
+export type DrawingStroke = DrawingSegment & { dashed: boolean } & Toned
 export type DrawingPolygon = { points: string }
-export type DrawingShape = DrawingPolygon & { dashed: boolean }
+/** soft: filled with the tone's soft fill, under the stroke (ADR 0037). */
+export type DrawingShape = DrawingPolygon & { dashed: boolean; soft?: boolean } & Toned
 /** An SVG path: a half-ellipse of a cylinder, an arc of a circle (possibly closed). */
-export type DrawingCurve = { d: string; dashed: boolean }
-export type DrawingCircle = { cx: number; cy: number; r: number }
-export type DrawingRightAngleSquare = { points: string }
-export type DrawingAngleArc = { d: string }
+export type DrawingCurve = { d: string; dashed: boolean } & Toned
+export type DrawingCircle = { cx: number; cy: number; r: number } & Toned
+export type DrawingRightAngleSquare = { points: string } & Toned
+export type DrawingAngleArc = { d: string } & Toned
 export type DrawingLengthTick = { lines: DrawingSegment[] }
-export type DrawingDot = { cx: number; cy: number }
+export type DrawingDot = { cx: number; cy: number } & Toned
 export type DrawingPointLabel = {
   text: string
   x: number
   y: number
   anchor: 'start' | 'middle' | 'end'
   baseline: 'auto' | 'hanging' | 'middle'
-}
-export type DrawingFreeLabel = { text: string; x: number; y: number }
+} & Toned
+export type DrawingFreeLabel = { text: string; x: number; y: number } & Toned
 export type DrawingNumberLine = {
   axis: DrawingSegment
   ticks: Array<{
@@ -235,6 +276,26 @@ export type DrawingModel = {
   polylines: DrawingPolyline[]
   cubeFaces: DrawingCubeFace[]
   axes: DrawingAxes | null
+  vectors: DrawingVector[]
+  transformations: DrawingTransformation[]
+  /** Curves of `functions`, their names and the readings (ADR 0038); null without functions. */
+  functionPlot: DrawingFunctionPlot | null
+}
+
+export type DrawingOptions = {
+  /** The values the sliders give the parameters; the spec's `value` otherwise. */
+  parameterValues?: Readonly<Record<string, number>>
+  /** Draws a layer of another figure (ADR 0041) in that figure's viewport and scales. */
+  frame?: { viewport: CoordinateSpace; repere: boolean }
+}
+
+/** One transformation's layers (ADR 0041), drawn over the figure and revealed as a step. */
+export type DrawingTransformation = {
+  image: DrawingModel
+  construction: DrawingModel
+  ghost: DrawingModel
+  motion: TransformationMotion
+  frame: SvgFrame
 }
 
 // SVG canvas constants (pixels)
@@ -253,6 +314,8 @@ const ARROW_LEN_PX = 8
 const ARROW_HALF_WIDTH_PX = 4
 const AXIS_TICK_HALF_LEN_PX = 4
 const AXIS_LABEL_GAP_PX = 6
+// Lines and rays stop this short of the canvas edge (ADR 0041).
+const LINE_INSET = 4
 
 type Pt2 = { x: number; y: number }
 
@@ -401,7 +464,21 @@ export function formatNumber(n: number): string {
   return rounded < 0 ? `\u2212${text}` : text
 }
 
-export function buildDrawingModel(spec: FigureSpec): DrawingModel {
+/** Only a toned element carries the field, so an all-ink figure's model is unchanged. */
+function toned(tone: Tone | undefined): Toned {
+  return tone === undefined ? {} : { tone }
+}
+
+export function buildDrawingModel(
+  authored: FigureSpec,
+  options: DrawingOptions = {}
+): DrawingModel {
+  const { frame } = options
+  // Image points join the figure, hidden: other elements may name them, the frame fits them.
+  const extension = expandTransformations(authored)
+  const spec: FigureSpec = extension.points.length
+    ? { ...authored, points: [...(authored.points ?? []), ...extension.points] }
+    : authored
   const pointMap = new Map<string, Pt2>(
     (spec.points ?? []).map((p) => [p.name, { x: p.x, y: p.y }])
   )
@@ -410,8 +487,9 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     assertDrawableAxis(spec.axes.x, 'des abscisses')
     assertDrawableAxis(spec.axes.y, 'des ordonnées')
   }
-  const viewport = computeViewport(spec, pointMap)
-  const toSvg = spec.axes ? makeAxesTransform(viewport) : makeTransform(viewport)
+  const viewport = frame?.viewport ?? computeViewport(spec, pointMap)
+  const repere = frame?.repere ?? spec.axes !== undefined
+  const toSvg = repere ? makeAxesTransform(viewport) : makeTransform(viewport)
 
   // Segments
   const segments: DrawingStroke[] = (spec.segments ?? []).map((seg) => {
@@ -419,7 +497,14 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     const p2 = requirePoint(pointMap, seg.to)
     const s1 = toSvg(p1.x, p1.y)
     const s2 = toSvg(p2.x, p2.y)
-    return { x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y, dashed: seg.style === 'dashed' }
+    return {
+      x1: s1.x,
+      y1: s1.y,
+      x2: s2.x,
+      y2: s2.y,
+      dashed: seg.style === 'dashed',
+      ...toned(seg.tone),
+    }
   })
 
   // Polygons
@@ -429,7 +514,12 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
       const s = toSvg(p.x, p.y)
       return `${fmt(s.x)},${fmt(s.y)}`
     })
-    return { points: pts.join(' '), dashed: poly.style === 'dashed' }
+    return {
+      points: pts.join(' '),
+      dashed: poly.style === 'dashed',
+      ...toned(poly.tone),
+      ...(poly.fill === 'soft' && poly.tone !== undefined ? { soft: true } : {}),
+    }
   })
 
   // Circles
@@ -445,13 +535,14 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
       const edgeSvg = toSvg(center.x + circle.radius, center.y)
       r = Math.abs(edgeSvg.x - sc.x)
     }
-    return { cx: sc.x, cy: sc.y, r }
+    return { cx: sc.x, cy: sc.y, r, ...toned(circle.tone) }
   })
 
   // Arcs of circles join the curves
-  const curves: DrawingCurve[] = (spec.arcs ?? []).map((arc) =>
-    arcPath(resolveArc(arc, pointMap), arc, toSvg)
-  )
+  const curves: DrawingCurve[] = (spec.arcs ?? []).map((arc) => ({
+    ...arcPath(resolveArc(arc, pointMap), arc, toSvg),
+    ...toned(arc.tone),
+  }))
 
   // Angle marks
   const rightAngleSquares: DrawingRightAngleSquare[] = []
@@ -474,6 +565,7 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
       const p2 = { x: p1.x + arm2.x * RIGHT_SQUARE_PX, y: p1.y + arm2.y * RIGHT_SQUARE_PX }
       rightAngleSquares.push({
         points: `${fmt(p1.x)},${fmt(p1.y)} ${fmt(p2.x)},${fmt(p2.y)} ${fmt(p3.x)},${fmt(p3.y)}`,
+        ...toned(am.tone),
       })
     } else {
       const arcStart = { x: sv.x + arm1.x * ARC_RADIUS_PX, y: sv.y + arm1.y * ARC_RADIUS_PX }
@@ -483,6 +575,7 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
       const sweep = cross < 0 ? 0 : 1
       angleArcs.push({
         d: `M ${fmt(arcStart.x)} ${fmt(arcStart.y)} A ${ARC_RADIUS_PX} ${ARC_RADIUS_PX} 0 0 ${sweep} ${fmt(arcEnd.x)} ${fmt(arcEnd.y)}`,
+        ...toned(am.tone),
       })
     }
   }
@@ -527,17 +620,17 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
   const pointLabels: DrawingPointLabel[] = []
   for (const p of spec.points ?? []) {
     const sv = toSvg(p.x, p.y)
-    if (p.dot !== false) dots.push({ cx: sv.x, cy: sv.y })
+    if (p.dot !== false) dots.push({ cx: sv.x, cy: sv.y, ...toned(p.tone) })
     if (p.showName === false) continue
     const placement = p.label?.placement ?? 'auto'
     const pos = computeLabelPosition(sv, placement)
-    pointLabels.push({ text: p.name, ...pos })
+    pointLabels.push({ text: p.name, ...pos, ...toned(p.tone) })
   }
 
   // Free labels
   const freeLabels: DrawingFreeLabel[] = (spec.labels ?? []).map((lbl) => {
     const s = toSvg(lbl.x, lbl.y)
-    return { text: lbl.text, x: s.x, y: s.y }
+    return { text: lbl.text, x: s.x, y: s.y, ...toned(lbl.tone) }
   })
 
   // Number lines
@@ -628,7 +721,33 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
   const originNamed = (spec.points ?? []).some(
     (p) => p.x === 0 && p.y === 0 && p.showName !== false
   )
-  const axes = spec.axes ? buildAxes(spec.axes, toSvg, originNamed) : null
+  const functionPlot = buildFunctionPlot(spec, toSvg, options.parameterValues)
+  const builtAxes = spec.axes ? buildAxes(spec.axes, toSvg, originNamed) : null
+  const axes = builtAxes ? clearReadValues(builtAxes, functionPlot) : null
+
+  // Lines and rays (ADR 0041) join the segments, cut to the plot area of a repère or the canvas.
+  const corner1 = toSvg(viewport.xMin, viewport.yMax)
+  const corner2 = toSvg(viewport.xMax, viewport.yMin)
+  const lines = drawLines(
+    spec,
+    pointMap,
+    toSvg,
+    repere
+      ? { x1: corner1.x, y1: corner1.y, x2: corner2.x, y2: corner2.y }
+      : { x1: LINE_INSET, y1: LINE_INSET, x2: CANVAS_SIZE - LINE_INSET, y2: CANVAS_SIZE - LINE_INSET }
+  )
+  segments.push(...lines.strokes)
+  pointLabels.push(...lines.labels)
+  const centre = toSvg((viewport.xMin + viewport.xMax) / 2, (viewport.yMin + viewport.yMax) / 2)
+  const vectors = drawVectors(spec.vectors ?? [], pointMap, toSvg, centre)
+  const layerFrame = { viewport, repere }
+  const transformations = extension.layers.map((layer) => ({
+    image: buildDrawingModel(layer.image, { frame: layerFrame }),
+    construction: buildDrawingModel(layer.construction, { frame: layerFrame }),
+    ghost: buildDrawingModel(layer.ghost, { frame: layerFrame }),
+    motion: layer.motion,
+    frame: frameOf(toSvg),
+  }))
 
   return {
     viewBox: `0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`,
@@ -646,6 +765,9 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     polylines,
     cubeFaces,
     axes,
+    vectors,
+    transformations,
+    functionPlot,
   }
 }
 

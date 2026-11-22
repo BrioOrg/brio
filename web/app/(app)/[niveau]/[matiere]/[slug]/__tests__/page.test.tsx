@@ -78,6 +78,9 @@ describe('ChapterPage', () => {
     vi.resetAllMocks()
     // The reading mode, unless a test says otherwise.
     modeCookie = 'lecture'
+    // jsdom keeps the address across tests, and the chapter reads it at mount (ADR 0046 §4):
+    // start each one from a clean address, so only the server's choice is under test.
+    window.history.replaceState(null, '', '/')
   })
 
   it('affiche le titre et le contenu du chapitre', async () => {

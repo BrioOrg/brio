@@ -10,7 +10,9 @@ test.describe('a student with homework and a chapter under way', () => {
     await context.addCookies([{ name: 'JSESSIONID', value: 'e2e-eleve', url: baseURL ?? '' }])
   })
 
-  test('Accueil leads to Ma classe and to the chapter', async ({ page }) => {
+  test('Accueil leads to the chapter, and a homework it cannot place to Ma classe', async ({
+    page,
+  }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Salut Renard-Indigo')
     await expect(page.getByRole('heading', { name: 'Pour ta classe · 5e B' })).toBeVisible()
@@ -22,6 +24,8 @@ test.describe('a student with homework and a chapter under way', () => {
       '/3e/mathematiques/theoreme-de-pythagore'
     )
 
+    // A chapter homework: with no catalogue in the fake backend to place its chapter, the card
+    // falls back to Ma classe (#370, critère 4). Course homework: devoir-du-jour.spec.ts.
     await page.getByRole('link', { name: /Réviser Pythagore/ }).click()
     // next dev compiles the route on its first visit.
     await expect(page).toHaveURL('/ma-classe', { timeout: 20_000 })
