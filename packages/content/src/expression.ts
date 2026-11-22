@@ -12,15 +12,54 @@
 //
 // Precedence, loosest first: + −, then × / and the implicit product (left to right, so
 // 1/2x = (1/2)·x), then the sign (−x² = −(x²)), then ^ (right to left: 2^3^2 = 2^9).
+//
+// With the `calculator` option (graphing calculator, ADR 0049) it also reads, and only then:
+//   functions    sin cos tan exp ln log (decimal logarithm), with an angle unit for sin cos tan
+//   constants    π, pi and e (Euler's number), kept as `constant` nodes so they print as typed
+//   letters      every single letter is a variable: the caller decides what each one means
+//   user calls   f(…), f'(…), f''(…) for the names in `calculator.functions` (f, g, f1…)
+//   positions    every node carries the index of the character it starts at (`pos`)
+// Without the option nothing changes: ADR 0038 figures read exactly what they read before.
 
+// `pos` is only set in calculator mode: the 0-based index of the character the node comes from.
 export type ExpressionNode =
-  | { type: 'number'; value: number }
-  | { type: 'variable'; name: string }
-  | { type: 'negate'; operand: ExpressionNode }
-  | { type: 'binary'; op: '+' | '-' | '*' | '/' | '^'; left: ExpressionNode; right: ExpressionNode }
-  | { type: 'call'; fn: ExpressionFunction; arg: ExpressionNode }
+  | { type: 'number'; value: number; pos?: number }
+  | { type: 'variable'; name: string; pos?: number }
+  | { type: 'constant'; name: ExpressionConstant; pos?: number }
+  | { type: 'negate'; operand: ExpressionNode; pos?: number }
+  | {
+      type: 'binary'
+      op: '+' | '-' | '*' | '/' | '^'
+      left: ExpressionNode
+      right: ExpressionNode
+      pos?: number
+    }
+  | {
+      type: 'call'
+      fn: ExpressionFunction
+      arg: ExpressionNode
+      /** sin, cos, tan whose argument is in degrees (calculator angle unit). */
+      degrees?: true
+      pos?: number
+    }
+  /** A call to a function the student defined, `order` times derived: f(…), f'(…), f''(…). */
+  | { type: 'userCall'; name: string; order: number; arg: ExpressionNode; pos?: number }
 
-export type ExpressionFunction = 'sqrt' | 'abs'
+/** sqrt and abs always; the others in calculator mode only. `log` is the decimal logarithm. */
+export type ExpressionFunction = 'sqrt' | 'abs' | 'sin' | 'cos' | 'tan' | 'exp' | 'ln' | 'log'
+
+/** π, and e (Euler's number) in calculator mode. */
+export type ExpressionConstant = 'π' | 'e'
+
+export type AngleUnit = 'radians' | 'degrees'
+
+/** The graphing-calculator syntax (ADR 0049). */
+export type CalculatorSyntax = {
+  /** The names of the functions the student defined: `f(…)` is a call, `f'(…)` a derivative. */
+  functions?: readonly string[]
+  /** The unit of the argument of sin, cos and tan. Default: radians. */
+  angle?: AngleUnit
+}
 
 /** A message in French for the author, and the 0-based index of the character it is about. */
 export type ExpressionError = { message: string; position: number }
@@ -38,14 +77,17 @@ export type ParseResult =
   { ok: true; expression: Expression } | { ok: false; error: ExpressionError }
 
 export type ParseOptions = {
-  /** The letters allowed besides the constant π. Default: only x. */
+  /** The letters allowed besides the constant π. Default: only x. Ignored in calculator mode. */
   variables?: readonly string[]
+  /** Graphing-calculator syntax (ADR 0049). Absent: the ADR 0038 language, unchanged. */
+  calculator?: CalculatorSyntax
 }
 
 type Token =
   | { kind: 'number'; value: number; pos: number; text: string }
-  | { kind: 'name'; name: string; pos: number }
+  | { kind: 'name'; name: string; pos: number; primes: number }
   | { kind: 'pi'; pos: number }
+  | { kind: 'constant'; name: ExpressionConstant; pos: number }
   | { kind: 'function'; fn: ExpressionFunction; pos: number; text: string }
   | { kind: 'op'; op: '+' | '-' | '*' | '/' | '^'; pos: number; text: string }
   | { kind: 'lparen'; pos: number }
@@ -67,6 +109,48 @@ const WORDS: ReadonlyArray<[string, (pos: number) => Token]> = [
   ['abs', (pos) => ({ kind: 'function', fn: 'abs', pos, text: 'abs' })],
   ['pi', (pos) => ({ kind: 'pi', pos })],
 ]
+
+// Calculator mode only.
+const SCIENTIFIC_WORDS: ReadonlyArray<[string, (pos: number) => Token]> = [
+  ...WORDS,
+  ['sin', (pos) => ({ kind: 'function', fn: 'sin', pos, text: 'sin' })],
+  ['cos', (pos) => ({ kind: 'function', fn: 'cos', pos, text: 'cos' })],
+  ['tan', (pos) => ({ kind: 'function', fn: 'tan', pos, text: 'tan' })],
+  ['exp', (pos) => ({ kind: 'function', fn: 'exp', pos, text: 'exp' })],
+  ['ln', (pos) => ({ kind: 'function', fn: 'ln', pos, text: 'ln' })],
+  ['log', (pos) => ({ kind: 'function', fn: 'log', pos, text: 'log' })],
+]
+
+/**
+ * Names a student may try that the calculator does not know. Without this list `arcsin(x)` would
+ * read a·r·c·sin(x) and report the letter a; naming the function is clearer.
+ */
+const UNKNOWN_FUNCTIONS: ReadonlySet<string> = new Set([
+  'arcsin',
+  'arccos',
+  'arctan',
+  'asin',
+  'acos',
+  'atan',
+  'sinh',
+  'cosh',
+  'tanh',
+  'cot',
+  'cotan',
+  'sec',
+  'csc',
+  'floor',
+  'ceil',
+  'round',
+  'max',
+  'min',
+  'sign',
+  'sgn',
+  'mod',
+  'ent',
+])
+
+const PRIMES: ReadonlySet<string> = new Set(["'", '’', '′'])
 
 const OPERATORS: Readonly<Record<string, '+' | '-' | '*' | '/' | '^'>> = {
   '+': '+',
@@ -93,7 +177,9 @@ function isLetter(c: string): boolean {
   return /^[a-zA-Z]$/.test(c)
 }
 
-function tokenize(source: string): Token[] {
+function tokenize(source: string, calculator?: CalculatorSyntax): Token[] {
+  const words = calculator ? SCIENTIFIC_WORDS : WORDS
+  const userNames: ReadonlySet<string> = new Set(calculator?.functions ?? [])
   const tokens: Token[] = []
   let i = 0
   while (i < source.length) {
@@ -128,7 +214,7 @@ function tokenize(source: string): Token[] {
       throw new ExpressionSyntaxError(`« ${c} » doit être suivi de chiffres (2,5 ou 0,5).`, i)
     }
     if (c === 'π') {
-      tokens.push({ kind: 'pi', pos: i })
+      tokens.push(calculator ? { kind: 'constant', name: 'π', pos: i } : { kind: 'pi', pos: i })
       i++
       continue
     }
@@ -138,13 +224,27 @@ function tokenize(source: string): Token[] {
       continue
     }
     if (isLetter(c)) {
-      const word = WORDS.find(([w]) => source.startsWith(w, i))
+      if (calculator) {
+        const run = /^[a-zA-Z]+/.exec(source.slice(i))?.[0] ?? c
+        if (UNKNOWN_FUNCTIONS.has(run) && /^\s*\(/.test(source.slice(i + run.length))) {
+          throw new ExpressionSyntaxError(
+            `Je ne connais pas la fonction ${run}. Définis-la d’abord, par exemple f(x) = x².`,
+            i
+          )
+        }
+      }
+      const word = words.find(([w]) => source.startsWith(w, i))
       if (word) {
-        tokens.push(word[1](i))
+        const token = word[1](i)
+        tokens.push(
+          calculator && token.kind === 'pi' ? { kind: 'constant', name: 'π', pos: i } : token
+        )
         i += word[0].length
+      } else if (calculator) {
+        i = calculatorName(source, i, userNames, tokens)
       } else {
         // Letters are single: "ax" is a × x, as on paper.
-        tokens.push({ kind: 'name', name: c, pos: i })
+        tokens.push({ kind: 'name', name: c, pos: i, primes: 0 })
         i++
       }
       continue
@@ -190,6 +290,37 @@ function tokenize(source: string): Token[] {
   return tokens
 }
 
+/**
+ * Reads a letter in calculator mode, from `start`, and returns the index after it: `e` is Euler's
+ * number; a defined function's name may end with a digit (f1) and take primes (f', f'').
+ */
+function calculatorName(
+  source: string,
+  start: number,
+  userNames: ReadonlySet<string>,
+  tokens: Token[]
+): number {
+  const letter = source[start]
+  let i = start + 1
+  let name = letter
+  const digit = source[i] ?? ''
+  if (isDigit(digit) && userNames.has(letter + digit)) {
+    name = letter + digit
+    i++
+  }
+  let primes = 0
+  while (PRIMES.has(source[i] ?? '')) {
+    primes++
+    i++
+  }
+  if (name === 'e' && primes === 0) {
+    tokens.push({ kind: 'constant', name: 'e', pos: start })
+  } else {
+    tokens.push({ kind: 'name', name, pos: start, primes })
+  }
+  return i
+}
+
 function describe(token: Token): string {
   switch (token.kind) {
     case 'number':
@@ -198,6 +329,8 @@ function describe(token: Token): string {
       return token.name
     case 'pi':
       return 'π'
+    case 'constant':
+      return token.name
     case 'function':
       return token.text
     case 'op':
@@ -220,11 +353,21 @@ class Parser {
 
   private readonly tokens: Token[]
   private readonly allowed: ReadonlySet<string>
+  private readonly calculator: CalculatorSyntax | undefined
+  private readonly userNames: ReadonlySet<string>
 
   // No parameter properties: check-content loads this file with Node's type stripping.
-  constructor(tokens: Token[], allowed: ReadonlySet<string>) {
+  constructor(tokens: Token[], allowed: ReadonlySet<string>, calculator?: CalculatorSyntax) {
     this.tokens = tokens
     this.allowed = allowed
+    this.calculator = calculator
+    this.userNames = new Set(calculator?.functions ?? [])
+  }
+
+  /** Records where a node starts, in calculator mode only (ADR 0038 trees stay as they were). */
+  private at<N extends ExpressionNode>(node: N, pos: number): N {
+    if (this.calculator) node.pos = pos
+    return node
   }
 
   parse(): ExpressionNode {
@@ -258,7 +401,7 @@ class Parser {
       const t = this.peek()
       if (t.kind !== 'op' || (t.op !== '+' && t.op !== '-')) return left
       this.advance()
-      left = { type: 'binary', op: t.op, left, right: this.product() }
+      left = this.at({ type: 'binary', op: t.op, left, right: this.product() }, t.pos)
     }
   }
 
@@ -268,9 +411,9 @@ class Parser {
       const t = this.peek()
       if (t.kind === 'op' && (t.op === '*' || t.op === '/')) {
         this.advance()
-        left = { type: 'binary', op: t.op, left, right: this.signed() }
+        left = this.at({ type: 'binary', op: t.op, left, right: this.signed() }, t.pos)
       } else if (this.startsImplicitFactor(t)) {
-        left = { type: 'binary', op: '*', left, right: this.power() }
+        left = this.at({ type: 'binary', op: '*', left, right: this.power() }, t.pos)
       } else if (t.kind === 'number') {
         throw new ExpressionSyntaxError(
           `Le nombre ${t.text} suit « ${describe(this.previous() ?? t)} » sans opération : écris le nombre devant (2x et non x2), ou mets × entre les deux.`,
@@ -286,6 +429,7 @@ class Parser {
     return (
       t.kind === 'name' ||
       t.kind === 'pi' ||
+      t.kind === 'constant' ||
       t.kind === 'function' ||
       t.kind === 'lparen' ||
       (t.kind === 'bar' && this.absDepth === 0)
@@ -297,7 +441,7 @@ class Parser {
     if (t.kind === 'op' && (t.op === '-' || t.op === '+')) {
       this.advance()
       const operand = this.signed()
-      return t.op === '-' ? { type: 'negate', operand } : operand
+      return t.op === '-' ? this.at({ type: 'negate', operand }, t.pos) : operand
     }
     return this.power()
   }
@@ -307,7 +451,7 @@ class Parser {
     const t = this.peek()
     if (t.kind === 'op' && t.op === '^') {
       this.advance()
-      return { type: 'binary', op: '^', left: base, right: this.signed() }
+      return this.at({ type: 'binary', op: '^', left: base, right: this.signed() }, t.pos)
     }
     return base
   }
@@ -316,22 +460,26 @@ class Parser {
     const t = this.advance()
     switch (t.kind) {
       case 'number':
-        return { type: 'number', value: t.value }
+        return this.at({ type: 'number', value: t.value }, t.pos)
       case 'pi':
         return { type: 'number', value: Math.PI }
+      case 'constant':
+        return this.at({ type: 'constant', name: t.name }, t.pos)
       case 'name':
+        if (this.calculator) return this.calculatorName(t)
         if (!this.allowed.has(t.name))
           throw new ExpressionSyntaxError(this.unknownLetter(t.name), t.pos)
         return { type: 'variable', name: t.name }
       case 'function': {
-        if (t.text === '√') return { type: 'call', fn: t.fn, arg: this.primary() }
-        if (this.peek().kind !== 'lparen' && this.peek().kind !== 'bar') {
+        if (t.text !== '√' && this.peek().kind !== 'lparen' && this.peek().kind !== 'bar') {
           throw new ExpressionSyntaxError(
             `Après ${t.text}, mets la quantité entre parenthèses : ${t.text}(x).`,
             this.peek().pos
           )
         }
-        return { type: 'call', fn: t.fn, arg: this.primary() }
+        const node: ExpressionNode = { type: 'call', fn: t.fn, arg: this.primary() }
+        if (this.calculator?.angle === 'degrees' && isTrigonometric(t.fn)) node.degrees = true
+        return this.at(node, t.pos)
       }
       case 'lparen': {
         if (this.peek().kind === 'rparen') {
@@ -363,7 +511,7 @@ class Parser {
           )
         }
         this.advance()
-        return { type: 'call', fn: 'abs', arg: inner }
+        return this.at({ type: 'call', fn: 'abs', arg: inner }, t.pos)
       }
       case 'end': {
         // `t` is consumed: the token before it is two places back.
@@ -390,6 +538,29 @@ class Parser {
     }
   }
 
+  /** A letter in calculator mode: a call to a defined function, or a variable for the caller. */
+  private calculatorName(t: Extract<Token, { kind: 'name' }>): ExpressionNode {
+    if (this.userNames.has(t.name)) {
+      if (this.peek().kind !== 'lparen') {
+        throw new ExpressionSyntaxError(
+          `${t.name} est une fonction\u00a0: écris ${t.name}(x), avec la parenthèse.`,
+          t.pos
+        )
+      }
+      return this.at(
+        { type: 'userCall', name: t.name, order: t.primes, arg: this.primary() },
+        t.pos
+      )
+    }
+    if (t.primes > 0) {
+      throw new ExpressionSyntaxError(
+        `Je ne connais pas la fonction ${t.name}, donc je ne peux pas calculer ${t.name}’(x). Définis d’abord ${t.name}.`,
+        t.pos
+      )
+    }
+    return this.at({ type: 'variable', name: t.name }, t.pos)
+  }
+
   private unknownLetter(name: string): string {
     const others = [...this.allowed].filter((v) => v !== 'x').sort()
     const known =
@@ -401,6 +572,40 @@ class Parser {
 }
 
 type Compiled = (scope: Readonly<Record<string, number>>) => number
+
+export function isTrigonometric(fn: ExpressionFunction): boolean {
+  return fn === 'sin' || fn === 'cos' || fn === 'tan'
+}
+
+/** One degree in radians: sin, cos and tan in degrees take their argument times this. */
+export const DEGREE = Math.PI / 180
+
+/** The JavaScript function computing a built-in function; sin, cos, tan take radians here. */
+export function mathOf(fn: ExpressionFunction): (v: number) => number {
+  switch (fn) {
+    case 'sqrt':
+      return Math.sqrt
+    case 'abs':
+      return Math.abs
+    case 'sin':
+      return Math.sin
+    case 'cos':
+      return Math.cos
+    case 'tan':
+      return Math.tan
+    case 'exp':
+      return Math.exp
+    case 'ln':
+      return Math.log
+    case 'log':
+      return Math.log10
+  }
+}
+
+/** The value of a constant node. */
+export function constantValue(name: ExpressionConstant): number {
+  return name === 'π' ? Math.PI : Math.E
+}
 
 function compile(node: ExpressionNode): Compiled {
   switch (node.type) {
@@ -416,10 +621,19 @@ function compile(node: ExpressionNode): Compiled {
       const operand = compile(node.operand)
       return (scope) => -operand(scope)
     }
+    case 'constant': {
+      const v = constantValue(node.name)
+      return () => v
+    }
     case 'call': {
       const arg = compile(node.arg)
-      return node.fn === 'sqrt' ? (scope) => Math.sqrt(arg(scope)) : (scope) => Math.abs(arg(scope))
+      const math = mathOf(node.fn)
+      return node.degrees ? (scope) => math(arg(scope) * DEGREE) : (scope) => math(arg(scope))
     }
+    // The tree does not hold the definition of f: whoever resolves user calls compiles them
+    // (ADR 0049, grapheur/langage.ts). Read alone, a call is not defined.
+    case 'userCall':
+      return () => NaN
     case 'binary': {
       const left = compile(node.left)
       const right = compile(node.right)
@@ -448,6 +662,7 @@ function collectVariables(node: ExpressionNode, into: Set<string>): Set<string> 
       collectVariables(node.operand, into)
       break
     case 'call':
+    case 'userCall':
       collectVariables(node.arg, into)
       break
     case 'binary':
@@ -455,6 +670,7 @@ function collectVariables(node: ExpressionNode, into: Set<string>): Set<string> 
       collectVariables(node.right, into)
       break
     case 'number':
+    case 'constant':
       break
   }
   return into
@@ -467,7 +683,11 @@ function collectVariables(node: ExpressionNode, into: Set<string>): Set<string> 
 export function parseExpression(source: string, options: ParseOptions = {}): ParseResult {
   const allowed = new Set(options.variables ?? ['x'])
   try {
-    const tree = new Parser(tokenize(source), allowed).parse()
+    const tree = new Parser(
+      tokenize(source, options.calculator),
+      allowed,
+      options.calculator
+    ).parse()
     const run = compile(tree)
     return {
       ok: true,
