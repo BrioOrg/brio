@@ -19,6 +19,16 @@ function formatReste(ms: number): string {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
+const EXAMEN_DEMARRE = 'brio:examen-demarre'
+
+/**
+ * Tells the banner an exam has just started. It lives in the `(app)` layout, which does not
+ * remount on navigation, so without this it would only see the exam after a reload (#407).
+ */
+export function signalerExamenDemarre() {
+  window.dispatchEvent(new Event(EXAMEN_DEMARRE))
+}
+
 export function ExamenBanner() {
   const [examen, setExamen] = useState<ExamenActif | null>(null)
   const [reste, setReste] = useState(0)
@@ -26,13 +36,20 @@ export function ExamenBanner() {
 
   useEffect(() => {
     let vivant = true
-    examenActif(apiBaseUrl())
-      .then((e) => {
-        if (vivant && e.enExamen) setExamen(e)
-      })
-      .catch(() => {})
+    const verifier = () => {
+      examenActif(apiBaseUrl())
+        .then((e) => {
+          if (!vivant) return
+          setExamen(e.enExamen ? e : null)
+          setRendu(false)
+        })
+        .catch(() => {})
+    }
+    verifier()
+    window.addEventListener(EXAMEN_DEMARRE, verifier)
     return () => {
       vivant = false
+      window.removeEventListener(EXAMEN_DEMARRE, verifier)
     }
   }, [])
 

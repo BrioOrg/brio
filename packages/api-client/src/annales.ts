@@ -13,6 +13,7 @@ import { signalerSessionExpiree } from './session-expiree.js'
  *
  * Contrats serveur (fr.brio.contenu.web) :
  *   GET /api/annales                              200 -> AnnaleVue[]
+ *   GET /api/annales/competences                  200 -> CompetenceAnnale[]
  *   GET /api/annales/entrainement?competence=…    200 -> EntrainementExercice[]
  */
 
@@ -29,6 +30,18 @@ export const AnnaleVueSchema = z.object({
   dureeMinutes: z.number().nullish(),
 })
 export type AnnaleVue = z.infer<typeof AnnaleVueSchema>
+
+/**
+ * Une compétence travaillée par au moins un exercice d'annale : ce que l'élève peut choisir dans
+ * « Par compétence » (#406). Même forme que `CompetenceDto`.
+ */
+export const CompetenceAnnaleSchema = z.object({
+  code: z.string(),
+  intitule: z.string(),
+  domaine: z.string().nullish(),
+  niveaux: z.array(z.string()).nullish(),
+})
+export type CompetenceAnnale = z.infer<typeof CompetenceAnnaleSchema>
 
 /** Un exercice d'annale travaillant une compétence donnée (entraînement ciblé). */
 export const EntrainementExerciceSchema = z.object({
@@ -52,6 +65,13 @@ export async function listerAnnales(baseUrl: string): Promise<AnnaleVue[]> {
   const res = await fetch(`${baseUrl}/api/annales`, { credentials: 'include' })
   if (!res.ok) throw annaleError(res.status, 'Impossible de charger les annales.')
   return z.array(AnnaleVueSchema).parse(await res.json())
+}
+
+/** Les compétences que les annales travaillent, triées par code (élève comme enseignant). */
+export async function listerCompetencesAnnales(baseUrl: string): Promise<CompetenceAnnale[]> {
+  const res = await fetch(`${baseUrl}/api/annales/competences`, { credentials: 'include' })
+  if (!res.ok) throw annaleError(res.status, 'Impossible de charger les compétences.')
+  return z.array(CompetenceAnnaleSchema).parse(await res.json())
 }
 
 /** Les exercices d'annales qui travaillent une compétence (entraînement ciblé). */

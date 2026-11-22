@@ -3571,6 +3571,29 @@
         }
       }
     },
+    "/api/annales/competences" : {
+      "get" : {
+        "tags" : [ "Annales" ],
+        "summary" : "Compétences travaillées par les annales",
+        "description" : "Les compétences portées par au moins un exercice d'annale, triées par code : exactement celles pour lesquelles l'entraînement renvoie des exercices.",
+        "operationId" : "competencesDesAnnales",
+        "responses" : {
+          "200" : {
+            "description" : "Compétences retournées",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CompetenceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/communaute/signalements" : {
       "get" : {
         "tags" : [ "Communauté — modération" ],

@@ -1,6 +1,7 @@
 package fr.brio.contenu.infrastructure;
 
 import fr.brio.contenu.domain.Competence;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,6 @@ public interface CompetenceRepository extends JpaRepository<Competence, String> 
      * policy) but must never be offered for authoring.
      */
     List<Competence> findByDeprecatedSinceIsNullOrderByCodeAsc();
+
+    List<Competence> findByCodeInOrderByCodeAsc(Collection<String> codes);
 }

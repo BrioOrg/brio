@@ -124,16 +124,24 @@ export { listerCompetences, LeconCompetenceSchema } from './referentiel.js'
 export type { Competence, LeconCompetence } from './referentiel.js'
 export {
   listerAnnales,
+  listerCompetencesAnnales,
   entrainementParCompetence,
   demarrerExamen,
   rendreExamen,
   examenActif,
   AnnaleVueSchema,
+  CompetenceAnnaleSchema,
   EntrainementExerciceSchema,
   ExamenActifSchema,
   ExamenDemarreSchema,
 } from './annales.js'
-export type { AnnaleVue, EntrainementExercice, ExamenActif, ExamenDemarre } from './annales.js'
+export type {
+  AnnaleVue,
+  CompetenceAnnale,
+  EntrainementExercice,
+  ExamenActif,
+  ExamenDemarre,
+} from './annales.js'
 export {
   mesClasses,
   listerFils,
