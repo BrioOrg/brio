@@ -596,6 +596,53 @@
             }
           ],
           "explanation": "B(2 ; 3) : 3 ÷ 2 = 1,5. On vérifie avec D(4 ; 6) : 6 ÷ 4 = 1,5. 0,5 est l'écart entre ordonnée et abscisse pour A, pas un coefficient multiplicatif."
+        },
+        {
+          "id": "intro-coefficient-curseur",
+          "type": "prose",
+          "text": "Toute situation de proportionnalité se représente par des points d'une droite qui passe par l'origine. Le coefficient de proportionnalité décide de son inclinaison : plus il est grand, plus la droite monte vite. Fais varier le coefficient a avec le curseur : la droite tourne autour de l'origine, et le point d'abscisse 2 a toujours pour ordonnée 2 × a."
+        },
+        {
+          "id": "fig-coefficient-curseur",
+          "type": "figure",
+          "alt": "Repère avec une droite qui passe par l'origine. Un curseur règle le coefficient a de 0,5 à 4. Des pointillés relient le point d'abscisse 2 de la droite aux deux axes : son ordonnée est 3 quand a vaut 1,5.",
+          "caption": "Une situation de proportionnalité de coefficient a.",
+          "spec": {
+            "axes": {
+              "x": {
+                "from": 0,
+                "to": 5,
+                "step": 1
+              },
+              "y": {
+                "from": 0,
+                "to": 10,
+                "step": 1
+              },
+              "grid": true
+            },
+            "functions": [
+              {
+                "name": "f",
+                "expr": "ax"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "a",
+                "min": 0.5,
+                "max": 4,
+                "step": 0.5,
+                "value": 1.5
+              }
+            ],
+            "readings": [
+              {
+                "function": "f",
+                "x": 2
+              }
+            ]
+          }
         }
       ]
     },

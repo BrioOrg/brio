@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { RailContent, type RailSection } from '@/components/chapter-rail'
+import { focaliserAncre } from '@/components/chapitre-interactif/mode-context'
 import { Icon } from '@/components/ui/icon'
 import type { TutorTarget } from '@/lib/api'
 
@@ -17,6 +18,8 @@ type ChapterToolsSheetProps = {
  */
 export function ChapterToolsSheet({ sections, target }: ChapterToolsSheetProps) {
   const [open, setOpen] = useState(false)
+  // The in-page link that closes the sheet, when the chapter took it (ADR 0046 §7).
+  const ancre = useRef<string | null>(null)
 
   return (
     <div className="lg:hidden">
@@ -35,6 +38,22 @@ export function ChapterToolsSheet({ sections, target }: ChapterToolsSheetProps) 
           <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 motion-safe:data-[state=open]:animate-[fadeIn_var(--duration-slow)_var(--ease-out)]" />
           <Dialog.Content
             aria-label="Sommaire et tuteur"
+            // The chapter scrolls to an in-page link's target and prevents the jump, but the modal
+            // keeps the focus inside, then hands it back to the trigger: the target's heading takes
+            // it once the sheet has closed instead. Escape, « Fermer » or a click outside still
+            // hand it back to the trigger.
+            onClickCapture={(e) => {
+              const lien = e.target instanceof Element ? e.target.closest('a[href^="#"]') : null
+              ancre.current = (e.defaultPrevented && lien?.getAttribute('href')?.slice(1)) || null
+            }}
+            onCloseAutoFocus={(e) => {
+              const id = ancre.current
+              ancre.current = null
+              const cible = id ? document.getElementById(id) : null
+              if (!cible) return
+              e.preventDefault()
+              focaliserAncre(cible)
+            }}
             className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-xl border-t border-line bg-surface-panel px-5 pb-8 pt-4 motion-safe:data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)] focus-visible:outline-none"
           >
             <div className="mx-auto mb-4 h-1.5 w-10 rounded-pill bg-line" aria-hidden="true" />

@@ -306,6 +306,77 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptTransformationsVectorsLinesAndRays() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Un triangle et ses images",
+                  "spec": {
+                    "points": [ { "name": "A", "x": 0, "y": 0 }, { "name": "B", "x": 2, "y": 0 },
+                                { "name": "C", "x": 1, "y": 2 }, { "name": "O", "x": 4, "y": 1 } ],
+                    "polygons": [ { "vertices": ["A", "B", "C"] } ],
+                    "lines": [ { "through": ["A", "B"], "label": "(d)", "style": "dashed" } ],
+                    "rays": [ { "from": "O", "through": "C" } ],
+                    "vectors": [ { "from": "A", "to": "B", "label": "\\\\vec{u}" } ],
+                    "transformations": [
+                      { "kind": "symetrie-axiale", "axis": ["A", "B"], "source": ["C"],
+                        "show": { "construction": true } },
+                      { "kind": "symetrie-centrale", "center": "O", "source": ["A", "B", "C"] },
+                      { "kind": "translation", "from": "A", "to": "B", "source": ["C"], "suffix": "1" },
+                      { "kind": "rotation", "center": "O", "angle": -90, "source": ["A"],
+                        "show": { "construction": ["A"] } },
+                      { "kind": "homothetie", "center": "O", "ratio": -0.5, "source": ["B"] }
+                    ] } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectATransformationWithTheParametersOfAnotherKind() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Une image",
+                  "spec": { "points": [ { "name": "O", "x": 0, "y": 0 }, { "name": "A", "x": 1, "y": 0 } ],
+                            "transformations": [ { "kind": "symetrie-centrale", "center": "O", "angle": 90,
+                                                   "source": ["A"] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectARotationOfAWholeTurnOrATransformationWithoutSource() {
+        String rotation =
+                """
+                { "id": "fig", "type": "figure", "alt": "Une image",
+                  "spec": { "points": [ { "name": "O", "x": 0, "y": 0 }, { "name": "A", "x": 1, "y": 0 } ],
+                            "transformations": [ { "kind": "rotation", "center": "O", "angle": 360,
+                                                   "source": ["A"] } ] } }
+                """;
+        String sansSource =
+                """
+                { "id": "fig", "type": "figure", "alt": "Une image",
+                  "spec": { "points": [ { "name": "O", "x": 0, "y": 0 } ],
+                            "transformations": [ { "kind": "symetrie-centrale", "center": "O", "source": [] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(rotation)))
+                .isInstanceOf(InvalidContentException.class);
+        assertThatThrownBy(() -> validator.validate(chapterWith(sansSource)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectALineThroughASinglePoint() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "Une droite",
+                  "spec": { "points": [ { "name": "A", "x": 0, "y": 0 } ],
+                            "lines": [ { "through": ["A"] } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldRejectTheDimensionsOfAnotherKindOfSolid() {
         String block =
                 """
@@ -366,6 +437,54 @@ class ContentSchemaValidatorTest {
                   "spec": { "solids": [ { "kind": "cube", "x": 0, "y": 0, "edge": 2, "heights": [ [1] ] } ] } }
                 """;
         assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldAcceptFunctionsReadingsAndParametersInARepere() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "axes": { "x": { "from": -4, "to": 4, "step": 1 },
+                                      "y": { "from": -4, "to": 4, "step": 1 } },
+                            "functions": [ { "name": "f", "expr": "a x² − 1", "domain": [-3, 3],
+                                             "label": true, "style": "dashed" },
+                                           { "name": "g", "expr": "1/x", "label": "Inverse" } ],
+                            "readings": [ { "function": "f", "x": 1 }, { "function": "f", "y": 3 } ],
+                            "parameters": [ { "name": "a", "min": -2, "max": 2, "step": 0.5, "value": 1 } ] } }
+                """;
+        assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldRejectAReadingGivenBothAnXAndAY() {
+        String block =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "axes": { "x": { "from": -4, "to": 4, "step": 1 },
+                                      "y": { "from": -4, "to": 4, "step": 1 } },
+                            "functions": [ { "name": "f", "expr": "x" } ],
+                            "readings": [ { "function": "f", "x": 1, "y": 1 } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectAFunctionWithoutExpressionOrWithALongName() {
+        String withoutExpr =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "functions": [ { "name": "f" } ] } }
+                """;
+        String longName =
+                """
+                { "id": "fig", "type": "figure", "alt": "La courbe de f",
+                  "spec": { "functions": [ { "name": "prix", "expr": "2x" } ] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(withoutExpr)))
+                .isInstanceOf(InvalidContentException.class);
+        assertThatThrownBy(() -> validator.validate(chapterWith(longName)))
                 .isInstanceOf(InvalidContentException.class);
     }
 
@@ -527,6 +646,60 @@ class ContentSchemaValidatorTest {
             assertThatThrownBy(() -> validator.validate(chapterWith(block)))
                     .isInstanceOf(InvalidContentException.class);
         }
+    }
+
+    @Test
+    void shouldAcceptEachKindOfSolid() {
+        List<String> blocks = List.of(
+                """
+                { "id": "s1", "type": "solid", "kind": "pave", "width": 4, "height": 3, "depth": 2,
+                  "names": ["A", "B", "C", "D", "E", "F", "G", "H"],
+                  "section": { "parallelTo": "front", "at": 1 }, "alt": "Un pavé" }
+                """,
+                """
+                { "id": "s2", "type": "solid", "kind": "pyramide", "height": 4, "apex": { "x": 0, "y": 0 },
+                  "base": [ { "x": 0, "y": 0 }, { "x": 4, "y": 0 }, { "x": 4, "y": 4 } ], "alt": "Une pyramide" }
+                """,
+                """
+                { "id": "s3", "type": "solid", "kind": "cone", "radius": 2, "height": 4,
+                  "names": ["O", "S"], "section": { "at": 1.5 }, "alt": "Un cône" }
+                """,
+                """
+                { "id": "s4", "type": "solid", "kind": "boule", "radius": 3, "equator": true,
+                  "parallels": [45], "meridians": [0, 60],
+                  "points": [ { "name": "M", "latitude": 45, "longitude": 60 } ],
+                  "section": { "at": 1 }, "alt": "Une sphère" }
+                """);
+        for (String block : blocks) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectASolidWithoutItsDimensions() {
+        String block = """
+                { "id": "s1", "type": "solid", "kind": "cylindre", "radius": 2, "alt": "Un cylindre" }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectSphereFieldsOnAnotherSolid() {
+        String block = """
+                { "id": "s1", "type": "solid", "kind": "cube", "edge": 2, "equator": true, "alt": "Un cube" }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
+    void shouldRejectASolidWithoutAlt() {
+        String block = """
+                { "id": "s1", "type": "solid", "kind": "cube", "edge": 2 }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                .isInstanceOf(InvalidContentException.class);
     }
 
     @Test

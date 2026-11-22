@@ -9,6 +9,7 @@ export {
   MOT_DE_PASSE_MIN,
   MOT_DE_PASSE_MAX_OCTETS,
   MESSAGE_MOT_DE_PASSE_TROP_LONG,
+  MESSAGE_MOT_DE_PASSE_TROP_LONG_VOUS,
   octetsUtf8,
   LoginError,
   LogoutError,
@@ -119,8 +120,8 @@ export type {
   ControleActif,
   PieceInfo,
 } from './devoirs.js'
-export { listerCompetences } from './referentiel.js'
-export type { Competence } from './referentiel.js'
+export { listerCompetences, LeconCompetenceSchema } from './referentiel.js'
+export type { Competence, LeconCompetence } from './referentiel.js'
 export {
   listerAnnales,
   entrainementParCompetence,
