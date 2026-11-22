@@ -291,3 +291,7 @@ export { buildDeck, RESERVED_DIAPO_IDS } from './deck'
 
 export type { Tone, ToneIssue, ToneIssueCode } from './tone'
 export { TONES, MAX_TONES_PER_BLOCK, isTone, toneArguments, checkTones } from './tone'
+
+// Graphing calculator — implicit curves (ADR 0049)
+export type { Fenetre, OptionsImplicite, PointSvg, TraceImplicite } from './grapheur/implicite'
+export { BUDGET_IMPLICITE, traceImplicite } from './grapheur/implicite'
