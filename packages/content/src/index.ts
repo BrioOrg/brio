@@ -252,6 +252,15 @@ export type {
 export { parseScratch, buildScratchModel } from './scratch'
 
 export type {
+  ScratchRuntimeValue,
+  ScratchEvalError,
+  ScratchEvalErrorCode,
+  ScratchEvalResult,
+  ScratchEvalOptions,
+} from './scratch-eval'
+export { evaluateScratch, toNumber } from './scratch-eval'
+
+export type {
   CalculMode,
   CalculLine,
   CalculSpec,

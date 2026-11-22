@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-08
-- **Amended**: 2026-10-26 (#233), 2026-11-09 (#234)
+- **Amended**: 2026-10-26 (#233), 2026-11-09 (#234), 2026-11-12 (#232)
 - **Deciders**: Pierce Broudin
 
 ## Context
@@ -34,8 +34,10 @@ renderer, and the teacher editor, show the text as before.
    4 spaces and closed by `fin` at the block's indentation; a bare `sinon` at the `si`'s
    indentation starts the second branch of a `si`. At most 32 levels of brackets or of nested
    blocks (`tooDeep`): far beyond any programme, far below the call stack. The ASCII and the
-   typographic apostrophe are both accepted in the block wordings; input is NFC-normalised. Text is written between « ». A variable is a bare name (`x`), optionally in
-   parentheses (`(x)`). Numbers use `.` or `,` as the decimal separator and are shown as written.
+   typographic apostrophe are both accepted in the block wordings; input is NFC-normalised.
+   Text is written between « ». A variable is a bare name (`x`), optionally in parentheses
+   (`(x)`). Numbers use `.` or `,` as the decimal separator and are shown as written (but a
+   programme checked by CI writes `.`, as Scratch does: point 7).
    The code is not rich text, so `*` is Scratch's real multiplication sign.
 2. **A closed catalogue**, Scratch 3's French wording, with its category:
 
@@ -93,7 +95,55 @@ renderer, and the teacher editor, show the text as before.
    rejects a `scratch` programme that does not parse. Content that does not go through CI (a
    teacher's course) falls back to the monospace text when it does not parse; it never breaks
    the page.
-7. **Teacher editor** (#233, amendment 2026-10-26). The code block of the course editor
+7. **Evaluator for "prévoir la valeur"** (#232, amendment 2026-11-12). `evaluateScratch` in
+   `packages/content` runs the parsed tree and returns what the sprite **says** (every `dire`,
+   in order) and the final value of each variable. `check-content` uses it to verify the answer
+   of an exercise that predicts a programme's output, so a wrong computation in the content is a
+   CI error. Decisions left open by #232:
+   - **Linking is explicit, not positional.** An exercise opts in with a `program` field,
+     `{ "ref": "<code block id>", "inputs"?: [ … ] }`. `ref` names a Scratch `code` block
+     anywhere in the chapter. An explicit id crosses sections ("le programme du début" is in an
+     earlier section than the exercise), survives a block being reordered, and never catches an
+     exercise that merely follows a programme but asks something else — a distance
+     (`avancer`/`tourner`), a shape, or a transformation of the programme. A positional rule
+     ("the preceding `code` block") was rejected for those false positives. The field lives on
+     the exercise, whose block schema is an open union (`additionalProperties` not closed), so no
+     schema migration; it is not a correction secret (the programme is already on the page) and
+     is not stripped by the `ExerciceExtractor`.
+   - **Input for `demander`** comes from `program.inputs`: the first `demander` stores
+     `inputs[0]` in `réponse`, the second `inputs[1]`, and so on. The statement's prose ("the
+     user types 5") is not parsed.
+   - **Motion is out of scope in v1.** `avancer`/`tourner` run as no-ops: they say nothing and
+     change no variable, so a "distance parcourue" exercise is not linked to a programme. The
+     evaluator keeps room for a later position/heading model.
+   - **Comparison.** The computed answer is the value of the **last** `dire`, coerced to a number
+     the way Scratch's arithmetic blocks coerce (a non-numeric string is 0). A `numeric` exercise
+     compares it to `answer` within `tolerance`; a `multiple-choice` whose single correct choice
+     is a number compares to that number. A linked programme that says nothing, or that fails at
+     runtime (a `demander` with no input, a negative/fractional `répéter` count, a runaway loop
+     caught by a step budget), is a CI error.
+   - **4e blocks (#234).** The evaluator covers the whole catalogue: `si … alors [… sinon]` runs
+     one branch; `répéter jusqu'à ce que` tests its condition **before** each turn (already true,
+     the body never runs), and each turn counts against the step budget, so a condition that
+     never comes true is a `tooManySteps` CI error; the pen runs as a no-op like motion.
+     Comparisons follow Scratch (`Cast.compare`): numbers when both sides read as numbers,
+     otherwise texts **ignoring case**; blank text is not a number. One Brio convention differs:
+     a decimal comma reads as a number (§1), where Scratch would compare « 2,5 » as text — hence
+     AUTHORING's rule to compare integers only. The switches over statements and booleans end
+     in a `never`, and the one over values is checked by its return type, so a block kind added
+     to the parser is a type error until it is evaluated.
+   - **Guards (porte 5/6, 2026-11-18).** NaN counts as 0 in a calculation, as Scratch's
+     `Cast.toNumber` (`((0 / 0) + 1)` is 1). `check-content` fails when the last `dire` is not
+     strictly a finite number (a text, an empty `réponse`, NaN or Infinity is not read as 0),
+     when a linked programme or its `inputs` write a decimal with a comma (Scratch reads « 2,5 »
+     as text, so the CI would validate what Scratch does not do — write `2.5` or whole numbers),
+     when some `inputs` are never consumed by a `demander`, and when a wrong choice of a QCM
+     equals the computed value. A `répéter` count that is negative or not whole is an error
+     where Scratch rounds it or skips the loop: the content must write it whole. Variables
+     start at 0 on every run, whereas Scratch keeps them from one green-flag click to the next:
+     a checked programme sets each variable before reading it (AUTHORING). `program.inputs`
+     reach the client: they must restate what the prompt already says, never a hidden answer.
+8. **Teacher editor** (#233, amendment 2026-10-26). The code block of the course editor
    (« Programme ») offers « Texte » (no `language`) or « Scratch » (`language: "scratch"`, the
    default for a new block). In Scratch it runs the same `parseScratch` on every keystroke, lists
    each error with its line number, translated into French in the web (the parser's messages
@@ -124,8 +174,8 @@ renderer, and the teacher editor, show the text as before.
 
 ### Follow-ups
 
-- An evaluator for "prévoir la valeur" exercises (#232).
-- Choosing "Scratch" as the language of a code block in the teacher editor (#233). Done: point 7.
+- An evaluator for "prévoir la valeur" exercises (#232). Done: point 7.
+- Choosing "Scratch" as the language of a code block in the teacher editor (#233). Done: point 8.
 - Conditions, comparisons and the pen for 4e (#234, amendment 2026-11-09). Done: the catalogue now
   carries `si … alors`, `si … alors … sinon` (double C), `répéter jusqu'à ce que`, the hexagonal
   boolean blocks (comparisons `< = >`, logical `et`/`ou`/`non`) and the three pen blocks

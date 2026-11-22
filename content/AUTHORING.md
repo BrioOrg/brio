@@ -585,6 +585,36 @@ qui ne s'analyse pas, ligne par ligne.
   `stylo en position d'écriture`. Pas plus de 32 niveaux de parenthèses ou de blocs imbriqués.
 - Un énoncé ou une option de QCM est du texte riche : un programme y reste écrit en texte, avec ×.
   Un exercice sur un programme suit le bloc `code`.
+- **« Prévoir la valeur » vérifié par la CI** (#232) : un exercice `numeric` (ou un QCM dont la
+  seule bonne réponse est un nombre) peut se relier au programme qu'il interroge avec un champ
+  `program`. `check:content` exécute alors le programme et refuse l'exercice si ce que dit le
+  lutin (le dernier `dire`) ne correspond pas à la réponse attendue — une erreur de calcul dans
+  le contenu devient une erreur de CI. Les `si … sinon`, `répéter jusqu'à ce que` et comparaisons
+  s'exécutent comme dans Scratch (voir « Le sens des blocs » ci-dessus) ; une boucle qui ne
+  s'arrête jamais, ou un `demander` sans valeur dans `inputs`, est aussi une erreur de CI.
+  Dans un programme relié :
+  - le dernier `dire` doit être **un nombre** (un texte, une `réponse` vide ne valent pas 0) ;
+  - les décimaux s'écrivent avec **un point** (`2.5`), dans le code comme dans `inputs` :
+    Scratch lit « 2,5 » comme du texte ;
+  - chaque valeur de `inputs` sert à un `demander`, et elle **redit l'énoncé** (« l'utilisateur
+    tape 5 ») : elle part chez l'élève, ce n'est jamais un corrigé caché ;
+  - chaque variable est **mise à une valeur avant d'être lue** (`mettre n à 0`) : Scratch garde
+    les variables d'un clic sur le drapeau à l'autre, la CI repart de 0 ;
+  - le nombre de tours d'un `répéter` est entier (Scratch arrondirait) ;
+  - un résultat décimal peut s'afficher avec un bruit d'arrondi dans Scratch
+    (`0.1 + 0.2` → 0.30000000000000004) : préférer des calculs entiers ;
+  - aucune mauvaise option d'un QCM ne vaut la valeur calculée.
+
+  ```json
+  { "id": "ex-prevoir-cinq", "type": "exercise", "exerciseType": "numeric",
+    "prompt": "L'utilisateur tape 5. Quel nombre dit le lutin ?", "answer": 19,
+    "program": { "ref": "code-programme-calcul", "inputs": ["5"] } }
+  ```
+
+  `ref` = l'`id` d'un bloc `code` Scratch **n'importe où dans le chapitre** (il peut être dans une
+  section précédente : « le programme du début »). `inputs` (optionnel) alimente les `demander`
+  dans l'ordre. Les programmes de **mouvement** (`avancer`/`tourner`) ne disent rien : ils ne se
+  relient pas à un exercice (une distance parcourue n'est pas ce que dit le lutin).
 
 ### Formules
 
