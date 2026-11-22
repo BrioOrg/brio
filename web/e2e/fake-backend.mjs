@@ -79,6 +79,14 @@
  *                                                 not taught, 400/422 on the title), the salon kept
  *                                                 per teacher session (`e2e-enseignant-<uuid>`).
  *                                                 5e B is left untouched
+ *   POST /api/communaute/{questions|reponses}/{id}/signalement
+ *                                                 204, idempotent while open; 403 on one's own
+ *                                                 message; the reported text is frozen (ADR 0044)
+ *   GET  /api/admin/communaute/signalements       E2E_SESSION_ADMIN only (403 otherwise): open
+ *                                                 reports grouped by target
+ *   POST /api/admin/communaute/{type}/{id}/decision  masquer / rejeter / supprimer / restaurer
+ *                                                 (masked only); a masked message leaves every read
+ *   GET  /api/admin/communaute/contestations      [] (no member screen to contest yet, ADR 0044)
  *   anything else                                 404 (the catalogue too: the page falls back
  *                                                 to codes, nothing is invented)
  *
@@ -145,6 +153,8 @@ export const E2E_SESSION_ENSEIGNANT = 'JSESSIONID=e2e-enseignant'
 /** Two students of the test teacher's 3e C (PL-7, #399): one writes, the other reports. */
 export const E2E_SESSION_3EC_NOE = 'JSESSIONID=e2e-eleve-3eC-noe'
 export const E2E_SESSION_3EC_LOU = 'JSESSIONID=e2e-eleve-3eC-lou'
+/** A logged-in Brio admin: /api/moi answers admin_brio, the moderation console opens (#338). */
+export const E2E_SESSION_ADMIN = 'JSESSIONID=e2e-admin'
 
 /**
  * A student (5e) whose competence to review is `c4.num.operations.diviser-decimal`: taught in a
@@ -208,10 +218,15 @@ function connecte(req) {
     cookies(req).includes(E2E_SESSION) ||
     sansClasse(req) ||
     enseignant(req) ||
+    adminBrio(req) ||
     !!sessionReinit(req) ||
     !!eleve3eC(req) ||
     competenceARevoir(req) !== null
   )
+}
+
+function adminBrio(req) {
+  return cookies(req).includes(E2E_SESSION_ADMIN)
 }
 
 /** The competence a #371 session has to review, null for any other session. */
@@ -250,6 +265,14 @@ const ELEVE = {
   email: null,
   pseudonyme: 'Renard-Indigo',
   niveau: '5e',
+}
+
+const ADMIN = {
+  id: '00000000-0000-4000-8000-0000000000e4',
+  role: 'admin_brio',
+  statut: 'actif',
+  nom: 'Équipe brio',
+  email: 'admin.e2e@example.org',
 }
 
 const ENSEIGNANT = {
@@ -780,6 +803,109 @@ const questionsCommunaute = [
   },
 ]
 const reponsesCommunaute = []
+/** Open and processed reports (ADR 0044): { cibleType, cibleId, signalePar, motif, extrait, statut }. */
+const signalementsCommunaute = []
+
+/** A message the moderation masked or deleted is gone from every member read. */
+const visible = (message) => (message.statut ?? 'publie') === 'publie'
+
+function extraitDe(message) {
+  if (message.titre !== undefined) return message.titre
+  return (message.corps ?? []).map((b) => b.text ?? '').join(' ')
+}
+
+function signaler(req, res, cibleType, message, lecteur, motif) {
+  if (message.auteurId === lecteur) {
+    return send(res, 403, { error: 'On ne signale pas son propre message.' })
+  }
+  const ouvert = signalementsCommunaute.some(
+    (s) => s.cibleId === message.id && s.signalePar === lecteur && s.statut === 'ouvert'
+  )
+  if (!ouvert) {
+    signalementsCommunaute.push({
+      cibleType,
+      cibleId: message.id,
+      signalePar: lecteur,
+      motif: motif?.trim() ? motif.trim() : null,
+      extrait: extraitDe(message),
+      statut: 'ouvert',
+      createdAt: new Date().toISOString(),
+    })
+  }
+  res.writeHead(204)
+  return res.end()
+}
+
+async function moderationAdmin(req, res, pathname) {
+  if (!connecte(req)) return send(res, 401)
+  if (!adminBrio(req)) return send(res, 403)
+  const message = (type, id) =>
+    type === 'question'
+      ? questionsCommunaute.find((q) => q.id === id)
+      : reponsesCommunaute.find((r) => r.id === id)
+
+  if (req.method === 'GET' && pathname === '/api/admin/communaute/signalements') {
+    const parCible = new Map()
+    for (const s of signalementsCommunaute.filter((s) => s.statut === 'ouvert')) {
+      parCible.set(s.cibleId, [...(parCible.get(s.cibleId) ?? []), s])
+    }
+    const vues = []
+    for (const groupe of parCible.values()) {
+      const [premier] = groupe
+      const cible = message(premier.cibleType, premier.cibleId)
+      if (!cible) continue
+      const question =
+        premier.cibleType === 'question'
+          ? cible
+          : questionsCommunaute.find((q) => q.id === cible.questionId)
+      vues.push({
+        cibleType: premier.cibleType,
+        cibleId: cible.id,
+        questionId: question?.id ?? cible.id,
+        auteurPseudonyme: MEMBRES_COMMUNAUTE[cible.auteurId]?.pseudonyme ?? 'Membre',
+        extrait: extraitDe(cible),
+        extraitAuSignalement: premier.extrait,
+        statutContenu: cible.statut ?? 'publie',
+        estReponseResolue:
+          premier.cibleType === 'reponse' && question?.reponseResolueId === cible.id,
+        xpDejaRevoquee: false,
+        nombreSignalements: groupe.length,
+        motifs: groupe.map((s) => s.motif).filter(Boolean),
+        premierSignalementAt: premier.createdAt,
+      })
+    }
+    return send(res, 200, vues)
+  }
+  if (req.method === 'GET' && pathname === '/api/admin/communaute/contestations') {
+    return send(res, 200, [])
+  }
+  const decision = pathname.match(
+    /^\/api\/admin\/communaute\/(question|reponse)\/([^/]+)\/decision$/
+  )
+  if (req.method === 'POST' && decision) {
+    const [, type, id] = decision
+    const cible = message(type, id)
+    if (!cible) return send(res, 404, { error: 'Ce message n’existe pas ou plus.' })
+    const action = (await corps(req))?.action
+    const statut = cible.statut ?? 'publie'
+    if (action === 'masquer' || action === 'supprimer') {
+      if (statut === 'supprime') return send(res, 422, { error: 'Ce contenu a déjà été supprimé.' })
+      cible.statut = action === 'masquer' ? 'masque' : 'supprime'
+    } else if (action === 'restaurer') {
+      if (statut !== 'masque') {
+        return send(res, 422, { error: 'Seul un contenu masqué peut être restauré.' })
+      }
+      cible.statut = 'publie'
+    } else if (action !== 'rejeter') {
+      return send(res, 422, { error: 'Action de modération inconnue.' })
+    }
+    for (const s of signalementsCommunaute) {
+      if (s.cibleId === id && s.statut === 'ouvert') s.statut = 'traite'
+    }
+    return send(res, 201, { id: randomUUID() })
+  }
+  return send(res, 404)
+}
 
 function lecteurCommunaute(req) {
   return sansClasse(req) ? 'eleve-sans-classe' : ELEVE.id
@@ -814,7 +940,7 @@ function reponseVue(r, question, lecteur) {
     aVote: r.votes.has(lecteur),
     aResolu: question.reponseResolueId === r.id,
     commentaires: reponsesCommunaute
-      .filter((c) => c.parentId === r.id)
+      .filter((c) => c.parentId === r.id && visible(c))
       .map((c) => commentaireVue(c, lecteur)),
   }
 }
@@ -837,7 +963,9 @@ function questionCommune(q, lecteur) {
 
 async function communaute(req, res, pathname, search) {
   if (!connecte(req)) return send(res, 401)
-  if (enseignant(req)) return send(res, 403, { error: 'La Communauté est réservée aux élèves.' })
+  if (enseignant(req) || adminBrio(req)) {
+    return send(res, 403, { error: 'La Communauté est réservée aux élèves.' })
+  }
   const lecteur = lecteurCommunaute(req)
   const methode = req.method
   const introuvable = () => send(res, 404, { error: 'Ce message n’existe pas ou plus.' })
@@ -868,13 +996,15 @@ async function communaute(req, res, pathname, search) {
       const page = Number(search.get('page') ?? 0)
       const taille = 20
       const trouvees = questionsCommunaute
+        .filter(visible)
         .filter((q) => (!niveau || q.niveau === niveau) && (!matiere || q.matiere === matiere))
         .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
       return send(res, 200, {
         questions: trouvees.slice(page * taille, (page + 1) * taille).map((q) => ({
           ...questionCommune(q, lecteur),
-          nombreReponses: reponsesCommunaute.filter((r) => r.questionId === q.id && !r.parentId)
-            .length,
+          nombreReponses: reponsesCommunaute.filter(
+            (r) => r.questionId === q.id && !r.parentId && visible(r)
+          ).length,
         })),
         pageSuivante: trouvees.length > (page + 1) * taille,
       })
@@ -899,12 +1029,15 @@ async function communaute(req, res, pathname, search) {
   }
 
   const routeQuestion = pathname.match(
-    /^\/api\/communaute\/questions\/([^/]+)(?:\/(vote|reponses)(?:\/([^/]+)\/resolution)?)?$/
+    /^\/api\/communaute\/questions\/([^/]+)(?:\/(vote|reponses|signalement)(?:\/([^/]+)\/resolution)?)?$/
   )
   if (routeQuestion) {
     const [, questionId, suite, reponseId] = routeQuestion
-    const question = questionsCommunaute.find((q) => q.id === questionId)
+    const question = questionsCommunaute.find((q) => q.id === questionId && visible(q))
     if (!question) return introuvable()
+    if (suite === 'signalement' && methode === 'POST') {
+      return signaler(req, res, 'question', question, lecteur, (await corps(req))?.motif)
+    }
     if (suite === 'vote') return voter(question)
     if (suite === 'reponses' && reponseId && methode === 'POST') {
       if (question.auteurId !== lecteur) {
@@ -935,7 +1068,7 @@ async function communaute(req, res, pathname, search) {
         ...questionCommune(question, lecteur),
         corps: question.corps,
         reponses: reponsesCommunaute
-          .filter((r) => r.questionId === questionId && !r.parentId)
+          .filter((r) => r.questionId === questionId && !r.parentId && visible(r))
           .map((r) => reponseVue(r, question, lecteur)),
       })
     }
@@ -957,12 +1090,15 @@ async function communaute(req, res, pathname, search) {
   }
 
   const routeReponse = pathname.match(
-    /^\/api\/communaute\/reponses\/([^/]+)(?:\/(vote|commentaires))?$/
+    /^\/api\/communaute\/reponses\/([^/]+)(?:\/(vote|commentaires|signalement))?$/
   )
   if (routeReponse) {
     const [, reponseId, suite] = routeReponse
-    const reponse = reponsesCommunaute.find((r) => r.id === reponseId)
+    const reponse = reponsesCommunaute.find((r) => r.id === reponseId && visible(r))
     if (!reponse) return introuvable()
+    if (suite === 'signalement' && methode === 'POST') {
+      return signaler(req, res, 'reponse', reponse, lecteur, (await corps(req))?.motif)
+    }
     if (suite === 'vote') {
       if (reponse.parentId) return send(res, 422, { error: 'On ne vote pas sur un commentaire.' })
       return voter(reponse)
@@ -1258,6 +1394,9 @@ const server = createServer(async (req, res) => {
   if (pathname.startsWith('/api/communaute/')) {
     return communaute(req, res, pathname, searchParams)
   }
+  if (pathname.startsWith('/api/admin/communaute/')) {
+    return moderationAdmin(req, res, pathname)
+  }
 
   // PL-7 (#399): the 3e C salon and its students. null when the request is none of them.
   if ((await salonDe3eC(req, res, pathname)) !== null) return
@@ -1278,7 +1417,9 @@ const server = createServer(async (req, res) => {
     if (pathname === '/api/moi' || pathname.startsWith('/api/progression/')) {
       if (!connecte(req)) return send(res, 401)
       // A student who has not earned anything yet, as ProgressionService returns them.
-      if (pathname === '/api/moi') return send(res, 200, enseignant(req) ? ENSEIGNANT : ELEVE)
+      if (pathname === '/api/moi') {
+        return send(res, 200, enseignant(req) ? ENSEIGNANT : adminBrio(req) ? ADMIN : ELEVE)
+      }
       if (pathname === '/api/progression/moi') return send(res, 200, { xpTotal: 0, niveau: 0 })
       const track = pathname.match(/^\/api\/progression\/parcours\/([^/]+)\/([^/]+)$/)
       if (track) return send(res, 200, await parcours(track[1], track[2]))

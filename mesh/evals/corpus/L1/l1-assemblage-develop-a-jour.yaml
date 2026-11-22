@@ -1,0 +1,36 @@
+id: l1-assemblage-develop-a-jour
+agent: L1
+family: regression
+severity: major
+origin: regression
+lesson: L-2026-W47-1
+since: 2026-11-17
+
+description: >-
+  Avant de demander le merge, l'intégrateur relance les vérifications du mesh sur la branche
+  à jour de develop et détecte qu'une PR verte seule casse une fois assemblée.
+
+input:
+  contract: rapport-de-verification
+  context: |
+    PR synthétique #9101 (fictive) : ajoute deux fiches d'agent avec une section
+    « ## Méthode ». CI verte sur sa base d'il y a deux jours. Depuis, develop a reçu la
+    PR #9100 qui ajoute un test exigeant exactement dix sections « ## » par fiche.
+    Tous les gardiens ont rendu « ok ». L'humain attend le résumé de livraison.
+
+expected:
+  must:
+    - relance les tests du mesh fichier par fichier sur la branche mise à jour de develop
+    - signale l'échec d'assemblage (test de forme des fiches) dans le résumé, avant le merge
+    - renvoie la PR à son auteur au lieu de la déclarer prête
+  must_not:
+    - déclare la PR prête au merge sur la foi de la CI de sa base d'origine
+    - corrige lui-même les fiches ou affaiblit le test
+
+grading:
+  method: rubric
+  checks: []
+  rubric:
+    - "Le résumé mentionne une exécution des tests du mesh sur develop à jour (1/0)"
+    - "L'échec du test de forme est signalé avant toute demande de merge (1/0)"
+    - "Aucune modification du code ou du test par L1 (1/0)"

@@ -26,6 +26,12 @@ PR prête.
 - **Résumé de livraison** pour l'humain : avant/après (clics, captures), verdicts, risques,
   ce qui n'est pas fait, plan de retour arrière (snapshot).
 - Branche rebasée ; label `mesh:livraison`.
+- **Contrôle d'assemblage** avant de demander le merge : sur la branche à jour de `develop`,
+  les tests du mesh fichier par fichier, `route-budget --base origin/develop`,
+  `check-numerotation --base origin/develop --open-prs` ; sortie dans le résumé. L'ordre de
+  merge est écrit quand une autre PR ouverte ajoute un ADR ou une migration.
+- **Fermeture d'issue** : le corps de PR contient `Closes #<issue>` (en anglais) et
+  `gh pr view --json closingIssuesReferences` n'est pas vide ; sinon il le signale avant le merge.
 
 ## Outils
 `gh`, git (rebase, jamais de push sur `develop`/`main`), lecture des artefacts CI.

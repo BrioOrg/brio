@@ -4,11 +4,15 @@
   "personas": {
     "eleve": {
       "entree": "/",
-      "exclut": ["/prof", "/connexion", "/commencer", "/inscription", "/consentement", "/design"]
+      "exclut": ["/prof", "/admin", "/connexion", "/commencer", "/inscription", "/consentement", "/design"]
     },
     "enseignant": {
       "entree": "/prof",
       "autorise": ["/prof", "/cours"]
+    },
+    "admin": {
+      "entree": "/explorer",
+      "autorise": ["/explorer", "/admin"]
     },
     "visiteur": {
       "entree": "/commencer",
@@ -36,7 +40,7 @@
     { "id": "eleve-salon-de-classe", "label": "Écrire dans le salon de ma classe", "persona": "eleve", "chaude": true, "arrivee": "/ma-classe/salon", "budget": 2, "cible": 2 },
     { "id": "eleve-lire-communaute", "label": "Lire les questions de la Communauté", "persona": "eleve", "chaude": false, "arrivee": "/communaute", "budget": 1, "cible": 1 },
     { "id": "eleve-poser-question", "label": "Poser une question à la Communauté", "persona": "eleve", "chaude": false, "arrivee": "/communaute/nouvelle", "budget": 2, "cible": 2 },
-    { "id": "eleve-annales", "label": "S'entraîner sur une annale", "persona": "eleve", "chaude": false, "arrivee": "/annales", "budget": 2, "cible": 2 },
+    { "id": "eleve-annales", "label": "S'entraîner sur une annale", "persona": "eleve", "chaude": false, "arrivee": "/annales", "budget": 1, "cible": 1 },
     { "id": "eleve-profil", "label": "Voir mon profil", "persona": "eleve", "chaude": false, "arrivee": "/profil", "budget": 1, "cible": 1 },
     { "id": "eleve-parametres", "label": "Ouvrir mes paramètres", "persona": "eleve", "chaude": false, "arrivee": "/parametres", "budget": 1, "cible": 1 },
     { "id": "eleve-rejoindre-classe", "label": "Rejoindre une classe avec un code", "persona": "eleve", "chaude": false, "arrivee": "/rejoindre", "budget": 2, "cible": 2 },
@@ -46,6 +50,7 @@
     { "id": "prof-signalements", "label": "Traiter un signalement", "persona": "enseignant", "chaude": false, "arrivee": "/prof/signalements", "budget": 1, "cible": 1 },
     { "id": "prof-signalements-salon", "label": "Modérer le salon de classe", "persona": "enseignant", "chaude": false, "arrivee": "/prof/signalements-salon", "budget": 1, "cible": 1 },
     { "id": "prof-salon-de-classe", "label": "Lire et écrire dans le salon d'une classe", "persona": "enseignant", "chaude": true, "via": ["/prof/classes"], "arrivee": "/prof/classes/[id]", "budget": 2, "cible": 2 },
+    { "id": "admin-moderer-communaute", "label": "Traiter la file de modération de la Communauté", "persona": "admin", "chaude": false, "arrivee": "/admin/communaute", "budget": 1, "cible": 1 },
     { "id": "visiteur-se-connecter", "label": "Se connecter", "persona": "visiteur", "chaude": true, "arrivee": "/connexion", "budget": 1, "cible": 1 },
     { "id": "visiteur-creer-compte-eleve", "label": "Créer un compte élève", "persona": "visiteur", "chaude": true, "arrivee": "/inscription", "budget": 1, "cible": 1 },
     { "id": "visiteur-rejoindre-classe", "label": "Rejoindre une classe avec un code", "persona": "visiteur", "chaude": true, "arrivee": "/rejoindre", "budget": 1, "cible": 1 },
