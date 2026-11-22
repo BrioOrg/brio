@@ -48,6 +48,7 @@ one of them is rejected, however good it looks.
 | Staggered beats | each block of the slide (kicker, title, text, figure, formula, callout, answers) rises 12 px and fades in, one after the other. A beat is one direct child of the slide: an exercise, question and answers together, is one beat | `beat` 240 ms, `stagger` 50 ms | `standard` |
 | Section entry | on a slide that opens a new section (or the chapter), the first beat, the section title, rises the full `slide-shift` (32 px) instead of 12 px. It delays nothing behind it (#247) | `slide-in` 280 ms | `standard` |
 | Step reveal | one more step of a `steps` block rises 12 px and fades in (see below) | `beat` 240 ms | `standard` |
+| Figure transformation | a step reveals the image of a transformation: a copy of the source slides, turns, scales or folds onto it, then the names and construction marks fade in (ADR 0041) | `finale` 900 ms, then `beat` 240 ms | `standard` |
 | Button press | the face drops onto its edge | `press` 90 ms (`fast` in reading mode) | `ease-out` |
 | Option selection | the letter badge scales from 0.7 to 1; the colours switch instantly | `select` 160 ms | `out-quint` |
 | Correct answer · sheet | the result sheet rises from below | `sheet` 290 ms | `ease-in` (slide curve) |

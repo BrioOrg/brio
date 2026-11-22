@@ -29,6 +29,17 @@
  *      the right number (front face then back face), unique, not blank and not shared with a
  *      point; no solid in a repère or next to a number line. An assemblage (amendment #226):
  *      a rectangular plan coté of whole heights ≥ 0, with at least one cube.
+ *    - transformations, vectors, lines and rays (ADR 0041; rules shared with the editor in
+ *      packages/content/src/transformations.ts): named points exist, two points defining a
+ *      direction are distinct, no identity (null vector, angle 0, ratio 1) nor ratio 0, rotation
+ *      angle within ]−360°, 360°[, image names (A′) free, a symmetry axis drawn as a line or
+ *      segment, no construction marks in a repère with unequal scales. Image points count as
+ *      defined points for the other primitives.
+ *
+ *    - functions, readings, parameters (ADR 0038): the rules of
+ *      packages/content/src/function-rules.ts, shared with the teacher editor — axes present,
+ *      expressions that parse (x and the parameters only), a domain inside the x axis, a curve
+ *      that enters the window, readings that can be drawn, sliders whose value is a notch.
  *
  * 3. Chart blocks (ADR 0030): exactly one series; 2 to 12 categories (6 for a pie), labels not
  *    blank and not duplicated; finite values, none negative in a bar, all positive in a pie;
@@ -42,10 +53,19 @@
  *    outcome on leaves only; highlightPath leading to a leaf. Siblings with only some probabilities
  *    given are a warning, printed without failing.
  *
+ * 3 bis. Solid blocks (ADR 0039): positive dimensions; a convex prism or pyramid base of 3 to 12
+ *    vertices; the right number of names, none blank or repeated (sphere points included); the
+ *    sphere fields only on a ball, latitudes and longitudes in range, at most 12 parallels or
+ *    meridians; a section on a plane the kind has, strictly inside the solid. The rules live in
+ *    packages/content/src/solid-rules.ts, shared with the teacher editor.
+ *
  * 4. Scratch programmes (ADR 0031): a code block with language "scratch" must parse with the
  *    renderer's own parser (packages/content/src/scratch.ts), every faulty line reported. The
  *    `code` of a code block is never rich text, so it is not checked for delimiters: `*` is
- *    Scratch's multiplication sign there.
+ *    Scratch's multiplication sign there. An exercise that carries a `program` field
+ *    ({ ref, inputs? }, #232) is evaluated with the renderer's own evaluator
+ *    (packages/content/src/scratch-eval.ts): what the sprite says must match the answer the
+ *    exercise expects, so a wrong computation in the content is a CI error.
  *
  * 4b. Worked calculations (ADR 0042): 2 to 12 lines, none blank; each line splits on its
  *    relation (balanced groups; one relation per equation line; a chain line holds none but a
@@ -72,23 +92,52 @@
  * runs with Node's type stripping: `pnpm check:content` (node --experimental-strip-types). Exits non-zero on any problem.
  */
 import { readdirSync, readFileSync } from 'node:fs'
+import { register } from 'node:module'
 import { join, relative } from 'node:path'
 
 let parseRichText
 let parseScratch
+let evaluateScratch
+let strictScratchNumber
 let RESERVED_DIAPO_IDS
 let checkChart
 let checkTones
 let checkCalcul
 let checkTree
+let checkSolidRules
+let checkFigureGeometry
+let expandTransformations
+let checkFunctionPlot
+// packages/content imports its own modules without an extension, as the bundlers expect; Node's
+// type stripping does not guess one, so add `.ts` to the relative imports it cannot resolve.
+register(
+  'data:text/javascript,' +
+    encodeURIComponent(
+      'export async function resolve(specifier, context, next) {' +
+        '  try { return await next(specifier, context) } catch (e) {' +
+        "    if (specifier.startsWith('.') && !/\\.[cm]?[jt]s$/.test(specifier)) return next(specifier + '.ts', context);" +
+        '    throw e } }',
+    ),
+)
 try {
   ;({ parseRichText } = await import('../packages/content/src/rich-text.ts'))
   ;({ parseScratch } = await import('../packages/content/src/scratch.ts'))
+  ;({
+    evaluateScratch,
+    strictNumber: strictScratchNumber,
+  } = await import(
+    '../packages/content/src/scratch-eval.ts'
+  ))
   ;({ RESERVED_DIAPO_IDS } = await import('../packages/content/src/deck.ts'))
   ;({ checkChart } = await import('../packages/content/src/chart-rules.ts'))
   ;({ checkTones } = await import('../packages/content/src/tone.ts'))
   ;({ checkCalcul } = await import('../packages/content/src/calcul.ts'))
   ;({ checkTree } = await import('../packages/content/src/tree-rules.ts'))
+  ;({ checkSolid: checkSolidRules } = await import('../packages/content/src/solid-rules.ts'))
+  ;({ checkFigureGeometry, expandTransformations } = await import(
+    '../packages/content/src/transformations.ts'
+  ))
+  ;({ checkFunctionPlot } = await import('../packages/content/src/function-rules.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -207,6 +256,8 @@ function walkStrings(node, file, path) {
     for (const [key, value] of Object.entries(node)) {
       // A code block's text is shown as written, never as rich text (ADR 0031).
       if (node.type === 'code' && key === 'code') continue
+      // An exercise's `program` link (#232) holds an id and Scratch inputs, not rich text.
+      if (node.type === 'exercise' && key === 'program') continue
       walkStrings(value, file, path ? `${path}.${key}` : key)
     }
   }
@@ -241,6 +292,19 @@ function checkFigureBlock(block, file, blockPath) {
     }
     seenNames.add(p.name)
     pointMap.set(p.name, { x: p.x, y: p.y })
+  }
+
+  // ADR 0041: images (A′) are points other primitives may name. A faulty transformation is
+  // reported by checkFigureGeometry below; its images are then simply not known.
+  for (const issue of checkFigureGeometry(spec)) {
+    fail(file, `${blockPath}.spec.${issue.path}`, figureGeometryMessage(issue))
+  }
+  try {
+    for (const p of expandTransformations(spec).points) {
+      if (!pointMap.has(p.name)) pointMap.set(p.name, { x: p.x, y: p.y })
+    }
+  } catch {
+    // Already reported.
   }
 
   function requirePt(name, path) {
@@ -363,6 +427,9 @@ function checkFigureBlock(block, file, blockPath) {
 
   if (spec.axes) checkAxes(spec, file, `${blockPath}.spec.axes`)
 
+  // Functions, readings and sliders (ADR 0038): shared rules, French messages.
+  for (const issue of checkFunctionPlot(spec)) fail(file, `${blockPath}.spec.${issue.path}`, issue.message)
+
   const solidNames = new Set()
   for (let i = 0; i < (spec.solids ?? []).length; i++) {
     checkSolid(spec.solids[i], seenNames, solidNames, file, `${blockPath}.spec.solids[${i}]`)
@@ -387,6 +454,37 @@ function checkFigureBlock(block, file, blockPath) {
         }
       }
     }
+  }
+}
+
+function figureGeometryMessage(issue) {
+  switch (issue.code) {
+    case 'UNKNOWN_POINT':
+      return `point "${issue.name}" is not defined in spec.points (nor an image)`
+    case 'SAME_POINTS':
+      return `"${issue.names[0]}" and "${issue.names[1]}" are the same point: they define no direction`
+    case 'EMPTY_SOURCE':
+      return 'a transformation needs at least one source point'
+    case 'DUPLICATE_SOURCE':
+      return `source point "${issue.name}" is listed twice`
+    case 'IDENTITY':
+      return `this ${issue.kind} leaves every point in place: there is no image to draw`
+    case 'ZERO_RATIO':
+      return 'a homothety of ratio 0 sends every point to its centre'
+    case 'ANGLE_RANGE':
+      return `rotation angle ${issue.angle}° must lie strictly between −360° and 360°`
+    case 'IMAGE_NAME_TAKEN':
+      return `image "${issue.name}" would take the name of an existing point`
+    case 'CONSTRUCTION_NOT_IN_SOURCE':
+      return `construction point "${issue.name}" is not in the source`
+    case 'AXIS_NOT_DRAWN':
+      return `the axis (${issue.names.join('')}) is not drawn: add a line or a segment through these points`
+    case 'UNEQUAL_SCALES':
+      return 'construction marks need equal scales on both axes (right angles, equal lengths)'
+    case 'BLANK_LABEL':
+      return 'blank label: remove it or write one'
+    default:
+      return issue.code
   }
 }
 
@@ -658,6 +756,47 @@ function checkTreeBlock(block, file, path) {
   }
 }
 
+// --- Solid blocks (ADR 0039): rules in packages/content/src/solid-rules.ts ---
+
+function solidMessage(issue) {
+  switch (issue.code) {
+    case 'UNKNOWN_KIND':
+      return `unknown solid kind "${issue.kind}"`
+    case 'DIMENSION_NOT_POSITIVE':
+      return `${issue.field} must be > 0`
+    case 'BASE_SIZE':
+      return `a base has 3 to ${issue.max} vertices, found ${issue.count}`
+    case 'BASE_NOT_CONVEX':
+      return 'the base must be a convex polygon with no three consecutive collinear vertices'
+    case 'NAMES_COUNT':
+      return `a ${issue.kind} takes ${issue.expected} names, found ${issue.count}`
+    case 'BLANK_NAME':
+      return 'blank name: omit names to draw none'
+    case 'DUPLICATE_NAME':
+      return `duplicate name "${issue.name}"`
+    case 'SECTION_PLANE':
+      return issue.kind === 'boule'
+        ? 'a ball section is parallel to the equator: remove parallelTo'
+        : `a ${issue.kind} has no section parallel to "${issue.plane}"`
+    case 'SECTION_OUT_OF_RANGE':
+      return `the section must lie strictly inside the solid: ${issue.minIncluded ? '' : 'more than '}${issue.min} ${issue.minIncluded ? '≤' : '<'} at < ${issue.max}, got ${issue.at}`
+    case 'SPHERE_ONLY_FIELD':
+      return `${issue.field} is for a ball only`
+    case 'LATITUDE_OUT_OF_RANGE':
+      return `latitude out of range, got ${issue.value}`
+    case 'LONGITUDE_OUT_OF_RANGE':
+      return `longitude must be between −180 and 180, got ${issue.value}`
+    case 'TOO_MANY_LINES':
+      return `${issue.count} lines; at most ${issue.max}`
+    default:
+      return issue.code
+  }
+}
+
+function checkSolidBlock(block, file, path) {
+  for (const issue of checkSolidRules(block)) fail(file, `${path}.${issue.path}`, solidMessage(issue))
+}
+
 // --- Scratch programmes (ADR 0031) ---
 
 function checkScratchBlock(block, file, path) {
@@ -665,6 +804,172 @@ function checkScratchBlock(block, file, path) {
   if (result.ok) return
   for (const { line, message } of result.errors) {
     fail(file, `${path}.code (line ${line})`, message)
+  }
+}
+
+// --- "Prévoir la valeur" exercises (ADR 0031 amendment, #232) ---
+//
+// An exercise opts in to evaluation with a `program` field: { ref, inputs? }. `ref` is the id
+// of a Scratch `code` block anywhere in the chapter; `inputs` feeds its `demander` blocks.
+// check-content runs the renderer's own evaluator on that programme and compares what the
+// sprite says (the last « dire ») to the answer the exercise expects, so a wrong computation
+// in the content is a CI error. Linking is explicit, not positional: a reference crosses
+// sections ("le programme du début"), survives a block being reordered, and never catches an
+// exercise that merely follows a programme but asks something else (a distance, a shape, a
+// transformation). Motion programmes (avancer/tourner) say nothing, so they are not evaluated
+// this way in v1.
+
+// The numeric answer an exercise expects, with its tolerance — or null when it carries none
+// a programme can be checked against.
+function expectedScratchAnswer(ex) {
+  if (ex.exerciseType === 'numeric' && typeof ex.answer === 'number') {
+    return { value: ex.answer, tolerance: typeof ex.tolerance === 'number' ? ex.tolerance : 0 }
+  }
+  if (ex.exerciseType === 'multiple-choice' && Array.isArray(ex.choices)) {
+    const correct = ex.choices.filter((c) => c && c.correct)
+    if (correct.length === 1) {
+      // Strict: an empty or non-numeric choice is not 0.
+      const n = strictScratchNumber(String(correct[0].text ?? ''))
+      if (n !== null && Number.isFinite(n)) return { value: n, tolerance: 0 }
+    }
+  }
+  return null
+}
+
+// Float noise: 1,1 * 3 is 3.3000000000000003 — the same value for a reader.
+const SCRATCH_EPSILON = 1e-9
+
+// A decimal written with a comma is a number for Brio but not for Scratch, which reads « 2,5 » as
+// text: 0 in a calculation, a text in a comparison. A checked programme, and its inputs, must
+// therefore write decimals with a point, or the CI would validate what Scratch does not do.
+function commaDecimals(node, found = []) {
+  if (Array.isArray(node)) node.forEach((n) => commaDecimals(n, found))
+  else if (node !== null && typeof node === 'object') {
+    if (node.kind === 'number' && typeof node.text === 'string' && node.text.includes(',')) {
+      found.push(node.text)
+    }
+    for (const value of Object.values(node)) commaDecimals(value, found)
+  }
+  return found
+}
+const COMMA_DECIMAL = /^\s*-?\d+,\d+\s*$/
+
+function checkScratchExercises(doc, file) {
+  const programs = new Map()
+  for (const section of doc.sections ?? []) {
+    for (const block of section.blocks ?? []) {
+      if (block.type === 'code' && block.language === 'scratch') programs.set(block.id, block)
+    }
+  }
+  for (const section of doc.sections ?? []) {
+    for (let i = 0; i < (section.blocks ?? []).length; i++) {
+      const block = section.blocks[i]
+      if (block.type !== 'exercise' || block.program === undefined) continue
+      const path = `sections[id=${section.id}].blocks[${i}].program`
+      const link = block.program
+      if (typeof link !== 'object' || link === null || typeof link.ref !== 'string') {
+        fail(file, path, 'program must be an object with a string "ref" (the Scratch block id)')
+        continue
+      }
+      if (
+        link.inputs !== undefined &&
+        (!Array.isArray(link.inputs) ||
+          link.inputs.some((v) => typeof v !== 'string' && typeof v !== 'number'))
+      ) {
+        fail(file, path + '.inputs', 'inputs must be an array of strings or numbers')
+        continue
+      }
+      const program = programs.get(link.ref)
+      if (!program) {
+        fail(file, path + '.ref', `no Scratch programme with id "${link.ref}" in this chapter`)
+        continue
+      }
+      const parsed = parseScratch(program.code)
+      // A parse error on the programme is already reported by checkScratchBlock; don't repeat it.
+      if (!parsed.ok) continue
+      const expected = expectedScratchAnswer(block)
+      if (!expected) {
+        fail(
+          file,
+          path,
+          'an exercise linked to a programme must be numeric, or multiple-choice with a single ' +
+            'numeric correct answer, so the computed value can be compared',
+        )
+        continue
+      }
+      const commas = commaDecimals(parsed.script)
+      const commaInputs = (link.inputs ?? []).filter((v) => typeof v === 'string' && COMMA_DECIMAL.test(v))
+      if (commas.length > 0 || commaInputs.length > 0) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" writes a decimal with a comma (${[...commas, ...commaInputs].join(', ')}): ` +
+            'Scratch reads it as text, so write it with a point (2.5) or use whole numbers',
+        )
+        continue
+      }
+      const result = evaluateScratch(parsed.script, { inputs: link.inputs ?? [] })
+      if (!result.ok) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" cannot be evaluated: ${result.error.message} (line ${result.error.line})`,
+        )
+        continue
+      }
+      if (result.says.length === 0) {
+        fail(
+          file,
+          path + '.ref',
+          `programme "${link.ref}" says nothing (no « dire »), so there is no value to check`,
+        )
+        continue
+      }
+      const said = result.says[result.says.length - 1]
+      const computed = strictScratchNumber(said)
+      if (computed === null || !Number.isFinite(computed)) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" makes the sprite say « ${said} », not a number, so it cannot be ` +
+            'compared with the expected answer',
+        )
+        continue
+      }
+      const inputCount = (link.inputs ?? []).length
+      if (result.inputsUsed < inputCount) {
+        fail(
+          file,
+          path + '.inputs',
+          `programme "${link.ref}" uses ${result.inputsUsed} of the ${inputCount} inputs given ` +
+            '(one per « demander »): wrong programme, or inputs to remove',
+        )
+        continue
+      }
+      if (Math.abs(computed - expected.value) > expected.tolerance + SCRATCH_EPSILON) {
+        fail(
+          file,
+          path,
+          `programme "${link.ref}" makes the sprite say ${computed}, but the exercise expects ${expected.value}` +
+            (expected.tolerance ? ` (± ${expected.tolerance})` : ''),
+        )
+        continue
+      }
+      // A wrong choice of a multiple-choice that equals the computed value would be marked wrong
+      // while the programme says it.
+      if (block.exerciseType === 'multiple-choice') {
+        for (const choice of block.choices.filter((c) => c && !c.correct)) {
+          const n = strictScratchNumber(String(choice.text ?? ''))
+          if (n !== null && Math.abs(n - computed) <= SCRATCH_EPSILON) {
+            fail(
+              file,
+              path,
+              `programme "${link.ref}" says ${computed}, which is also the wrong choice « ${choice.text} »`,
+            )
+          }
+        }
+      }
+    }
   }
 }
 
@@ -677,6 +982,7 @@ function checkFigures(doc, file) {
       else if (block.type === 'chart') checkChartBlock(block, file, path)
       else if (block.type === 'calcul') checkCalculBlock(block, file, path)
       else if (block.type === 'tree') checkTreeBlock(block, file, path)
+      else if (block.type === 'solid') checkSolidBlock(block, file, path)
       else if (block.type === 'code' && block.language === 'scratch') checkScratchBlock(block, file, path)
     }
   }
@@ -732,10 +1038,16 @@ function jsonFilesUnder(dir) {
     .map((e) => join(e.parentPath, e.name))
 }
 
-const contentFiles = [
-  ...jsonFilesUnder(join(repoRoot, 'content')).filter((f) => !f.includes('/referentiel/')),
-  ...jsonFilesUnder(join(repoRoot, 'docs/schema/examples')),
-]
+// `--root <dir>` checks the JSON files under <dir> instead of the catalogue (tests use it with
+// fixture chapters; CI runs without it).
+const rootFlag = process.argv.indexOf('--root')
+const contentFiles =
+  rootFlag !== -1
+    ? jsonFilesUnder(process.argv[rootFlag + 1])
+    : [
+        ...jsonFilesUnder(join(repoRoot, 'content')).filter((f) => !f.includes('/referentiel/')),
+        ...jsonFilesUnder(join(repoRoot, 'docs/schema/examples')),
+      ]
 
 // Chapter files only: _index.json manifests and annale *.meta.json carry no chapter id.
 function isChapterFile(file) {
@@ -751,10 +1063,17 @@ const filesById = new Map()
 
 let fileCount = 0
 for (const file of contentFiles) {
+  let doc
   try {
-    const doc = JSON.parse(readFileSync(file, 'utf8'))
+    doc = JSON.parse(readFileSync(file, 'utf8'))
+  } catch (e) {
+    errors.push(`${relative(repoRoot, file)}: invalid JSON: ${e.message}`)
+    continue
+  }
+  try {
     walkStrings(doc, file, '')
     checkFigures(doc, file)
+    checkScratchExercises(doc, file)
     checkToneBlocks(doc, file)
     checkBlockIds(doc, file)
     if (isChapterFile(file) && typeof doc.id === 'string') {
@@ -762,7 +1081,8 @@ for (const file of contentFiles) {
     }
     fileCount++
   } catch (e) {
-    errors.push(`${relative(repoRoot, file)}: invalid JSON: ${e.message}`)
+    // A check that throws is a bug in this script, not in the content: say so, don't blame JSON.
+    errors.push(`${relative(repoRoot, file)}: internal error while checking: ${e.stack ?? e}`)
   }
 }
 
@@ -791,4 +1111,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + trees + Scratch programmes + maths tones + unique chapter and block ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + trees + solids + Scratch programmes + maths tones + unique chapter and block ids).`)

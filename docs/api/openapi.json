@@ -2633,6 +2633,51 @@
         }
       }
     },
+    "/api/referentiel/lecon" : {
+      "get" : {
+        "tags" : [ "Référentiel de compétences" ],
+        "summary" : "Trouve la leçon qui enseigne une compétence",
+        "description" : "Première section de leçon portant la compétence ; les chapitres du niveau demandé passent d'abord (ADR 0043).",
+        "operationId" : "lecon",
+        "parameters" : [ {
+          "name" : "competence",
+          "in" : "query",
+          "description" : "Code de la compétence ; 400 s'il est absent ou vide",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "niveau",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Leçon à revoir",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LeconCompetence"
+                }
+              }
+            }
+          },
+          "204" : {
+            "description" : "Aucune leçon rattachable à cette compétence"
+          },
+          "400" : {
+            "description" : "Compétence absente ou vide"
+          },
+          "401" : {
+            "description" : "Authentification requise"
+          }
+        }
+      }
+    },
     "/api/progression/serie" : {
       "get" : {
         "tags" : [ "progression-controller" ],
@@ -4128,7 +4173,7 @@
         "properties" : {
           "motDePasse" : {
             "type" : "string",
-            "maxLength" : 128,
+            "maxLength" : 72,
             "minLength" : 8
           },
           "nom" : {
@@ -4205,7 +4250,7 @@
           },
           "motDePasse" : {
             "type" : "string",
-            "maxLength" : 128,
+            "maxLength" : 72,
             "minLength" : 8
           },
           "emailParent" : {
@@ -4326,7 +4371,7 @@
           },
           "motDePasse" : {
             "type" : "string",
-            "maxLength" : 128,
+            "maxLength" : 72,
             "minLength" : 8
           },
           "nomAffiche" : {
@@ -4502,6 +4547,26 @@
             "type" : "string"
           },
           "intitule" : {
+            "type" : "string"
+          }
+        }
+      },
+      "LeconCompetence" : {
+        "type" : "object",
+        "properties" : {
+          "niveauCode" : {
+            "type" : "string"
+          },
+          "matiereCode" : {
+            "type" : "string"
+          },
+          "chapitreId" : {
+            "type" : "string"
+          },
+          "sectionId" : {
+            "type" : "string"
+          },
+          "sectionTitre" : {
             "type" : "string"
           }
         }

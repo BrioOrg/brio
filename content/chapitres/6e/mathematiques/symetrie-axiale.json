@@ -29,13 +29,13 @@
           "type": "callout",
           "variant": "definition",
           "title": "Symétrique d'un point",
-          "text": "Le **symétrique** du point M par rapport à la droite (d) est le point M' tel que (d) est la **médiatrice** du segment [MM']."
+          "text": "Le **symétrique** du point M par rapport à la droite (d) est le point M′ tel que (d) est la **médiatrice** du segment [MM′]."
         },
         {
           "id": "fig-symetrique-point",
           "type": "figure",
-          "alt": "Droite verticale (d). Le point M est à gauche, le point M' à droite, à la même distance de (d). Le segment [MM'] coupe (d) en H à angle droit, et MH = HM'.",
-          "caption": "M' est le symétrique de M par rapport à (d).",
+          "alt": "Droite verticale (d). Le point M est à gauche, le point M′ à droite, à la même distance de (d). Le segment [MM′] coupe (d) en H à angle droit, et MH = HM′.",
+          "caption": "M′ est le symétrique de M par rapport à (d).",
           "spec": {
             "points": [
               {
@@ -71,7 +71,7 @@
                 }
               },
               {
-                "name": "M'",
+                "name": "M′",
                 "x": 3,
                 "y": 2,
                 "label": {
@@ -90,13 +90,13 @@
               },
               {
                 "from": "H",
-                "to": "M'"
+                "to": "M′"
               }
             ],
             "angleMarks": [
               {
                 "vertex": "H",
-                "from": "M'",
+                "from": "M′",
                 "to": "(d)",
                 "right": true
               }
@@ -107,7 +107,7 @@
                 "ticks": 1
               },
               {
-                "segment": "HM'",
+                "segment": "HM′",
                 "ticks": 1
               }
             ]
@@ -118,13 +118,13 @@
           "type": "callout",
           "variant": "tip",
           "title": "Ce qu'il faut vérifier",
-          "text": "M et M' sont symétriques par rapport à (d) quand (MM') est **perpendiculaire** à (d) et que M et M' sont **à la même distance** de (d), de part et d'autre."
+          "text": "M et M′ sont symétriques par rapport à (d) quand (MM′) est **perpendiculaire** à (d) et que M et M′ sont **à la même distance** de (d), de part et d'autre."
         },
         {
           "id": "ex-definition-symetrique",
           "type": "exercise",
           "exerciseType": "multiple-choice",
-          "prompt": "M' est le symétrique de M par rapport à la droite (d). Que peut-on affirmer ?",
+          "prompt": "M′ est le symétrique de M par rapport à la droite (d). Que peut-on affirmer ?",
           "competencies": [
             "c3.geo.symetrie.connaitre-construire"
           ],
@@ -134,32 +134,32 @@
           "choices": [
             {
               "id": "choix-mediatrice",
-              "text": "(d) est la médiatrice du segment [MM'].",
+              "text": "(d) est la médiatrice du segment [MM′].",
               "correct": true
             },
             {
               "id": "choix-meme-cote",
-              "text": "M et M' sont du même côté de (d).",
+              "text": "M et M′ sont du même côté de (d).",
               "correct": false
             },
             {
               "id": "choix-sur-d",
-              "text": "M' est sur la droite (d).",
+              "text": "M′ est sur la droite (d).",
               "correct": false
             },
             {
               "id": "choix-parallele",
-              "text": "(MM') est parallèle à (d).",
+              "text": "(MM′) est parallèle à (d).",
               "correct": false
             }
           ],
-          "explanation": "C'est la définition : (d) est perpendiculaire à [MM'] en son milieu, donc c'est sa médiatrice. M et M' sont de part et d'autre de (d), pas du même côté. M' n'est sur (d) que si M y est déjà. Et (MM') est perpendiculaire à (d), pas parallèle."
+          "explanation": "C'est la définition : (d) est perpendiculaire à [MM′] en son milieu, donc c'est sa médiatrice. M et M′ sont de part et d'autre de (d), pas du même côté. M′ n'est sur (d) que si M y est déjà. Et (MM′) est perpendiculaire à (d), pas parallèle."
         },
         {
           "id": "ex-distance-double",
           "type": "exercise",
           "exerciseType": "numeric",
-          "prompt": "Le point M est à 2,5 cm de la droite (d). M' est son symétrique par rapport à (d). Combien mesure MM' ?",
+          "prompt": "Le point M est à 2,5 cm de la droite (d). M′ est son symétrique par rapport à (d). Combien mesure MM′ ?",
           "competencies": [
             "c3.geo.symetrie.connaitre-construire"
           ],
@@ -168,7 +168,7 @@
           "answer": 5,
           "tolerance": 0,
           "unit": "cm",
-          "explanation": "M' est lui aussi à 2,5 cm de (d), de l'autre côté : MM' = 2,5 + 2,5 = 5 cm."
+          "explanation": "M′ est lui aussi à 2,5 cm de (d), de l'autre côté : MM′ = 2,5 + 2,5 = 5 cm."
         },
         {
           "id": "ex-point-sur-axe",
@@ -262,30 +262,28 @@
         {
           "id": "fig-triangle-symetrique",
           "type": "figure",
-          "alt": "Triangle ABC à gauche d'une droite verticale (d), et son symétrique A'B'C' à droite.",
-          "caption": "A'B'C' est le symétrique de ABC par rapport à (d).",
+          "alt": "Triangle ABC à gauche d'une droite verticale (d), et son symétrique A′B′C′ à droite. Pour chaque sommet, le segment qui le joint à son symétrique est perpendiculaire à (d) et coupé en deux longueurs égales par (d).",
+          "caption": "A′B′C′ est le symétrique de ABC par rapport à (d).",
           "spec": {
             "points": [
               {
-                "name": "(d)",
+                "name": "P",
                 "x": 0,
-                "y": 5,
-                "label": {
-                  "placement": "above"
-                },
-                "dot": false
+                "y": -2,
+                "dot": false,
+                "showName": false
               },
               {
-                "name": "dbas",
+                "name": "Q",
                 "x": 0,
-                "y": -1,
+                "y": 5,
                 "dot": false,
                 "showName": false
               },
               {
                 "name": "A",
                 "x": -5,
-                "y": 0,
+                "y": -1,
                 "label": {
                   "placement": "below-left"
                 }
@@ -305,36 +303,6 @@
                 "label": {
                   "placement": "above"
                 }
-              },
-              {
-                "name": "A'",
-                "x": 5,
-                "y": 0,
-                "label": {
-                  "placement": "below-right"
-                }
-              },
-              {
-                "name": "B'",
-                "x": 2,
-                "y": 1,
-                "label": {
-                  "placement": "below"
-                }
-              },
-              {
-                "name": "C'",
-                "x": 3,
-                "y": 4,
-                "label": {
-                  "placement": "above"
-                }
-              }
-            ],
-            "segments": [
-              {
-                "from": "dbas",
-                "to": "(d)"
               }
             ],
             "polygons": [
@@ -344,13 +312,32 @@
                   "B",
                   "C"
                 ]
-              },
+              }
+            ],
+            "lines": [
               {
-                "vertices": [
-                  "A'",
-                  "B'",
-                  "C'"
-                ]
+                "through": [
+                  "P",
+                  "Q"
+                ],
+                "label": "(d)"
+              }
+            ],
+            "transformations": [
+              {
+                "kind": "symetrie-axiale",
+                "axis": [
+                  "P",
+                  "Q"
+                ],
+                "source": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "show": {
+                  "construction": true
+                }
               }
             ]
           }
@@ -359,7 +346,7 @@
           "id": "ex-perimetre-conserve",
           "type": "exercise",
           "exerciseType": "numeric",
-          "prompt": "Le triangle ABC a un périmètre de 12 cm. Quel est le périmètre de son symétrique A'B'C' par rapport à une droite ?",
+          "prompt": "Le triangle ABC a un périmètre de 12 cm. Quel est le périmètre de son symétrique A′B′C′ par rapport à une droite ?",
           "competencies": [
             "c3.geo.symetrie.connaitre-construire"
           ],
@@ -421,7 +408,7 @@
               "text": "On reporte au compas la longueur MH de l'autre côté de (d), sur cette perpendiculaire."
             },
             {
-              "text": "On obtient M'. Pour un polygone, on construit le symétrique de chaque sommet, puis on les relie."
+              "text": "On obtient M′. Pour un polygone, on construit le symétrique de chaque sommet, puis on les relie."
             }
           ]
         },
@@ -429,13 +416,13 @@
           "id": "ex-construire-symetrique",
           "type": "exercise",
           "exerciseType": "paper",
-          "prompt": "Sur ton cahier, trace une droite (d) et un triangle EFG d'un seul côté de (d). Construis son symétrique E'F'G'.",
+          "prompt": "Sur ton cahier, trace une droite (d) et un triangle EFG d'un seul côté de (d). Construis son symétrique E′F′G′.",
           "competencies": [
             "c3.geo.symetrie.connaitre-construire"
           ],
           "difficulty": "standard",
           "estimatedDurationMinutes": 6,
-          "solution": "Construis le symétrique de chaque sommet (perpendiculaire à (d), puis report de la distance), puis relie E', F' et G'. Contrôle : EF = E'F', FG = F'G', EG = E'G', et le pliage le long de (d) superpose les deux triangles."
+          "solution": "Construis le symétrique de chaque sommet (perpendiculaire à (d), puis report de la distance), puis relie E′, F′ et G′. Contrôle : EF = E′F′, FG = F′G′, EG = E′G′, et le pliage le long de (d) superpose les deux triangles."
         }
       ]
     },
@@ -484,7 +471,7 @@
           "id": "ex-final-alignes",
           "type": "exercise",
           "exerciseType": "multiple-choice",
-          "prompt": "Les points R, S et T sont alignés. Que peut-on dire de leurs symétriques R', S' et T' par rapport à une droite ?",
+          "prompt": "Les points R, S et T sont alignés. Que peut-on dire de leurs symétriques R′, S′ et T′ par rapport à une droite ?",
           "competencies": [
             "c3.geo.symetrie.connaitre-construire"
           ],
@@ -513,7 +500,7 @@
               "correct": false
             }
           ],
-          "explanation": "La symétrie conserve l'alignement : R', S' et T' sont alignés. Ils ne sont sur l'axe que si R, S et T y étaient déjà."
+          "explanation": "La symétrie conserve l'alignement : R′, S′ et T′ sont alignés. Ils ne sont sur l'axe que si R, S et T y étaient déjà."
         },
         {
           "id": "ex-final-aire",
@@ -534,7 +521,7 @@
           "id": "ex-final-distance-axe",
           "type": "exercise",
           "exerciseType": "numeric",
-          "prompt": "M et M' sont symétriques par rapport à (d), et MM' = 7 cm. À quelle distance de (d) se trouve M ?",
+          "prompt": "M et M′ sont symétriques par rapport à (d), et MM′ = 7 cm. À quelle distance de (d) se trouve M ?",
           "competencies": [
             "c3.geo.symetrie.connaitre-construire"
           ],
@@ -543,7 +530,7 @@
           "answer": 3.5,
           "tolerance": 0,
           "unit": "cm",
-          "explanation": "(d) est la médiatrice de [MM'] : elle passe par le milieu de [MM']. M est donc à 7 ÷ 2 = 3,5 cm de (d)."
+          "explanation": "(d) est la médiatrice de [MM′] : elle passe par le milieu de [MM′]. M est donc à 7 ÷ 2 = 3,5 cm de (d)."
         },
         {
           "id": "ex-final-pas-symetriques",

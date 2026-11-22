@@ -42,9 +42,14 @@ describe('FigureRenderer — tones', () => {
     const container = draw()
     expect(container.querySelector('polyline')?.getAttribute('class')).toBe('stroke-tone-1')
     const texts = Array.from(container.querySelectorAll('text'))
-    expect(texts.find((t) => t.textContent === 'a')?.getAttribute('class')).toBe('fill-tone-1')
-    expect(texts.find((t) => t.textContent === 'C')?.getAttribute('class')).toBe('fill-tone-2')
-    expect(texts.find((t) => t.textContent === 'A')?.getAttribute('class')).toBeNull()
+    // Labels also carry the halo that knocks strokes out behind them (ADR 0038).
+    const tones = (text: string) =>
+      Array.from(texts.find((t) => t.textContent === text)?.classList ?? []).filter((c) =>
+        c.startsWith('fill-tone')
+      )
+    expect(tones('a')).toEqual(['fill-tone-1'])
+    expect(tones('C')).toEqual(['fill-tone-2'])
+    expect(tones('A')).toEqual([])
   })
 
   it('writes no colour value into the drawing', () => {

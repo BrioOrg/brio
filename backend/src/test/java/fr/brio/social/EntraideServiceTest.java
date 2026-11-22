@@ -120,6 +120,28 @@ class EntraideServiceTest {
         verify(evenements, never()).publishEvent(any());
     }
 
+    @Test
+    void an_answer_anonymised_by_the_retention_purge_cannot_be_marked_useful() {
+        UUID filId = UUID.randomUUID();
+        UUID auteurFil = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+
+        Fil fil = mock(Fil.class);
+        when(fil.getAuteurId()).thenReturn(auteurFil);
+        when(fils.findById(filId)).thenReturn(java.util.Optional.of(fil));
+
+        Message anonymise = mock(Message.class);
+        when(anonymise.getFilId()).thenReturn(filId);
+        when(anonymise.getAuteurId()).thenReturn(PurgeRetention.COMPTE_ANONYME);
+        when(messages.findById(messageId)).thenReturn(java.util.Optional.of(anonymise));
+
+        // Crediting it would hand 15 XP to the nil account (ADR 0023 §6).
+        assertThatThrownBy(() -> service.marquerUtile(filId, messageId, auteurFil))
+                .isInstanceOf(MessageInvalideException.class);
+        verify(anonymise, never()).marquerUtile(any(), any());
+        verify(evenements, never()).publishEvent(any());
+    }
+
     // ---- garde anti-triche -------------------------------------------------
 
     @Test
