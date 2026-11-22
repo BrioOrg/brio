@@ -6,6 +6,7 @@ import {
   entrainementParCompetence,
   examenActif,
   listerAnnales,
+  listerCompetencesAnnales,
   rendreExamen,
 } from '@brio/api-client'
 
@@ -20,23 +21,24 @@ describe('listerAnnales', () => {
   it('renvoie la liste validée', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify([
-            {
-              id: 'dnb-2025-metropole-juin',
-              titre: 'Brevet — Métropole',
-              examen: 'brevet',
-              session: 'juin',
-              annee: 2025,
-              centre: 'Métropole',
-              niveau: '3e',
-              matiere: 'mathematiques',
-              dureeMinutes: 120,
-            },
-          ]),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
-        )
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify([
+              {
+                id: 'dnb-2025-metropole-juin',
+                titre: 'Brevet — Métropole',
+                examen: 'brevet',
+                session: 'juin',
+                annee: 2025,
+                centre: 'Métropole',
+                niveau: '3e',
+                matiere: 'mathematiques',
+                dureeMinutes: 120,
+              },
+            ]),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          )
       )
     )
     const res = await listerAnnales(BASE)
@@ -45,8 +47,45 @@ describe('listerAnnales', () => {
   })
 
   it('mappe une erreur serveur en CoursApiError', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('', { status: 500 }))
+    )
     await expect(listerAnnales(BASE)).rejects.toBeInstanceOf(CoursApiError)
+  })
+})
+
+describe('listerCompetencesAnnales', () => {
+  it('lit la route élève des annales, jamais le référentiel prof (#406)', async () => {
+    let calledUrl = ''
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        calledUrl = url
+        return new Response(
+          JSON.stringify([
+            {
+              code: 'c4.geo.pythagore.calculer',
+              intitule: 'Calculer une longueur avec le théorème de Pythagore',
+              domaine: 'geometrie',
+              niveaux: ['4e', '3e'],
+            },
+          ]),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      })
+    )
+    const res = await listerCompetencesAnnales(BASE)
+    expect(calledUrl).toBe(`${BASE}/api/annales/competences`)
+    expect(res).toEqual([expect.objectContaining({ code: 'c4.geo.pythagore.calculer' })])
+  })
+
+  it('mappe une erreur serveur en CoursApiError', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('', { status: 403 }))
+    )
+    await expect(listerCompetencesAnnales(BASE)).rejects.toBeInstanceOf(CoursApiError)
   })
 })
 
@@ -91,17 +130,18 @@ describe('examenActif', () => {
   it('renvoie l’examen en cours', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            enExamen: true,
-            sessionId: 's1',
-            annaleId: 'a1',
-            titre: 'Brevet — Métropole',
-            endsAt: '2026-01-01T10:00:00Z',
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } }
-        )
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              enExamen: true,
+              sessionId: 's1',
+              annaleId: 'a1',
+              titre: 'Brevet — Métropole',
+              endsAt: '2026-01-01T10:00:00Z',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          )
       )
     )
     const res = await examenActif(BASE)
@@ -110,7 +150,10 @@ describe('examenActif', () => {
   })
 
   it('ne verrouille pas si l’appel échoue (401 → enExamen false)', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 401 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 401 }))
+    )
     const res = await examenActif(BASE)
     expect(res.enExamen).toBe(false)
   })
@@ -125,10 +168,10 @@ describe('demarrerExamen', () => {
         document.cookie = 'XSRF-TOKEN=tok-1'
         return new Response(null, { status: 401 })
       }
-      return new Response(
-        JSON.stringify({ sessionId: 'sess-7', endsAt: '2026-01-01T10:00:00Z' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ sessionId: 'sess-7', endsAt: '2026-01-01T10:00:00Z' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
     })
     vi.stubGlobal('fetch', fetchMock)
 

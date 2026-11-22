@@ -29,6 +29,18 @@ public interface ExerciceRepository extends JpaRepository<Exercice, UUID> {
     List<Exercice> findAnnaleExercicesByCompetence(@Param("code") String code);
 
     /**
+     * Codes carried by at least one non-retired annale exercise: exactly the competencies for
+     * which {@link #findAnnaleExercicesByCompetence} returns something (#406).
+     */
+    @Query(value = """
+            SELECT DISTINCT c.code FROM contenu.exercices e
+            JOIN contenu.annales a ON a.chapitre_id = e.chapitre_id
+            CROSS JOIN LATERAL unnest(e.competencies) AS c(code)
+            WHERE e.retired_at IS NULL
+            """, nativeQuery = true)
+    List<String> findAnnaleCompetenceCodes();
+
+    /**
      * Published catalogue chapters (annales excluded) holding a non-retired exercise that carries
      * the competency, in catalogue order (niveau, matière, chapter order). Teacher courses are
      * excluded by the join on {@code chapitre_id}. Feeds the competency-to-lesson lookup (ADR 0043).

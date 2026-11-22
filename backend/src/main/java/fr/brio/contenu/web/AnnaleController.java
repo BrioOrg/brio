@@ -6,6 +6,8 @@ import fr.brio.contenu.ExamenActif;
 import fr.brio.contenu.ExamenDemarre;
 import fr.brio.contenu.ExamenService;
 import fr.brio.contenu.ExerciceEntrainementDto;
+import fr.brio.contenu.ReferentielService;
+import fr.brio.contenu.api.CompetenceDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,10 +30,15 @@ class AnnaleController {
 
   private final ContenuService contenuService;
   private final ExamenService examenService;
+  private final ReferentielService referentielService;
 
-  AnnaleController(ContenuService contenuService, ExamenService examenService) {
+  AnnaleController(
+      ContenuService contenuService,
+      ExamenService examenService,
+      ReferentielService referentielService) {
     this.contenuService = contenuService;
     this.examenService = examenService;
+    this.referentielService = referentielService;
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -46,6 +53,17 @@ class AnnaleController {
       @RequestParam(required = false) String matiere,
       @RequestParam(required = false) Integer annee) {
     return ResponseEntity.ok(contenuService.listerAnnales(niveau, matiere, annee));
+  }
+
+  @GetMapping(value = "/competences", produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(
+      summary = "Compétences travaillées par les annales",
+      description =
+          "Les compétences portées par au moins un exercice d'annale, triées par code : "
+              + "exactement celles pour lesquelles l'entraînement renvoie des exercices.")
+  @ApiResponse(responseCode = "200", description = "Compétences retournées")
+  List<CompetenceDto> competencesDesAnnales() {
+    return referentielService.competencesDesAnnales();
   }
 
   @GetMapping(value = "/entrainement", produces = MediaType.APPLICATION_JSON_VALUE)
