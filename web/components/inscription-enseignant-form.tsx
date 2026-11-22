@@ -2,14 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  MESSAGE_MOT_DE_PASSE_TROP_LONG_VOUS,
+  MOT_DE_PASSE_MAX_OCTETS,
+  MOT_DE_PASSE_MIN,
+  octetsUtf8,
+} from '@brio/api-client'
 import type { EtablissementPublic } from '@brio/api-client'
 import { inscrireEnseignant, InscrireEnseignantError } from '@/lib/enrollment'
 import { Button } from '@/components/ui/button'
 import { SelectInput } from '@/components/ui/select-input'
 import { TextInput } from '@/components/ui/text-input'
 import { Icon } from '@/components/ui/icon'
-
-const MOT_DE_PASSE_MIN = 8
 
 function messageForStatus(status: number): string {
   switch (status) {
@@ -18,7 +22,7 @@ function messageForStatus(status: number): string {
     case 422:
       return "Cet établissement n'est plus proposé. Rechargez la page et choisissez-en un autre."
     case 400:
-      return `Vérifiez vos informations : l'e-mail doit être valide et le mot de passe faire au moins ${MOT_DE_PASSE_MIN} caractères.`
+      return `Vérifiez vos informations : l'e-mail doit être valide et le mot de passe faire au moins ${MOT_DE_PASSE_MIN} caractères, sans être trop long (les lettres accentuées et les emojis comptent pour plusieurs caractères).`
     default:
       return 'La demande a échoué. Réessayez dans un instant.'
   }
@@ -63,10 +67,19 @@ export function InscriptionEnseignantForm({
       setError(`Votre mot de passe doit faire au moins ${MOT_DE_PASSE_MIN} caractères.`)
       return
     }
+    if (octetsUtf8(motDePasse) > MOT_DE_PASSE_MAX_OCTETS) {
+      setError(MESSAGE_MOT_DE_PASSE_TROP_LONG_VOUS)
+      return
+    }
 
     setSubmitting(true)
     try {
-      await inscrireEnseignant({ nom: nom.trim(), email: email.trim(), motDePasse, etablissementId })
+      await inscrireEnseignant({
+        nom: nom.trim(),
+        email: email.trim(),
+        motDePasse,
+        etablissementId,
+      })
       router.push('/connexion?from=/prof&inscrit=1')
     } catch (err) {
       setError(

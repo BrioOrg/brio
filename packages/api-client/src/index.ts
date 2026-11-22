@@ -9,6 +9,7 @@ export {
   MOT_DE_PASSE_MIN,
   MOT_DE_PASSE_MAX_OCTETS,
   MESSAGE_MOT_DE_PASSE_TROP_LONG,
+  MESSAGE_MOT_DE_PASSE_TROP_LONG_VOUS,
   octetsUtf8,
   LoginError,
   LogoutError,
