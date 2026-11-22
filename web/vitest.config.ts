@@ -4,6 +4,9 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  // Explicit, so the suite runs the same whatever the working directory: Stryker starts it from
+  // the repo root (mesh/mutation/stryker.web.config.mjs, #372).
+  root: __dirname,
   test: {
     environment: 'jsdom',
     globals: true,
