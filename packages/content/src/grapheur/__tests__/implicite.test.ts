@@ -21,6 +21,9 @@ function view(fenetre: Fenetre, width: number, height: number) {
 }
 
 const square = view({ xMin: -5, xMax: 5, yMin: -5, yMax: 5 }, 400, 400)
+// 25 px coarse cells halved 5 times: the lattice step is 1/128, so every integer is on it and
+// F = 0 falls exactly on lattice points, the case where a zero is a corner of the cells.
+const wide = view({ xMin: -8, xMax: 8, yMin: -6, yMax: 6 }, 800, 600)
 
 function trace(F: Fn, v = square, budget?: number): TraceImplicite {
   return traceImplicite(F, v.fenetre, v.toSvg, budget === undefined ? undefined : { budget })
@@ -133,8 +136,11 @@ describe('traceImplicite', () => {
 
   it('should draw nothing for 1/(x − 1) = 0, not even the asymptote', () => {
     expect(trace((x) => 1 / (x - 1))).toEqual({ chemins: [], points: [] })
-    // Nor a jump with no zero in it: floor(x) − 0,5 goes from −0,5 to 0,5 at x = 1.
-    expect(trace((x) => Math.floor(x) - 0.5)).toEqual({ chemins: [], points: [] })
+    // Nor a jump with no zero in it: floor(x) − 0,5 goes from −0,5 to 0,5 at x = 1, and its
+    // steps beside a jump look like the bottom of a valley.
+    for (const v of [square, wide]) {
+      expect(trace((x) => Math.floor(x) - 0.5, v)).toEqual({ chemins: [], points: [] })
+    }
   })
 
   it('should not draw the asymptotes of tan x = 0, only its zeros', () => {
@@ -177,22 +183,33 @@ describe('traceImplicite', () => {
       [(x) => Math.abs(x - 1), 1],
       [(x) => Math.abs(x - 1.0123), 1.0123],
     ]
-    for (const [F, root] of cases) {
-      const t = trace(F)
-      expect(t.points).toEqual([])
-      expect(t.chemins).toHaveLength(1)
-      const pts = t.chemins[0]
-      for (const p of pts) expect(Math.abs(square.toWorld(p).x - root) * square.sx).toBeLessThan(1)
-      const ys = pts.map((p) => p.y)
-      expect(Math.min(...ys)).toBeLessThan(1)
-      expect(Math.max(...ys)).toBeGreaterThan(399)
+    for (const v of [square, wide]) {
+      for (const [F, root] of cases) {
+        const t = trace(F, v)
+        expect(t.points).toEqual([])
+        expect(t.chemins).toHaveLength(1)
+        const pts = t.chemins[0]
+        for (const p of pts) expect(Math.abs(v.toWorld(p).x - root) * v.sx).toBeLessThan(1)
+        const ys = pts.map((p) => p.y)
+        expect(Math.min(...ys)).toBeLessThan(1)
+        expect(Math.max(...ys)).toBeGreaterThan((v.fenetre.yMax - v.fenetre.yMin) * v.sy - 1)
+      }
     }
   })
 
   it('should draw a row of zeros once, not once per cell on each side (x(y − 1)²)', () => {
-    const t = trace((x, y) => x * (y - 1) ** 2)
-    for (const line of t.chemins) expect(closed(line)).toBe(false)
-    // x = 0 and y = 1: three pieces meeting at (0, 1), none drawn twice.
+    // y = 1 is a lattice row: for x < 0 it is the edge of the cells above and of those below.
+    const t = trace((x, y) => x * (y - 1) ** 2, wide)
+    const seen = new Set<string>()
+    for (const line of t.chemins) {
+      for (let i = 1; i < line.length; i++) {
+        const [a, b] = [line[i - 1], line[i]].map((p) => `${p.x.toFixed(6)},${p.y.toFixed(6)}`)
+        const key = a < b ? `${a} ${b}` : `${b} ${a}`
+        expect(seen.has(key)).toBe(false)
+        seen.add(key)
+      }
+    }
+    // x = 0 and y = 1: three pieces meeting at (0, 1).
     expect(t.chemins.length).toBeLessThanOrEqual(4)
   })
 
@@ -241,6 +258,40 @@ describe('traceImplicite', () => {
     }
   })
 
+  it('should start a curve where F becomes defined, not a coarse cell later', () => {
+    // x − y, undefined for x < 0: the half-line from the origin. x = 0 is off the lattice here.
+    const v = view({ xMin: -5.1, xMax: 4.9, yMin: -5, yMax: 5 }, 400, 400)
+    const t = trace((x, y) => Math.sqrt(x) ** 2 - y, v)
+    expect(t.chemins).toHaveLength(1)
+    expect(distanceToTrace(v.toSvg(0, 0), t.chemins)).toBeLessThan(2)
+  })
+
+  it('should find a curve inside an island where F is defined, narrower than a cell', () => {
+    // F < 0 at the centre of a disc of radius 0,2 (8 px), undefined outside it, zero at radius
+    // 0,15. The coarse cell around it sees only undefined corners and a negative centre.
+    const o = -0.15625 // the centre of a coarse cell of `square`
+    const F: Fn = (x, y) => Math.sqrt(0.0175) - Math.sqrt(0.04 - (x - o) ** 2 - (y - o) ** 2)
+    const t = trace(F)
+    expect(t.chemins).toHaveLength(1)
+    expect(closed(t.chemins[0])).toBe(true)
+    for (const p of t.chemins[0]) {
+      const { x, y } = square.toWorld(p)
+      expect(Math.abs(Math.hypot(x - o, y - o) - 0.15) * square.sx).toBeLessThan(1)
+    }
+  })
+
+  it('should keep the branches of a saddle apart, as the centre of its cell says', () => {
+    // (x − c)(y − c) = 10⁻⁵ with c the centre of a finest cell: its corners alternate in sign and
+    // the branches pass 0,4 px apart. Joined the wrong way, a branch would cross quadrants.
+    const c = 1 / 128
+    const t = trace((x, y) => (x - c) * (y - c) - 1e-5, wide)
+    expect(t.chemins).toHaveLength(2)
+    for (const line of t.chemins) {
+      const sides = new Set(line.map((p) => Math.sign(wide.toWorld(p).x - c)))
+      expect(sides.size).toBe(1)
+    }
+  })
+
   it('should draw the ellipse x²/9 + y²/4 = 1 closed and within 1 px', () => {
     const F: Fn = (x, y) => (x * x) / 9 + (y * y) / 4 - 1
     const t = trace(F)
@@ -284,15 +335,16 @@ describe('traceImplicite', () => {
     const t = trace(F, v)
     // The hard guarantee: never more evaluations than the budget, whatever F does.
     expect(calls).toBeLessThanOrEqual(200000)
-    // And a bounded time. Best of three after that first run (the JIT warm-up), so a CI worker
-    // shared with the rest of the suite measures the code rather than its neighbours.
+    // And a bounded time: no freeze. Best of three after that first run (the JIT warm-up), so a
+    // CI worker shared with the rest of the suite measures the code rather than its neighbours.
+    // Measured 120–135 ms on a laptop; the bound leaves room for a slow, loaded runner.
     const times: number[] = []
     for (let i = 0; i < 3; i++) {
       const start = performance.now()
       trace(F, v)
       times.push(performance.now() - start)
     }
-    expect(Math.min(...times)).toBeLessThan(300)
+    expect(Math.min(...times)).toBeLessThan(500)
     expect(t.chemins.length).toBeGreaterThan(0)
     expectValid(t, 800, 800)
   })
