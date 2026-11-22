@@ -1,5 +1,5 @@
 <!-- mesh:contrat=decision-conseil v1 -->
-# 0046 — Les annales dans la navigation principale, barre du bas élève plafonnée à 6 emplacements
+# 0047 — Les annales dans la navigation principale, barre du bas élève plafonnée à 6 emplacements
 
 - **Status**: Proposed
 - **Date**: 2026-11-18
@@ -10,7 +10,7 @@
 
 > **Numérotation.** Numéro réservé par la fiche besoin #395 et vérifié libre le 2026-11-18 après
 > `git fetch origin` : `develop` porte 0036, 0037, 0040, 0042 et 0045 ; les PR ouvertes réclament
-> 0038 (#394), 0039 (#390), 0041 (#393), 0043 (#376) et 0044 (#357) ; aucune branche ne porte 0046.
+> 0038 (#394), 0039 (#390), 0041 (#393), 0043 (#376) et 0044 (#357) ; aucune branche ne porte 0046. Renuméroté **0047** le 2026-11-22 : #412 a mergé son ADR 0046 avant cette PR.
 >
 > **Statut.** L'humaine a tranché les trois questions de fond en porte 1. L'ADR passe en `Accepted`
 > au merge de la PR de PL-5, une fois l'avis de V6 consigné ci-dessous.

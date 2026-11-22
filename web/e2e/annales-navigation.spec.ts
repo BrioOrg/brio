@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 
-// The annales in the main navigation (#395, PL-5, ADR 0046): one click on desktop, one tap on
+// The annales in the main navigation (#395, PL-5, ADR 0047): one click on desktop, one tap on
 // mobile, from every screen of the student shell. Both navigations are in the page, one hidden
 // by width, so a role query only finds the one shown.
 // The fake backend does not serve /api/annales: the page shows its error, its title stays.

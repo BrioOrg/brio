@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { Diapo } from '@brio/content'
 import {
+  etatAuMontage,
   etatDiapo,
   indexDiapo,
   libelleDiapo,
+  modeDuCookie,
   modeInitial,
   sectionTerminee,
   urlAvecDiapo,
@@ -30,6 +32,85 @@ describe('modeInitial', () => {
   it('should open the interactive mode on a first visit or an unknown cookie value', () => {
     expect(modeInitial(undefined, undefined)).toBe('interactif')
     expect(modeInitial(undefined, 'n-importe-quoi')).toBe('interactif')
+  })
+})
+
+describe('modeDuCookie', () => {
+  it('should read the mode cookie among the others', () => {
+    expect(modeDuCookie('a=1; brio_mode_chapitre=lecture; b=2')).toBe('lecture')
+    expect(modeDuCookie('brio_mode_chapitre=interactif')).toBe('interactif')
+  })
+
+  it('should give nothing when the cookie is absent', () => {
+    expect(modeDuCookie('')).toBeUndefined()
+    expect(modeDuCookie('a=1; autre_brio_mode_chapitre=lecture')).toBeUndefined()
+  })
+
+  it('should read it as the server does: the last one wins, decoded, an empty one kept', () => {
+    expect(modeDuCookie('brio_mode_chapitre=interactif; brio_mode_chapitre=lecture')).toBe(
+      'lecture'
+    )
+    expect(modeDuCookie('brio_mode_chapitre=lect%75re')).toBe('lecture')
+    expect(modeDuCookie('brio_mode_chapitre=lecture; brio_mode_chapitre=%E0')).toBe('lecture')
+    expect(modeDuCookie('brio_mode_chapitre=')).toBe('')
+  })
+})
+
+describe('etatAuMontage (ADR 0046 §4)', () => {
+  const props = { mode: 'interactif', index: 0 } as const
+
+  it('should follow ?diapo when it names another slide than the props', () => {
+    expect(etatAuMontage(DECK, props, '?diapo=ex2', undefined)).toEqual({
+      mode: 'interactif',
+      index: 3,
+    })
+  })
+
+  it('should open the interactive mode from ?diapo, whatever the props and the cookie say', () => {
+    expect(etatAuMontage(DECK, { mode: 'lecture', index: 0 }, '?diapo=ex1', 'lecture')).toEqual({
+      mode: 'interactif',
+      index: 2,
+    })
+  })
+
+  it('should resolve a block or a section named by ?diapo', () => {
+    expect(etatAuMontage(DECK, props, '?diapo=figure', undefined)).toEqual({
+      mode: 'interactif',
+      index: 1,
+    })
+    expect(etatAuMontage(DECK, props, '?a=1&diapo=exercices', undefined)).toEqual({
+      mode: 'interactif',
+      index: 3,
+    })
+  })
+
+  it('should follow the cookie without ?diapo, keeping the index of the props', () => {
+    expect(etatAuMontage(DECK, { mode: 'interactif', index: 2 }, '', 'lecture')).toEqual({
+      mode: 'lecture',
+      index: 2,
+    })
+    expect(etatAuMontage(DECK, { mode: 'lecture', index: 0 }, '?a=1', 'interactif')).toEqual({
+      mode: 'interactif',
+      index: 0,
+    })
+  })
+
+  it('should take a repeated ?diapo for no ?diapo, as the server does', () => {
+    const lecture = { mode: 'lecture', index: 0 } as const
+    expect(etatAuMontage(DECK, lecture, '?diapo=a&diapo=b', 'lecture')).toBe(lecture)
+    expect(etatAuMontage(DECK, props, '?diapo=ex1&diapo=ex2', undefined)).toBe(props)
+  })
+
+  it('should keep the props when the address and the cookie are silent', () => {
+    const lecture = { mode: 'lecture', index: 0 } as const
+    expect(etatAuMontage(DECK, lecture, '', undefined)).toBe(lecture)
+    expect(etatAuMontage(DECK, props, '', undefined)).toBe(props)
+  })
+
+  it('should give the props back unchanged when the address says the same', () => {
+    const exercice = { mode: 'interactif', index: 2 } as const
+    expect(etatAuMontage(DECK, exercice, '?diapo=ex1', 'interactif')).toBe(exercice)
+    expect(etatAuMontage(DECK, { ...exercice }, '?diapo=ex1', undefined)).toEqual(exercice)
   })
 })
 

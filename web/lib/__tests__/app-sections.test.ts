@@ -114,7 +114,7 @@ describe('navigationEleve', () => {
     }
   )
 
-  // Plafond de la barre du bas élève (ADR 0046) : 6 emplacements au plus, liens et onglets
+  // Plafond de la barre du bas élève (ADR 0047) : 6 emplacements au plus, liens et onglets
   // désactivés confondus. Une section de plus demande un nouvel ADR.
   it.each([true, false])('never goes beyond six bottom-bar spaces (setting on: %s)', (active) => {
     const { sections, upcoming } = navigationEleve(active)

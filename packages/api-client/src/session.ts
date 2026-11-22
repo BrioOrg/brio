@@ -139,7 +139,7 @@ export class ChangerMotDePasseError extends Error {
 }
 
 /**
- * Length bounds of a password chosen by the student (ChangerMotDePasseRequest): at least 8
+ * Length bounds of a typed password (signups and ChangerMotDePasseRequest): at least 8
  * characters, at most 72 BYTES of UTF-8 — what bcrypt can hash. An accented letter takes two
  * bytes, an emoji four: count with {@link octetsUtf8}, not `length`.
  */
@@ -154,6 +154,10 @@ export function octetsUtf8(texte: string): number {
 /** The message of a password longer than the server accepts. */
 export const MESSAGE_MOT_DE_PASSE_TROP_LONG =
   'Ton mot de passe est trop long. Raccourcis-le : les lettres accentuées et les emojis comptent pour plusieurs caractères.'
+
+/** The same message, in the formal French a teacher reads. */
+export const MESSAGE_MOT_DE_PASSE_TROP_LONG_VOUS =
+  'Votre mot de passe est trop long. Raccourcissez-le : les lettres accentuées et les emojis comptent pour plusieurs caractères.'
 
 /**
  * The student's own password, chosen right after logging in with the provisional password a

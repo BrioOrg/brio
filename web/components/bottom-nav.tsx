@@ -24,7 +24,7 @@ type BottomNavProps = {
  * navigationEleve() (with its setting off, the Communauté is rendered disabled rather than linking
  * nowhere), the teacher space PROF_SECTIONS.
  *
- * Every entry is a 44 × 44 px touch target; the student bar holds at most 6 of them (ADR 0046).
+ * Every entry is a 44 × 44 px touch target; the student bar holds at most 6 of them (ADR 0047).
  */
 export function BottomNav({
   sections,
