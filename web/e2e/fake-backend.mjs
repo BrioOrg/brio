@@ -69,12 +69,16 @@
  *                                                 serves it: the teacher reads hidden messages too
  *                                                 (statut "masque"), the students only published ones;
  *                                                 POST …/messages authored by the session's account,
- *                                                 422 on a link, 400 on a blank body; signalement
- *                                                 recorded, idempotent per reporter;
- *                                                 GET /api/prof/salons/signalements (403 for a student);
+ *                                                 422 on a link or a phone number, 400 on a blank
+ *                                                 body; signalement recorded, idempotent per
+ *                                                 reporter, ignored on a hidden message (#402);
+ *                                                 GET /api/prof/salons/signalements (403 for a
+ *                                                 student), never the teacher's own messages nor
+ *                                                 hidden ones (#410, #402);
  *                                                 POST /api/prof/salons/messages/{id}/masquer 204,
  *                                                 closing its open reports (400 non-UUID id, 404
- *                                                 unknown, 403 for a student or a 5e B message).
+ *                                                 unknown, 403 for a student, a 5e B message or
+ *                                                 the teacher's own message, #410).
  *                                                 POST /api/prof/salons 201 { id } (403 for a class
  *                                                 not taught, 400/422 on the title), the salon kept
  *                                                 per teacher session (`e2e-enseignant-<uuid>`).
@@ -522,6 +526,8 @@ function salon3eCVue() {
 }
 
 const LIEN_EXTERNE = /(https?:\/\/|\bwww\.)/i
+// ModerationPreventive.TELEPHONE_FR, same pattern.
+const TELEPHONE_FR = /(?:(?:\+|00)33|0)\s?[1-9](?:[ .\u00A0-]?\d){8}/
 
 /**
  * Why a salon message is refused, as [status, body], or null: @NotBlank on PublierRequest (400,
@@ -537,7 +543,10 @@ function refusDuMessage(brut) {
     return [422, { error: 'Le message est trop long (max 2000 caractères).' }]
   }
   if (LIEN_EXTERNE.test(texte)) {
-    return [422, { error: "Les liens externes ne sont pas autorisés dans l'entraide." }]
+    return [422, { error: 'Les liens externes ne sont pas autorisés.' }]
+  }
+  if (TELEPHONE_FR.test(texte)) {
+    return [422, { error: 'Les numéros de téléphone ne sont pas autorisés.' }]
   }
   return null
 }
@@ -651,7 +660,8 @@ async function salonDe3eC(req, res, pathname) {
     if (!connecte(req)) return send(res, 401)
     const signaleur = membre3eC(req)
     if (!signaleur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
-    // As on develop: the status of the message is not checked (#402).
+    // A hidden message is not reported again: nothing left to moderate (#402).
+    if (signale.statut !== 'publie') return send(res, 204)
     if (!signalements3eC.some((s) => s.messageId === signale.id && s.signalePar === signaleur)) {
       const motif = (await corps(req))?.motif ?? null
       signalements3eC.push({
@@ -675,6 +685,11 @@ async function salonDe3eC(req, res, pathname) {
       200,
       signalements3eC
         .filter((s) => s.statut === 'ouvert')
+        // Never a report on the teacher's own message (#410), nor on a hidden one (#402).
+        .filter((s) => {
+          const m = messages3eC.find((x) => x.id === s.messageId)
+          return m.auteurId !== ENSEIGNANT.id && m.statut === 'publie'
+        })
         .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
         .map((s) => {
           const m = messages3eC.find((x) => x.id === s.messageId)
@@ -767,6 +782,9 @@ async function salonDe3eC(req, res, pathname) {
         .flatMap((x) => x.messages)
         .find((m) => m.id === id.toLowerCase())
     if (!cible) return send(res, 404, { error: `Message de salon introuvable : ${id}` })
+    if (cible.auteurId === ENSEIGNANT.id) {
+      return send(res, 403, { error: 'Vous ne pouvez pas modérer votre propre message.' })
+    }
     // Idempotent: hiding twice is a 204 with no further effect.
     cible.statut = 'masque'
     for (const s of signalements3eC) {

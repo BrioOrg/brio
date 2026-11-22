@@ -44,8 +44,8 @@ const TEXTES = {
   descriptionConfirmation: `Tes élèves ne le verront plus au prochain affichage de leur salon. Toi, tu le verras toujours ici, marqué «${NBSP}Masqué${NBSP}». Ses signalements en attente seront clos. Son auteur n'est pas prévenu, et tu ne pourras pas le réafficher.`,
   labelChamp: 'Ton message à la classe',
   placeholder: 'Écris un message à ta classe…',
-  // Exactly what the salon refuses: ModerationPreventive.java:17.
-  aide: 'Toute la classe peut le lire. Les liens (http://, https://, www.) sont refusés.',
+  // Exactly what the salon refuses: ModerationPreventive.valider (links, French phone numbers).
+  aide: 'Toute la classe peut le lire. Les liens (http://, https://, www.) et les numéros de téléphone sont refusés.',
   envoyer: 'Envoyer',
   annonceChargement: 'Chargement des messages…',
   annonceOuvert: 'Salon ouvert.',
@@ -56,7 +56,7 @@ const TEXTES = {
   erreurEnvoi: `Ton message n'est pas parti. Vérifie ta connexion et réessaie${NBSP}: ton texte est gardé.`,
   erreurMasquage: 'Impossible de masquer ce message. Vérifie ta connexion et réessaie.',
   erreurMessageIntrouvable: 'Ce message est introuvable. Actualise le salon.',
-  erreurRefuse: `Ton message n'est pas parti${NBSP}: pas de lien externe, 2${NBSP}000 caractères au plus. Ton texte est gardé.`,
+  erreurRefuse: `Ton message n'est pas parti${NBSP}: pas de lien externe ni de numéro de téléphone, 2${NBSP}000 caractères au plus. Ton texte est gardé.`,
 } as const
 
 /**
@@ -449,9 +449,9 @@ function Composer({
       champRef.current?.focus()
       await onEnvoye()
     } catch (err) {
-      // The server's 422 copy says "…dans l'entraide" (ModerationPreventive.java:52, issue 403):
-      // wrong in the salon. Its only causes here are a link or more than 2000 characters
-      // (ModerationPreventive.java:43-53; an empty message never leaves, the button is disabled).
+      // A 422 here has three causes, all from ModerationPreventive.valider: a link, a phone
+      // number, or more than 2000 characters (an empty message never leaves, the button is
+      // disabled). The screen names all three in its own words.
       if (err instanceof MessagerieError && err.status === 422) setErreur(TEXTES.erreurRefuse)
       else setErreur(erreurAffichee(err, TEXTES.erreurEnvoi, TEXTES.erreurSalonIntrouvable))
       // The submit button went disabled while sending: give the focus back to the text to fix.

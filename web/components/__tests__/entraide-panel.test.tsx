@@ -141,7 +141,7 @@ describe('EntraidePanel', () => {
     api.listerFils.mockResolvedValue([])
     const { EntraideError } = await import('@brio/api-client')
     api.ouvrirFil.mockRejectedValue(
-      new EntraideError(422, "Les liens externes ne sont pas autorisés dans l'entraide.")
+      new EntraideError(422, 'Les liens externes ne sont pas autorisés.')
     )
     render(<EntraidePanel portee="chapitre" porteeRef="fractions" />)
 
