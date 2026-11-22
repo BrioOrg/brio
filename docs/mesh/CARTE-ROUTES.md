@@ -28,6 +28,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | Voir mes classes | enseignant | 🔥 | 1 | 1 | 1 | `/prof` → `/prof/classes` |
 | Traiter un signalement | enseignant |  | 1 | 1 | 1 | `/prof` → `/prof/signalements` |
 | Modérer le salon de classe | enseignant |  | 1 | 1 | 1 | `/prof` → `/prof/signalements-salon` |
+| Traiter la file de modération de la Communauté | admin |  | 1 | 1 | 1 | `/explorer` → `/admin/communaute` |
 | Se connecter | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/connexion` |
 | Créer un compte élève | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/inscription` |
 | Rejoindre une classe avec un code | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/rejoindre` |
@@ -69,6 +70,13 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 2 | `/prof/classes/[id]` |
 | 2 | `/prof/devoirs/[id]` |
 | 2 | `/prof/devoirs/nouveau` |
+
+## Profondeur de chaque route — entrée « admin » (`/explorer`)
+
+| Clics | Route |
+|---:|---|
+| 0 | `/explorer` |
+| 1 | `/admin/communaute` |
 
 ## Profondeur de chaque route — entrée « visiteur » (`/commencer`)
 

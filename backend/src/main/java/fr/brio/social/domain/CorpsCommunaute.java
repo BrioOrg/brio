@@ -94,6 +94,45 @@ public final class CorpsCommunaute {
         }
     }
 
+    /**
+     * Un extrait lisible du corps, pour la file de modération : le texte des blocs {@code prose}
+     * et des éléments de {@code list}, aplati et tronqué. Les formules et le code sont ignorés —
+     * on veut de quoi reconnaître le message, pas le rendre.
+     */
+    public static String extrait(JsonNode corps, int max) {
+        if (corps == null || !corps.isArray()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (JsonNode bloc : corps) {
+            String type = bloc.path("type").asText("");
+            if ("prose".equals(type) && bloc.path("text").isTextual()) {
+                ajouter(sb, bloc.get("text").textValue());
+            } else if ("list".equals(type) && bloc.path("items").isArray()) {
+                for (JsonNode item : bloc.get("items")) {
+                    if (item.isTextual()) {
+                        ajouter(sb, item.textValue());
+                    }
+                }
+            }
+            if (sb.length() >= max) {
+                break;
+            }
+        }
+        String texte = sb.toString().strip();
+        return texte.length() > max ? texte.substring(0, max).strip() + "…" : texte;
+    }
+
+    private static void ajouter(StringBuilder sb, String texte) {
+        if (texte == null || texte.isBlank()) {
+            return;
+        }
+        if (sb.length() > 0) {
+            sb.append(' ');
+        }
+        sb.append(texte.strip());
+    }
+
     private static void exigerTexte(JsonNode valeur) {
         if (valeur == null || !valeur.isTextual() || valeur.textValue().isBlank()) {
             throw new MessageInvalideException("Le message contient un bloc vide.");

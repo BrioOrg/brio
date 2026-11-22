@@ -2,6 +2,7 @@ package fr.brio.progression;
 
 import fr.brio.exercices.api.SoumissionEnregistree;
 import fr.brio.progression.api.ProgressionInfo;
+import fr.brio.social.api.ReponseUtileRevoquee;
 import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.domain.Solde;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
@@ -151,5 +152,31 @@ class ProgressionServiceTest {
     void pourRetourneLeSoldeExistant() {
         when(soldes.findById(eleve)).thenReturn(Optional.of(new Solde(eleve, 400, (short) 2, Instant.now())));
         assertThat(service.pour(eleve)).isEqualTo(new ProgressionInfo(400, 2));
+    }
+
+    // ---- révocation de l'XP « réponse utile » (console de modération, #338) ------------------
+
+    @Test
+    void revoquerXpSupprimeLAttributionEtRecalculeLeSolde() {
+        UUID reponse = UUID.randomUUID();
+        when(evenements.supprimerParSource(eleve, "entraide", reponse.toString())).thenReturn(1);
+        when(evenements.sommePointsPourEleve(eleve)).thenReturn(0);
+
+        service.onReponseUtileRevoquee(new ReponseUtileRevoquee(eleve, reponse, Instant.now()));
+
+        verify(evenements).supprimerParSource(eleve, "entraide", reponse.toString());
+        ArgumentCaptor<Solde> captor = ArgumentCaptor.forClass(Solde.class);
+        verify(soldes).save(captor.capture());
+        assertThat(captor.getValue().getXpTotal()).isEqualTo(0);
+    }
+
+    @Test
+    void revoquerXpSansAttributionNeFaitRien() {
+        UUID reponse = UUID.randomUUID();
+        when(evenements.supprimerParSource(eleve, "entraide", reponse.toString())).thenReturn(0);
+
+        service.onReponseUtileRevoquee(new ReponseUtileRevoquee(eleve, reponse, Instant.now()));
+
+        verify(soldes, never()).save(any());
     }
 }
