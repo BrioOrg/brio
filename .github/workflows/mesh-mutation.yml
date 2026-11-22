@@ -74,7 +74,7 @@ jobs:
         run: |
           files="$(git diff --name-only --diff-filter=AM "origin/${{ inputs.base_ref }}...HEAD" -- 'web/lib/*.ts' 'web/lib/**/*.ts' 'packages/api-client/src/*.ts' \
             | grep -v -E '(__tests__/|\.test\.ts$|/generated/)' \
-            | sed -e 's#^web/##' -e 's#^packages/#../packages/#' | paste -sd, - || true)"
+            | paste -sd, - || true)"
           echo "files=$files" >> "$GITHUB_OUTPUT"
           if [ -n "$files" ]; then echo "ran=true" >> "$GITHUB_OUTPUT"; else echo "ran=false" >> "$GITHUB_OUTPUT"; fi
       - uses: pnpm/action-setup@v4
@@ -88,23 +88,18 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
         if: steps.scope.outputs.ran == 'true'
-      # Stryker n'est pas une dépendance du dépôt (voir mesh/mutation/stryker.web.config.mjs).
+      # Stryker est une devDependency de web/ : il pilote le Vitest du dépôt (2.x). Lancé depuis la
+      # racine, en place, pour muter aussi packages/api-client (#372, mesh/mutation/stryker.web.config.mjs).
       - name: Stryker
         if: steps.scope.outputs.ran == 'true'
-        # Les --package= doivent précéder dlx : placés après, pnpm 9 les prend
-        # pour un nom de paquet (GET registry/--package → 404).
         run: >-
-          pnpm
-          --package=@stryker-mutator/core@9.4.0
-          --package=@stryker-mutator/vitest-runner@9.4.0
-          dlx
-          stryker run ../mesh/mutation/stryker.web.config.mjs --mutate "${{ steps.scope.outputs.files }}"
-        working-directory: web
+          web/node_modules/.bin/stryker run mesh/mutation/stryker.web.config.mjs
+          --mutate "${{ steps.scope.outputs.files }}"
       - uses: actions/upload-artifact@v4
         if: steps.scope.outputs.ran == 'true'
         with:
           name: mutation-stryker
-          path: web/reports/mutation/
+          path: reports/mutation/
           retention-days: 7
 
   verdict:

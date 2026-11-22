@@ -57,3 +57,7 @@ pgdata/
 
 # --- Eval reports (timestamped run artefacts) ---
 evals/tuteur/reports/*.txt
+
+# --- Stryker (mutation testing, run from the root: mesh/mutation/stryker.web.config.mjs) ---
+/reports/
+.stryker-tmp/
