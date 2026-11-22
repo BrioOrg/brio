@@ -80,4 +80,15 @@ describe('ExplorerPage', () => {
     expect(screen.getByRole('link', { name: /annales/i })).toHaveAttribute('href', '/annales')
     expect(screen.queryByRole('heading', { name: 'Les cours de ta classe' })).toBeNull()
   })
+
+  // critère 8 (#395, spec U5 §2.2) : la carte ne promet plus de « vrais sujets d'examen » tant
+  // que le contenu servi est une démonstration ; elle dit ce que la page permet de faire.
+  it('présente la carte des annales par « Choisis un sujet », sans promettre de vrais sujets', async () => {
+    await renderPage(() => Promise.resolve('5e'))
+
+    const carte = within(screen.getByRole('main')).getByRole('link', { name: /annales/i })
+    expect(carte).toHaveAttribute('href', '/annales')
+    expect(carte).toHaveTextContent('Choisis un sujet')
+    expect(document.body).not.toHaveTextContent(/vrais sujets/i)
+  })
 })

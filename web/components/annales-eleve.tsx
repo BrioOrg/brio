@@ -49,7 +49,7 @@ export function AnnalesEleve() {
       <div className="mx-auto max-w-2xl">
         <h1 className="font-display text-2xl font-extrabold text-ink">Annales</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          De vrais sujets d’examen : entraîne-toi sur un sujet entier ou sur une compétence précise.
+          Choisis un sujet, puis entraîne-toi à ton rythme ou en mode examen.
         </p>
 
         <div className="mt-4 inline-flex rounded-lg border border-line bg-surface-panel p-0.5">
@@ -212,7 +212,10 @@ function VueEntrainement({
           {exos.map((ex) => {
             const lien = lienAnnale.get(ex.annaleId)
             return (
-              <li key={ex.exerciceId} className="rounded-2xl border border-line bg-surface-panel p-4">
+              <li
+                key={ex.exerciceId}
+                className="rounded-2xl border border-line bg-surface-panel p-4"
+              >
                 <div className="font-prose text-sm text-ink">{ex.prompt}</div>
                 <div className="mt-1 text-xs text-ink-muted">
                   {ex.exerciseType} · issu de{' '}

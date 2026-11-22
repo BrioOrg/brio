@@ -119,7 +119,7 @@ export default async function ExplorerPage() {
                   Annales
                 </span>
                 <span className="flex items-center justify-between font-prose text-sm text-ink-muted">
-                  De vrais sujets d&rsquo;examen
+                  Choisis un sujet
                   <Fleche />
                 </span>
               </CarteLien>

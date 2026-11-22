@@ -44,6 +44,27 @@ describe('SectionSidebar', () => {
     }
   })
 
+  // critères 1, 5 et 6 (#395) : l'entrée Annales mène à /annales ; elle est le seul lien courant
+  // sur /annales, et un sujet ouvert depuis les annales reste dans Explorer.
+  it('links to Annales and marks it the only current section on /annales', async () => {
+    await setup('/annales')
+    const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
+    const annales = within(nav).getByRole('link', { name: 'Annales' })
+    expect(annales).toHaveAttribute('href', '/annales')
+    const courants = nav.querySelectorAll('[aria-current="page"]')
+    expect(courants).toHaveLength(1)
+    expect(courants[0]).toBe(annales)
+  })
+
+  it('keeps an opened annale subject in Explorer, and only there', async () => {
+    await setup('/3e/mathematiques/brevet-2025-demo')
+    const nav = screen.getByRole('navigation', { name: 'Navigation principale' })
+    const courants = nav.querySelectorAll('[aria-current="page"]')
+    expect(courants).toHaveLength(1)
+    expect(courants[0]).toBe(within(nav).getByRole('link', { name: 'Explorer' }))
+    expect(within(nav).getByRole('link', { name: 'Annales' })).not.toHaveAttribute('aria-current')
+  })
+
   it('treats catalogue routes as Explorer', async () => {
     await setup('/3e/mathematiques')
     expect(screen.getByRole('link', { name: 'Explorer' })).toHaveAttribute('aria-current', 'page')
