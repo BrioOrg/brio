@@ -12,6 +12,7 @@ import fr.brio.identite.api.EnseignantContexteQuery;
 import fr.brio.identite.api.InscriptionsQuery;
 import fr.brio.social.domain.Salon;
 import fr.brio.social.domain.SalonMessage;
+import fr.brio.social.domain.SalonSignalement;
 import fr.brio.social.domain.Sanction;
 import fr.brio.social.infrastructure.SalonMessageRepository;
 import fr.brio.social.infrastructure.SalonRepository;
@@ -152,12 +153,107 @@ class MessagerieServiceTest {
         UUID autre = UUID.randomUUID();
         SalonMessage message = mock(SalonMessage.class);
         when(message.getSalonId()).thenReturn(salonId);
-        when(messages.findById(messageId)).thenReturn(Optional.of(message));
+        when(messages.verrouiller(messageId)).thenReturn(Optional.of(message));
         when(salons.findById(salonId)).thenReturn(Optional.of(new Salon(classe, "Salon", UUID.randomUUID())));
         when(enseignants.classesEnseignees(autre)).thenReturn(Set.of());
 
         assertThatThrownBy(() -> service.masquer(autre, messageId))
                 .isInstanceOf(PasModerateurException.class);
         verify(message, org.mockito.Mockito.never()).masquer();
+    }
+
+    @Test
+    void a_teacher_cannot_mask_their_own_message_nor_close_its_reports() {
+        UUID salonId = UUID.randomUUID();
+        UUID classe = UUID.randomUUID();
+        UUID prof = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+        SalonMessage message = new SalonMessage(salonId, prof, "message du prof");
+        when(messages.verrouiller(messageId)).thenReturn(Optional.of(message));
+        when(salons.findById(salonId)).thenReturn(Optional.of(new Salon(classe, "Salon", prof)));
+        when(enseignants.classesEnseignees(prof)).thenReturn(Set.of(classe));
+
+        assertThatThrownBy(() -> service.masquer(prof, messageId))
+                .isInstanceOf(PasModerateurException.class);
+        assertThat(message.estVisible()).isTrue();
+        verify(signalements, org.mockito.Mockito.never()).findByMessageIdAndStatut(any(), any());
+    }
+
+    @Test
+    void masking_closes_the_open_reports_of_that_message() {
+        UUID salonId = UUID.randomUUID();
+        UUID classe = UUID.randomUUID();
+        UUID prof = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+        SalonMessage message = new SalonMessage(salonId, UUID.randomUUID(), "un écart");
+        SalonSignalement ouvert = new SalonSignalement(messageId, UUID.randomUUID(), null);
+        when(messages.verrouiller(messageId)).thenReturn(Optional.of(message));
+        when(salons.findById(salonId)).thenReturn(Optional.of(new Salon(classe, "Salon", prof)));
+        when(enseignants.classesEnseignees(prof)).thenReturn(Set.of(classe));
+        when(signalements.findByMessageIdAndStatut(messageId, SalonSignalement.STATUT_OUVERT))
+                .thenReturn(List.of(ouvert));
+
+        service.masquer(prof, messageId);
+
+        assertThat(message.estVisible()).isFalse();
+        assertThat(ouvert.getStatut()).isEqualTo(SalonSignalement.STATUT_TRAITE);
+    }
+
+    @Test
+    void reporting_a_message_already_masked_records_nothing() {
+        UUID salonId = UUID.randomUUID();
+        UUID classe = UUID.randomUUID();
+        UUID eleve = UUID.randomUUID();
+        UUID messageId = UUID.randomUUID();
+        SalonMessage message = new SalonMessage(salonId, UUID.randomUUID(), "un écart");
+        message.masquer();
+        when(messages.verrouiller(messageId)).thenReturn(Optional.of(message));
+        when(salons.findById(salonId)).thenReturn(Optional.of(new Salon(classe, "Salon", UUID.randomUUID())));
+        when(inscriptions.classesDeLEleve(eleve)).thenReturn(Set.of(classe));
+
+        service.signaler(messageId, eleve, "pas gentil");
+
+        verify(signalements, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    void the_report_queue_leaves_out_the_teachers_own_messages_and_masked_ones() {
+        UUID salonId = UUID.randomUUID();
+        UUID classe = UUID.randomUUID();
+        UUID prof = UUID.randomUUID();
+        UUID eleve = UUID.randomUUID();
+        SalonMessage duProf = mock(SalonMessage.class);
+        when(duProf.getAuteurId()).thenReturn(prof);
+        when(duProf.estVisible()).thenReturn(true);
+        when(duProf.getSalonId()).thenReturn(salonId);
+        SalonMessage masque = mock(SalonMessage.class);
+        when(masque.getAuteurId()).thenReturn(eleve);
+        when(masque.estVisible()).thenReturn(false);
+        when(masque.getSalonId()).thenReturn(salonId);
+        SalonMessage dUnEleve = mock(SalonMessage.class);
+        UUID idEleve = UUID.randomUUID();
+        when(dUnEleve.getId()).thenReturn(idEleve);
+        when(dUnEleve.getAuteurId()).thenReturn(eleve);
+        when(dUnEleve.estVisible()).thenReturn(true);
+        when(dUnEleve.getSalonId()).thenReturn(salonId);
+        when(dUnEleve.getCorps()).thenReturn("un écart");
+        UUID idProf = UUID.randomUUID();
+        UUID idMasque = UUID.randomUUID();
+        when(messages.findById(idProf)).thenReturn(Optional.of(duProf));
+        when(messages.findById(idMasque)).thenReturn(Optional.of(masque));
+        when(messages.findById(idEleve)).thenReturn(Optional.of(dUnEleve));
+        when(enseignants.classesEnseignees(prof)).thenReturn(Set.of(classe));
+        when(salons.findById(salonId)).thenReturn(Optional.of(new Salon(classe, "Salon", prof)));
+        when(inscriptions.elevesDeLaClasse(classe)).thenReturn(List.of());
+        when(enseignants.nomsDesEnseignants(anySet())).thenReturn(Map.of());
+        when(signalements.findByStatutOrderByCreatedAtAsc(SalonSignalement.STATUT_OUVERT))
+                .thenReturn(List.of(
+                        new SalonSignalement(idProf, eleve, null),
+                        new SalonSignalement(idMasque, eleve, null),
+                        new SalonSignalement(idEleve, UUID.randomUUID(), null)));
+
+        assertThat(service.fileSignalements(prof))
+                .extracting(SalonSignalementVue::messageId)
+                .containsExactly(idEleve);
     }
 }

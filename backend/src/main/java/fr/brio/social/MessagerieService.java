@@ -82,12 +82,20 @@ public class MessagerieService {
         return messages.save(new SalonMessage(salonId, auteurId, texte)).getId();
     }
 
-    /** Signale un message de salon au modérateur de la classe (idempotent par signaleur). */
+    /**
+     * Signale un message de salon au modérateur de la classe (idempotent par signaleur). Sans
+     * effet sur un message déjà retiré : il n'y a plus rien à modérer (#402). Le message est lu
+     * sous verrou, comme dans {@link #masquer}, pour qu'un masquage concurrent ne laisse pas un
+     * signalement ouvert derrière lui.
+     */
     @Transactional
     public void signaler(UUID messageId, UUID userId, String motif) {
-        SalonMessage message = chargerMessage(messageId);
+        SalonMessage message = verrouillerMessage(messageId);
         Salon salon = chargerSalon(message.getSalonId());
         exigerMembre(userId, salon.getClasseId());
+        if (!message.estVisible()) {
+            return;
+        }
         if (signalements.existsByMessageIdAndSignalePar(messageId, userId)) {
             return;
         }
@@ -161,7 +169,11 @@ public class MessagerieService {
         for (SalonSignalement s :
                 signalements.findByStatutOrderByCreatedAtAsc(SalonSignalement.STATUT_OUVERT)) {
             SalonMessage message = messages.findById(s.getMessageId()).orElse(null);
-            if (message == null) {
+            // A teacher never handles a report on their own message (#410); a message already
+            // taken down needs no decision (#402).
+            if (message == null
+                    || message.getAuteurId().equals(enseignantId)
+                    || !message.estVisible()) {
                 continue;
             }
             Salon salon = salons.findById(message.getSalonId()).orElse(null);
@@ -184,21 +196,26 @@ public class MessagerieService {
         return vues;
     }
 
-    /** Masque un message de salon et clôt ses signalements (prof de la classe). */
+    /**
+     * Masque un message de salon et clôt ses signalements (prof de la classe). Jamais sur son
+     * propre message : l'adulte mis en cause ne clôt pas le signalement qui le vise (#410).
+     * Le message est lu sous verrou, comme dans {@link #signaler} (#402).
+     */
     @Transactional
     public void masquer(UUID enseignantId, UUID messageId) {
-        SalonMessage message = chargerMessage(messageId);
+        SalonMessage message = verrouillerMessage(messageId);
         Salon salon = chargerSalon(message.getSalonId());
         if (!estEnseignant(enseignantId, salon.getClasseId())) {
             throw new PasModerateurException("Vous ne modérez pas cette classe.");
         }
+        if (message.getAuteurId().equals(enseignantId)) {
+            throw new PasModerateurException("Vous ne pouvez pas modérer votre propre message.");
+        }
         message.masquer();
         Instant maintenant = Instant.now();
         for (SalonSignalement s :
-                signalements.findByStatutOrderByCreatedAtAsc(SalonSignalement.STATUT_OUVERT)) {
-            if (s.getMessageId().equals(messageId)) {
-                s.traiter(enseignantId, maintenant);
-            }
+                signalements.findByMessageIdAndStatut(messageId, SalonSignalement.STATUT_OUVERT)) {
+            s.traiter(enseignantId, maintenant);
         }
     }
 
@@ -208,8 +225,8 @@ public class MessagerieService {
         return salons.findById(salonId).orElseThrow(() -> new SalonNotFoundException(salonId));
     }
 
-    private SalonMessage chargerMessage(UUID messageId) {
-        return messages.findById(messageId).orElseThrow(() -> new SalonMessageNotFoundException(messageId));
+    private SalonMessage verrouillerMessage(UUID messageId) {
+        return messages.verrouiller(messageId).orElseThrow(() -> new SalonMessageNotFoundException(messageId));
     }
 
     private boolean estEnseignant(UUID userId, UUID classeId) {

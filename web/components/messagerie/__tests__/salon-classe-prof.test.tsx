@@ -174,17 +174,16 @@ describe('SalonClasseProf', () => {
     expect(screen.queryByText(/ton professeur/i)).toBeNull()
     expect(document.body).not.toHaveTextContent(/ton professeur/i)
     expect(document.body).not.toHaveTextContent(/ton prof\b/i)
-    // The help under the field says exactly what the salon refuses (ModerationPreventive: only
-    // http(s):// and www. links; no phone number check, issue 403).
+    // The help under the field says exactly what the salon refuses (ModerationPreventive: http(s)://
+    // and www. links, French phone numbers, issue 403).
     expect(
       screen.getByText(
-        /Toute la classe peut le lire\. Les liens \(http:\/\/, https:\/\/, www\.\) sont refusés\./
+        /Toute la classe peut le lire\. Les liens \(http:\/\/, https:\/\/, www\.\) et les numéros de téléphone sont refusés\./
       )
     ).toBeInTheDocument()
     expect(screen.queryByText(/Pas de lien externe/)).toBeNull()
     // Same placeholder as the student screen (porte 6, S2-3).
     expect(screen.getByPlaceholderText('Écris un message à ta classe…')).toBeInTheDocument()
-    expect(document.body).not.toHaveTextContent(/téléphone/i)
     // The field is labelled for the teacher.
     expect(screen.getByLabelText(ZONE)).toBeInTheDocument()
   })
@@ -233,13 +232,13 @@ describe('SalonClasseProf', () => {
     await waitFor(() => expect(screen.getByLabelText(ZONE)).toHaveValue(''))
   })
 
-  // critère 2: a link refused (422) shows the screen's own text, not the server's « …dans
-  // l'entraide », and keeps the typed text. Non-breaking spaces before « : » and in « 2 000 ».
+  // critère 2: a link refused (422) shows the screen's own text, not the server's, and keeps the
+  // typed text. Non-breaking spaces before « : » and in « 2 000 ».
   it('replaces the 422 on sending by the screen text and keeps the text', async () => {
     const user = userEvent.setup()
     api.messagesDuSalon.mockResolvedValue([DE_LEA])
     api.publierDansSalon.mockRejectedValue(
-      new MessagerieError(422, "Les liens externes ne sont pas autorisés dans l'entraide.")
+      new MessagerieError(422, 'Les liens externes ne sont pas autorisés.')
     )
     render(<SalonClasseProf salon={SALON} />)
 
@@ -250,7 +249,7 @@ describe('SalonClasseProf', () => {
 
     const alerte = await screen.findByRole('alert')
     expect(alerte).toHaveTextContent(
-      /Ton message n.est pas parti : pas de lien externe, 2 000 caractères au plus\. Ton texte est gardé\./
+      /Ton message n.est pas parti : pas de lien externe ni de numéro de téléphone, 2 000 caractères au plus\. Ton texte est gardé\./
     )
     expect(alerte.textContent).toMatch(/parti[\u00a0\u202f]:/)
     expect(alerte.textContent).toMatch(/2[\u00a0\u202f]000/)
@@ -529,7 +528,7 @@ describe('SalonClasseProf', () => {
 
   // critère 2 (porte 5, U7): after any failed send, focus goes back to the field, text kept
   it.each([
-    ['422', new MessagerieError(422, "Les liens externes ne sont pas autorisés dans l'entraide.")],
+    ['422', new MessagerieError(422, 'Les liens externes ne sont pas autorisés.')],
     ['429', new MessagerieError(429, 'Vous écrivez trop vite. Patientez un instant.')],
     ['403', new MessagerieError(403, 'Votre accès à la messagerie est en lecture seule.')],
     ['réseau', new TypeError('Failed to fetch')],

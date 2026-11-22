@@ -10,4 +10,6 @@ public interface SalonSignalementRepository extends JpaRepository<SalonSignaleme
     boolean existsByMessageIdAndSignalePar(UUID messageId, UUID signalePar);
 
     List<SalonSignalement> findByStatutOrderByCreatedAtAsc(String statut);
+
+    List<SalonSignalement> findByMessageIdAndStatut(UUID messageId, String statut);
 }

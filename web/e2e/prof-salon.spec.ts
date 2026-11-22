@@ -115,11 +115,11 @@ test('shows the refusal of a link and keeps the text', async ({ page }) => {
   await salon.getByRole('button', { name: 'Envoyer' }).click()
 
   // The screen's own text (non-breaking spaces before « : » and in « 2 000 »), never the
-  // server's « …dans l'entraide ».
+  // server's.
   const alerte = salon.getByRole('alert').filter({ hasText: /pas de lien externe/ })
   await expect(alerte).toBeVisible()
   await expect(alerte).toContainText(
-    /Ton message n.est pas parti\s:\spas de lien externe, 2\s000 caractères au plus\. Ton texte est gardé\./
+    /Ton message n.est pas parti\s:\spas de lien externe ni de numéro de téléphone, 2\s000 caractères au plus\. Ton texte est gardé\./
   )
   expect(await alerte.textContent()).toMatch(/parti[\u00a0\u202f]:.*2[\u00a0\u202f]000/)
   await expect(salon).not.toContainText('entraide')
