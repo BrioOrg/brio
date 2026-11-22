@@ -32,7 +32,7 @@ import { renderKatex } from '@/lib/katex'
 import { TreeRenderer } from '@/components/tree-renderer'
 import type { FigureSpec, TreeSpec } from '@brio/content'
 import { FigureParametree } from '@/components/figure-parametree'
-import { COURBE_BG, COURBE_STROKE, COURBE_TEXT, type CouleurCourbe } from '@/lib/couleurs-courbes'
+import { CURVE_BG, CURVE_STROKE, CURVE_TEXT, type CurveColour } from '@/lib/curve-colours'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -49,7 +49,7 @@ const SCRATCH_CATEGORIES = [
   ['pen', 'Stylo'],
 ] as const
 
-const COURBE_NUMBERS: CouleurCourbe[] = [1, 2, 3, 4, 5, 6]
+const CURVE_NUMBERS: CurveColour[] = [1, 2, 3, 4, 5, 6]
 
 // Maths tones (ADR 0037): the same object in the same tone in the figure and in the formula.
 const hidden = { dot: false, showName: false } as const
@@ -298,17 +298,14 @@ export default function DesignPage() {
           </p>
 
           <div className="mt-6">
-            <Label>
-              Couleurs de courbe : la courbe et la pastille de sa ligne dans la calculatrice, jamais
-              une décoration ni un état
-            </Label>
+            <Label>Couleurs de courbe : un trait et sa pastille, jamais un état</Label>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {COURBE_NUMBERS.map((n) => (
+            {CURVE_NUMBERS.map((n) => (
               <Panel key={n}>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-surface-page ${COURBE_BG[n]}`}
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-surface-page ${CURVE_BG[n]}`}
                   >
                     {n}
                   </span>
@@ -317,10 +314,10 @@ export default function DesignPage() {
                       d="M2 20 C 20 20, 28 4, 62 4"
                       fill="none"
                       strokeLinecap="round"
-                      className={`stroke-2 ${COURBE_STROKE[n]}`}
+                      className={`stroke-2 ${CURVE_STROKE[n]}`}
                     />
                   </svg>
-                  <span className={`font-prose text-sm font-semibold ${COURBE_TEXT[n]}`}>
+                  <span className={`font-prose text-sm font-semibold ${CURVE_TEXT[n]}`}>
                     f<sub>{n}</sub>(x)
                   </span>
                 </div>

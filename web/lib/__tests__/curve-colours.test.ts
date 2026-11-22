@@ -1,22 +1,16 @@
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import {
-  COURBE_BG,
-  COURBE_FILL,
-  COURBE_STROKE,
-  COURBE_TEXT,
-  type CouleurCourbe,
-} from '../couleurs-courbes'
+import { CURVE_BG, CURVE_FILL, CURVE_STROKE, CURVE_TEXT, type CurveColour } from '../curve-colours'
 
 const css = readFileSync(resolve(__dirname, '../../app/tokens.css'), 'utf8')
 const sourceInline = /@source inline\("([^"]*)"\)/.exec(css)?.[1]?.split(/\s+/) ?? []
 
-const CURVES: CouleurCourbe[] = [1, 2, 3, 4, 5, 6]
+const CURVES: CurveColour[] = [1, 2, 3, 4, 5, 6]
 const FAMILIES = [
-  ['stroke', COURBE_STROKE],
-  ['fill', COURBE_FILL],
-  ['bg', COURBE_BG],
-  ['text', COURBE_TEXT],
+  ['stroke', CURVE_STROKE],
+  ['fill', CURVE_FILL],
+  ['bg', CURVE_BG],
+  ['text', CURVE_TEXT],
 ] as const
 
 describe('curve colour classes', () => {
