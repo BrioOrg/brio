@@ -84,3 +84,17 @@ describe('compilerX', () => {
     expect(performance.now() - start).toBeLessThan(1000)
   })
 })
+
+describe('compilerXY — folded operations', () => {
+  it.each([
+    ['(5 − 3)x', 2],
+    ['(6/3)x', 2],
+    ['(2·3)x', 6],
+    ['2^3 x', 8],
+    ['−(2)x', -2],
+    ['√(4)x', 2],
+    ['sin(90)x', 1],
+  ])('%s at x = 1', (source, expected) => {
+    expect(compilerXY(tree(source, 'degrees'))(1, 0)).toBeCloseTo(expected, 14)
+  })
+})

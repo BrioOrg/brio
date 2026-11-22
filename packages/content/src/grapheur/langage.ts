@@ -127,6 +127,8 @@ const TETE_FONCTION = /^(\s*)([a-z]\d?)(\s*\(\s*)([a-zA-Z])\s*\)\s*$/
 const TETE_CONSTANTE = /^(\s*)([a-zA-Z])\s*$/
 const INEQUATION = /[<>≤≥⩽⩾≠]/
 const LITTERAL = /^\s*[+\-−–]?\s*(\d+([.,]\d+)?|[.,]\d+)\s*$/
+/** Letters a line can never name: the two variables and Euler's number. */
+const RESERVES: ReadonlySet<string> = new Set(['x', 'y', 'e'])
 
 function forme(texte: string): Forme {
   if (texte.trim() === '') return { type: 'vide' }
@@ -260,7 +262,8 @@ function references(tree: ExpressionNode, into: Reference[] = []): Reference[] {
     case 'constant':
       break
   }
-  return into.sort((a, b) => a.position - b.position)
+  // A walk from left to right: the references come in the order they are written.
+  return into
 }
 
 function lire(
@@ -550,7 +553,8 @@ export function analyserLignes(
   const proprietaire = new Map<string, number>()
   const fonctions: string[] = []
   formes.forEach((f, i) => {
-    if (f.type !== 'egalite' || !f.tete || erreurDeTete(f.tete)) return
+    // A head with a wrong variable (f(t) = …) still owns f: its users say f is broken.
+    if (f.type !== 'egalite' || !f.tete || RESERVES.has(f.tete.nom)) return
     if (proprietaire.has(f.tete.nom)) return
     proprietaire.set(f.tete.nom, i)
     if (f.tete.type === 'fonction') fonctions.push(f.tete.nom)

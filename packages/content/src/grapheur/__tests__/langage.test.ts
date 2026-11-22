@@ -526,3 +526,60 @@ describe('analyserLignes — errors', () => {
 function chain(...noms: string[]): string[] {
   return noms.slice(1).map((nom, i) => `${nom}(x) = ${noms[i]}(x) + ${noms[i]}(x)`)
 }
+
+describe('analyserLignes — details', () => {
+  it('should compute the decimal value when the result is not exact', () => {
+    expect(calcul(une('π + 1')).valeur).toBeCloseTo(Math.PI + 1, 14)
+    expect(calcul(une('π − 1')).valeur).toBeCloseTo(Math.PI - 1, 14)
+    expect(calcul(une('2π')).valeur).toBeCloseTo(2 * Math.PI, 14)
+    expect(calcul(une('π/2')).valeur).toBeCloseTo(Math.PI / 2, 14)
+    expect(calcul(une('π^2')).valeur).toBeCloseTo(Math.PI ** 2, 14)
+    expect(calcul(une('−π')).valeur).toBeCloseTo(-Math.PI, 14)
+    expect(calcul(une('|−π|')).valeur).toBeCloseTo(Math.PI, 14)
+    expect(calcul(une('sin(90)', { angle: 'degres' })).valeur).toBeCloseTo(1, 14)
+    const r = analyser(['k = 2π', 'k/2', 'a = 2', 'πa'])
+    expect(calcul(r[1]).valeur).toBeCloseTo(Math.PI, 14)
+    expect(calcul(r[3]).valeur).toBeCloseTo(2 * Math.PI, 14)
+  })
+
+  it('should give 0^0 = 1 and refuse 0 to a negative power, exact or not', () => {
+    expect(calcul(une('0^0')).exact).toEqual({ num: 1n, den: 1n })
+    expect(erreur(une('sin(0)^(−1)')).erreur).toEqual({
+      message: MESSAGES.divisionParZero,
+      position: 6,
+    })
+    expect(erreur(une('1/sin(0)')).erreur.position).toBe(1)
+    expect(calcul(une('π^(−1)')).valeur).toBeCloseTo(1 / Math.PI, 14)
+  })
+
+  it('should give an inlined error the position of the call', () => {
+    const r = analyser(['f(x) = 1/x', '1 + f(0)'])
+    expect(erreur(r[1]).erreur).toEqual({ message: MESSAGES.divisionParZero, position: 4 })
+  })
+
+  it('should point at the first y of an expression', () => {
+    expect(erreur(une('x + y + y')).erreur.position).toBe(4)
+    expect(erreur(une('f(x) = y + y')).erreur.position).toBe(7)
+  })
+
+  it('should refuse a line that starts with =', () => {
+    expect(erreur(une('= 2')).erreur).toEqual({ message: MESSAGES.manqueAvant, position: 0 })
+  })
+
+  it('should report parse errors of a line without =, and of the value of a constant', () => {
+    expect(erreur(une('2x +')).erreur.position).toBe(4)
+    expect(erreur(une('a = 2 +')).erreur.position).toBe(7)
+    expect(erreur(une('2 + 2 = 4 $')).erreur.position).toBe(10)
+  })
+
+  it('should keep the name of a function with a wrong variable, for the lines that use it', () => {
+    const r = analyser(['f(t) = 2t', 'y = f(x)'])
+    expect(erreur(r[1]).erreur.message).toBe(MESSAGES.definitionEnErreur('f', 1))
+  })
+
+  it('should refuse a derivative that grows too long', () => {
+    const r = analyser(['f(x) = x^x^x', `y = f${"'".repeat(12)}(x)`])
+    expect(explicite(r[0]).f(1.5)).toBeCloseTo(1.5 ** (1.5 ** 1.5), 12)
+    expect(erreur(r[1]).erreur).toEqual({ message: MESSAGES.tropLongue, position: 0 })
+  })
+})
