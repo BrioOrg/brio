@@ -19,7 +19,7 @@
    -------------------------------------------------------------------------- */
 
 /* prettier-ignore */
-@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-concept bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised bg-surface-result-correct bg-surface-result-incorrect text-accent-ink text-streak text-xp text-danger text-warning text-info text-concept border-feedback-incorrect bg-tone-1 bg-tone-2 bg-tone-3 bg-tone-4 bg-tone-1-soft bg-tone-2-soft bg-tone-3-soft bg-tone-4-soft");
+@source inline("bg-accent-hi bg-accent-ink bg-success bg-warning bg-info bg-concept bg-feedback-incorrect bg-feedback-incorrect-edge bg-streak bg-xp bg-danger bg-surface-raised bg-surface-result-correct bg-surface-result-incorrect text-accent-ink text-streak text-xp text-danger text-warning text-info text-concept border-feedback-incorrect bg-tone-1 bg-tone-2 bg-tone-3 bg-tone-4 bg-tone-1-soft bg-tone-2-soft bg-tone-3-soft bg-tone-4-soft stroke-courbe-1 fill-courbe-1 bg-courbe-1 text-courbe-1 stroke-courbe-2 fill-courbe-2 bg-courbe-2 text-courbe-2 stroke-courbe-3 fill-courbe-3 bg-courbe-3 text-courbe-3 stroke-courbe-4 fill-courbe-4 bg-courbe-4 text-courbe-4 stroke-courbe-5 fill-courbe-5 bg-courbe-5 text-courbe-5 stroke-courbe-6 fill-courbe-6 bg-courbe-6 text-courbe-6");
 
 /* --------------------------------------------------------------------------
    Fonts — self-hosted, zero third-party requests
@@ -105,6 +105,12 @@
   --p-tone-magenta: #ff4f86;
   --p-tone-teal: #34e3cf;
 
+  /* Curve colours 5 and 6 (#420, ADR 0049) — not in the mockups. Curves 1-4 are
+     the four tones above. Violet and brick red, picked by search (CIEDE2000
+     over every ground and every other curve colour) rather than by eye. */
+  --p-courbe-violet: #a270ff;
+  --p-courbe-brique: #ef5d39;
+
   /* Light theme — sourced from screen 1 (connexion) + screen 2 .phone.day */
   --p-light-page: #eaf7ef;
   --p-light-panel: #ffffff;
@@ -125,6 +131,8 @@
   --p-light-tone-orange: #a35f00;
   --p-light-tone-magenta: #9c2a78;
   --p-light-tone-teal: #0e6e46;
+  --p-light-courbe-violet: #6a3de8;
+  --p-light-courbe-brique: #b3261e;
 }
 
 /* --------------------------------------------------------------------------
@@ -306,6 +314,28 @@
   --color-tone-2-soft: #393012;
   --color-tone-3-soft: #39242a;
   --color-tone-4-soft: #153e37;
+
+  /* -- Curve colours -------------------------------------------------------- */
+  /* One colour per expression of the graphing calculator (#417, ADR 0049): the
+     curve and the pastille of its line, nothing else. Never decoration, never
+     state. Curves 1-4 are tones 1-4, so a course curve opened in the
+     calculator keeps its colour; 5 is violet, 6 brick red.
+     Measured on every ground (page, panel, raised), both themes: each colour is
+     ≥ 4.5 : 1 (dark lowest 4.7 : 1, light lowest 4.5 : 1), so it serves as a
+     stroke (≥ 3 : 1, WCAG 1.4.11) and as the text of the curve's name.
+     Each pair of the six is ΔE2000 ≥ 20 in normal vision (dark ≥ 22.2, light
+     ≥ 21.8). Protanopia / deuteranopia, simulated (Machado 2009, severity 1):
+     the weakest pairs fall to ΔE2000 ≈ 9 in dark and ≈ 6 in light (blue and
+     violet, then orange and brick red), all ≥ 5, so colour is never the only
+     cue: the pastille carries the line's number and the name stays beside the
+     curve. All asserted by web/app/__tests__/curve-colours.test.ts.
+     tone-1/tone-2 stay the safest pair, so the first two curves hold apart. */
+  --color-courbe-1: #4bb4ff;
+  --color-courbe-2: #ff9600;
+  --color-courbe-3: #ff4f86;
+  --color-courbe-4: #34e3cf;
+  --color-courbe-5: #a270ff;
+  --color-courbe-6: #ef5d39;
 }
 
 /* --------------------------------------------------------------------------
@@ -427,6 +457,14 @@
   --color-tone-2-soft: #f2e9db;
   --color-tone-3-soft: #f1e1ec;
   --color-tone-4-soft: #ddebe5;
+
+  /* Curve colours: tones 1-4 and the light violet and brick red. */
+  --color-courbe-1: #1670c0;
+  --color-courbe-2: #a35f00;
+  --color-courbe-3: #9c2a78;
+  --color-courbe-4: #0e6e46;
+  --color-courbe-5: #6a3de8;
+  --color-courbe-6: #b3261e;
 }
 
 /* System preference fallback — applies when no data-theme attribute is set */
@@ -483,6 +521,13 @@
     --color-tone-2-soft: #f2e9db;
     --color-tone-3-soft: #f1e1ec;
     --color-tone-4-soft: #ddebe5;
+
+    --color-courbe-1: #1670c0;
+    --color-courbe-2: #a35f00;
+    --color-courbe-3: #9c2a78;
+    --color-courbe-4: #0e6e46;
+    --color-courbe-5: #6a3de8;
+    --color-courbe-6: #b3261e;
   }
 }
 
