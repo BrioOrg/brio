@@ -9,7 +9,7 @@ import { TONE_TEXT, toneClass } from '@/lib/math-tones'
 // currentColor); a reading is the one accent-coloured thing, guides, point and values together.
 
 // Viewbox units, like the figure's own strokes.
-const CURVE_DASH = '6 4'
+export const CURVE_DASH = '6 4'
 const GUIDE_DASH = '3 3'
 
 /** Guides, curves and reading points: drawn with the figure's other strokes. */
