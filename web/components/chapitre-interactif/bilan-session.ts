@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useProgression } from '@/components/progression-context'
-import { getParcours } from '@/lib/progression'
+import { getParcours, getProgressionCours } from '@/lib/progression'
 import { getMoi } from '@/lib/session'
 
 /**
@@ -10,7 +10,7 @@ import { getMoi } from '@/lib/session'
  *
  * - the XP of this session: the sum of the real gains `ProgressionProvider` reports from the
  *   chapter's opening on, whatever the mode they were earned in;
- * - this chapter's completion when it opened, then again each time the end slide opens. Sections
+ * - this chapter's (or teacher course's, ADR 0050) completion when it opened, then again each time the end slide opens. Sections
  *   read and exercises solved are recorded asynchronously (ADR 0022), the last section only as the
  *   student enters the end slide, so that read polls a little until the value moves.
  *
@@ -25,22 +25,29 @@ export type BilanSession = {
   completion: { avant: number | null; actuelle: number | null }
 }
 
+/** What is being read: a catalogue chapter in its track, or a teacher course (ADR 0050 §7). */
+export type Cible =
+  | { type: 'chapitre'; chapitreId: string; niveau: string; matiere: string; slug: string }
+  | { type: 'cours'; coursId: string }
+
 type Props = {
-  niveau: string
-  matiere: string
-  slug: string
+  cible: Cible
   /** The end slide is open: the moment to read the completion again. */
   finOuverte: boolean
 }
 
+/** The completion `progression` gives for the target: the path for a chapter, the gauge for a course. */
+async function lireCompletion(cible: Cible): Promise<number | null> {
+  if (cible.type === 'cours') {
+    return (await getProgressionCours(cible.coursId))?.pourcentage ?? null
+  }
+  const parcours = await getParcours(cible.niveau, cible.matiere)
+  return parcours?.find((c) => c.chapitreId === cible.slug)?.pourcentage ?? null
+}
+
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
-export function useBilanSession({
-  niveau,
-  matiere,
-  slug,
-  finOuverte,
-}: Props): BilanSession {
+export function useBilanSession({ cible, finOuverte }: Props): BilanSession {
   const { gain } = useProgression()
   const [eleve, setEleve] = useState(false)
   const [xp, setXp] = useState(0)
@@ -56,11 +63,7 @@ export function useBilanSession({
   }, [gain])
 
   const lire = useRef<(() => Promise<{ pourcentage: number | null }>) | null>(null)
-  lire.current = async () => {
-    const parcours = await getParcours(niveau, matiere)
-    const ici = parcours?.find((c) => c.chapitreId === slug)
-    return { pourcentage: ici?.pourcentage ?? null }
-  }
+  lire.current = async () => ({ pourcentage: await lireCompletion(cible) })
 
   useEffect(() => {
     let alive = true
@@ -80,7 +83,7 @@ export function useBilanSession({
     return () => {
       alive = false
     }
-  }, [niveau, matiere, slug])
+  }, [cible])
 
   const derniere = useRef<number | null>(null)
   derniere.current = actuelle

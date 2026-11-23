@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useModeChapitre } from '@/components/chapitre-interactif/mode-context'
-import { getParcours } from '@/lib/progression'
+import { getParcours, getProgressionCours } from '@/lib/progression'
 import { getMoi } from '@/lib/session'
 
-type Props = {
-  niveau: string
-  matiere: string
-  slug: string
-}
+/** A catalogue chapter, found on the student's path, or a teacher course and its gauge (ADR 0050). */
+type Props =
+  | { niveau: string; matiere: string; slug: string; coursId?: undefined }
+  | { coursId: string; niveau?: undefined; matiere?: undefined; slug?: undefined }
 
 /**
  * Slim progress gauge above the chapter, showing the student's real completion of
@@ -19,7 +18,7 @@ type Props = {
  * backend does not have"). No lives/hearts — progress encourages, it doesn't punish.
  * Reloads when a section read has been counted (#252), so the gauge moves while reading.
  */
-export function ChapterProgress({ niveau, matiere, slug }: Props) {
+export function ChapterProgress({ niveau, matiere, slug, coursId }: Props) {
   const [pourcentage, setPourcentage] = useState<number | null>(null)
   const revision = useModeChapitre()?.revisionProgression ?? 0
 
@@ -29,12 +28,14 @@ export function ChapterProgress({ niveau, matiere, slug }: Props) {
       try {
         const moi = await getMoi()
         if (!alive || !moi || moi.role !== 'eleve') return // only students have a path
-        const parcours = await getParcours(niveau, matiere)
-        if (!alive || !parcours) return // null = logged out → nothing
-        const chapitre = parcours.find((c) => c.chapitreId === slug)
-        if (chapitre) {
-          setPourcentage(Math.max(0, Math.min(100, Math.round(chapitre.pourcentage))))
-        }
+        const lu =
+          coursId !== undefined
+            ? // 204 (never opened, or unknown to progression) → null → no gauge, never 0 %.
+              ((await getProgressionCours(coursId))?.pourcentage ?? null)
+            : ((await getParcours(niveau!, matiere!))?.find((c) => c.chapitreId === slug)
+                ?.pourcentage ?? null)
+        if (!alive || lu === null) return // logged out, or no value → nothing
+        setPourcentage(Math.max(0, Math.min(100, Math.round(lu))))
       } catch {
         // Réseau / parse : on n'affiche pas de jauge plutôt que d'inventer un chiffre.
       }
@@ -42,7 +43,7 @@ export function ChapterProgress({ niveau, matiere, slug }: Props) {
     return () => {
       alive = false
     }
-  }, [niveau, matiere, slug, revision])
+  }, [niveau, matiere, slug, coursId, revision])
 
   if (pourcentage === null) return null
 
@@ -52,7 +53,11 @@ export function ChapterProgress({ niveau, matiere, slug }: Props) {
     <div className="mb-6">
       <div className="mb-1.5 flex items-center justify-between">
         <span className="font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
-          {termine ? 'Chapitre terminé' : 'Ta progression'}
+          {termine
+            ? coursId !== undefined
+              ? 'Cours terminé'
+              : 'Chapitre terminé'
+            : 'Ta progression'}
         </span>
         <span className="font-display text-xs font-extrabold tabular-nums text-accent">
           {`${pourcentage} %`}
@@ -63,7 +68,7 @@ export function ChapterProgress({ niveau, matiere, slug }: Props) {
         aria-valuenow={pourcentage}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`Progression du chapitre : ${pourcentage} %`}
+        aria-label={`Progression du ${coursId !== undefined ? 'cours' : 'chapitre'} : ${pourcentage} %`}
         className="h-2 overflow-hidden rounded-pill bg-surface-raised"
       >
         <div
