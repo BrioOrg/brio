@@ -318,3 +318,36 @@ export { rationnelDepuisDecimal, rationnelDepuisNombre, valeurDe } from './graph
 // Graphing calculator — implicit curves (ADR 0049)
 export type { Fenetre, OptionsImplicite, PointSvg, TraceImplicite } from './grapheur/implicite'
 export { BUDGET_IMPLICITE, traceImplicite } from './grapheur/implicite'
+// Graphing calculator — the view: window, graduations, pan, zoom, drawing model (ADR 0049)
+export type {
+  TailleVue,
+  CouleurCourbe,
+  CourbeVue,
+  CourbeDessinee,
+  TexteVue,
+  AxeVue,
+  ModeleVue,
+} from './grapheur/vue'
+export {
+  ETENDUE_MIN,
+  ETENDUE_MAX,
+  CENTRE_MAX,
+  PX_PAR_GRADUATION,
+  fenetreParDefaut,
+  borner,
+  fenetreValide,
+  zoomAutour,
+  zoomAuCentre,
+  deplacer,
+  orthonormer,
+  estOrthonorme,
+  versSvg,
+  depuisSvg,
+  pasGraduation,
+  decimalesDuPas,
+  graduations,
+  formaterNombre,
+  formaterDecimal,
+  dessinerCourbe,
+  modeleVue,
+} from './grapheur/vue'
