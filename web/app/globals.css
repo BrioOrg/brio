@@ -1,6 +1,30 @@
 @import 'tailwindcss';
 @import './tokens.css';
 
+/* The halo behind a figure's texts (ADR 0038, components/figure/halo.ts) takes the colour of
+   the surface the figure sits on: each background that hosts figures sets it, and the nearest
+   one wins by inheritance. Hand-written in a layer, so Tailwind always emits it. */
+@layer utilities {
+  .bg-surface-page {
+    --figure-halo: var(--color-surface-page);
+  }
+  .bg-surface-panel {
+    --figure-halo: var(--color-surface-panel);
+  }
+  .bg-surface-raised {
+    --figure-halo: var(--color-surface-raised);
+  }
+  .bg-accent-soft {
+    --figure-halo: var(--color-accent-soft);
+  }
+  .bg-surface-result-correct {
+    --figure-halo: var(--color-surface-result-correct);
+  }
+  .bg-surface-result-incorrect {
+    --figure-halo: var(--color-surface-result-incorrect);
+  }
+}
+
 @keyframes slideUp {
   from {
     transform: translateY(100%);

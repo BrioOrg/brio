@@ -47,7 +47,10 @@ export function activeSectionKey(sections: AppSection[], pathname: string): stri
 // Accueil is "/" and nothing under it. Explorer is the fallback: the catalogue's semantic URLs
 // (/{niveau}/…, ADR 0011) have dynamic first segments, so any app-shell route no other section
 // claims is an Explorer route — except Paramètres, which is no section (it is reached from the
-// burger menu).
+// burger menu). Annales claims /annales; a subject opened from it is a catalogue URL, so it stays
+// Explorer.
+// The student bottom bar holds at most 6 slots (sections + upcoming tabs, ADR 0046): any new
+// student section needs a new ADR.
 export const APP_SECTIONS: AppSection[] = [
   { key: 'accueil', label: 'Accueil', icon: 'sparkle', href: '/', routes: [], exactRoutes: ['/'] },
   {
@@ -65,6 +68,7 @@ export const APP_SECTIONS: AppSection[] = [
     routes: ['/'],
     exceptRoutes: ['/parametres'],
   },
+  { key: 'annales', label: 'Annales', icon: 'barbell', href: '/annales', routes: ['/annales'] },
   { key: 'profil', label: 'Profil', icon: 'user', href: '/profil', routes: ['/profil'] },
 ]
 

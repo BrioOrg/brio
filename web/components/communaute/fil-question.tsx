@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+import { BoutonSignaler } from '@/components/communaute/bouton-signaler'
 import { BoutonUtile } from '@/components/communaute/bouton-utile'
 import { EditeurMessage, type MessageEcrit } from '@/components/communaute/editeur-message'
 import { MessageCommunaute } from '@/components/communaute/message-communaute'
@@ -76,13 +77,16 @@ export function FilQuestion({ question }: { question: QuestionDetail }) {
           onModifier={modifier}
           onSupprimer={supprimer}
           actions={
-            <BoutonUtile
-              cible="questions"
-              id={question.id}
-              nombre={question.nombreUtile}
-              aVote={question.aVote}
-              estAuteur={question.estAuteur}
-            />
+            <>
+              <BoutonUtile
+                cible="questions"
+                id={question.id}
+                nombre={question.nombreUtile}
+                aVote={question.aVote}
+                estAuteur={question.estAuteur}
+              />
+              <BoutonSignaler cible="question" id={question.id} estAuteur={question.estAuteur} />
+            </>
           }
         />
       </article>

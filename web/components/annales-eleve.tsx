@@ -8,12 +8,13 @@ import {
   demarrerExamen,
   entrainementParCompetence,
   listerAnnales,
-  listerCompetences,
+  listerCompetencesAnnales,
   type AnnaleVue,
-  type Competence,
+  type CompetenceAnnale,
   type EntrainementExercice,
 } from '@brio/api-client'
 
+import { signalerExamenDemarre } from '@/components/examen-banner'
 import { apiBaseUrl } from '@/lib/api-base-url'
 
 // Annales (F7, ADR 0026). Deux vues : « Sujets » (parcourir les sujets d'examen ; une annale est un
@@ -25,7 +26,9 @@ type Vue = 'sujets' | 'entrainement'
 
 export function AnnalesEleve() {
   const [annales, setAnnales] = useState<AnnaleVue[] | null>(null)
-  const [competences, setCompetences] = useState<Competence[]>([])
+  // null while loading; a failure is its own state, never an empty list (#406).
+  const [competences, setCompetences] = useState<CompetenceAnnale[] | null>(null)
+  const [erreurCompetences, setErreurCompetences] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
   const [vue, setVue] = useState<Vue>('sujets')
 
@@ -34,10 +37,11 @@ export function AnnalesEleve() {
       try {
         const [a, c] = await Promise.all([
           listerAnnales(apiBaseUrl()),
-          listerCompetences(apiBaseUrl()).catch(() => [] as Competence[]),
+          listerCompetencesAnnales(apiBaseUrl()).catch(() => null),
         ])
         setAnnales(a)
         setCompetences(c)
+        setErreurCompetences(c === null)
       } catch {
         setErreur('Impossible de charger les annales pour le moment.')
       }
@@ -49,7 +53,7 @@ export function AnnalesEleve() {
       <div className="mx-auto max-w-2xl">
         <h1 className="font-display text-2xl font-extrabold text-ink">Annales</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          De vrais sujets d’examen : entraîne-toi sur un sujet entier ou sur une compétence précise.
+          Choisis un sujet, puis entraîne-toi à ton rythme ou en mode examen.
         </p>
 
         <div className="mt-4 inline-flex rounded-lg border border-line bg-surface-panel p-0.5">
@@ -72,7 +76,12 @@ export function AnnalesEleve() {
         {!annales && !erreur && <p className="mt-4 text-ink-muted">Chargement…</p>}
 
         {annales && vue === 'sujets' && <VueSujets annales={annales} />}
-        {annales && vue === 'entrainement' && (
+        {annales && vue === 'entrainement' && erreurCompetences && (
+          <p role="alert" className="mt-6 text-danger">
+            Impossible de charger les compétences pour le moment. Recharge la page pour réessayer.
+          </p>
+        )}
+        {annales && vue === 'entrainement' && competences && (
           <VueEntrainement competences={competences} annales={annales} />
         )}
       </div>
@@ -82,13 +91,26 @@ export function AnnalesEleve() {
 
 function VueSujets({ annales }: { annales: AnnaleVue[] }) {
   const router = useRouter()
+  // The subject whose exam start is being confirmed, then started, or that failed to start.
+  const [aConfirmer, setAConfirmer] = useState<string | null>(null)
+  const [demarrage, setDemarrage] = useState(false)
+  const [echec, setEchec] = useState<string | null>(null)
 
   async function demarrerExamenSurAnnale(a: AnnaleVue) {
+    if (demarrage) return
+    setDemarrage(true)
+    setEchec(null)
     try {
       await demarrerExamen(apiBaseUrl(), a.id)
     } catch {
-      // Le serveur reste l'autorité ; on ouvre quand même le sujet.
+      // Never open the subject as if the exam had started (#407): the student stays here and
+      // can retry or train without the timer.
+      setEchec(a.id)
+      setDemarrage(false)
+      return
     }
+    // The banner lives in the layout and does not remount on navigation: tell it to look again.
+    signalerExamenDemarre()
     router.push(`/${a.niveau}/${a.matiere}/${a.id}`)
   }
 
@@ -132,14 +154,57 @@ function VueSujets({ annales }: { annales: AnnaleVue[] }) {
                   >
                     S’entraîner
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => demarrerExamenSurAnnale(a)}
-                    className="rounded-md bg-accent px-3 py-1.5 font-display text-sm font-extrabold text-surface-panel"
-                  >
-                    Démarrer en mode examen
-                  </button>
+                  {aConfirmer !== a.id && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEchec(null)
+                        setAConfirmer(a.id)
+                      }}
+                      className="rounded-md bg-accent px-3 py-1.5 font-display text-sm font-extrabold text-surface-panel"
+                    >
+                      Démarrer en mode examen
+                    </button>
+                  )}
                 </div>
+                {aConfirmer === a.id && (
+                  // What the exam mode does: ExamenService (timer from the subject's duration,
+                  // tutor cut while the session is open, « Rendre » ends it; ADR 0027).
+                  <div className="mt-3 rounded-lg border border-line bg-surface-page p-3">
+                    <p className="text-sm text-ink">
+                      {a.dureeMinutes
+                        ? `Le chrono dure ${a.dureeMinutes} min. `
+                        : 'Le chrono démarre tout de suite. '}
+                      Le tuteur est coupé jusqu’à ce que tu rendes ta copie.
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void demarrerExamenSurAnnale(a)}
+                        disabled={demarrage}
+                        className="rounded-md bg-accent px-3 py-1.5 font-display text-sm font-extrabold text-surface-panel disabled:opacity-50"
+                      >
+                        {demarrage ? 'Démarrage…' : 'Je commence l’examen'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAConfirmer(null)
+                          setEchec(null)
+                        }}
+                        disabled={demarrage}
+                        className="rounded-md border border-line px-3 py-1.5 font-display text-sm font-bold text-ink hover:border-accent"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                    {echec === a.id && (
+                      <p role="alert" className="mt-2 text-sm text-danger">
+                        Le mode examen n’a pas pu démarrer. Réessaie, ou entraîne-toi sans chrono.
+                      </p>
+                    )}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -153,12 +218,13 @@ function VueEntrainement({
   competences,
   annales,
 }: {
-  competences: Competence[]
+  competences: CompetenceAnnale[]
   annales: AnnaleVue[]
 }) {
   const [code, setCode] = useState('')
   const [exos, setExos] = useState<EntrainementExercice[] | null>(null)
   const [chargement, setChargement] = useState(false)
+  const [erreur, setErreur] = useState(false)
 
   // Lien vers l'annale source (une annale = un chapitre).
   const lienAnnale = useMemo(() => {
@@ -170,23 +236,37 @@ function VueEntrainement({
   async function choisir(nouveauCode: string) {
     setCode(nouveauCode)
     setExos(null)
+    setErreur(false)
     if (!nouveauCode) return
     setChargement(true)
     try {
       setExos(await entrainementParCompetence(apiBaseUrl(), nouveauCode))
     } catch {
-      setExos([])
+      // A failure is not « aucun exercice » (#406).
+      setErreur(true)
     } finally {
       setChargement(false)
     }
   }
 
+  if (competences.length === 0) {
+    return (
+      <p className="mt-6 text-ink-muted">
+        Aucune compétence n’est encore travaillée par les annales disponibles.
+      </p>
+    )
+  }
+
   return (
     <div className="mt-6">
-      <label className="block font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
+      <label
+        htmlFor="competence-annales"
+        className="block font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted"
+      >
         Choisis une compétence
       </label>
       <select
+        id="competence-annales"
         value={code}
         onChange={(e) => void choisir(e.target.value)}
         className="mt-2 w-full rounded-lg border border-line bg-surface-panel px-3 py-2 font-prose text-sm text-ink"
@@ -201,6 +281,13 @@ function VueEntrainement({
 
       {chargement && <p className="mt-4 text-ink-muted">Chargement…</p>}
 
+      {erreur && (
+        <p role="alert" className="mt-4 text-danger">
+          Impossible de charger les exercices de cette compétence. Choisis-la de nouveau pour
+          réessayer.
+        </p>
+      )}
+
       {exos && exos.length === 0 && (
         <p className="mt-4 text-ink-muted">
           Aucun exercice d’annale sur cette compétence pour l’instant.
@@ -212,7 +299,10 @@ function VueEntrainement({
           {exos.map((ex) => {
             const lien = lienAnnale.get(ex.annaleId)
             return (
-              <li key={ex.exerciceId} className="rounded-2xl border border-line bg-surface-panel p-4">
+              <li
+                key={ex.exerciceId}
+                className="rounded-2xl border border-line bg-surface-panel p-4"
+              >
                 <div className="font-prose text-sm text-ink">{ex.prompt}</div>
                 <div className="mt-1 text-xs text-ink-muted">
                   {ex.exerciseType} · issu de{' '}

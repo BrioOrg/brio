@@ -1,4 +1,25 @@
 import type { Tone } from './tone'
+import {
+  drawLines,
+  drawVectors,
+  expandTransformations,
+  frameOf,
+  type DrawingVector,
+  type FigureLine,
+  type FigureRay,
+  type FigureTransformation,
+  type FigureVector,
+  type SvgFrame,
+  type TransformationMotion,
+} from './transformations'
+import {
+  buildFunctionPlot,
+  clearReadValues,
+  type DrawingFunctionPlot,
+  type FigureFunction,
+  type FigureParameter,
+  type FigureReading,
+} from './function-plot'
 
 // --- Spec types (mirror the JSON schema) ---
 
@@ -171,6 +192,15 @@ export type FigureSpec = {
   polylines?: FigurePolyline[]
   axes?: FigureAxes
   solids?: FigureSolid[]
+  // ADR 0041
+  transformations?: FigureTransformation[]
+  vectors?: FigureVector[]
+  lines?: FigureLine[]
+  rays?: FigureRay[]
+  /** Curves given by their expression, in a figure with axes (ADR 0038). */
+  functions?: FigureFunction[]
+  readings?: FigureReading[]
+  parameters?: FigureParameter[]
 }
 
 // --- Drawing model (SVG-ready, all coordinates in SVG pixels) ---
@@ -246,6 +276,26 @@ export type DrawingModel = {
   polylines: DrawingPolyline[]
   cubeFaces: DrawingCubeFace[]
   axes: DrawingAxes | null
+  vectors: DrawingVector[]
+  transformations: DrawingTransformation[]
+  /** Curves of `functions`, their names and the readings (ADR 0038); null without functions. */
+  functionPlot: DrawingFunctionPlot | null
+}
+
+export type DrawingOptions = {
+  /** The values the sliders give the parameters; the spec's `value` otherwise. */
+  parameterValues?: Readonly<Record<string, number>>
+  /** Draws a layer of another figure (ADR 0041) in that figure's viewport and scales. */
+  frame?: { viewport: CoordinateSpace; repere: boolean }
+}
+
+/** One transformation's layers (ADR 0041), drawn over the figure and revealed as a step. */
+export type DrawingTransformation = {
+  image: DrawingModel
+  construction: DrawingModel
+  ghost: DrawingModel
+  motion: TransformationMotion
+  frame: SvgFrame
 }
 
 // SVG canvas constants (pixels)
@@ -264,6 +314,8 @@ const ARROW_LEN_PX = 8
 const ARROW_HALF_WIDTH_PX = 4
 const AXIS_TICK_HALF_LEN_PX = 4
 const AXIS_LABEL_GAP_PX = 6
+// Lines and rays stop this short of the canvas edge (ADR 0041).
+const LINE_INSET = 4
 
 type Pt2 = { x: number; y: number }
 
@@ -417,7 +469,16 @@ function toned(tone: Tone | undefined): Toned {
   return tone === undefined ? {} : { tone }
 }
 
-export function buildDrawingModel(spec: FigureSpec): DrawingModel {
+export function buildDrawingModel(
+  authored: FigureSpec,
+  options: DrawingOptions = {}
+): DrawingModel {
+  const { frame } = options
+  // Image points join the figure, hidden: other elements may name them, the frame fits them.
+  const extension = expandTransformations(authored)
+  const spec: FigureSpec = extension.points.length
+    ? { ...authored, points: [...(authored.points ?? []), ...extension.points] }
+    : authored
   const pointMap = new Map<string, Pt2>(
     (spec.points ?? []).map((p) => [p.name, { x: p.x, y: p.y }])
   )
@@ -426,8 +487,9 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     assertDrawableAxis(spec.axes.x, 'des abscisses')
     assertDrawableAxis(spec.axes.y, 'des ordonnées')
   }
-  const viewport = computeViewport(spec, pointMap)
-  const toSvg = spec.axes ? makeAxesTransform(viewport) : makeTransform(viewport)
+  const viewport = frame?.viewport ?? computeViewport(spec, pointMap)
+  const repere = frame?.repere ?? spec.axes !== undefined
+  const toSvg = repere ? makeAxesTransform(viewport) : makeTransform(viewport)
 
   // Segments
   const segments: DrawingStroke[] = (spec.segments ?? []).map((seg) => {
@@ -659,7 +721,33 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
   const originNamed = (spec.points ?? []).some(
     (p) => p.x === 0 && p.y === 0 && p.showName !== false
   )
-  const axes = spec.axes ? buildAxes(spec.axes, toSvg, originNamed) : null
+  const functionPlot = buildFunctionPlot(spec, toSvg, options.parameterValues)
+  const builtAxes = spec.axes ? buildAxes(spec.axes, toSvg, originNamed) : null
+  const axes = builtAxes ? clearReadValues(builtAxes, functionPlot) : null
+
+  // Lines and rays (ADR 0041) join the segments, cut to the plot area of a repère or the canvas.
+  const corner1 = toSvg(viewport.xMin, viewport.yMax)
+  const corner2 = toSvg(viewport.xMax, viewport.yMin)
+  const lines = drawLines(
+    spec,
+    pointMap,
+    toSvg,
+    repere
+      ? { x1: corner1.x, y1: corner1.y, x2: corner2.x, y2: corner2.y }
+      : { x1: LINE_INSET, y1: LINE_INSET, x2: CANVAS_SIZE - LINE_INSET, y2: CANVAS_SIZE - LINE_INSET }
+  )
+  segments.push(...lines.strokes)
+  pointLabels.push(...lines.labels)
+  const centre = toSvg((viewport.xMin + viewport.xMax) / 2, (viewport.yMin + viewport.yMax) / 2)
+  const vectors = drawVectors(spec.vectors ?? [], pointMap, toSvg, centre)
+  const layerFrame = { viewport, repere }
+  const transformations = extension.layers.map((layer) => ({
+    image: buildDrawingModel(layer.image, { frame: layerFrame }),
+    construction: buildDrawingModel(layer.construction, { frame: layerFrame }),
+    ghost: buildDrawingModel(layer.ghost, { frame: layerFrame }),
+    motion: layer.motion,
+    frame: frameOf(toSvg),
+  }))
 
   return {
     viewBox: `0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`,
@@ -677,6 +765,9 @@ export function buildDrawingModel(spec: FigureSpec): DrawingModel {
     polylines,
     cubeFaces,
     axes,
+    vectors,
+    transformations,
+    functionPlot,
   }
 }
 

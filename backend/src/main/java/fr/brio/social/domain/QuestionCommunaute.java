@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -17,6 +18,7 @@ import org.hibernate.type.SqlTypes;
 public class QuestionCommunaute {
 
     public static final String STATUT_PUBLIE = "publie";
+    public static final String STATUT_MASQUE = "masque";
     public static final String STATUT_SUPPRIME = "supprime";
 
     /** Ce qui reste d'un message supprimé : son auteur a demandé qu'il disparaisse. */
@@ -26,7 +28,15 @@ public class QuestionCommunaute {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "auteur_id", nullable = false)
+    /** Verrou optimiste (V44) : modération et auteur ne s'écrasent pas en silence. */
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    // Never changed through the entity: only the retention purge rewrites it, in bulk. Keeping it
+    // out of Hibernate's UPDATE stops a stale entity, loaded before the purge and flushed after,
+    // from writing the student's id back (ADR 0023 §6).
+    @Column(name = "auteur_id", nullable = false, updatable = false)
     private UUID auteurId;
 
     @Column(name = "titre", nullable = false)
@@ -76,6 +86,16 @@ public class QuestionCommunaute {
         this.corps = CORPS_VIDE;
     }
 
+    /** Modération : masque le contenu sans l'effacer, pour pouvoir le restaurer après contestation. */
+    public void masquer() {
+        this.statut = STATUT_MASQUE;
+    }
+
+    /** Modération : remet un contenu masqué en ligne (restauration après contestation acceptée). */
+    public void restaurer() {
+        this.statut = STATUT_PUBLIE;
+    }
+
     public void resoudre(UUID reponseId) {
         this.reponseResolueId = reponseId;
     }
@@ -86,6 +106,10 @@ public class QuestionCommunaute {
 
     public boolean estVisible() {
         return STATUT_PUBLIE.equals(statut);
+    }
+
+    public String getStatut() {
+        return statut;
     }
 
     public UUID getId() {

@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 /**
  * Première couche de modération, appliquée à l'écriture avant tout stockage (ADR 0023) :
- * longueur bornée, pas de lien externe cliquable, corps non vide. Pur et sans effet de
+ * longueur bornée, pas de lien externe cliquable, pas de numéro de téléphone, corps non vide. Pur et sans effet de
  * bord pour rester testable sans base.
  */
 public final class ModerationPreventive {
@@ -37,7 +37,8 @@ public final class ModerationPreventive {
     /**
      * Normalise et valide le corps d'un message. Renvoie le texte nettoyé (sans espaces
      * en bordure), ou lève {@link MessageInvalideException} si le message est vide, trop
-     * long, ou contient un lien externe.
+     * long, ou contient un lien externe ou un numéro de téléphone. Les messages restent neutres :
+     * ils s'affichent dans le salon comme dans l'entraide.
      */
     public static String valider(String corps) {
         String nettoye = corps == null ? "" : corps.strip();
@@ -49,7 +50,10 @@ public final class ModerationPreventive {
                     "Le message est trop long (max " + LONGUEUR_MAX + " caractères).");
         }
         if (LIEN.matcher(nettoye).find()) {
-            throw new MessageInvalideException("Les liens externes ne sont pas autorisés dans l'entraide.");
+            throw new MessageInvalideException("Les liens externes ne sont pas autorisés.");
+        }
+        if (TELEPHONE_FR.matcher(nettoye).find()) {
+            throw new MessageInvalideException("Les numéros de téléphone ne sont pas autorisés.");
         }
         return nettoye;
     }

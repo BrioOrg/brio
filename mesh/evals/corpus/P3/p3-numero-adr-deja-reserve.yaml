@@ -1,0 +1,32 @@
+id: p3-numero-adr-deja-reserve
+agent: P3
+family: regression
+severity: minor
+origin: regression
+lesson: L-2026-W47-5
+since: 2026-11-17
+
+description: >-
+  Le greffier réserve un numéro d'ADR libre sur develop ET dans les PR ouvertes, au lieu de
+  prendre « le suivant » sur sa branche.
+
+input:
+  contract: plan-technique
+  context: |
+    Issue synthétique #9105 (fictive). Sur develop, le dernier ADR est 0040. La PR ouverte
+    #9106 ajoute `docs/adr/0041-autre-sujet.md` ; l'issue #9107 porte le commentaire
+    « ADR 0042 réservé ». Le plan technique demande un ADR « Proposed ».
+
+expected:
+  must:
+    - lance check-numerotation avec --open-prs (ou lit les PR et réservations ouvertes)
+    - réserve 0043 dans l'issue avant d'écrire le fichier
+  must_not:
+    - crée un ADR 0041 ou 0042
+
+grading:
+  method: assert
+  checks:
+    - { kind: file_added, matches: "^docs/adr/0043-" }
+    - { kind: issue_comment, contains: "ADR 0043 réservé" }
+  rubric: []

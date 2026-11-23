@@ -19,7 +19,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | Écrire dans le salon de ma classe | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/ma-classe/salon` |
 | Lire les questions de la Communauté | eleve |  | 1 | 1 | 1 | `/` → `/communaute` |
 | Poser une question à la Communauté | eleve |  | 2 | 2 | 2 | `/` → `/communaute` → `/communaute/nouvelle` |
-| S'entraîner sur une annale | eleve |  | 2 | 2 | 2 | `/` → `/explorer` → `/annales` |
+| S'entraîner sur une annale | eleve |  | 1 | 1 | 1 | `/` → `/annales` |
 | Voir mon profil | eleve |  | 1 | 1 | 1 | `/` → `/profil` |
 | Ouvrir mes paramètres | eleve |  | 1 | 1 | 1 | `/` → `/parametres` |
 | Rejoindre une classe avec un code | eleve |  | 2 | 2 | 2 | `/` → `/ma-classe` → `/rejoindre` |
@@ -28,6 +28,8 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | Voir mes classes | enseignant | 🔥 | 1 | 1 | 1 | `/prof` → `/prof/classes` |
 | Traiter un signalement | enseignant |  | 1 | 1 | 1 | `/prof` → `/prof/signalements` |
 | Modérer le salon de classe | enseignant |  | 1 | 1 | 1 | `/prof` → `/prof/signalements-salon` |
+| Lire et écrire dans le salon d'une classe | enseignant | 🔥 | 2 | 2 | 2 | `/prof` → `/prof/classes` → `/prof/classes/[id]` |
+| Traiter la file de modération de la Communauté | admin |  | 1 | 1 | 1 | `/explorer` → `/admin/communaute` |
 | Se connecter | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/connexion` |
 | Créer un compte élève | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/inscription` |
 | Rejoindre une classe avec un code | visiteur | 🔥 | 1 | 1 | 1 | `/commencer` → `/rejoindre` |
@@ -40,6 +42,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 0 | `/` |
 | 1 | `/[niveau]/[matiere]` |
 | 1 | `/[niveau]/[matiere]/[slug]` |
+| 1 | `/annales` |
 | 1 | `/communaute` |
 | 1 | `/cours/[coursId]` |
 | 1 | `/devoirs` |
@@ -48,7 +51,6 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 1 | `/parametres` |
 | 1 | `/profil` |
 | 2 | `/[niveau]` |
-| 2 | `/annales` |
 | 2 | `/communaute/[questionId]` |
 | 2 | `/communaute/nouvelle` |
 | 2 | `/ma-classe/cours` |
@@ -69,6 +71,13 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 2 | `/prof/classes/[id]` |
 | 2 | `/prof/devoirs/[id]` |
 | 2 | `/prof/devoirs/nouveau` |
+
+## Profondeur de chaque route — entrée « admin » (`/explorer`)
+
+| Clics | Route |
+|---:|---|
+| 0 | `/explorer` |
+| 1 | `/admin/communaute` |
 
 ## Profondeur de chaque route — entrée « visiteur » (`/commencer`)
 

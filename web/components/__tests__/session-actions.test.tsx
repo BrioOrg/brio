@@ -12,6 +12,7 @@ vi.mock('@/lib/session', () => ({
 
 const ELEVE = { id: 'abc', role: 'eleve', statut: 'actif', nom: null, email: null }
 const ENSEIGNANT = { id: 'def', role: 'enseignant', statut: 'actif', nom: 'P', email: 'p@t.fr' }
+const ADMIN = { id: 'ghi', role: 'admin_brio', statut: 'actif', nom: 'A', email: 'a@t.fr' }
 
 async function setup() {
   const { getMoi } = await import('@/lib/session')
@@ -72,6 +73,30 @@ describe('SessionActions', () => {
 
     await screen.findByRole('button', { name: 'Se déconnecter' })
     expect(screen.queryByRole('link', { name: 'Espace enseignant' })).not.toBeInTheDocument()
+  })
+
+  it('propose la console de modération à un admin_brio (#338)', async () => {
+    const { getMoi, renderActions } = await setup()
+    getMoi.mockResolvedValue(ADMIN)
+    renderActions()
+
+    expect(await screen.findByRole('link', { name: 'Modération' })).toHaveAttribute(
+      'href',
+      '/admin/communaute'
+    )
+    expect(screen.queryByRole('link', { name: 'Espace enseignant' })).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['élève', ELEVE],
+    ['enseignant', ENSEIGNANT],
+  ])('ne propose pas la console de modération à un compte %s (#338)', async (_, compte) => {
+    const { getMoi, renderActions } = await setup()
+    getMoi.mockResolvedValue(compte)
+    renderActions()
+
+    await screen.findByRole('button', { name: 'Se déconnecter' })
+    expect(screen.queryByRole('link', { name: 'Modération' })).not.toBeInTheDocument()
   })
 
   it("n'affiche rien pour un visiteur non connecté", async () => {

@@ -117,10 +117,10 @@ cd backend && ./mvnw -B -Pmutation test-compile org.pitest:pitest-maven:mutation
   -Dpit.targetClasses=fr.brio.progression.domain.Niveau -Dpit.targetTests='fr.brio.progression.*'
 # rapport : backend/target/pit-reports/index.html (+ mutations.xml)
 
-# Web — un fichier
-cd web && pnpm dlx --package @stryker-mutator/core@9.4.0 --package @stryker-mutator/vitest-runner@9.4.0 \
-  stryker run ../mesh/mutation/stryker.web.config.mjs --mutate "lib/progression.ts"
-# rapport : web/reports/mutation/index.html
+# Web — depuis la RACINE, sur un arbre propre (Stryker mute en place et restaure à la fin)
+web/node_modules/.bin/stryker run mesh/mutation/stryker.web.config.mjs \
+  --mutate "web/lib/progression.ts,packages/api-client/src/session.ts"
+# rapport : reports/mutation/index.html (+ mutation.json)
 ```
 
 **Seuil et alerte « test affaibli »** (`mesh/verification/config.json › mutation`), jugés par
@@ -142,11 +142,11 @@ assertions en moins, une assertion exacte remplacée par une plus faible, une to
 des `retries` relevés. C'est une **alerte** : V3 la juge contre les critères d'acceptation (un test
 légitimement modifié parce que le critère a changé est accepté par V3, pas par le script).
 
-> **Nouvelle bibliothèque.** Stryker passe par `pnpm dlx` et non en `devDependency`, pour ne pas
-> toucher `pnpm-lock.yaml` avant validation (règle du dépôt : toute nouvelle bibliothèque a sa
-> justification). Justification : seul moyen automatique de savoir si les tests *détectent* quelque
-> chose ; `jacoco`/couverture de lignes ne le dit pas. Quand le premier run est concluant, la promotion
-> en `devDependency` + un ADR (N2, nouvelle dépendance → P3) sont à ouvrir par l'humain.
+> **Nouvelle bibliothèque.** Stryker 9.4.0 et son runner Vitest sont des `devDependencies` de `web/`
+> ([ADR 0048](../adr/0048-stryker-devdependency.md), #372). Par `pnpm dlx`, il tirait le dernier
+> Vitest, incompatible avec la suite du dépôt, et ne mutait jamais `packages/api-client`.
+> Justification : seul moyen automatique de savoir si les tests *détectent* quelque chose ;
+> `jacoco`/couverture de lignes ne le dit pas.
 
 ## Dérive des contrats
 

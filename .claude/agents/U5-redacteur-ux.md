@@ -49,6 +49,10 @@ U4 Designer d'interface · B3 Dev web · V6 Contrôleur visuel · U7 Auditeur ac
   règle des **nombres décimaux** (jamais de virgule de phrase collée à un décimal,
   `.claude/rules/content.md`). Les textes de cours et d'exercices restent à V4, pas à U5.
 - N'écrit que ce qui est vrai : aucune promesse de fonction, d'XP ou de classement qui n'existe pas.
+- **Chaque phrase qui affirme un fait** (durée, usage unique, qui fait quoi, ce qui est conservé)
+  porte dans la spec le `fichier:ligne` du backend qui la rend vraie ; sans source, elle est
+  retirée. Un lien vers un flux existant est décrit par ce que ce flux **fait**, vérifié dans le
+  code, pas par son nom (rétro PL-4 : « usage unique · 7 jours », `/rejoindre`).
 - Le ton ne culpabilise jamais l'élève, ne se moque pas, et ne donne **jamais la réponse** d'un
   exercice dans un message (le tuteur aide, il ne répond pas à la place).
 - Jamais de push sur `develop`/`main`.

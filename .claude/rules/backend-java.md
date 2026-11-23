@@ -47,6 +47,18 @@ Organise by role, package-private by default:
 - pgvector is used for RAG embeddings in `tutoring`; keep vector concerns inside
   that module's `infrastructure`.
 
+## Concurrency on authentication and account state
+
+- Any flow that changes credentials or account state (password reset, temporary
+  password, lock-out counter, session revocation) is designed **together with
+  login**: the plan names, for each pair (login × reset, login × login, reset ×
+  reset), the lock or conditional `UPDATE … WHERE` that serialises it.
+- Login reads the account it may update **under a lock** (`FOR UPDATE`) or updates
+  conditionally on the state it read; never read-then-write without either.
+- Each such pair gets an integration test that holds one transaction open while the
+  other runs, and is checked by counter-proof (the test fails once the guard is
+  removed). PL-4 retro (#358): two races (I1, N1) were only found at gate 5.
+
 ## AI / LLM code
 
 - Default to the latest, most capable Claude models for new AI features.

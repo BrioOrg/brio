@@ -34,13 +34,13 @@
           "type": "callout",
           "variant": "definition",
           "title": "Symétrique d'un point",
-          "text": "Le symétrique d'un point A par le demi-tour de centre O est le point A' tel que **O est le milieu du segment [AA']**. Le symétrique de O est O lui-même. On parle aussi de **symétrie centrale** de centre O."
+          "text": "Le symétrique d'un point A par le demi-tour de centre O est le point A′ tel que **O est le milieu du segment [AA′]**. Le symétrique de O est O lui-même. On parle aussi de **symétrie centrale** de centre O."
         },
         {
           "id": "fig-symetrique-point",
           "type": "figure",
-          "alt": "Les points A, O et A' sont alignés ; O est le milieu du segment [AA'], les segments [AO] et [OA'] sont codés de même longueur.",
-          "caption": "A' est le symétrique de A par rapport à O.",
+          "alt": "Les points A, O et A′ sont alignés ; O est le milieu du segment [AA′], les segments [AO] et [OA′] sont codés de même longueur.",
+          "caption": "A′ est le symétrique de A par rapport à O.",
           "spec": {
             "points": [
               {
@@ -60,7 +60,7 @@
                 }
               },
               {
-                "name": "A'",
+                "name": "A′",
                 "x": 7,
                 "y": 5,
                 "label": {
@@ -75,7 +75,7 @@
               },
               {
                 "from": "O",
-                "to": "A'"
+                "to": "A′"
               }
             ],
             "lengthMarks": [
@@ -84,7 +84,7 @@
                 "ticks": 1
               },
               {
-                "segment": "OA'",
+                "segment": "OA′",
                 "ticks": 1
               }
             ]
@@ -102,7 +102,7 @@
               "text": "Au compas, on reporte la longueur AO de l'autre côté de O, sur cette demi-droite."
             },
             {
-              "text": "On obtient A', avec OA' = OA."
+              "text": "On obtient A′, avec OA′ = OA."
             }
           ]
         },
@@ -110,7 +110,7 @@
           "id": "ex-milieu",
           "type": "exercise",
           "exerciseType": "multiple-choice",
-          "prompt": "A' est le symétrique de A par rapport à O. Que peut-on dire du point O ?",
+          "prompt": "A′ est le symétrique de A par rapport à O. Que peut-on dire du point O ?",
           "competencies": [
             "c4.geo.transformations.construire-demi-tour"
           ],
@@ -120,27 +120,27 @@
           "choices": [
             {
               "id": "choix-o-est-le-milieu-de-aa",
-              "text": "O est le milieu de [AA']",
+              "text": "O est le milieu de [AA′]",
               "correct": true
             },
             {
               "id": "choix-o-est-sur-la-mediatrice-de-aa",
-              "text": "O est sur la médiatrice de [AA'] mais pas sur le segment",
+              "text": "O est sur la médiatrice de [AA′] mais pas sur le segment",
               "correct": false
             },
             {
               "id": "choix-oa-aa",
-              "text": "OA = AA'",
+              "text": "OA = AA′",
               "correct": false
             }
           ],
-          "explanation": "Par définition, O est le milieu de [AA'] : il est sur le segment et à égale distance de A et de A'. La médiatrice intervient dans la symétrie axiale, pas dans le demi-tour. AA' vaut le double de OA."
+          "explanation": "Par définition, O est le milieu de [AA′] : il est sur le segment et à égale distance de A et de A′. La médiatrice intervient dans la symétrie axiale, pas dans le demi-tour. AA′ vaut le double de OA."
         },
         {
           "id": "ex-longueur-aa",
           "type": "exercise",
           "exerciseType": "numeric",
-          "prompt": "A' est le symétrique de A par rapport à O, et AO = 4,5 cm. Quelle est la longueur AA' ?",
+          "prompt": "A′ est le symétrique de A par rapport à O, et AO = 4,5 cm. Quelle est la longueur AA′ ?",
           "competencies": [
             "c4.geo.transformations.construire-demi-tour"
           ],
@@ -149,7 +149,7 @@
           "answer": 9,
           "tolerance": 0,
           "unit": "cm",
-          "explanation": "O est le milieu de [AA'] : OA' = OA = 4,5 cm, donc AA' = 4,5 + 4,5 = 9 cm."
+          "explanation": "O est le milieu de [AA′] : OA′ = OA = 4,5 cm, donc AA′ = 4,5 + 4,5 = 9 cm."
         },
         {
           "id": "ex-repere-symetrique",
@@ -179,7 +179,7 @@
               "correct": false
             }
           ],
-          "explanation": "O est le milieu de [AA'] : pour aller de A à O on fait 3 unités vers la gauche et 2 vers le bas, on recommence pour aller de O à A'. A'(−3 ; −2). (3 ; −2) est le symétrique par rapport à l'axe des abscisses, (−3 ; 2) par rapport à l'axe des ordonnées."
+          "explanation": "O est le milieu de [AA′] : pour aller de A à O on fait 3 unités vers la gauche et 2 vers le bas, on recommence pour aller de O à A′. A′(−3 ; −2). (3 ; −2) est le symétrique par rapport à l'axe des abscisses, (−3 ; 2) par rapport à l'axe des ordonnées."
         }
       ]
     },
@@ -197,7 +197,7 @@
         {
           "id": "fig-triangle-symetrique",
           "type": "figure",
-          "alt": "Le triangle ABC et son symétrique A'B'C' par le demi-tour de centre O. Le triangle A'B'C' est le triangle ABC retourné tête en bas.",
+          "alt": "Le triangle ABC et son symétrique A′B′C′ par le demi-tour de centre O. O est le milieu de [AA′], de [BB′] et de [CC′]. Le triangle A′B′C′ est le triangle ABC retourné tête en bas.",
           "caption": "Un demi-tour fait « tourner » la figure : elle se retrouve tête en bas.",
           "spec": {
             "points": [
@@ -232,30 +232,6 @@
                 "label": {
                   "placement": "below"
                 }
-              },
-              {
-                "name": "A'",
-                "x": 7,
-                "y": 3,
-                "label": {
-                  "placement": "above-right"
-                }
-              },
-              {
-                "name": "B'",
-                "x": 5,
-                "y": 3,
-                "label": {
-                  "placement": "above-left"
-                }
-              },
-              {
-                "name": "C'",
-                "x": 6,
-                "y": 1,
-                "label": {
-                  "placement": "below"
-                }
               }
             ],
             "polygons": [
@@ -265,13 +241,20 @@
                   "B",
                   "C"
                 ]
-              },
+              }
+            ],
+            "transformations": [
               {
-                "vertices": [
-                  "A'",
-                  "B'",
-                  "C'"
-                ]
+                "kind": "symetrie-centrale",
+                "center": "O",
+                "source": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "show": {
+                  "construction": true
+                }
               }
             ]
           }
@@ -287,7 +270,7 @@
           "id": "ex-conserve-longueur",
           "type": "exercise",
           "exerciseType": "numeric",
-          "prompt": "Le segment [BC] mesure 6,2 cm. Combien mesure son symétrique [B'C'] par un demi-tour ?",
+          "prompt": "Le segment [BC] mesure 6,2 cm. Combien mesure son symétrique [B′C′] par un demi-tour ?",
           "competencies": [
             "c4.geo.transformations.utiliser-proprietes-demi-tour"
           ],
@@ -296,7 +279,7 @@
           "answer": 6.2,
           "tolerance": 0,
           "unit": "cm",
-          "explanation": "Le demi-tour conserve les longueurs : B'C' = BC = 6,2 cm."
+          "explanation": "Le demi-tour conserve les longueurs : B′C′ = BC = 6,2 cm."
         },
         {
           "id": "ex-conserve-angle",
@@ -379,7 +362,7 @@
               "correct": false
             }
           ],
-          "explanation": "O est le milieu de [OO'] seulement si O' = O : le centre est le seul point qui ne bouge pas."
+          "explanation": "O est le milieu de [OO′] seulement si O′ = O : le centre est le seul point qui ne bouge pas."
         },
         {
           "id": "ex-aire-symetrique",
@@ -415,7 +398,7 @@
           "id": "ex-alignement",
           "type": "exercise",
           "exerciseType": "multiple-choice",
-          "prompt": "Les points A, B et C sont alignés. Que peut-on dire de leurs symétriques A', B' et C' par un demi-tour ?",
+          "prompt": "Les points A, B et C sont alignés. Que peut-on dire de leurs symétriques A′, B′ et C′ par un demi-tour ?",
           "competencies": [
             "c4.geo.transformations.utiliser-proprietes-demi-tour"
           ],
@@ -475,13 +458,13 @@
           "id": "ex-construire-triangle",
           "type": "exercise",
           "exerciseType": "paper",
-          "prompt": "Sur ton cahier, trace un triangle ABC et un point O extérieur au triangle. Construis son symétrique A'B'C' par le demi-tour de centre O.",
+          "prompt": "Sur ton cahier, trace un triangle ABC et un point O extérieur au triangle. Construis son symétrique A′B′C′ par le demi-tour de centre O.",
           "competencies": [
             "c4.geo.transformations.construire-demi-tour"
           ],
           "difficulty": "standard",
           "estimatedDurationMinutes": 6,
-          "solution": "On construit A' : sur la demi-droite [AO), on reporte au compas la longueur OA de l'autre côté de O. On fait de même pour B' et C'. On relie A', B' et C'. Contrôles : O est le milieu de [AA'], [BB'] et [CC'] ; A'B' = AB, B'C' = BC, A'C' = AC ; (A'B') est parallèle à (AB)."
+          "solution": "On construit A′ : sur la demi-droite [AO), on reporte au compas la longueur OA de l'autre côté de O. On fait de même pour B′ et C′. On relie A′, B′ et C′. Contrôles : O est le milieu de [AA′], [BB′] et [CC′] ; A′B′ = AB, B′C′ = BC, A′C′ = AC ; (A′B′) est parallèle à (AB)."
         }
       ]
     }

@@ -274,6 +274,9 @@
   --color-scratch-operators-edge: #389438;
   --color-scratch-variables: #ff8c1a;
   --color-scratch-variables-edge: #db6e00;
+  /* Pen extension (#234): Scratch 3's pen primary, with its tertiary as -edge. */
+  --color-scratch-pen: #0fbd8c;
+  --color-scratch-pen-edge: #0b8e69;
 
   /* -- Cube assemblages ---------------------------------------------------- */
   /* Faces of the unit cubes in a figure's assemblage (#226) — not in the

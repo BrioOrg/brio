@@ -9,6 +9,7 @@ export {
   MOT_DE_PASSE_MIN,
   MOT_DE_PASSE_MAX_OCTETS,
   MESSAGE_MOT_DE_PASSE_TROP_LONG,
+  MESSAGE_MOT_DE_PASSE_TROP_LONG_VOUS,
   octetsUtf8,
   LoginError,
   LogoutError,
@@ -119,20 +120,28 @@ export type {
   ControleActif,
   PieceInfo,
 } from './devoirs.js'
-export { listerCompetences } from './referentiel.js'
-export type { Competence } from './referentiel.js'
+export { listerCompetences, LeconCompetenceSchema } from './referentiel.js'
+export type { Competence, LeconCompetence } from './referentiel.js'
 export {
   listerAnnales,
+  listerCompetencesAnnales,
   entrainementParCompetence,
   demarrerExamen,
   rendreExamen,
   examenActif,
   AnnaleVueSchema,
+  CompetenceAnnaleSchema,
   EntrainementExerciceSchema,
   ExamenActifSchema,
   ExamenDemarreSchema,
 } from './annales.js'
-export type { AnnaleVue, EntrainementExercice, ExamenActif, ExamenDemarre } from './annales.js'
+export type {
+  AnnaleVue,
+  CompetenceAnnale,
+  EntrainementExercice,
+  ExamenActif,
+  ExamenDemarre,
+} from './annales.js'
 export {
   mesClasses,
   listerFils,
@@ -205,3 +214,21 @@ export type {
   CommentaireCommunaute,
   FiltresQuestions,
 } from './communaute.js'
+export {
+  signalerContenu,
+  contesterDecision,
+  fileSignalementsCommunaute,
+  deciderModeration,
+  fileContestationsCommunaute,
+  trancherContestation as trancherContestationCommunaute,
+  ModerationError,
+  CibleTypeSchema,
+  SignalementCommunauteVueSchema,
+  ContestationModerationVueSchema,
+} from './moderation.js'
+export type {
+  CibleType,
+  ActionModeration,
+  SignalementCommunauteVue,
+  ContestationModerationVue,
+} from './moderation.js'

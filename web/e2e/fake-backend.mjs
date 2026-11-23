@@ -44,7 +44,8 @@
  *                                                 by Vitest, as it needs another server setting
  *   /api/communaute/**                            the Communauté (ADR 0035), kept in memory with
  *                                                 CommunauteService's rules; 403 for a teacher
- *   GET  /api/prof/classes                        the test teacher's class (PROF_CLASSE)
+ *   GET  /api/prof/classes                        the test teacher's classes (PROF_CLASSE, 3e C)
+ *   GET  /api/prof/etablissements                 their établissement (EtablissementPublicInfo)
  *   GET  /api/classes/{id}/inscriptions           its one student, for the teacher; 403 otherwise
  *   POST /api/classes/{id}/inscriptions/{compteId}/reinitialisation-acces
  *                                                 teacher-led access reset (ADR 0036): the student's
@@ -62,6 +63,34 @@
  *                                                 session is a 403, as StatutCheckFilter does — except
  *                                                 DELETE /api/sessions (logout runs before it).
  *                                                 Afterwards /api/moi carries accesReinitialise
+ *   3e C salon (PL-7, #399)                       a second class of the test teacher, with its own
+ *                                                 salon and two students (E2E_SESSION_3EC_NOE writes,
+ *                                                 E2E_SESSION_3EC_LOU reports), as MessagerieService
+ *                                                 serves it: the teacher reads hidden messages too
+ *                                                 (statut "masque"), the students only published ones;
+ *                                                 POST …/messages authored by the session's account,
+ *                                                 422 on a link or a phone number, 400 on a blank
+ *                                                 body; signalement recorded, idempotent per
+ *                                                 reporter, ignored on a hidden message (#402);
+ *                                                 GET /api/prof/salons/signalements (403 for a
+ *                                                 student), never the teacher's own messages nor
+ *                                                 hidden ones (#410, #402);
+ *                                                 POST /api/prof/salons/messages/{id}/masquer 204,
+ *                                                 closing its open reports (400 non-UUID id, 404
+ *                                                 unknown, 403 for a student, a 5e B message or
+ *                                                 the teacher's own message, #410).
+ *                                                 POST /api/prof/salons 201 { id } (403 for a class
+ *                                                 not taught, 400/422 on the title), the salon kept
+ *                                                 per teacher session (`e2e-enseignant-<uuid>`).
+ *                                                 5e B is left untouched
+ *   POST /api/communaute/{questions|reponses}/{id}/signalement
+ *                                                 204, idempotent while open; 403 on one's own
+ *                                                 message; the reported text is frozen (ADR 0044)
+ *   GET  /api/admin/communaute/signalements       E2E_SESSION_ADMIN only (403 otherwise): open
+ *                                                 reports grouped by target
+ *   POST /api/admin/communaute/{type}/{id}/decision  masquer / rejeter / supprimer / restaurer
+ *                                                 (masked only); a masked message leaves every read
+ *   GET  /api/admin/communaute/contestations      [] (no member screen to contest yet, ADR 0044)
  *   anything else                                 404 (the catalogue too: the page falls back
  *                                                 to codes, nothing is invented)
  *
@@ -125,6 +154,24 @@ export const E2E_SESSION_SANS_CLASSE = 'JSESSIONID=e2e-sans-classe'
 /** A logged-in teacher: /api/moi answers ENSEIGNANT, so the teacher space (/prof) opens. */
 export const E2E_SESSION_ENSEIGNANT = 'JSESSIONID=e2e-enseignant'
 
+/** Two students of the test teacher's 3e C (PL-7, #399): one writes, the other reports. */
+export const E2E_SESSION_3EC_NOE = 'JSESSIONID=e2e-eleve-3eC-noe'
+export const E2E_SESSION_3EC_LOU = 'JSESSIONID=e2e-eleve-3eC-lou'
+/** A logged-in Brio admin: /api/moi answers admin_brio, the moderation console opens (#338). */
+export const E2E_SESSION_ADMIN = 'JSESSIONID=e2e-admin'
+
+/**
+ * A student (5e) whose competence to review is `c4.num.operations.diviser-decimal`: taught in a
+ * lesson section of `division-decimale-problemes` (#371).
+ */
+export const E2E_SESSION_A_REVOIR = 'JSESSIONID=e2e-a-revoir'
+
+/**
+ * A student whose competence to review is `c4.geo.pythagore.reciproque`, which only an `exercises`
+ * section carries: no lesson to link, so the Accueil hides « À revoir » (#371).
+ */
+export const E2E_SESSION_A_REVOIR_ORPHELIN = 'JSESSIONID=e2e-a-revoir-orphelin'
+
 function cookies(req) {
   return (req.headers.cookie ?? '').split(/;\s*/)
 }
@@ -172,12 +219,42 @@ function sessionReinit(req) {
 /** Any live session. Another JSESSIONID (`e2e-expiree`…) is a session the backend has dropped. */
 function connecte(req) {
   return (
-    cookies(req).includes(E2E_SESSION) || sansClasse(req) || enseignant(req) || !!sessionReinit(req)
+    cookies(req).includes(E2E_SESSION) ||
+    sansClasse(req) ||
+    enseignant(req) ||
+    adminBrio(req) ||
+    !!sessionReinit(req) ||
+    !!eleve3eC(req) ||
+    competenceARevoir(req) !== null
   )
 }
 
+function adminBrio(req) {
+  return cookies(req).includes(E2E_SESSION_ADMIN)
+}
+
+/** The competence a #371 session has to review, null for any other session. */
+function competenceARevoir(req) {
+  if (cookies(req).includes(E2E_SESSION_A_REVOIR)) return 'c4.num.operations.diviser-decimal'
+  if (cookies(req).includes(E2E_SESSION_A_REVOIR_ORPHELIN)) return 'c4.geo.pythagore.reciproque'
+  return null
+}
+
 function enseignant(req) {
-  return cookies(req).includes(E2E_SESSION_ENSEIGNANT)
+  return sessionEnseignant(req) !== null
+}
+
+/**
+ * The teacher session's cookie value: `e2e-enseignant`, or `e2e-enseignant-<uuid>` for a spec that
+ * needs state of its own (PL-7, #399: opening a salon must not be seen by the other project).
+ */
+function sessionEnseignant(req) {
+  const valeur = cookies(req)
+    .find((c) => c.startsWith('JSESSIONID='))
+    ?.slice('JSESSIONID='.length)
+  return valeur === 'e2e-enseignant' || /^e2e-enseignant-[0-9a-f-]{36}$/.test(valeur ?? '')
+    ? valeur
+    : null
 }
 
 function sansClasse(req) {
@@ -192,6 +269,14 @@ const ELEVE = {
   email: null,
   pseudonyme: 'Renard-Indigo',
   niveau: '5e',
+}
+
+const ADMIN = {
+  id: '00000000-0000-4000-8000-0000000000e4',
+  role: 'admin_brio',
+  statut: 'actif',
+  nom: 'Équipe brio',
+  email: 'admin.e2e@example.org',
 }
 
 const ENSEIGNANT = {
@@ -375,6 +460,369 @@ const salonMessages = [
 ]
 const salonMessageVue = (m) => ({ ...m, estMoi: m.auteurId === ELEVE.id })
 
+// PL-7 (#399): the teacher's salon. A class apart from 5e B, whose salon ma-classe.spec reads in
+// strict mode (one more message from M. Dubois there would break it). The teacher teaches 3e C, so
+// /api/prof/classes lists it and /api/salons gives the teacher its salon only (the backend lists
+// the salons of the classes the caller is a member of). Message and salon ids are UUIDs: the
+// backend binds them as UUID path variables.
+const PROF_CLASSE_3EC = {
+  id: 'classe-3eC',
+  etablissementId: 'etab-e2e',
+  niveauCode: '3e',
+  libelle: '3e C',
+  anneeScolaire: '2026-2027',
+  statut: 'active',
+  enseignantPrincipalId: ENSEIGNANT.id,
+}
+/** cookie value -> the student's account and roster entry (InscriptionInfo) */
+const ELEVES_3EC = {
+  'e2e-eleve-3eC-noe': {
+    compteId: '00000000-0000-4000-8000-0000000003c1',
+    nomAffiche: 'Noé',
+    depuis: '2026-09-02',
+    homonyme: false,
+  },
+  'e2e-eleve-3eC-lou': {
+    compteId: '00000000-0000-4000-8000-0000000003c2',
+    nomAffiche: 'Lou',
+    depuis: '2026-09-02',
+    homonyme: false,
+  },
+}
+const SALON_3EC = {
+  id: '00000000-0000-4000-8000-0000000053c0',
+  classeId: PROF_CLASSE_3EC.id,
+  titre: 'Salon de la 3e C',
+  statut: 'ouvert',
+  createdAt: '2026-10-12T08:00:00Z',
+}
+// Seed: one from the teacher, one from a student, one already hidden. Specs never hide these:
+// each test hides only a message it wrote itself (both projects share this server).
+const messages3eC = [
+  {
+    id: '00000000-0000-4000-8000-0000000053c1',
+    auteurId: ENSEIGNANT.id,
+    corps: 'Bonjour la 3e C, le salon de la classe est ouvert.',
+    statut: 'publie',
+    createdAt: '2026-10-12T08:01:00Z',
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000053c2',
+    auteurId: ELEVES_3EC['e2e-eleve-3eC-noe'].compteId,
+    corps: 'Bonjour monsieur, bien reçu.',
+    statut: 'publie',
+    createdAt: '2026-10-12T08:05:00Z',
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000053c3',
+    auteurId: ELEVES_3EC['e2e-eleve-3eC-lou'].compteId,
+    corps: 'Un message hors sujet, déjà masqué.',
+    statut: 'masque',
+    createdAt: '2026-10-12T08:07:00Z',
+  },
+]
+/** { id, messageId, signalePar, motif, statut: 'ouvert' | 'traite', createdAt } */
+const signalements3eC = []
+
+/** The 3e C student of this session, or null. */
+function eleve3eC(req) {
+  const valeur = cookies(req)
+    .find((c) => c.startsWith('JSESSIONID='))
+    ?.slice('JSESSIONID='.length)
+  return (valeur && ELEVES_3EC[valeur]) || null
+}
+
+/** The account id of the session, for the 3e C salon (null: no member of it). */
+function membre3eC(req) {
+  if (enseignant(req)) return ENSEIGNANT.id
+  return eleve3eC(req)?.compteId ?? null
+}
+
+/** MessagerieService.resoudreNoms: the roster's names, then the teachers'; « Membre » otherwise. */
+function nom3eC(compteId) {
+  if (compteId === ENSEIGNANT.id) return ENSEIGNANT.nom
+  return Object.values(ELEVES_3EC).find((e) => e.compteId === compteId)?.nomAffiche ?? 'Membre'
+}
+
+/** SalonVue: nbMessages counts the visible messages only (MessagerieService.listerSalons). */
+function salon3eCVue() {
+  return {
+    ...SALON_3EC,
+    nbMessages: messages3eC.filter((m) => m.statut === 'publie').length,
+  }
+}
+
+const LIEN_EXTERNE = /(https?:\/\/|\bwww\.)/i
+// ModerationPreventive.TELEPHONE_FR, same pattern.
+const TELEPHONE_FR = /(?:(?:\+|00)33|0)\s?[1-9](?:[ .\u00A0-]?\d){8}/
+
+/**
+ * Why a salon message is refused, as [status, body], or null: @NotBlank on PublierRequest (400,
+ * before the service; message in the server's locale), then ModerationPreventive.valider (422).
+ * The rate limit (429) is covered by Vitest, not simulated.
+ */
+function refusDuMessage(brut) {
+  if (typeof brut !== 'string' || brut.trim() === '') {
+    return [400, { error: 'corps: must not be blank' }]
+  }
+  const texte = brut.trim()
+  if (texte.length > 2000) {
+    return [422, { error: 'Le message est trop long (max 2000 caractères).' }]
+  }
+  if (LIEN_EXTERNE.test(texte)) {
+    return [422, { error: 'Les liens externes ne sont pas autorisés.' }]
+  }
+  if (TELEPHONE_FR.test(texte)) {
+    return [422, { error: 'Les numéros de téléphone ne sont pas autorisés.' }]
+  }
+  return null
+}
+
+// Salons opened by a teacher session (POST /api/prof/salons, critère 5 of PL-7): kept per session
+// cookie, so that the desktop and mobile projects each open their own (the real backend has one
+// account and would see both). session -> [{ id, classeId, titre, statut, createdAt, messages }]
+const salonsOuverts = new Map()
+const CLASSES_ENSEIGNEES = () => [PROF_CLASSE.id, PROF_CLASSE_3EC.id]
+const TITRE_MAX = 120
+
+function salonsDeLaSession(req) {
+  return salonsOuverts.get(sessionEnseignant(req)) ?? []
+}
+
+/** SalonVue of a salon opened by this session (its messages are the teacher's only). */
+function salonOuvertVue(salon) {
+  return {
+    id: salon.id,
+    classeId: salon.classeId,
+    titre: salon.titre,
+    statut: salon.statut,
+    nbMessages: salon.messages.filter((m) => m.statut === 'publie').length,
+    createdAt: salon.createdAt,
+  }
+}
+
+/** The 3e C salon routes (PL-7, #399), in MessagerieService's order of checks. */
+async function salonDe3eC(req, res, pathname) {
+  const methode = req.method
+  const eleve = eleve3eC(req)
+
+  // The 3e C students' own class space: their class and salon, no homework or course.
+  if (eleve && methode === 'GET') {
+    if (pathname === '/api/moi') {
+      return send(res, 200, {
+        ...ELEVE,
+        id: eleve.compteId,
+        pseudonyme: `Eleve-${eleve.nomAffiche}`,
+        niveau: '3e',
+      })
+    }
+    if (pathname === '/api/moi/classes') {
+      return send(res, 200, [
+        {
+          id: PROF_CLASSE_3EC.id,
+          libelle: PROF_CLASSE_3EC.libelle,
+          niveauCode: PROF_CLASSE_3EC.niveauCode,
+          etablissementNom: 'Collège Jean Moulin',
+          anneeScolaire: PROF_CLASSE_3EC.anneeScolaire,
+          nomAffiche: eleve.nomAffiche,
+        },
+      ])
+    }
+    if (pathname === '/api/devoirs' || pathname === '/api/cours') return send(res, 200, [])
+    if (pathname === '/api/salons') return send(res, 200, [salon3eCVue()])
+  }
+
+  if (methode === 'GET' && pathname === `/api/classes/${PROF_CLASSE_3EC.id}/inscriptions`) {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    return send(res, 200, Object.values(ELEVES_3EC))
+  }
+
+  const routeMessages = pathname === `/api/salons/${SALON_3EC.id}/messages`
+  if (routeMessages && methode === 'GET') {
+    if (!connecte(req)) return send(res, 401)
+    const lecteur = membre3eC(req)
+    if (!lecteur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
+    // The class teacher (the moderator) sees the hidden messages too.
+    const moderateur = enseignant(req)
+    return send(
+      res,
+      200,
+      messages3eC
+        .filter((m) => moderateur || m.statut === 'publie')
+        .map((m) => ({
+          id: m.id,
+          auteurId: m.auteurId,
+          auteurNom: nom3eC(m.auteurId),
+          corps: m.corps,
+          statut: m.statut,
+          estMoi: m.auteurId === lecteur,
+          createdAt: m.createdAt,
+        }))
+    )
+  }
+  if (routeMessages && methode === 'POST') {
+    if (!connecte(req)) return send(res, 401)
+    const brut = (await corps(req))?.corps
+    const refus = refusDuMessage(brut)
+    if (refus?.[0] === 400) return send(res, ...refus)
+    const auteur = membre3eC(req)
+    if (!auteur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
+    if (refus) return send(res, ...refus)
+    const texte = brut.trim()
+    const id = randomUUID()
+    messages3eC.push({
+      id,
+      auteurId: auteur,
+      corps: texte,
+      statut: 'publie',
+      createdAt: new Date().toISOString(),
+    })
+    return send(res, 201, { id })
+  }
+
+  const signalement = pathname.match(/^\/api\/salons\/messages\/([^/]+)\/signalement$/)
+  const signale = signalement && messages3eC.find((m) => m.id === signalement[1].toLowerCase())
+  if (signale && methode === 'POST') {
+    if (!connecte(req)) return send(res, 401)
+    const signaleur = membre3eC(req)
+    if (!signaleur) return send(res, 403, { error: "Vous n'êtes pas membre de cette classe." })
+    // A hidden message is not reported again: nothing left to moderate (#402).
+    if (signale.statut !== 'publie') return send(res, 204)
+    if (!signalements3eC.some((s) => s.messageId === signale.id && s.signalePar === signaleur)) {
+      const motif = (await corps(req))?.motif ?? null
+      signalements3eC.push({
+        id: randomUUID(),
+        messageId: signale.id,
+        signalePar: signaleur,
+        motif,
+        statut: 'ouvert',
+        createdAt: new Date().toISOString(),
+      })
+    }
+    return send(res, 204)
+  }
+
+  // /api/prof/** is ENSEIGNANT only (SecurityConfig): 401 logged out, 403 with no body otherwise.
+  if (methode === 'GET' && pathname === '/api/prof/salons/signalements') {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    return send(
+      res,
+      200,
+      signalements3eC
+        .filter((s) => s.statut === 'ouvert')
+        // Never a report on the teacher's own message (#410), nor on a hidden one (#402).
+        .filter((s) => {
+          const m = messages3eC.find((x) => x.id === s.messageId)
+          return m.auteurId !== ENSEIGNANT.id && m.statut === 'publie'
+        })
+        .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
+        .map((s) => {
+          const m = messages3eC.find((x) => x.id === s.messageId)
+          return {
+            id: s.id,
+            messageId: m.id,
+            salonId: SALON_3EC.id,
+            salonTitre: SALON_3EC.titre,
+            auteurMessageId: m.auteurId,
+            auteurMessageNom: nom3eC(m.auteurId),
+            extraitMessage: m.corps.length <= 160 ? m.corps : `${m.corps.slice(0, 160)}…`,
+            signalePar: s.signalePar,
+            motif: s.motif,
+            createdAt: s.createdAt,
+          }
+        })
+    )
+  }
+  // ProfMessagerieController.creer → MessagerieService.creerSalon: bean validation (400), then
+  // « teaches this class » (403), then validerTitre (422). No uniqueness per class in the backend.
+  if (methode === 'POST' && pathname === '/api/prof/salons') {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    const demande = await corps(req)
+    if (typeof demande?.classeId !== 'string') {
+      return send(res, 400, { error: 'classeId: must not be null' })
+    }
+    if (typeof demande?.titre !== 'string' || demande.titre.trim() === '') {
+      return send(res, 400, { error: 'titre: must not be blank' })
+    }
+    if (!CLASSES_ENSEIGNEES().includes(demande.classeId)) {
+      return send(res, 403, { error: "Vous n'enseignez pas cette classe." })
+    }
+    const titre = demande.titre.trim()
+    if (titre.length > TITRE_MAX) {
+      return send(res, 422, { error: `Le titre est trop long (max ${TITRE_MAX} caractères).` })
+    }
+    const salon = {
+      id: randomUUID(),
+      classeId: demande.classeId,
+      titre,
+      statut: 'ouvert',
+      createdAt: new Date().toISOString(),
+      messages: [],
+    }
+    const session = sessionEnseignant(req)
+    salonsOuverts.set(session, [...(salonsOuverts.get(session) ?? []), salon])
+    return send(res, 201, { id: salon.id })
+  }
+
+  // The messages of a salon this session opened: its teacher is the only member with a session.
+  const routeOuvert = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)
+  const ouvert = routeOuvert && salonsDeLaSession(req).find((x) => x.id === routeOuvert[1])
+  if (ouvert && methode === 'GET') {
+    return send(
+      res,
+      200,
+      ouvert.messages.map((m) => ({ ...m, auteurNom: ENSEIGNANT.nom, estMoi: true }))
+    )
+  }
+  if (ouvert && methode === 'POST') {
+    const brut = (await corps(req))?.corps
+    const refus = refusDuMessage(brut)
+    if (refus) return send(res, ...refus)
+    const id = randomUUID()
+    ouvert.messages.push({
+      id,
+      auteurId: ENSEIGNANT.id,
+      corps: brut.trim(),
+      statut: 'publie',
+      createdAt: new Date().toISOString(),
+    })
+    return send(res, 201, { id })
+  }
+
+  const masquer = pathname.match(/^\/api\/prof\/salons\/messages\/([^/]+)\/masquer$/)
+  if (masquer && methode === 'POST') {
+    if (!connecte(req)) return send(res, 401)
+    if (!enseignant(req)) return send(res, 403)
+    const id = decodeURIComponent(masquer[1])
+    // A message of 5e B, a class the test teacher does not teach: PasModerateurException. (5e B's
+    // ids are not UUIDs, an existing simplification of this fake: the real ones would be.)
+    if (salonMessages.some((m) => m.id === id)) {
+      return send(res, 403, { error: 'Vous ne modérez pas cette classe.' })
+    }
+    if (!UUID_JAVA.test(id)) return send(res, 400, { error: 'Requête invalide' })
+    const cible =
+      messages3eC.find((m) => m.id === id.toLowerCase()) ??
+      salonsDeLaSession(req)
+        .flatMap((x) => x.messages)
+        .find((m) => m.id === id.toLowerCase())
+    if (!cible) return send(res, 404, { error: `Message de salon introuvable : ${id}` })
+    if (cible.auteurId === ENSEIGNANT.id) {
+      return send(res, 403, { error: 'Vous ne pouvez pas modérer votre propre message.' })
+    }
+    // Idempotent: hiding twice is a 204 with no further effect.
+    cible.statut = 'masque'
+    for (const s of signalements3eC) {
+      if (s.messageId === cible.id && s.statut === 'ouvert') s.statut = 'traite'
+    }
+    return send(res, 204)
+  }
+
+  return null
+}
+
 // The Communauté (ADR 0035). Two students, so that one can answer the other's question: a student
 // cannot keep their own answer. As in the real API, no response ever carries an account id.
 const MEMBRES_COMMUNAUTE = {
@@ -400,6 +848,109 @@ const questionsCommunaute = [
   },
 ]
 const reponsesCommunaute = []
+/** Open and processed reports (ADR 0044): { cibleType, cibleId, signalePar, motif, extrait, statut }. */
+const signalementsCommunaute = []
+
+/** A message the moderation masked or deleted is gone from every member read. */
+const visible = (message) => (message.statut ?? 'publie') === 'publie'
+
+function extraitDe(message) {
+  if (message.titre !== undefined) return message.titre
+  return (message.corps ?? []).map((b) => b.text ?? '').join(' ')
+}
+
+function signaler(req, res, cibleType, message, lecteur, motif) {
+  if (message.auteurId === lecteur) {
+    return send(res, 403, { error: 'On ne signale pas son propre message.' })
+  }
+  const ouvert = signalementsCommunaute.some(
+    (s) => s.cibleId === message.id && s.signalePar === lecteur && s.statut === 'ouvert'
+  )
+  if (!ouvert) {
+    signalementsCommunaute.push({
+      cibleType,
+      cibleId: message.id,
+      signalePar: lecteur,
+      motif: motif?.trim() ? motif.trim() : null,
+      extrait: extraitDe(message),
+      statut: 'ouvert',
+      createdAt: new Date().toISOString(),
+    })
+  }
+  res.writeHead(204)
+  return res.end()
+}
+
+async function moderationAdmin(req, res, pathname) {
+  if (!connecte(req)) return send(res, 401)
+  if (!adminBrio(req)) return send(res, 403)
+  const message = (type, id) =>
+    type === 'question'
+      ? questionsCommunaute.find((q) => q.id === id)
+      : reponsesCommunaute.find((r) => r.id === id)
+
+  if (req.method === 'GET' && pathname === '/api/admin/communaute/signalements') {
+    const parCible = new Map()
+    for (const s of signalementsCommunaute.filter((s) => s.statut === 'ouvert')) {
+      parCible.set(s.cibleId, [...(parCible.get(s.cibleId) ?? []), s])
+    }
+    const vues = []
+    for (const groupe of parCible.values()) {
+      const [premier] = groupe
+      const cible = message(premier.cibleType, premier.cibleId)
+      if (!cible) continue
+      const question =
+        premier.cibleType === 'question'
+          ? cible
+          : questionsCommunaute.find((q) => q.id === cible.questionId)
+      vues.push({
+        cibleType: premier.cibleType,
+        cibleId: cible.id,
+        questionId: question?.id ?? cible.id,
+        auteurPseudonyme: MEMBRES_COMMUNAUTE[cible.auteurId]?.pseudonyme ?? 'Membre',
+        extrait: extraitDe(cible),
+        extraitAuSignalement: premier.extrait,
+        statutContenu: cible.statut ?? 'publie',
+        estReponseResolue:
+          premier.cibleType === 'reponse' && question?.reponseResolueId === cible.id,
+        xpDejaRevoquee: false,
+        nombreSignalements: groupe.length,
+        motifs: groupe.map((s) => s.motif).filter(Boolean),
+        premierSignalementAt: premier.createdAt,
+      })
+    }
+    return send(res, 200, vues)
+  }
+  if (req.method === 'GET' && pathname === '/api/admin/communaute/contestations') {
+    return send(res, 200, [])
+  }
+  const decision = pathname.match(
+    /^\/api\/admin\/communaute\/(question|reponse)\/([^/]+)\/decision$/
+  )
+  if (req.method === 'POST' && decision) {
+    const [, type, id] = decision
+    const cible = message(type, id)
+    if (!cible) return send(res, 404, { error: 'Ce message n’existe pas ou plus.' })
+    const action = (await corps(req))?.action
+    const statut = cible.statut ?? 'publie'
+    if (action === 'masquer' || action === 'supprimer') {
+      if (statut === 'supprime') return send(res, 422, { error: 'Ce contenu a déjà été supprimé.' })
+      cible.statut = action === 'masquer' ? 'masque' : 'supprime'
+    } else if (action === 'restaurer') {
+      if (statut !== 'masque') {
+        return send(res, 422, { error: 'Seul un contenu masqué peut être restauré.' })
+      }
+      cible.statut = 'publie'
+    } else if (action !== 'rejeter') {
+      return send(res, 422, { error: 'Action de modération inconnue.' })
+    }
+    for (const s of signalementsCommunaute) {
+      if (s.cibleId === id && s.statut === 'ouvert') s.statut = 'traite'
+    }
+    return send(res, 201, { id: randomUUID() })
+  }
+  return send(res, 404)
+}
 
 function lecteurCommunaute(req) {
   return sansClasse(req) ? 'eleve-sans-classe' : ELEVE.id
@@ -434,7 +985,7 @@ function reponseVue(r, question, lecteur) {
     aVote: r.votes.has(lecteur),
     aResolu: question.reponseResolueId === r.id,
     commentaires: reponsesCommunaute
-      .filter((c) => c.parentId === r.id)
+      .filter((c) => c.parentId === r.id && visible(c))
       .map((c) => commentaireVue(c, lecteur)),
   }
 }
@@ -457,7 +1008,9 @@ function questionCommune(q, lecteur) {
 
 async function communaute(req, res, pathname, search) {
   if (!connecte(req)) return send(res, 401)
-  if (enseignant(req)) return send(res, 403, { error: 'La Communauté est réservée aux élèves.' })
+  if (enseignant(req) || adminBrio(req)) {
+    return send(res, 403, { error: 'La Communauté est réservée aux élèves.' })
+  }
   const lecteur = lecteurCommunaute(req)
   const methode = req.method
   const introuvable = () => send(res, 404, { error: 'Ce message n’existe pas ou plus.' })
@@ -488,13 +1041,15 @@ async function communaute(req, res, pathname, search) {
       const page = Number(search.get('page') ?? 0)
       const taille = 20
       const trouvees = questionsCommunaute
+        .filter(visible)
         .filter((q) => (!niveau || q.niveau === niveau) && (!matiere || q.matiere === matiere))
         .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
       return send(res, 200, {
         questions: trouvees.slice(page * taille, (page + 1) * taille).map((q) => ({
           ...questionCommune(q, lecteur),
-          nombreReponses: reponsesCommunaute.filter((r) => r.questionId === q.id && !r.parentId)
-            .length,
+          nombreReponses: reponsesCommunaute.filter(
+            (r) => r.questionId === q.id && !r.parentId && visible(r)
+          ).length,
         })),
         pageSuivante: trouvees.length > (page + 1) * taille,
       })
@@ -519,12 +1074,15 @@ async function communaute(req, res, pathname, search) {
   }
 
   const routeQuestion = pathname.match(
-    /^\/api\/communaute\/questions\/([^/]+)(?:\/(vote|reponses)(?:\/([^/]+)\/resolution)?)?$/
+    /^\/api\/communaute\/questions\/([^/]+)(?:\/(vote|reponses|signalement)(?:\/([^/]+)\/resolution)?)?$/
   )
   if (routeQuestion) {
     const [, questionId, suite, reponseId] = routeQuestion
-    const question = questionsCommunaute.find((q) => q.id === questionId)
+    const question = questionsCommunaute.find((q) => q.id === questionId && visible(q))
     if (!question) return introuvable()
+    if (suite === 'signalement' && methode === 'POST') {
+      return signaler(req, res, 'question', question, lecteur, (await corps(req))?.motif)
+    }
     if (suite === 'vote') return voter(question)
     if (suite === 'reponses' && reponseId && methode === 'POST') {
       if (question.auteurId !== lecteur) {
@@ -555,7 +1113,7 @@ async function communaute(req, res, pathname, search) {
         ...questionCommune(question, lecteur),
         corps: question.corps,
         reponses: reponsesCommunaute
-          .filter((r) => r.questionId === questionId && !r.parentId)
+          .filter((r) => r.questionId === questionId && !r.parentId && visible(r))
           .map((r) => reponseVue(r, question, lecteur)),
       })
     }
@@ -577,12 +1135,15 @@ async function communaute(req, res, pathname, search) {
   }
 
   const routeReponse = pathname.match(
-    /^\/api\/communaute\/reponses\/([^/]+)(?:\/(vote|commentaires))?$/
+    /^\/api\/communaute\/reponses\/([^/]+)(?:\/(vote|commentaires|signalement))?$/
   )
   if (routeReponse) {
     const [, reponseId, suite] = routeReponse
-    const reponse = reponsesCommunaute.find((r) => r.id === reponseId)
+    const reponse = reponsesCommunaute.find((r) => r.id === reponseId && visible(r))
     if (!reponse) return introuvable()
+    if (suite === 'signalement' && methode === 'POST') {
+      return signaler(req, res, 'reponse', reponse, lecteur, (await corps(req))?.motif)
+    }
     if (suite === 'vote') {
       if (reponse.parentId) return send(res, 422, { error: 'On ne vote pas sur un commentaire.' })
       return voter(reponse)
@@ -627,6 +1188,81 @@ async function chapitres() {
     }
   }
   return out
+}
+
+const REFERENTIEL_DIR = join(CONTENT_DIR, '../referentiel')
+
+/** Competence labels as /api/referentiel/libelles serves them (deprecated codes included). */
+async function libelles() {
+  const out = []
+  for (const fichier of await readdir(REFERENTIEL_DIR)) {
+    if (!fichier.endsWith('.json')) continue
+    const { competences } = JSON.parse(await readFile(join(REFERENTIEL_DIR, fichier), 'utf8'))
+    for (const { code, intitule } of competences) out.push({ code, intitule })
+  }
+  return out
+}
+
+// Mirrors V5 (contenu.niveaux.ordre): the order the catalogue lists levels in.
+const NIVEAUX = ['6e', '5e', '4e', '3e']
+
+/**
+ * The lesson section that teaches a competence (#371, ADR 0043), the same rule as the backend:
+ * published chapters of content/chapitres (annales and teacher courses live elsewhere) with a
+ * `lesson` section whose exercise block carries the code; the requested level's chapters first,
+ * then level order, matiere, `_index.json` order; in the chapter, the first such section.
+ */
+async function leconDe(code, niveauDemande) {
+  const candidats = []
+  for (const niveau of NIVEAUX) {
+    let matieres
+    try {
+      matieres = (await readdir(join(CONTENT_DIR, niveau))).sort()
+    } catch {
+      continue
+    }
+    for (const matiere of matieres) {
+      let ordre
+      try {
+        ordre = JSON.parse(
+          await readFile(join(CONTENT_DIR, niveau, matiere, '_index.json'), 'utf8')
+        )
+      } catch {
+        continue
+      }
+      for (const slug of ordre) {
+        let chapitre
+        try {
+          chapitre = JSON.parse(
+            await readFile(join(CONTENT_DIR, niveau, matiere, `${slug}.json`), 'utf8')
+          )
+        } catch {
+          continue
+        }
+        if ((chapitre.status ?? 'published') !== 'published') continue
+        const section = (chapitre.sections ?? []).find(
+          (sec) =>
+            sec.kind === 'lesson' &&
+            (sec.blocks ?? []).some(
+              (b) => b.type === 'exercise' && (b.competencies ?? []).includes(code)
+            )
+        )
+        if (!section) continue
+        candidats.push({
+          niveauCode: niveau,
+          matiereCode: matiere,
+          chapitreId: chapitre.id,
+          sectionId: section.id,
+          sectionTitre: section.title,
+        })
+      }
+    }
+  }
+  // Stable sort: the level asked for first, the catalogue order kept for the rest.
+  candidats.sort(
+    (a, b) => Number(b.niveauCode === niveauDemande) - Number(a.niveauCode === niveauDemande)
+  )
+  return candidats[0] ?? null
 }
 
 /** A track in its catalogue order (`_index.json`), for a student with nothing recorded. */
@@ -803,6 +1439,12 @@ const server = createServer(async (req, res) => {
   if (pathname.startsWith('/api/communaute/')) {
     return communaute(req, res, pathname, searchParams)
   }
+  if (pathname.startsWith('/api/admin/communaute/')) {
+    return moderationAdmin(req, res, pathname)
+  }
+
+  // PL-7 (#399): the 3e C salon and its students. null when the request is none of them.
+  if ((await salonDe3eC(req, res, pathname)) !== null) return
 
   if (req.method === 'GET') {
     if (pathname === '/api/reglages/communaute') return send(res, 200, { active: true })
@@ -820,7 +1462,9 @@ const server = createServer(async (req, res) => {
     if (pathname === '/api/moi' || pathname.startsWith('/api/progression/')) {
       if (!connecte(req)) return send(res, 401)
       // A student who has not earned anything yet, as ProgressionService returns them.
-      if (pathname === '/api/moi') return send(res, 200, enseignant(req) ? ENSEIGNANT : ELEVE)
+      if (pathname === '/api/moi') {
+        return send(res, 200, enseignant(req) ? ENSEIGNANT : adminBrio(req) ? ADMIN : ELEVE)
+      }
       if (pathname === '/api/progression/moi') return send(res, 200, { xpTotal: 0, niveau: 0 })
       const track = pathname.match(/^\/api\/progression\/parcours\/([^/]+)\/([^/]+)$/)
       if (track) return send(res, 200, await parcours(track[1], track[2]))
@@ -835,18 +1479,42 @@ const server = createServer(async (req, res) => {
       if (pathname === '/api/progression/reprendre') {
         return sansClasse(req) ? send(res, 204) : send(res, 200, REPRENDRE)
       }
-      if (pathname === '/api/progression/maitrise') return send(res, 200, [])
+      if (pathname === '/api/progression/maitrise') {
+        const code = competenceARevoir(req)
+        if (code === null) return send(res, 200, [])
+        // Worked yesterday, computed at run time so it stays inside the 30 days competenceARevoir keeps.
+        const hier = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        return send(res, 200, [
+          { competenceCode: code, niveau: 1, echantillon: 5, dernierTravail: hier },
+        ])
+      }
       return send(res, 404)
     }
     if (pathname === '/api/referentiel/libelles') {
       if (!connecte(req)) return send(res, 401)
-      return send(res, 200, [])
+      return send(res, 200, competenceARevoir(req) === null ? [] : await libelles())
+    }
+    if (pathname === '/api/referentiel/lecon') {
+      if (!connecte(req)) return send(res, 401)
+      const code = searchParams.get('competence')
+      if (!code?.trim()) return send(res, 400)
+      const lecon = await leconDe(code, searchParams.get('niveau'))
+      return lecon ? send(res, 200, lecon) : send(res, 204)
     }
 
     // The teacher's class and its roster (ADR 0029), for the access reset (ADR 0036).
     if (pathname === '/api/prof/classes') {
       if (!connecte(req)) return send(res, 401)
-      return enseignant(req) ? send(res, 200, [PROF_CLASSE]) : send(res, 403)
+      return enseignant(req) ? send(res, 200, [PROF_CLASSE, PROF_CLASSE_3EC]) : send(res, 403)
+    }
+    // The teacher's établissement (EtablissementPublicInfo), that /prof/classes groups the
+    // classes by (PL-7, #399): without it the page cannot list the classes to click.
+    if (pathname === '/api/prof/etablissements') {
+      if (!connecte(req)) return send(res, 401)
+      if (!enseignant(req)) return send(res, 403)
+      return send(res, 200, [
+        { id: PROF_CLASSE.etablissementId, nom: 'Collège Jean Moulin', type: 'college' },
+      ])
     }
     const inscrits = pathname.match(/^\/api\/classes\/([^/]+)\/inscriptions$/)
     if (inscrits) {
@@ -877,6 +1545,10 @@ const server = createServer(async (req, res) => {
     if (unCours) return coursPublie(req, res, unCours[1])
     if (pathname === '/api/salons') {
       if (!connecte(req)) return send(res, 401)
+      // The teacher teaches 4e A (no salon) and 3e C, not 5e B (PL-7, #399).
+      if (enseignant(req)) {
+        return send(res, 200, [salon3eCVue(), ...salonsDeLaSession(req).map(salonOuvertVue)])
+      }
       return send(res, 200, sansClasse(req) ? [] : [SALON])
     }
     const messagesDuSalon = pathname.match(/^\/api\/salons\/([^/]+)\/messages$/)

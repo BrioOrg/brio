@@ -3,6 +3,8 @@ package fr.brio;
 import fr.brio.contenu.AnnaleDto;
 import fr.brio.contenu.ContenuService;
 import fr.brio.contenu.ExerciceEntrainementDto;
+import fr.brio.contenu.ReferentielService;
+import fr.brio.contenu.api.CompetenceDto;
 import fr.brio.contenu.infrastructure.AnnaleIngestor;
 import java.nio.file.Path;
 import java.util.List;
@@ -29,6 +31,7 @@ class AnnaleIngestorIntegrationTest {
 
     @Autowired AnnaleIngestor annaleIngestor;
     @Autowired ContenuService contenuService;
+    @Autowired ReferentielService referentielService;
 
     @Test
     void ingesteLAnnaleEtLExposeSansPolluerLeCatalogue() {
@@ -53,6 +56,24 @@ class AnnaleIngestorIntegrationTest {
         assertThat(entrainement)
                 .as("L'exercice de calcul de l'annale doit remonter par sa compétence")
                 .anyMatch(e -> ANNALE_ID.equals(e.annaleId()) && !e.prompt().isBlank());
+    }
+
+    @Test
+    void lesCompetencesProposeesALEleveSontCellesQueLesAnnalesTravaillent() {
+        annaleIngestor.ingestAll(CONTENT_DIR);
+
+        // #406 : la vue « Par compétence » de l'élève lit ces compétences, pas le référentiel prof.
+        List<CompetenceDto> competences = referentielService.competencesDesAnnales();
+        assertThat(competences)
+                .extracting(CompetenceDto::code)
+                .contains("c4.geo.pythagore.calculer")
+                .isSorted();
+        assertThat(competences).allSatisfy(c -> {
+            assertThat(c.intitule()).isNotBlank();
+            assertThat(contenuService.entrainementParCompetence(c.code()))
+                    .as("Chaque compétence proposée a au moins un exercice : %s", c.code())
+                    .isNotEmpty();
+        });
     }
 
     @Test

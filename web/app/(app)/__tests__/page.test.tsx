@@ -12,6 +12,10 @@ vi.mock('next/navigation', () => ({
 }))
 vi.mock('@/components/site-header', () => ({ SiteHeader: () => null }))
 vi.mock('@/lib/api', () => ({ getCatalogue: vi.fn() }))
+vi.mock('@/lib/revoir', async (original) => ({
+  ...(await original<typeof import('@/lib/revoir')>()),
+  lireLecon: vi.fn(),
+}))
 vi.mock('@/lib/espace-eleve', async (original) => ({
   ...(await original<typeof import('@/lib/espace-eleve')>()),
   lireMoi: vi.fn(),
@@ -53,6 +57,20 @@ const REPRENDRE = {
   derniereActivite: '2026-10-30T10:00:00Z',
 }
 
+const LECON = {
+  niveauCode: '5e',
+  matiereCode: 'mathematiques',
+  chapitreId: 'les-fractions',
+  sectionId: 'calculer-avec-des-fractions',
+  sectionTitre: 'Calculer avec des fractions',
+}
+const MAITRISE_A_REVOIR = {
+  competenceCode: 'c4.x',
+  niveau: 1,
+  echantillon: 5,
+  dernierTravail: new Date().toISOString(),
+}
+
 const CATALOGUE = [
   {
     niveauCode: '5e',
@@ -86,6 +104,7 @@ type Donnees = {
   reprendre?: unknown
   maitrises?: unknown
   libelles?: Map<string, string>
+  lecon?: unknown
   /** The catalogue, or an Error when it fails to load. */
   catalogue?: unknown
 }
@@ -101,6 +120,9 @@ async function afficher(donnees: Donnees = {}) {
   set(espace.lireReprendre, donnees.reprendre ?? null)
   set(espace.lireMaitrise, donnees.maitrises ?? [])
   set(espace.lireLibelles, donnees.libelles ?? new Map())
+  const { lireLecon } = await import('@/lib/revoir')
+  vi.mocked(lireLecon).mockReset()
+  set(lireLecon, 'lecon' in donnees ? donnees.lecon : LECON)
   // The mock outlives vi.resetModules(): start each page from no recorded call.
   vi.mocked(getCatalogue).mockReset()
   const catalogue = donnees.catalogue ?? CATALOGUE
@@ -334,30 +356,75 @@ describe('AccueilPage', () => {
     expect(screen.queryByText('Choisis par où commencer')).not.toBeInTheDocument()
   })
 
-  it('montre la compétence à revoir, qui renvoie vers Explorer', async () => {
+  it('montre la compétence à revoir, qui renvoie vers la leçon', async () => {
     await rendre({
-      maitrises: [
-        {
-          competenceCode: 'c4.x',
-          niveau: 1,
-          echantillon: 5,
-          dernierTravail: new Date().toISOString(),
-        },
-      ],
+      maitrises: [MAITRISE_A_REVOIR],
       libelles: new Map([['c4.x', 'Calculer avec des fractions']]),
     })
+    const { lireLecon } = await import('@/lib/revoir')
+    expect(lireLecon).toHaveBeenCalledWith('c4.x', '5e', expect.any(String))
     expect(screen.getByRole('heading', { name: 'À revoir' })).toBeVisible()
-    expect(screen.getByRole('link', { name: /Calculer avec des fractions/ })).toHaveAttribute(
+    const lien = screen.getByRole('link', { name: /Calculer avec des fractions/ })
+    expect(lien).toHaveAttribute(
       'href',
-      '/explorer'
+      '/5e/mathematiques/les-fractions?diapo=calculer-avec-des-fractions'
     )
+    expect(lien).not.toHaveAttribute('href', '/explorer')
     expect(screen.queryByText('c4.x')).not.toBeInTheDocument()
+  })
+
+  it('masque le bloc À revoir quand la compétence n’est rattachable à aucune leçon', async () => {
+    await rendre({
+      maitrises: [MAITRISE_A_REVOIR],
+      libelles: new Map([['c4.x', 'Calculer avec des fractions']]),
+      lecon: null,
+    })
+    expect(screen.queryByRole('heading', { name: 'À revoir' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: /Calculer avec des fractions/ })
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Choisis par où commencer' })).toBeVisible()
   })
 
   it('n’affiche que les blocs qui ont du contenu', async () => {
     await rendre({ reprendre: REPRENDRE })
     expect(screen.queryByRole('heading', { name: /Pour ta classe/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'À revoir' })).not.toBeInTheDocument()
+    const { lireLecon } = await import('@/lib/revoir')
+    expect(lireLecon).not.toHaveBeenCalled()
+  })
+
+  it('montre côte à côte un devoir et la compétence à revoir, chacun avec son lien', async () => {
+    await rendre({
+      devoirs: [devoirChapitre('ch', '2026-11-01T16:00:00Z', 'a')],
+      maitrises: [MAITRISE_A_REVOIR],
+      libelles: new Map([['c4.x', 'Calculer avec des fractions']]),
+    })
+    expect(screen.getByRole('heading', { name: 'Pour ta classe · 5e B' })).toBeVisible()
+    expect(screen.getByRole('link', { name: /Devoir ch/ })).toHaveAttribute(
+      'href',
+      '/5e/mathematiques/a?devoir=ch'
+    )
+    expect(screen.getByRole('heading', { name: 'À revoir' })).toBeVisible()
+    expect(screen.getByRole('link', { name: /Calculer avec des fractions/ })).toHaveAttribute(
+      'href',
+      '/5e/mathematiques/les-fractions?diapo=calculer-avec-des-fractions'
+    )
+    expect(screen.queryByText('Choisis par où commencer')).not.toBeInTheDocument()
+    const { getCatalogue } = await import('@/lib/api')
+    expect(getCatalogue).toHaveBeenCalledTimes(1)
+  })
+
+  it('ne propose pas la première connexion quand un devoir reste, même sans leçon à revoir', async () => {
+    await rendre({
+      devoirs: [devoirChapitre('ch', '2026-11-01T16:00:00Z', 'a')],
+      maitrises: [MAITRISE_A_REVOIR],
+      libelles: new Map([['c4.x', 'Calculer avec des fractions']]),
+      lecon: null,
+    })
+    expect(screen.getByRole('link', { name: /Devoir ch/ })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'À revoir' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Choisis par où commencer')).not.toBeInTheDocument()
   })
 
   it('montre les matières du niveau à la première connexion', async () => {

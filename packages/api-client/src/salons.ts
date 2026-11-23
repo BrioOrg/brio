@@ -9,7 +9,8 @@ import { signalerSessionExpiree } from './session-expiree.js'
  * A salon is one group chat per class, opened by the teacher. Every member of the class — the
  * students and the teacher — reads and writes it; there are no private messages. Moderation is
  * the entraide one (F6a): the server prevents links, over-long and flooded messages, a reader
- * reports a message, the teacher hides it. A hidden message is simply absent from `messages`.
+ * reports a message, the teacher hides it. A hidden message is absent from a student's
+ * `messages`; the class's teacher still gets it, with `statut` "masque" (visible ones: "publie").
  *
  * Server contracts (fr.brio.social.web):
  *   GET  /api/salons                                        200 -> SalonVue[]  (my classes' salons)

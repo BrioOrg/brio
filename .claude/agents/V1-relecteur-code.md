@@ -38,6 +38,9 @@ Gravité :
   dans le navigateur, valeur hors `tokens.css`, injection de dépendance par champ.
 - **important** — convention non respectée sans effet immédiat, test manquant pour un
   critère, gestion d'erreur absente, nom trompeur.
+  Aussi **important** : un job, script ou réglage du mesh livré sans preuve d'exécution
+  réelle sur un cas qui le déclenche (rétro PL-4 : `mutation / web` validé en YAML seulement) ;
+  un reformatage de fichiers hors du sujet de la PR.
 - **suggestion** — lisibilité, simplification.
 
 ## Outils
