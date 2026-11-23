@@ -117,8 +117,9 @@ export const CurseurConstante = forwardRef<
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
+    // The play button sits by the slider but comes last in the focus order (spec U4 §8).
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2">
+      <div className="flex min-w-0 items-center">
         <div className="flex min-h-11 min-w-0 flex-1 items-center">
           <div className="w-full">
             <Curseur
@@ -136,6 +137,19 @@ export const CurseurConstante = forwardRef<
             />
           </div>
         </div>
+      </div>
+      <div className="col-span-2 flex flex-wrap gap-3">
+        {(['min', 'max', 'pas'] as const).map((b) => (
+          <ChampBorne
+            key={b}
+            borne={b}
+            nom={nom}
+            valeur={curseur[b]}
+            onValider={(v) => valider(b, v)}
+          />
+        ))}
+      </div>
+      <div className="col-start-2 row-start-1">
         <Infobulle label={anime ? 'Mettre en pause' : 'Lancer l’animation'}>
           <button
             type="button"
@@ -151,17 +165,6 @@ export const CurseurConstante = forwardRef<
             <Icon name={anime ? 'pause' : 'play'} size={20} />
           </button>
         </Infobulle>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        {(['min', 'max', 'pas'] as const).map((b) => (
-          <ChampBorne
-            key={b}
-            borne={b}
-            nom={nom}
-            valeur={curseur[b]}
-            onValider={(v) => valider(b, v)}
-          />
-        ))}
       </div>
     </div>
   )

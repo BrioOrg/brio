@@ -140,4 +140,30 @@ describe('LigneExpression', () => {
     expect(screen.getByText('Résultat : 5')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Afficher le résultat/ })).toBeNull()
   })
+
+  it('suit l’ordre de focus de la spec : champ, bascule, puis supprimer', async () => {
+    const user = userEvent.setup()
+    rendre('2/3 + 1/6')
+    await user.click(screen.getByRole('textbox', { name: 'Expression 3' }))
+    await user.tab()
+    expect(
+      screen.getByRole('button', { name: 'Afficher le résultat en écriture décimale' })
+    ).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Supprimer l’expression 3' })).toHaveFocus()
+  })
+
+  it('place les bornes du curseur avant son bouton de lecture dans l’ordre de focus', async () => {
+    const user = userEvent.setup()
+    rendre('a = 2')
+    await user.click(screen.getByRole('slider', { name: 'Curseur a' }))
+    await user.tab()
+    expect(screen.getByRole('textbox', { name: 'Minimum du curseur a' })).toHaveFocus()
+    await user.tab()
+    await user.tab()
+    expect(screen.getByRole('textbox', { name: 'Pas du curseur a' })).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Lancer l’animation du curseur a' })).toHaveFocus()
+  })
 })
+

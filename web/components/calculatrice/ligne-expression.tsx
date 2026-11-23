@@ -165,8 +165,24 @@ export function LigneExpression({
         ].join(' ')}
       />
 
-      {/* 5 and 6. Colour and stroke, delete. */}
-      <div className="flex">
+      {/* 3 and 4. The preview, and a calculation's result on the same row. */}
+      {apercu && (
+        <div className="col-span-2 col-start-2 flex min-h-6 min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+          <span
+            aria-hidden="true"
+            className="min-w-0 text-base text-ink"
+            dangerouslySetInnerHTML={{ __html: apercu }}
+          />
+          {analyse.genre === 'calcul' && (
+            <Resultat key={ligne.texte} valeur={analyse.valeur} exact={analyse.exact} />
+          )}
+          {analyse.genre === 'constante' && !analyse.curseur && (
+            <Resultat key={ligne.texte} valeur={analyse.valeur} exact={null} />
+          )}
+        </div>
+      )}
+      {/* 5 and 6. Colour and stroke, delete: on the first row, after the result in the focus order. */}
+      <div className="col-start-3 row-start-1 flex">
         {tracable ? (
           <MenuStyle
             numero={numero}
@@ -190,22 +206,6 @@ export function LigneExpression({
         </Infobulle>
       </div>
 
-      {/* 3 and 4. The preview, and a calculation's result on the same row. */}
-      {apercu && (
-        <div className="col-span-2 col-start-2 flex min-h-6 min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-          <span
-            aria-hidden="true"
-            className="min-w-0 text-base text-ink"
-            dangerouslySetInnerHTML={{ __html: apercu }}
-          />
-          {analyse.genre === 'calcul' && (
-            <Resultat key={ligne.texte} valeur={analyse.valeur} exact={analyse.exact} />
-          )}
-          {analyse.genre === 'constante' && !analyse.curseur && (
-            <Resultat key={ligne.texte} valeur={analyse.valeur} exact={null} />
-          )}
-        </div>
-      )}
       {erreur && <TexteSouligne texte={ligne.texte} position={erreur.position} />}
 
       {/* The engine's message, or the slider. */}
