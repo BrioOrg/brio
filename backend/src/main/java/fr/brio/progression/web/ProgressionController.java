@@ -1,9 +1,11 @@
 package fr.brio.progression.web;
 
+import fr.brio.progression.ProgressionCoursService;
 import fr.brio.progression.ProgressionService;
-import fr.brio.progression.api.ChapitreAReprendre;
+import fr.brio.progression.api.ContenuAReprendre;
 import fr.brio.progression.api.MaitriseInfo;
 import fr.brio.progression.api.ParcoursChapitre;
+import fr.brio.progression.api.ProgressionCoursInfo;
 import fr.brio.progression.api.ProgressionInfo;
 import fr.brio.progression.api.SerieInfo;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,9 +25,16 @@ import org.springframework.web.bind.annotation.RestController;
 class ProgressionController {
 
     private final ProgressionService progression;
+    private final ProgressionCoursService progressionCours;
+    private final ReprendreAssembleur reprendre;
 
-    ProgressionController(ProgressionService progression) {
+    ProgressionController(
+            ProgressionService progression,
+            ProgressionCoursService progressionCours,
+            ReprendreAssembleur reprendre) {
         this.progression = progression;
+        this.progressionCours = progressionCours;
+        this.reprendre = reprendre;
     }
 
     /** XP and level of the authenticated student. */
@@ -59,13 +68,31 @@ class ProgressionController {
         return progression.parcours(niveau, matiere, eleveId);
     }
 
-    /** The chapter the authenticated student left unfinished, for the home page (#323). */
+    /**
+     * The content the authenticated student left unfinished, for the home page (#323): a chapter
+     * or a teacher course they can still open (ADR 0050 §5), told apart by {@code type}.
+     */
     @GetMapping("/reprendre")
-    @ApiResponse(responseCode = "200", description = "Dernier chapitre en cours")
+    @ApiResponse(responseCode = "200", description = "Dernier chapitre ou cours en cours")
     @ApiResponse(responseCode = "204", description = "Rien à reprendre", content = @Content)
-    ResponseEntity<ChapitreAReprendre> reprendre(@AuthenticationPrincipal UserDetails principal) {
+    ResponseEntity<ContenuAReprendre> reprendre(@AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
-        return progression.reprendre(eleveId)
+        return reprendre.reprendre(eleveId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    /**
+     * The authenticated student's gauge for a teacher course (ADR 0050 §5). 204 when the course is
+     * not projected or the student has no row for it. Only ever reads the session's own rows.
+     */
+    @GetMapping("/cours/{coursId}")
+    @ApiResponse(responseCode = "200", description = "Jauge du cours pour l'élève connecté")
+    @ApiResponse(responseCode = "204", description = "Pas de jauge (cours inconnu ou jamais ouvert)", content = @Content)
+    ResponseEntity<ProgressionCoursInfo> cours(
+            @PathVariable UUID coursId, @AuthenticationPrincipal UserDetails principal) {
+        UUID eleveId = UUID.fromString(principal.getUsername());
+        return progressionCours.jauge(eleveId, coursId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
