@@ -41,6 +41,10 @@ export {
   getSerie,
   SerieInfoSchema,
   ChapitreAReprendreSchema,
+  CoursAReprendreSchema,
+  ContenuAReprendreSchema,
+  ProgressionCoursSchema,
+  getProgressionCours,
   MaitriseInfoSchema,
 } from './progression.js'
 export type {
@@ -48,6 +52,9 @@ export type {
   ParcoursChapitre,
   SerieInfo,
   ChapitreAReprendre,
+  CoursAReprendre,
+  ContenuAReprendre,
+  ProgressionCours,
   MaitriseInfo,
 } from './progression.js'
 export {

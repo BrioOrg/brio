@@ -316,3 +316,51 @@ describe('marquerSectionLue', () => {
     await expect(marquerSectionLue('c', 's')).rejects.toThrow()
   })
 })
+
+describe('marquerSectionCoursLue', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    clearCookies()
+    document.cookie = 'XSRF-TOKEN=tok-cours'
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('posts to the course section endpoint with the CSRF token', async () => {
+    const seen: Array<{ url: string; method: string; xsrf: string | null }> = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        seen.push({
+          url: input instanceof Request ? input.url : String(input),
+          method: input instanceof Request ? input.method : (init?.method ?? 'GET'),
+          xsrf: headerOf(input, init, 'X-XSRF-TOKEN'),
+        })
+        return new Response(null, { status: 204 })
+      })
+    )
+
+    const { marquerSectionCoursLue } = await import('@/lib/api')
+    await marquerSectionCoursLue('c0ffee00-0000-4000-8000-000000000001', 's1')
+
+    expect(seen).toEqual([
+      {
+        url: expect.stringMatching(
+          /\/api\/cours\/c0ffee00-0000-4000-8000-000000000001\/sections\/s1\/lu$/
+        ),
+        method: 'POST',
+        xsrf: 'tok-cours',
+      },
+    ])
+  })
+
+  it.each([403, 404])('throws when the backend refuses it (%i)', async (status) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status }))
+    )
+    const { marquerSectionCoursLue } = await import('@/lib/api')
+    await expect(marquerSectionCoursLue('c', 's')).rejects.toThrow('Section non enregistrée')
+  })
+})

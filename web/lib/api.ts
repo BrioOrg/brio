@@ -261,6 +261,21 @@ export async function marquerSectionLue(chapitreId: string, sectionId: string): 
 }
 
 /**
+ * Records that the logged-in student read a section of a teacher course (ADR 0050): progression
+ * counts it toward the course's gauge and awards its XP. 403 when the course is no longer scoped to
+ * the student's class, 404 when it was unpublished or the section left its published version.
+ */
+export async function marquerSectionCoursLue(coursId: string, sectionId: string): Promise<void> {
+  const token = await ensureCsrfToken(apiBaseUrl())
+  const { response } = await createApiClient(apiBaseUrl()).POST(
+    '/api/cours/{coursId}/sections/{sectionId}/lu',
+    { params: { path: { coursId, sectionId } }, headers: csrfHeaders(token) }
+  )
+  if (response.status === 401) throw sessionExpiree()
+  if (!response.ok) throw new Error('Section non enregistrée')
+}
+
+/**
  * A 401 on an action means the session ended mid-chapter (#279): tell the app, which shows a
  * message and sends the student to the login page, and hand the caller the same message.
  */
@@ -289,6 +304,7 @@ export async function soumettre(
   // openapi-fetch surfaces as no `error` rather than a populated one.
   if (error || !response.ok) {
     if (response.status === 401) throw sessionExpiree()
+    if (response.status === 403) throw new Error('Ce cours n’est plus ouvert à ta classe.')
     if (response.status === 404) throw new Error('Exercice introuvable')
     throw new Error('Erreur lors de la soumission')
   }

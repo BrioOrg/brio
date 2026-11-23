@@ -397,6 +397,7 @@ const DEVOIRS = [
 ]
 // The chapter they left unfinished; a student with no class has nothing to resume.
 const REPRENDRE = {
+  type: 'chapitre',
   chapitreId: 'theoreme-de-pythagore',
   titre: 'Le théorème de Pythagore',
   niveauCode: '3e',
