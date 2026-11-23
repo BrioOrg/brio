@@ -32,6 +32,7 @@ import { renderKatex } from '@/lib/katex'
 import { TreeRenderer } from '@/components/tree-renderer'
 import type { FigureSpec, TreeSpec } from '@brio/content'
 import { FigureParametree } from '@/components/figure-parametree'
+import { CURVE_BG, CURVE_STROKE, CURVE_TEXT, type CurveColour } from '@/lib/curve-colours'
 
 export const metadata = { title: 'Design — Brio' }
 
@@ -47,6 +48,8 @@ const SCRATCH_CATEGORIES = [
   ['variables', 'Variables'],
   ['pen', 'Stylo'],
 ] as const
+
+const CURVE_NUMBERS: CurveColour[] = [1, 2, 3, 4, 5, 6]
 
 // Maths tones (ADR 0037): the same object in the same tone in the figure and in the formula.
 const hidden = { dot: false, showName: false } as const
@@ -293,6 +296,35 @@ export default function DesignPage() {
             <code className="text-xs">{'"fill": "soft"'}</code> sur un polygone. Au plus trois
             teintes par bloc, bleu et orange d’abord.
           </p>
+
+          <div className="mt-6">
+            <Label>Couleurs de courbe : un trait et sa pastille, jamais un état</Label>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {CURVE_NUMBERS.map((n) => (
+              <Panel key={n}>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-surface-page ${CURVE_BG[n]}`}
+                  >
+                    {n}
+                  </span>
+                  <svg viewBox="0 0 64 24" className="h-6 w-16 shrink-0" aria-hidden="true">
+                    <path
+                      d="M2 20 C 20 20, 28 4, 62 4"
+                      fill="none"
+                      strokeLinecap="round"
+                      className={`stroke-2 ${CURVE_STROKE[n]}`}
+                    />
+                  </svg>
+                  <span className={`font-prose text-sm font-semibold ${CURVE_TEXT[n]}`}>
+                    f<sub>{n}</sub>(x)
+                  </span>
+                </div>
+                <code className="mt-2 block text-xs text-ink-muted">--color-courbe-{n}</code>
+              </Panel>
+            ))}
+          </div>
         </Section>
 
         {/* ── Worked calculations (ADR 0042) ─────────────────────────────────── */}

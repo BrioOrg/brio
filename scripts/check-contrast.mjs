@@ -82,6 +82,12 @@ const dark = {
   'tone-2-soft': '#393012',
   'tone-3-soft': '#39242a',
   'tone-4-soft': '#153e37',
+  'courbe-1': '#4bb4ff',
+  'courbe-2': '#ff9600',
+  'courbe-3': '#ff4f86',
+  'courbe-4': '#34e3cf',
+  'courbe-5': '#8f74fb',
+  'courbe-6': '#ff4314',
 }
 
 const light = {
@@ -131,6 +137,12 @@ const light = {
   'tone-2-soft': '#f2e9db',
   'tone-3-soft': '#f1e1ec',
   'tone-4-soft': '#ddebe5',
+  'courbe-1': '#1670c0',
+  'courbe-2': '#a35f00',
+  'courbe-3': '#9c2a78',
+  'courbe-4': '#0e6e46',
+  'courbe-5': '#5e0ff0',
+  'courbe-6': '#9f2923',
 }
 
 // ── Pairs to check ───────────────────────────────────────────────────────────
@@ -181,6 +193,15 @@ function tonePairs(theme) {
   ])
 }
 
+// Curve colours (#420, ADR 0049 (#417)): the graphing calculator's curve (stroke ≥ 3 : 1) and the
+// name of its line (text ≥ 4.5 : 1), so AA on every ground, both themes.
+const CURVES = [1, 2, 3, 4, 5, 6]
+function courbePairs(theme) {
+  return CURVES.flatMap((n) =>
+    ['surface-panel', 'surface-page', 'surface-raised'].map((bg) => ({ theme, fg: `courbe-${n}`, bg, level: 'AA' }))
+  )
+}
+
 const pairs = [
   // Dark theme
   { theme: 'dark', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -200,6 +221,7 @@ const pairs = [
   ...scratchPairs('dark'),
   ...cubePairs('dark'),
   ...tonePairs('dark'),
+  ...courbePairs('dark'),
 
   // Light theme
   { theme: 'light', fg: 'ink', bg: 'surface-panel', level: 'AA' },
@@ -222,6 +244,7 @@ const pairs = [
   ...scratchPairs('light'),
   ...cubePairs('light'),
   ...tonePairs('light'),
+  ...courbePairs('light'),
 ]
 
 // ── Run checks ───────────────────────────────────────────────────────────────
@@ -319,9 +342,84 @@ for (const theme of ['dark', 'light']) {
   }
 }
 
+// Curve colours, six at once. Colour is never the only cue (pastille number, name beside the
+// curve), so the floor is lower than the tones' 20 / 12 above, and measured in CIEDE2000 (CIE76
+// over-states chroma differences): ≥ 20 in normal vision, ≥ 8 for protanopia, deuteranopia AND
+// tritanopia. The four tones already clear 10 in CIEDE2000; no violet / brick red pair in the dark
+// theme clears 8.8. The tone checks above stay CIE76, 20 / 12 (ADR 0037): the two sets of numbers
+// are not comparable.
+const CURVE_MIN_DELTA_E = { normal: 20, protan: 8, deutan: 8, tritan: 8 }
+
+function deltaE2000(a, b, matrix) {
+  const [l1, a1, b1] = simulatedLab(a, matrix)
+  const [l2, a2, b2] = simulatedLab(b, matrix)
+  const rad = Math.PI / 180
+  const p7 = (n) => n ** 7
+  const cBar = (Math.hypot(a1, b1) + Math.hypot(a2, b2)) / 2
+  const g = 0.5 * (1 - Math.sqrt(p7(cBar) / (p7(cBar) + p7(25))))
+  const ap1 = (1 + g) * a1
+  const ap2 = (1 + g) * a2
+  const cp1 = Math.hypot(ap1, b1)
+  const cp2 = Math.hypot(ap2, b2)
+  const hue = (b, a) => (a === 0 && b === 0 ? 0 : ((Math.atan2(b, a) / rad) + 360) % 360)
+  const h1 = hue(b1, ap1)
+  const h2 = hue(b2, ap2)
+  const chromatic = cp1 * cp2 !== 0
+  let dh = 0
+  if (chromatic) {
+    dh = h2 - h1
+    if (dh > 180) dh -= 360
+    else if (dh < -180) dh += 360
+  }
+  const dL = l2 - l1
+  const dC = cp2 - cp1
+  const dH = 2 * Math.sqrt(cp1 * cp2) * Math.sin((dh * rad) / 2)
+  const lBar = (l1 + l2) / 2
+  const cpBar = (cp1 + cp2) / 2
+  let hBar = h1 + h2
+  if (chromatic) {
+    if (Math.abs(h1 - h2) > 180) hBar += h1 + h2 < 360 ? 360 : -360
+    hBar /= 2
+  }
+  const t =
+    1 -
+    0.17 * Math.cos((hBar - 30) * rad) +
+    0.24 * Math.cos(2 * hBar * rad) +
+    0.32 * Math.cos((3 * hBar + 6) * rad) -
+    0.2 * Math.cos((4 * hBar - 63) * rad)
+  const dTheta = 30 * Math.exp(-(((hBar - 275) / 25) ** 2))
+  const rc = 2 * Math.sqrt(p7(cpBar) / (p7(cpBar) + p7(25)))
+  const sl = 1 + (0.015 * (lBar - 50) ** 2) / Math.sqrt(20 + (lBar - 50) ** 2)
+  const sc = 1 + 0.045 * cpBar
+  const sh = 1 + 0.015 * cpBar * t
+  const rt = -Math.sin(2 * dTheta * rad) * rc
+  return Math.sqrt((dL / sl) ** 2 + (dC / sc) ** 2 + (dH / sh) ** 2 + rt * (dC / sc) * (dH / sh))
+}
+
+let curveChecks = 0
+for (const theme of ['dark', 'light']) {
+  const tokens = theme === 'dark' ? dark : light
+  for (const i of CURVES) {
+    for (const j of CURVES.filter((n) => n > i)) {
+      for (const [vision, matrix] of Object.entries(CVD)) {
+        const delta = deltaE2000(tokens[`courbe-${i}`], tokens[`courbe-${j}`], matrix)
+        const required = CURVE_MIN_DELTA_E[vision]
+        const line = `  ${delta >= required ? '✓' : '✗'} [${theme}] courbe-${i} vs courbe-${j}, ${vision} — ΔE2000 ${delta.toFixed(1).padStart(5)}  (≥ ${required})`
+        curveChecks++
+        if (delta >= required) {
+          process.stdout.write(line + '\n')
+        } else {
+          process.stderr.write(line + '\n')
+          failures++
+        }
+      }
+    }
+  }
+}
+
 if (failures > 0) {
   process.stderr.write(`\n${failures} contrast or colour-vision failure(s). Fix the values in web/app/tokens.css.\n`)
   process.exit(1)
 } else {
-  process.stdout.write(`\nAll ${pairs.length} contrast pairs and ${cvdChecks} colour-vision checks pass.\n`)
+  process.stdout.write(`\nAll ${pairs.length} contrast pairs and ${cvdChecks} colour-vision checks and ${curveChecks} curve-colour checks pass.\n`)
 }
