@@ -643,6 +643,25 @@
               }
             ]
           }
+        },
+        {
+          "id": "calculatrice-droites-origine",
+          "type": "calculatrice",
+          "consigne": "Déplace le curseur $a$ : la droite $y = ax$ tourne autour de l'origine. Ajoute ensuite ta propre droite avec « Ajouter une expression », par exemple $y = 3x$ ou $y = 2x + 1$. Laquelle représente une situation de proportionnalité ?",
+          "expressions": [
+            "y = ax",
+            "a = 1"
+          ],
+          "fenetre": {
+            "x": [
+              -2,
+              6
+            ],
+            "y": [
+              -2,
+              10
+            ]
+          }
         }
       ]
     },
