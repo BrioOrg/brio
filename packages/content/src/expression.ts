@@ -185,6 +185,10 @@ const OPERATORS: Readonly<Record<string, '+' | '-' | '*' | '/' | '^'>> = {
 
 const SUPERSCRIPTS: Readonly<Record<string, number>> = { '²': 2, '³': 3 }
 
+/** Spaces that may group the digits of a number in calculator mode. */
+const GROUP_SPACES: ReadonlySet<string> = new Set([' ', '\u00a0', '\u202f', '\u2009'])
+const GROUP_SPACE_RE = /[ \u00a0\u202f\u2009]/g
+
 function isDigit(c: string): boolean {
   return c >= '0' && c <= '9'
 }
@@ -231,6 +235,18 @@ function tokenize(source: string, calculator?: CalculatorSyntax): Token[] {
     if (isDigit(c) || ((c === ',' || c === '.') && isDigit(source[i + 1] ?? ''))) {
       const start = i
       while (isDigit(source[i] ?? '')) i++
+      // Calculator mode: digits grouped by three with a space (1 000, 12 345 678), as written in
+      // French; normal, no-break, narrow no-break or thin space. A lone space elsewhere still
+      // separates two numbers.
+      if (calculator && i - start <= 3) {
+        while (
+          GROUP_SPACES.has(source[i] ?? '') &&
+          /^\d{3}$/.test(source.slice(i + 1, i + 4)) &&
+          !isDigit(source[i + 4] ?? '')
+        ) {
+          i += 4
+        }
+      }
       if ((source[i] === ',' || source[i] === '.') && isDigit(source[i + 1] ?? '')) {
         i++
         while (isDigit(source[i] ?? '')) i++
@@ -246,7 +262,7 @@ function tokenize(source: string, calculator?: CalculatorSyntax): Token[] {
           i
         )
       }
-      const text = source.slice(start, i)
+      const text = source.slice(start, i).replace(GROUP_SPACE_RE, '')
       if (calculator) refuseScientificNotation(source, start, i)
       tokens.push({ kind: 'number', value: Number(text.replace(',', '.')), pos: start, text })
       continue

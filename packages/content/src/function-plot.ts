@@ -171,11 +171,18 @@ export function sampleCurve(
     return f(x)
   }
   const emit = (x: number, y: number) => {
+    // A value too large for the drawing (exp(exp(x)): its pixel overflows to ∞) is a gap, never
+    // ∞ or NaN in a path; every point that maps to finite pixels is drawn as before.
+    const p = toSvg(x, y)
+    if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) {
+      current = null
+      return
+    }
     if (!current) {
       current = []
       pieces.push(current)
     }
-    current.push(toSvg(x, y))
+    current.push(p)
   }
   const cut = () => {
     current = null

@@ -32,6 +32,7 @@ import { renderKatex } from '@/lib/katex'
 import { TreeRenderer } from '@/components/tree-renderer'
 import type { FigureSpec, TreeSpec } from '@brio/content'
 import { FigureParametree } from '@/components/figure-parametree'
+import { Calculatrice } from '@/components/calculatrice/calculatrice'
 import { CURVE_BG, CURVE_STROKE, CURVE_TEXT, type CurveColour } from '@/lib/curve-colours'
 
 export const metadata = { title: 'Design — Brio' }
@@ -533,6 +534,25 @@ export default function DesignPage() {
                 parameters: [{ name: 'a', min: -2, max: 2, step: 0.25, value: 0.5 }],
                 readings: [{ function: 'f', x: 2 }],
               }}
+            />
+          </div>
+        </Section>
+
+        <Section title="Calculatrice graphique" id="calculatrice">
+          <Label>Explorer › Les outils — l’état vit dans l’adresse (ici, rien n’est écrit)</Label>
+          <div className="h-280 overflow-hidden rounded-lg border border-line">
+            <Calculatrice
+              etatInitial={{
+                v: 1,
+                lignes: [
+                  { texte: 'y = x²' },
+                  { texte: 'y = ax + 1' },
+                  { texte: 'a = 1' },
+                  { texte: '2/3 + 1/6' },
+                ],
+              }}
+              synchroniserAdresse={false}
+              hauteur="parent"
             />
           </div>
         </Section>
