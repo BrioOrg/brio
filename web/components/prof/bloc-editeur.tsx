@@ -6,6 +6,7 @@ import type { Competence } from '@brio/api-client'
 
 import { ChampFormule } from '@/components/maths/champ-formule'
 import { CalculEditeur } from '@/components/prof/calcul-editeur'
+import { CalculatriceEditeur } from '@/components/prof/calculatrice-editeur'
 import { CodeEditeur } from '@/components/prof/code-editeur'
 import { CompetencesPicker } from '@/components/prof/competences-picker'
 import { FigureEditeur } from '@/components/prof/figure-editeur'
@@ -366,6 +367,9 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
 
     case 'calcul':
       return <CalculEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+
+    case 'calculatrice':
+      return <CalculatriceEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
 
     case 'table':
       return <TableEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
