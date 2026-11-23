@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { CoursDeTaClasse } from '../cours-de-ta-classe'
+import type { Catalogue } from '@/lib/api'
 
 // PL-6a (#398), décision humaine : le bloc de l'onglet « À faire » montre les 3 cours publiés le
 // plus récemment, puis « Voir tous les cours du prof » s'il y en a davantage.
@@ -12,7 +13,7 @@ const catalogue = [
     niveauLibelle: '5e',
     matieres: [{ matiereCode: 'mathematiques', matiereLibelle: 'Mathématiques', chapitres: [] }],
   },
-] as never
+] satisfies Catalogue
 
 const cours = (n: number) => ({
   id: `00000000-0000-4000-8000-00000000c00${n}`,
@@ -25,11 +26,9 @@ const cours = (n: number) => ({
 })
 const liste = (k: number) => Array.from({ length: k }, (_, i) => cours(i + 1))
 
-const Avec = CoursDeTaClasse
-
 describe('CoursDeTaClasse avec plafond', () => {
   it('plafond 3, 4 cours : 3 cartes dans l’ordre reçu, la 4e absente, lien « Voir tous les cours du prof »', () => {
-    render(<Avec cours={liste(4)} catalogue={catalogue} plafond={3} />)
+    render(<CoursDeTaClasse cours={liste(4)} catalogue={catalogue} plafond={3} />)
 
     const region = screen.getByRole('region', { name: 'Les cours de ta classe' })
     const items = within(region).getAllByRole('listitem')
@@ -47,14 +46,14 @@ describe('CoursDeTaClasse avec plafond', () => {
   })
 
   it('plafond 3, exactement 3 cours : 3 cartes et pas de « Voir tous » (il n’y a rien de plus)', () => {
-    render(<Avec cours={liste(3)} catalogue={catalogue} plafond={3} />)
+    render(<CoursDeTaClasse cours={liste(3)} catalogue={catalogue} plafond={3} />)
 
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
     expect(screen.queryByRole('link', { name: /Voir tous les cours du prof/ })).toBeNull()
   })
 
   it('sans plafond (onglet « Cours du prof »), 5 cours : 5 cartes et pas de « Voir tous »', () => {
-    render(<Avec cours={liste(5)} catalogue={catalogue} />)
+    render(<CoursDeTaClasse cours={liste(5)} catalogue={catalogue} />)
 
     expect(screen.getAllByRole('listitem')).toHaveLength(5)
     expect(screen.queryByRole('link', { name: /Voir tous les cours du prof/ })).toBeNull()

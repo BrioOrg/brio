@@ -180,6 +180,38 @@ describe('OngletAFaire — Les cours de ta classe', () => {
     }
   )
 
+  // V1 (tour 2) : le bloc garde son espace sous ce qui le précède, et n'en a pas en tête d'onglet.
+  it.each([
+    [
+      'sous « À faire »',
+      () => api.listerMesDevoirs.mockResolvedValue([devoir('d1', 'DM')]),
+      'mt-6',
+    ],
+    [
+      'sous « Aucun devoir pour l’instant »',
+      () => api.listerMesDevoirs.mockResolvedValue([]),
+      'mt-6',
+    ],
+    [
+      'sous un message d’erreur',
+      () => api.listerMesDevoirs.mockRejectedValue(new Error('500')),
+      'mt-6',
+    ],
+    ['sous « Connecte-toi »', () => api.listerMesDevoirs.mockResolvedValue(null), 'mt-6'],
+    [
+      'en tête quand tous les devoirs sont terminés',
+      () =>
+        api.listerMesDevoirs.mockResolvedValue([devoir('d2', 'DM fini', { statutRendu: 'rendu' })]),
+      '',
+    ],
+  ])('espacement du bloc %s', async (_n, p, attendu) => {
+    p()
+    afficher([cours('k1', 'Les angles', ['c1'])])
+
+    const bloc = await screen.findByRole('region', { name: 'Les cours de ta classe' })
+    expect(bloc.parentElement?.className ?? '').toBe(attendu)
+  })
+
   // garde : rien d'inventé quand il n'y a rien à montrer
   it('aucun cours pour la classe choisie : pas de bloc, les devoirs restent affichés', async () => {
     api.listerMesDevoirs.mockResolvedValue([devoir('d1', 'DM à faire')])

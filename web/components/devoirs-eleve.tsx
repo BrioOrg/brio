@@ -80,7 +80,13 @@ export function DevoirsEleve({
         </section>
       )}
 
-      {emplacement && <div className={aFaire.length > 0 ? 'mt-6' : undefined}>{emplacement}</div>}
+      {/* Spaced from whatever precedes it (« À faire », or the empty, error or signed-out line);
+          only when every homework is done does it open the tab. */}
+      {emplacement && (
+        <div className={aFaire.length === 0 && termines.length > 0 ? undefined : 'mt-6'}>
+          {emplacement}
+        </div>
+      )}
 
       {termines.length > 0 && (
         <section className={aFaire.length > 0 || emplacement ? 'mt-6' : undefined}>
