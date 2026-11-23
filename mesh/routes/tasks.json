@@ -34,7 +34,7 @@
     { "id": "eleve-ouvrir-chapitre", "label": "Ouvrir un chapitre de ma matière", "persona": "eleve", "chaude": true, "via": ["/[niveau]/[matiere]"], "arrivee": "/[niveau]/[matiere]/[slug]", "budget": 2, "cible": 2 },
     { "id": "eleve-revoir-notion", "label": "Retravailler une notion à revoir", "persona": "eleve", "chaude": true, "arrivee": "/[niveau]/[matiere]/[slug]", "budget": 1, "cible": 1 },
     { "id": "eleve-devoirs-a-faire", "label": "Voir mes devoirs à faire", "persona": "eleve", "chaude": true, "arrivee": "/ma-classe", "budget": 1, "cible": 1 },
-    { "id": "eleve-cours-du-prof", "label": "Lire un cours publié par mon prof", "persona": "eleve", "chaude": true, "via": ["/ma-classe"], "arrivee": "/cours/[coursId]", "budget": 2, "cible": 2 },
+    { "id": "eleve-cours-du-prof", "label": "Lire un cours publié par mon prof (sans devoir)", "persona": "eleve", "chaude": true, "via": ["/ma-classe"], "arrivee": "/cours/[coursId]", "budget": 2, "cible": 2 },
     { "id": "eleve-ouvrir-devoir-cours", "label": "Ouvrir le cours de mon devoir", "persona": "eleve", "chaude": true, "arrivee": "/cours/[coursId]", "budget": 1, "cible": 1 },
     { "id": "eleve-ouvrir-devoir-chapitre", "label": "Ouvrir le chapitre de mon devoir", "persona": "eleve", "chaude": true, "arrivee": "/[niveau]/[matiere]/[slug]", "budget": 1, "cible": 1 },
     { "id": "eleve-salon-de-classe", "label": "Écrire dans le salon de ma classe", "persona": "eleve", "chaude": true, "arrivee": "/ma-classe/salon", "budget": 2, "cible": 2 },

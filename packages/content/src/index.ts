@@ -90,6 +90,8 @@ export type {
   Expression,
   ParseResult,
   ParseOptions,
+  ExpressionConstant,
+  CalculatorSyntax,
 } from './expression'
 export { parseExpression } from './expression'
 
@@ -291,6 +293,27 @@ export { buildDeck, RESERVED_DIAPO_IDS } from './deck'
 
 export type { Tone, ToneIssue, ToneIssueCode } from './tone'
 export { TONES, MAX_TONES_PER_BLOCK, isTone, toneArguments, checkTones } from './tone'
+
+// Graphing calculator (ADR 0049)
+export type {
+  ModeAngle,
+  LigneSaisie,
+  ErreurLigne,
+  LigneAnalysee,
+  OptionsAnalyse,
+  Rationnel,
+} from './grapheur/langage'
+export {
+  analyserLignes,
+  formaterRationnel,
+  latexRationnel,
+  MESSAGES as MESSAGES_CALCULATRICE,
+  NOEUDS_MAX,
+} from './grapheur/langage'
+export { latexOf } from './grapheur/latex'
+export { deriver, simplifier, DeriveeTropLongue, type BudgetDerivee } from './grapheur/derivee'
+export { compilerX, compilerXY, type FonctionXY } from './grapheur/compilation'
+export { rationnelDepuisDecimal, rationnelDepuisNombre, valeurDe } from './grapheur/rationnel'
 
 // Graphing calculator — implicit curves (ADR 0049)
 export type { Fenetre, OptionsImplicite, PointSvg, TraceImplicite } from './grapheur/implicite'
