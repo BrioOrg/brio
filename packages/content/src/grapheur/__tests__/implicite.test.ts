@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { traceImplicite, type Fenetre, type PointSvg, type TraceImplicite } from '../implicite'
+import {
+  BUDGET_IMPLICITE_MAX,
+  traceImplicite,
+  type Fenetre,
+  type PointSvg,
+  type TraceImplicite,
+} from '../implicite'
 
 type Fn = (x: number, y: number) => number
 
@@ -211,6 +217,17 @@ describe('traceImplicite', () => {
     }
     // x = 0 and y = 1: three pieces meeting at (0, 1).
     expect(t.chemins.length).toBeLessThanOrEqual(4)
+    // Every chord lies on one of the two lines: no jump between ends wrongly taken as one
+    // (vertices and edge crossings have separate identities).
+    for (const line of t.chemins) {
+      for (let i = 1; i < line.length; i++) {
+        const m = wide.toWorld({
+          x: (line[i - 1].x + line[i].x) / 2,
+          y: (line[i - 1].y + line[i].y) / 2,
+        })
+        expect(Math.min(Math.abs(m.x), Math.abs(m.y - 1)) * wide.sx).toBeLessThan(1)
+      }
+    }
   })
 
   it('should draw (x² + y² − 4)² = 0 as the circle of radius 2', () => {
@@ -307,6 +324,13 @@ describe('traceImplicite', () => {
     const line = t.chemins[0]
     expect(closed(line)).toBe(false)
     for (const p of line) expect(pixelDistance(F, square, p)).toBeLessThan(1)
+    // In one piece: the chords stay on the curve too.
+    for (let i = 1; i < line.length; i++) {
+      const m = { x: (line[i - 1].x + line[i].x) / 2, y: (line[i - 1].y + line[i].y) / 2 }
+      expect(pixelDistance(F, square, m)).toBeLessThan(1)
+    }
+    // Both ends on the right edge of the frame, where x = 5 and y = ±√5.
+    for (const p of [line[0], line[line.length - 1]]) expect(p.x).toBeCloseTo(400, 9)
   })
 
   it('should work on a window that is not square, with cells square in pixels', () => {
@@ -323,6 +347,17 @@ describe('traceImplicite', () => {
     const t = trace((x, y) => x * x + y * y - 36)
     expect(t.chemins).toHaveLength(4)
     expectValid(t, 400, 400)
+    const onFrame = (p: PointSvg) =>
+      Math.min(Math.abs(p.x), Math.abs(p.x - 400), Math.abs(p.y), Math.abs(p.y - 400))
+    for (const line of t.chemins) {
+      // Cut exactly on the frame, at both ends.
+      expect(onFrame(line[0])).toBeLessThan(1e-9)
+      expect(onFrame(line[line.length - 1])).toBeLessThan(1e-9)
+      for (const p of line) {
+        const { x, y } = square.toWorld(p)
+        expect(Math.abs(Math.hypot(x, y) - 6) * square.sx).toBeLessThan(1)
+      }
+    }
   })
 
   it('should stay within its budget on sin(xy) = 0 over [−50 ; 50]² and return valid polylines', () => {
@@ -332,19 +367,14 @@ describe('traceImplicite', () => {
       calls++
       return Math.sin(x * y)
     }
+    const start = performance.now()
     const t = trace(F, v)
-    // The hard guarantee: never more evaluations than the budget, whatever F does.
+    // Information only: the clock depends on the machine (120–135 ms on a laptop).
+    console.info(`traceImplicite sin(xy): ${(performance.now() - start).toFixed(0)} ms`)
+    // The guarantee is the count: never more evaluations than the budget, whatever F does…
     expect(calls).toBeLessThanOrEqual(200000)
-    // And a bounded time: no freeze. Best of three after that first run (the JIT warm-up), so a
-    // CI worker shared with the rest of the suite measures the code rather than its neighbours.
-    // Measured 120–135 ms on a laptop; the bound leaves room for a slow, loaded runner.
-    const times: number[] = []
-    for (let i = 0; i < 3; i++) {
-      const start = performance.now()
-      trace(F, v)
-      times.push(performance.now() - start)
-    }
-    expect(Math.min(...times)).toBeLessThan(500)
+    // …and the budget is what stopped it, not some early exit.
+    expect(calls).toBeGreaterThan(190000)
     expect(t.chemins.length).toBeGreaterThan(0)
     expectValid(t, 800, 800)
   })
@@ -396,20 +426,200 @@ describe('traceImplicite', () => {
     expect(closed(t.chemins[0])).toBe(true)
   })
 
-  it('should draw a circle on an 800 × 600 view quickly (target < 15 ms)', () => {
+  it('should draw a circle on an 800 × 600 view with few evaluations (target < 15 ms)', () => {
     const v = view({ xMin: -8, xMax: 8, yMin: -6, yMax: 6 }, 800, 600)
-    const F: Fn = (x, y) => x * x + y * y - 4
-    for (let i = 0; i < 5; i++) trace(F, v) // warm-up
+    let calls = 0
+    const F: Fn = (x, y) => {
+      calls++
+      return x * x + y * y - 4
+    }
+    trace(F, v)
+    // The cost that the code controls: 9 089 evaluations today, refined only along the curve.
+    expect(calls).toBeLessThan(12000)
+    // Information only: the clock depends on the machine (about 4 ms on a laptop).
     const times: number[] = []
-    for (let i = 0; i < 21; i++) {
+    for (let i = 0; i < 11; i++) {
       const start = performance.now()
       trace(F, v)
       times.push(performance.now() - start)
     }
     times.sort((a, b) => a - b)
-    const median = times[10]
-    console.info(`traceImplicite circle 800×600: median ${median.toFixed(2)} ms`)
-    // Not a gate: a loaded CI machine is slower. The target is recorded in the PR.
-    expect(median).toBeLessThan(100)
+    console.info(`traceImplicite circle 800×600: median ${times[5].toFixed(2)} ms`)
+  })
+
+  it('should give a solution smaller than a pixel as a point, on the lattice or off it', () => {
+    // x² + y² = ε: a loop far under a pixel. On the lattice its crossings all fall on the
+    // vertex at the centre, which made a polyline of length 0, invisible in an SVG.
+    for (const c of [0, 0.123]) {
+      for (const e of [1e-6, 1e-5, 1e-4]) {
+        const t = trace((x, y) => (x - c) ** 2 + (y - c) ** 2 - e, wide)
+        expect(t.chemins).toEqual([])
+        expect(t.points).toHaveLength(1)
+        const o = wide.toSvg(c, c)
+        expect(Math.hypot(t.points[0].x - o.x, t.points[0].y - o.y)).toBeLessThan(1)
+      }
+    }
+  })
+
+  it('should read the frame from versSvg, wherever the drawing sits in the SVG', () => {
+    // The plot drawn 120 px right and 40 px down, as inside a figure with margins.
+    const dx = 120
+    const dy = 40
+    const toSvg = (x: number, y: number) => {
+      const p = square.toSvg(x, y)
+      return { x: p.x + dx, y: p.y + dy }
+    }
+    const circle = traceImplicite((x, y) => x * x + y * y - 4, square.fenetre, toSvg)
+    expect(circle.chemins).toHaveLength(1)
+    expect(closed(circle.chemins[0])).toBe(true)
+    for (const p of circle.chemins[0]) {
+      const { x, y } = square.toWorld({ x: p.x - dx, y: p.y - dy })
+      expect(Math.abs(Math.hypot(x, y) - 2) * square.sx).toBeLessThan(1)
+    }
+    const line = traceImplicite((x) => x - 3, square.fenetre, toSvg)
+    expect(line.chemins).toHaveLength(1)
+    const ys = line.chemins[0].map((p) => p.y).sort((a, b) => a - b)
+    expect(ys[0]).toBeCloseTo(dy, 6)
+    expect(ys[ys.length - 1]).toBeCloseTo(dy + 400, 6)
+  })
+
+  it('should still close the circle when the budget stops the refinement early', () => {
+    // Each budget stops at a level, which is then drawn whole: the curve keeps its shape at
+    // that level instead of being fine in one corner and broken elsewhere.
+    for (const budget of [3000, 5000, 7000]) {
+      let calls = 0
+      const F: Fn = (x, y) => {
+        calls++
+        return x * x + y * y - 4
+      }
+      const t = trace(F, square, budget)
+      expect(calls).toBeLessThanOrEqual(budget)
+      expect(t.chemins).toHaveLength(1)
+      expect(closed(t.chemins[0])).toBe(true)
+      for (const p of t.chemins[0]) {
+        const { x, y } = square.toWorld(p)
+        // Coarser than 1 px, but on the circle within a coarse cell (12,5 px).
+        expect(Math.abs(Math.hypot(x, y) - 2) * square.sx).toBeLessThan(12.5)
+      }
+    }
+  })
+
+  it('should never go over BUDGET_IMPLICITE_MAX, whatever budget is asked for', () => {
+    let calls = 0
+    const F: Fn = (x, y) => {
+      calls++
+      return Math.sin(x * y)
+    }
+    const v = view({ xMin: -50, xMax: 50, yMin: -50, yMax: 50 }, 800, 800)
+    trace(F, v, 1e12)
+    expect(calls).toBeLessThanOrEqual(BUDGET_IMPLICITE_MAX)
+    expect(calls).toBeGreaterThan(BUDGET_IMPLICITE_MAX * 0.5)
+  })
+
+  it('should treat an F that throws as undefined there', () => {
+    const F: Fn = (x, y) => {
+      if (x < 0) throw new RangeError('not defined')
+      return x * x + y * y - 4
+    }
+    const t = trace(F)
+    expect(t.chemins.length).toBeGreaterThanOrEqual(1)
+    for (const p of t.chemins.flat()) {
+      const { x, y } = square.toWorld(p)
+      expect(x).toBeGreaterThanOrEqual(-1e-9)
+      expect(Math.abs(Math.hypot(x, y) - 2) * square.sx).toBeLessThan(1)
+    }
+  })
+
+  it('should draw |x|/x = y as two half-lines, with no stroke across the jump at x = 0', () => {
+    const F: Fn = (x, y) => Math.abs(x) / x - y
+    const t = trace(F)
+    expect(t.chemins).toHaveLength(2)
+    for (const line of t.chemins) {
+      for (const p of line) {
+        const { x, y } = square.toWorld(p)
+        // y = 1 on the right, y = −1 on the left: never the segment between them.
+        expect(Math.abs(y - Math.sign(x)) * square.sx).toBeLessThan(1)
+      }
+    }
+  })
+
+  it('should make a cluster of double zeros two steps wide a point, and three steps a line', () => {
+    // A flat-bottomed valley: F = 0 on a short segment of the x axis, (|x − x0| − L)² beyond.
+    // On `wide` a lattice step is 1/64; the zeros on the lattice are the cluster.
+    const valley =
+      (x0: number, half: number): Fn =>
+      (x, y) =>
+        y * y + Math.max(0, Math.abs(x - x0) - half) ** 2
+    const step = 1 / 64
+    // x ∈ {−1, 0, 1} steps: 2 steps wide, a point.
+    const two = trace(valley(0, step), wide)
+    expect(two.chemins).toEqual([])
+    expect(two.points).toHaveLength(1)
+    // x ∈ {−1, 0, 1, 2} steps: 3 steps wide (2,3 px), a line.
+    const three = trace(valley(step / 2, 1.5 * step), wide)
+    expect(three.points).toEqual([])
+    expect(three.chemins).toHaveLength(1)
+  })
+
+  it('should refine a same-sign cell only when its dip below the corners could reach zero', () => {
+    // F = (x − a)² + b, with a the middle of a column of coarse cells of `square`: in those
+    // cells the corners are b + h²/4 and the centre b, so the dip is h²/4 and the rule
+    // "min |F| < 4 dip" reads b < h². No zero anywhere: only the cost tells.
+    const h = 10 / 32
+    const a = -5 + 16.5 * h
+    const cost = (b: number) => {
+      let calls = 0
+      const t = trace((x) => {
+        calls++
+        return (x - a) ** 2 + b
+      })
+      expect(t).toEqual({ chemins: [], points: [] })
+      return calls
+    }
+    const coarse = cost(2 * h * h)
+    expect(cost(h * h)).toBe(coarse) // at the threshold: not refined
+    expect(cost(h * h * (1 - 2 ** -10))).toBeGreaterThan(coarse) // just under: refined
+  })
+
+  it('should size the lattice from the corners of a view centred on the SVG origin', () => {
+    // viewBox "-200 -200 400 400": the window's corners map to ±200, whose sum is 0.
+    const toSvg = (x: number, y: number) => {
+      const p = square.toSvg(x, y)
+      return { x: p.x - 200, y: p.y - 200 }
+    }
+    const t = traceImplicite((x, y) => x * x + y * y - 4, square.fenetre, toSvg)
+    expect(t.chemins).toHaveLength(1)
+    expect(closed(t.chemins[0])).toBe(true)
+    for (const p of t.chemins[0]) {
+      const { x, y } = square.toWorld({ x: p.x + 200, y: p.y + 200 })
+      expect(Math.abs(Math.hypot(x, y) - 2) * square.sx).toBeLessThan(1)
+    }
+  })
+
+  it('should not join a lattice vertex to an unrelated edge crossing (x − 3)(y + 3,3) = 0', () => {
+    // x = 3 is a lattice column of `wide`, so its crossings are vertices; y = −3,3 is not a
+    // lattice row, so its crossings are on edges. Every chord must lie on one of the lines.
+    const t = trace((x, y) => (x - 3) * (y + 3.3), wide)
+    expect(t.chemins.length).toBeGreaterThanOrEqual(2)
+    for (const line of t.chemins) {
+      for (let i = 1; i < line.length; i++) {
+        const m = wide.toWorld({
+          x: (line[i - 1].x + line[i].x) / 2,
+          y: (line[i - 1].y + line[i].y) / 2,
+        })
+        expect(Math.min(Math.abs(m.x - 3), Math.abs(m.y + 3.3)) * wide.sx).toBeLessThan(1)
+      }
+    }
+  })
+
+  it('should give one point, not two, for solutions under a pixel less than a pixel apart', () => {
+    // Two loops of radius 0,16 px whose centres are 0,8 px apart: each becomes a dot, and the
+    // two dots fall on the same pixel, so a single point is drawn.
+    const loop = (cx: number) => (x: number, y: number) => (x - cx) ** 2 + y * y - 1e-5
+    const a = loop(0)
+    const b = loop(0.016)
+    const t = trace((x, y) => a(x, y) * b(x, y), wide)
+    expect(t.chemins).toEqual([])
+    expect(t.points).toHaveLength(1)
   })
 })

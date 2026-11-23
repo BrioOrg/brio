@@ -16,14 +16,19 @@
 //    `function-plot.ts`. Every loop runs in a fixed order: the output is deterministic.
 // Evaluations are counted: past the budget nothing is refined further, so nothing freezes.
 
+import type { Pt } from '../function-plot'
+
 export type Fenetre = { xMin: number; xMax: number; yMin: number; yMax: number }
-export type PointSvg = { x: number; y: number }
+/** A point in SVG pixels: the `Pt` of `function-plot.ts`. */
+export type PointSvg = Pt
 /** `chemins`: polylines in SVG pixels; `points`: isolated solutions (x² + y² = 0). */
 export type TraceImplicite = { chemins: PointSvg[][]; points: PointSvg[] }
 export type OptionsImplicite = { budget?: number }
 
 /** Default cap on evaluations of F for one curve. */
 export const BUDGET_IMPLICITE = 200000
+/** No budget asked for goes above this: about a second of work, never a freeze. */
+export const BUDGET_IMPLICITE_MAX = 1000000
 /** Coarse cells along the longer side of the view. */
 const COARSE_CELLS = 32
 /** Finest cells are at most this size, in pixels. */
@@ -44,11 +49,20 @@ const POINT_STEPS = 2
 const DIP_FACTOR = 4
 /** Same tolerance as `function-plot.ts`. */
 const SIMPLIFY_PX = 0.08
+/** A polyline no larger than this, in pixels, would not show as a stroke: it is a point. */
+const DOT_PX = 1
 
 type Box = { left: number; top: number; right: number; bottom: number }
 type Cell = { i: number; j: number; size: number }
 type Crossing = { id: number; x: number; y: number }
 
+/**
+ * Traces F(x, y) = 0 over `fenetre`. `versSvg` maps the window to SVG pixels and must be affine
+ * (y may point down, as in SVG): pixel sizes are taken from it at the window's corners. `F`
+ * returns NaN (or ±Infinity) where it is not defined; one that throws is treated the same way.
+ * At most `options.budget` evaluations of F (default BUDGET_IMPLICITE, capped at
+ * BUDGET_IMPLICITE_MAX); past it the curve is drawn as far as it was refined.
+ */
 export function traceImplicite(
   F: (x: number, y: number) => number,
   fenetre: Fenetre,
@@ -76,7 +90,7 @@ export function traceImplicite(
   const requested = options?.budget
   const budget =
     requested !== undefined && Number.isFinite(requested)
-      ? Math.max(0, Math.floor(requested))
+      ? Math.min(BUDGET_IMPLICITE_MAX, Math.max(0, Math.floor(requested)))
       : BUDGET_IMPLICITE
 
   // --- Lattice ---
@@ -99,7 +113,12 @@ export function traceImplicite(
   const evaluate = (x: number, y: number): number => {
     if (used >= budget) return NaN
     used++
-    const v = F(x, y)
+    let v: number
+    try {
+      v = F(x, y)
+    } catch {
+      return NaN
+    }
     return Number.isFinite(v) ? v : NaN
   }
   const cache = new Map<number, number>()
@@ -459,11 +478,28 @@ export function traceImplicite(
   }
 
   // --- 4. Polylines ---
-  const chemins = stitch(segments)
+  const chemins: PointSvg[][] = []
+  const lines = stitch(segments)
     .map((ids) => ids.map((id) => nodes.get(id) as PointSvg))
     .flatMap((line) => clipPolyline(line, frame))
     .map(simplify)
     .filter((line) => line.length >= 2)
+  for (const line of lines) {
+    const xs = line.map((p) => p.x)
+    const ys = line.map((p) => p.y)
+    const left = Math.min(...xs)
+    const top = Math.min(...ys)
+    const width = Math.max(...xs) - left
+    const height = Math.max(...ys) - top
+    if (width > DOT_PX || height > DOT_PX) {
+      chemins.push(line)
+      continue
+    }
+    // A solution smaller than a pixel (a loop round a vertex of the lattice, a crumb at the
+    // frame's corner) would be a stroke of no length: a point, unless one is there already.
+    const dot = { x: left + width / 2, y: top + height / 2 }
+    if (!points.some((p) => Math.hypot(p.x - dot.x, p.y - dot.y) <= DOT_PX)) points.push(dot)
+  }
   return { chemins, points }
 }
 

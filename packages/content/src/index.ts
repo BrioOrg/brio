@@ -294,4 +294,4 @@ export { TONES, MAX_TONES_PER_BLOCK, isTone, toneArguments, checkTones } from '.
 
 // Graphing calculator — implicit curves (ADR 0049)
 export type { Fenetre, OptionsImplicite, PointSvg, TraceImplicite } from './grapheur/implicite'
-export { BUDGET_IMPLICITE, traceImplicite } from './grapheur/implicite'
+export { BUDGET_IMPLICITE, BUDGET_IMPLICITE_MAX, traceImplicite } from './grapheur/implicite'
