@@ -17,6 +17,9 @@ public interface ExerciceRepository extends JpaRepository<Exercice, UUID> {
 
     List<Exercice> findByCoursId(UUID coursId);
 
+    /** Every version of one teacher-course exercise: same course, same editor block id (slug). */
+    List<Exercice> findByCoursIdAndSlug(UUID coursId, String slug);
+
     /**
      * Exercices d'annales (chapitres présents dans contenu.annales) portant la compétence donnée,
      * hors exercices retirés. Sert à l'entraînement ciblé par compétence (F7, ADR 0026).

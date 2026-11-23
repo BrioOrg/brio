@@ -48,6 +48,7 @@ const devoir = (id: string, echeanceAt: string, classeId = 'b') => ({
   corrige: false,
 })
 const REPRENDRE = {
+  type: 'chapitre',
   chapitreId: 'les-fractions',
   titre: 'Les fractions',
   niveauCode: '5e',
@@ -354,6 +355,25 @@ describe('AccueilPage', () => {
       '/5e/mathematiques/les-fractions'
     )
     expect(screen.queryByText('Choisis par où commencer')).not.toBeInTheDocument()
+  })
+
+  it('propose de continuer un cours du prof, qui renvoie vers la page du cours', async () => {
+    await rendre({
+      reprendre: {
+        type: 'cours',
+        coursId: 'c0ffee00-0000-4000-8000-000000000001',
+        titre: 'Pythagore en pratique',
+        sectionsLues: 1,
+        sectionsTotal: 3,
+        derniereActivite: '2026-10-31T10:00:00Z',
+      },
+    })
+    expect(screen.getByText('Pythagore en pratique')).toBeVisible()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+    expect(screen.getByRole('link', { name: 'Continuer' })).toHaveAttribute(
+      'href',
+      '/cours/c0ffee00-0000-4000-8000-000000000001'
+    )
   })
 
   it('montre la compétence à revoir, qui renvoie vers la leçon', async () => {
