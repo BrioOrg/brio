@@ -15,10 +15,12 @@ export function FigureParametree({
   spec,
   alt,
   caption,
+  sansLienCalculatrice,
 }: {
   spec: FigureSpec
   alt: string
   caption?: string
+  sansLienCalculatrice?: boolean
 }) {
   const parameters = spec.parameters ?? []
   const [values, setValues] = useState<Record<string, number>>(() =>
@@ -31,6 +33,7 @@ export function FigureParametree({
       alt={alt}
       caption={caption}
       parameterValues={values}
+      sansLienCalculatrice={sansLienCalculatrice}
       controls={
         <div className="mx-auto mt-2 flex max-w-80 flex-col gap-2 px-1 print:hidden">
           {parameters.map((p) => (

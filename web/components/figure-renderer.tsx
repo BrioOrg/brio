@@ -8,6 +8,8 @@ import type { ReactNode } from 'react'
 
 import { FunctionPlotStrokes, FunctionPlotTexts } from '@/components/function-plot-layer'
 import { HALO_CLASS } from '@/components/figure/halo'
+import { OuvrirCalculatrice } from '@/components/ouvrir-calculatrice'
+import { hrefCalculatrice } from '@/lib/figure-vers-calculatrice'
 
 import { TONE_FILL, TONE_STROKE, toneClass, tonedShapeClass } from '@/lib/math-tones'
 import { TransformationLayers } from '@/components/figure/transformation-layers'
@@ -30,6 +32,7 @@ export function FigureRenderer({
   blockId,
   parameterValues,
   controls,
+  sansLienCalculatrice,
 }: {
   spec: FigureSpec
   alt: string
@@ -40,8 +43,11 @@ export function FigureRenderer({
   parameterValues?: Readonly<Record<string, number>>
   /** Shown under the drawing, above the caption: the sliders of a figure with parameters. */
   controls?: ReactNode
+  /** No « Ouvrir dans la calculatrice » link (the teacher's preview must not leave the editor). */
+  sansLienCalculatrice?: boolean
 }) {
   const model = buildDrawingModel(spec, { parameterValues })
+  const hrefCalc = sansLienCalculatrice ? null : hrefCalculatrice(spec, parameterValues)
 
   return (
     <figure className="my-1 text-ink">
@@ -310,6 +316,8 @@ export function FigureRenderer({
           {caption}
         </figcaption>
       )}
+
+      {hrefCalc && <OuvrirCalculatrice href={hrefCalc} />}
     </figure>
   )
 }

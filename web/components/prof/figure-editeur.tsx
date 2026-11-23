@@ -1503,7 +1503,7 @@ function ApercuFigure({ spec, alt, caption }: { spec: FigureSpec; alt: string; c
   const Figure = (spec.parameters ?? []).length > 0 ? FigureParametree : FigureRenderer
   return (
     <div className="rounded-md border border-line bg-surface-page p-2">
-      <Figure spec={spec} alt={alt} caption={caption} />
+      <Figure spec={spec} alt={alt} caption={caption} sansLienCalculatrice />
     </div>
   )
 }
