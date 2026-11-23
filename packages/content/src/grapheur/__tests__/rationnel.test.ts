@@ -62,11 +62,18 @@ describe('rationnel', () => {
     expect(puissance(q(-2), q(-3))).toEqual(q(-1, 8))
     expect(puissance(q(5), q(0))).toEqual(q(1))
     expect(puissance(q(2), q(64))).toEqual({ num: 2n ** 64n, den: 1n })
-    expect(puissance(q(2), q(65))).toBeNull()
-    expect(puissance(q(2), q(-65))).toBeNull()
+    // The bound is the size of the result (BITS_MAX), not a fixed exponent.
+    expect(puissance(q(2), q(65))).toEqual({ num: 2n ** 65n, den: 1n })
+    expect(puissance(q(10), q(400))).toEqual({ num: 10n ** 400n, den: 1n })
+    expect(puissance(q(2), q(1024))).toEqual({ num: 2n ** 1024n, den: 1n })
+    expect(puissance(q(2), q(1025))).toBeNull()
+    expect(puissance(q(1, 2), q(1025))).toBeNull()
+    expect(puissance(q(1), q(2048))).toEqual(q(1))
+    expect(puissance(q(1), q(2049))).toBeNull()
+    expect(puissance(q(1), q(-2049))).toBeNull()
     expect(puissance(q(2), q(1, 2))).toBeNull()
     expect(puissance(q(0), q(-1))).toBeNull()
-    // 2^2000 has 2001 bits: within BITS_MAX, but its exponent is above 64.
+    // (2^100)^30 would have 3001 bits.
     expect(puissance({ num: 1n << 100n, den: 1n }, q(30))).toBeNull()
     expect(puissance({ num: 1n << 30n, den: 1n }, q(64))).toEqual({ num: 1n << 1920n, den: 1n })
   })

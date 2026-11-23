@@ -59,11 +59,11 @@ describe('latexOf', () => {
     ['(1/2)^3', '\\left(\\frac{1}{2}\\right)^{3}'],
     ['sin(x)²', '\\left(\\sin\\left(x\\right)\\right)^{2}'],
     // √ takes the factor right after it, as in ADR 0038: √x² is (√x)².
-    ['√x²', '\\sqrt{x}^{2}'],
+    ['√x²', '\\left(\\sqrt{x}\\right)^{2}'],
     ['√(x²)', '\\sqrt{x^{2}}'],
     ['x(2y)', 'x\\times 2y'],
     ['x(ab)', 'xab'],
-    ['(√x)²', '\\sqrt{x}^{2}'],
+    ['(√x)²', '\\left(\\sqrt{x}\\right)^{2}'],
     ['|x|²', '\\left|x\\right|^{2}'],
     ['e^x', 'e^{x}'],
     ['e^(−x²)', 'e^{-x^{2}}'],

@@ -64,6 +64,12 @@ function groupDigits(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '\\,')
 }
 
+/** A number as typed (`2,5`, `12345678901234567`): its digits, French comma, grouped. */
+function latexTyped(text: string): string {
+  const [whole, decimals] = text.split(/[.,]/)
+  return groupDigits(whole === '' ? '0' : whole) + (decimals === undefined ? '' : `{,}${decimals}`)
+}
+
 export function latexNumber(value: number): string {
   if (Number.isNaN(value)) return '\\text{?}'
   if (!Number.isFinite(value)) return value > 0 ? '\\infty' : '-\\infty'
@@ -97,7 +103,7 @@ function joinProduct(left: string, right: string): string {
 function render(node: ExpressionNode): string {
   switch (node.type) {
     case 'number':
-      return latexNumber(node.value)
+      return node.text !== undefined ? latexTyped(node.text) : latexNumber(node.value)
     case 'variable':
       return latexName(node.name)
     case 'constant':
@@ -131,7 +137,8 @@ function render(node: ExpressionNode): string {
           const base =
             level(left) < ATOM ||
             left.type === 'binary' ||
-            (left.type === 'call' && left.fn !== 'sqrt' && left.fn !== 'abs')
+            // √x² would read √(x²): (√x)² keeps its brackets. |x|² is unambiguous.
+            (left.type === 'call' && left.fn !== 'abs')
               ? brackets(render(left))
               : render(left)
           return `${base}^{${render(right)}}`

@@ -91,7 +91,6 @@ export type {
   ParseResult,
   ParseOptions,
   ExpressionConstant,
-  AngleUnit,
   CalculatorSyntax,
 } from './expression'
 export { parseExpression } from './expression'
@@ -312,6 +311,6 @@ export {
   NOEUDS_MAX,
 } from './grapheur/langage'
 export { latexOf } from './grapheur/latex'
-export { deriver, simplifier } from './grapheur/derivee'
+export { deriver, simplifier, DeriveeTropLongue, type BudgetDerivee } from './grapheur/derivee'
 export { compilerX, compilerXY, type FonctionXY } from './grapheur/compilation'
 export { rationnelDepuisDecimal, rationnelDepuisNombre, valeurDe } from './grapheur/rationnel'

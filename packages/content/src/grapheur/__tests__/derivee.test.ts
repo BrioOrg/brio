@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseExpression, type AngleUnit, type ExpressionNode } from '../../expression'
+import { parseExpression, type ModeAngle, type ExpressionNode } from '../../expression'
 import { compilerX } from '../compilation'
 import { dependsOn, deriver, minus, negate, over, plus, power, simplifier, times } from '../derivee'
 
-function tree(source: string, angle: AngleUnit = 'radians'): ExpressionNode {
+function tree(source: string, angle: ModeAngle = 'radians'): ExpressionNode {
   const r = parseExpression(source, { calculator: { angle, functions: ['f'] } })
   if (!r.ok) throw new Error(`${source}: ${r.error.message}`)
   return r.expression.tree
@@ -12,7 +12,9 @@ function tree(source: string, angle: AngleUnit = 'radians'): ExpressionNode {
 
 /** The tree without the `pos` of its nodes, to compare shapes. */
 function shape(node: ExpressionNode): unknown {
-  return JSON.parse(JSON.stringify(node, (k, v: unknown) => (k === 'pos' ? undefined : v)))
+  return JSON.parse(
+    JSON.stringify(node, (k, v: unknown) => (k === 'pos' || k === 'text' ? undefined : v))
+  )
 }
 
 function numericDerivative(f: (x: number) => number, x: number): number {
@@ -25,7 +27,7 @@ const x: ExpressionNode = { type: 'variable', name: 'x' }
 const a: ExpressionNode = { type: 'variable', name: 'a' }
 
 describe('deriver — against the centred difference quotient', () => {
-  const cases: Array<[string, number[], AngleUnit?]> = [
+  const cases: Array<[string, number[], ModeAngle?]> = [
     ['3', [-1, 0, 2]],
     ['x', [-1, 0, 2]],
     ['2x + 1', [-1, 0, 2]],
@@ -48,9 +50,9 @@ describe('deriver — against the centred difference quotient', () => {
     ['tan(x)', [-1, 0, 0.7]],
     ['sin(x)cos(x)', [-1, 0.3, 2]],
     ['sin(x²)', [-1, 0.3, 1.5]],
-    ['sin(x)', [0, 45, 90, 200], 'degrees'],
-    ['cos(2x)', [0, 30, 100], 'degrees'],
-    ['tan(x)', [0, 30, 60], 'degrees'],
+    ['sin(x)', [0, 45, 90, 200], 'degres'],
+    ['cos(2x)', [0, 30, 100], 'degres'],
+    ['tan(x)', [0, 30, 60], 'degres'],
     ['exp(x)', [-1, 0, 2]],
     ['e^(−x²)', [-1, 0, 0.5]],
     ['e^x', [-1, 0, 2]],
@@ -87,7 +89,7 @@ describe('deriver — against the centred difference quotient', () => {
   })
 
   it('should take the factor π/180 in degrees', () => {
-    const d = compilerX(deriver(tree('sin(x)', 'degrees')))
+    const d = compilerX(deriver(tree('sin(x)', 'degres')))
     expect(d(0)).toBeCloseTo(Math.PI / 180, 14)
     expect(d(90)).toBeCloseTo(0, 14)
     expect(compilerX(deriver(tree('sin(x)')))(0)).toBe(1)
@@ -185,11 +187,17 @@ describe('simplifier', () => {
   it('should fold a call only into a whole number', () => {
     expect(simplifier(tree('√4'))).toEqual(n(2))
     expect(simplifier(tree('cos(0)'))).toEqual(n(1))
+    // And the values: folding never changes what the tree computes.
+    for (const source of ['√4', 'cos(0)', '√2', 'ln(e)', 'ln(π)', '2 + 3x', '0x + 1']) {
+      const before = compilerX(tree(source))
+      const after = compilerX(simplifier(tree(source)))
+      for (const x of [-1, 0.5, 2]) expect(after(x)).toBeCloseTo(before(x), 14)
+    }
     expect(simplifier(tree('√2'))).toMatchObject({ type: 'call', fn: 'sqrt' })
-    expect(simplifier(tree('sin(90)', 'degrees'))).toEqual(n(1))
+    expect(simplifier(tree('sin(90)', 'degres'))).toEqual(n(1))
     expect(simplifier(tree('ln(e)'))).toEqual(n(1))
     expect(simplifier(tree('ln(π)'))).toMatchObject({ type: 'call', fn: 'ln' })
-    expect(simplifier(tree('sin(x)', 'degrees'))).toMatchObject({ degrees: true })
+    expect(simplifier(tree('sin(x)', 'degres'))).toMatchObject({ degrees: true })
     expect(simplifier(tree('f(2 + 1)'))).toEqual({
       type: 'userCall',
       name: 'f',

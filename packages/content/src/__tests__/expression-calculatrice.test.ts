@@ -91,7 +91,7 @@ describe('parseExpression — calculator functions', () => {
   })
 
   it('should read sin, cos and tan in degrees when asked', () => {
-    const deg = { angle: 'degrees' } as const
+    const deg = { angle: 'degres' } as const
     expect(value('sin(90)', {}, deg)).toBeCloseTo(1, 12)
     expect(value('cos(180)', {}, deg)).toBeCloseTo(-1, 12)
     expect(value('tan(45)', {}, deg)).toBeCloseTo(1, 12)
@@ -110,15 +110,16 @@ describe('parseExpression — calculator functions', () => {
   })
 
   it('should ask for brackets after a function name', () => {
-    expect(error('sin x').message).toBe('Après sin, mets la quantité entre parenthèses : sin(x).')
+    // In calculator mode the ADR 0038 messages take French spacing (no-break space before :).
+    expect(error('sin x').message).toBe(
+      'Après sin, mets la quantité entre parenthèses\u00a0: sin(x).'
+    )
     expect(error('sin x').position).toBe(4)
   })
 
   it('should name a function it does not know', () => {
     const e = error('2 + arcsin(x)')
-    expect(e.message).toBe(
-      'Je ne connais pas la fonction arcsin. Définis-la d’abord, par exemple f(x) = x².'
-    )
+    expect(e.message).toBe('La calculatrice ne connaît pas la fonction arcsin.')
     expect(e.position).toBe(4)
     // A known word not followed by a bracket is read as letters.
     expect(tree('max')).toMatchObject({ type: 'binary', op: '*' })
@@ -138,7 +139,7 @@ describe('parseExpression — calculator letters', () => {
       type: 'binary',
       op: '+',
       pos: 2,
-      left: { type: 'number', value: 2, pos: 0 },
+      left: { type: 'number', value: 2, text: '2', pos: 0 },
       right: {
         type: 'binary',
         op: '*',
