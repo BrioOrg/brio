@@ -73,7 +73,7 @@ export type DrawingFunctionPlot = {
   readings: DrawingReading[]
 }
 
-type Pt = { x: number; y: number }
+export type Pt = { x: number; y: number }
 type ToSvg = (lx: number, ly: number) => Pt
 type Box = { left: number; top: number; right: number; bottom: number }
 
