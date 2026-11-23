@@ -24,6 +24,8 @@
  *   POST /api/exercices/{id}/soumissions          graded from content/ like the backend's
  *                                                 evaluators (#246); 401 without a session
  *   POST /api/chapitres/{id}/sections/{s}/lu      204 with a session, 401 without
+ *   POST /api/cours/{id}/sections/{s}/lu          204/400/401/403/404, as CoursController (ADR 0050)
+ *   GET  /api/progression/cours/{id}              a gauge for E2E_SESSION_COURS_EN_COURS on c001, else 204
  *   GET  /api/devoirs, /api/cours                 the test student's homework and courses (courses newest first)
  *   GET  /api/cours/{id}                          a published teacher course, as CoursController
  *                                                 serves it: 401 without a session, 400 for an id
@@ -172,6 +174,16 @@ export const E2E_SESSION_A_REVOIR = 'JSESSIONID=e2e-a-revoir'
  */
 export const E2E_SESSION_A_REVOIR_ORPHELIN = 'JSESSIONID=e2e-a-revoir-orphelin'
 
+/**
+ * A student of the class who left a teacher course unfinished (PL-6b, ADR 0050): « Reprendre »
+ * proposes that course, and progression has their gauge for it. Any other student never opened one.
+ */
+export const E2E_SESSION_COURS_EN_COURS = 'JSESSIONID=e2e-cours-en-cours'
+
+function coursEnCours(req) {
+  return cookies(req).includes(E2E_SESSION_COURS_EN_COURS)
+}
+
 function cookies(req) {
   return (req.headers.cookie ?? '').split(/;\s*/)
 }
@@ -225,6 +237,7 @@ function connecte(req) {
     adminBrio(req) ||
     !!sessionReinit(req) ||
     !!eleve3eC(req) ||
+    coursEnCours(req) ||
     competenceARevoir(req) !== null
   )
 }
@@ -1379,6 +1392,69 @@ async function coursPublie(req, res, segment) {
   return send(res, 200, { ...asServed(JSON.parse(json)), title: cours.titre })
 }
 
+/** The section ids of a published course's content in this fake (CONTENU_DES_COURS). */
+async function sectionsDesCours() {
+  const [niveau, matiere, slug] = CONTENU_DES_COURS
+  const json = await readFile(join(CONTENT_DIR, niveau, matiere, `${slug}.json`), 'utf8')
+  return JSON.parse(json).sections.map((section) => section.id)
+}
+
+/** The course id of a path segment, or null when UUID.fromString would refuse it (400). */
+function idDeCours(segment) {
+  let coursId = ''
+  try {
+    coursId = decodeURIComponent(segment)
+  } catch {
+    // A malformed escape is no UUID either.
+  }
+  return UUID_JAVA.test(coursId) ? coursId.toLowerCase() : null
+}
+
+/**
+ * POST /api/cours/{coursId}/sections/{sectionId}/lu, in CoursController.marquerSectionCoursLue's
+ * order: 400 (no UUID, id over 128), 404 (no course), 403 (out of scope), 404 (no such section).
+ */
+async function sectionCoursLue(req, res, segmentCours, segmentSection) {
+  if (!connecte(req)) return send(res, 401)
+  const coursId = idDeCours(segmentCours)
+  const sectionId = decodeURIComponent(segmentSection)
+  if (coursId === null || sectionId.length > 128) return send(res, 400)
+  const cours = [...COURS, COURS_HORS_PORTEE].find((c) => c.id === coursId)
+  if (!cours) return send(res, 404)
+  const classesDuLecteur = sansClasse(req) || enseignant(req) ? [] : [CLASSE.id]
+  if (!cours.classeIds.some((id) => classesDuLecteur.includes(id))) return send(res, 403)
+  if (!(await sectionsDesCours()).includes(sectionId)) return send(res, 404)
+  res.writeHead(204)
+  return res.end()
+}
+
+/** GET /api/progression/cours/{coursId}: the gauge only for a student with rows on it, else 204. */
+async function jaugeCours(req, res, segment) {
+  const coursId = idDeCours(segment)
+  if (coursId === null) return send(res, 400)
+  if (!coursEnCours(req) || coursId !== COURS[0].id) return send(res, 204)
+  const sectionsTotal = (await sectionsDesCours()).length
+  return send(res, 200, {
+    coursId,
+    pourcentage: Math.round((100 * 1) / sectionsTotal),
+    termine: false,
+    sectionsLues: 1,
+    sectionsTotal,
+  })
+}
+
+/** « Reprendre » for E2E_SESSION_COURS_EN_COURS: the course, its published title (ADR 0050 §5). */
+async function reprendreCours() {
+  return {
+    type: 'cours',
+    coursId: COURS[0].id,
+    titre: COURS[0].titre,
+    sectionsLues: 1,
+    sectionsTotal: (await sectionsDesCours()).length,
+    derniereActivite: '2026-10-20T16:00:00Z',
+  }
+}
+
 let soumissions = 0
 
 function send(res, status, body) {
@@ -1478,8 +1554,11 @@ const server = createServer(async (req, res) => {
         })
       }
       if (pathname === '/api/progression/reprendre') {
+        if (coursEnCours(req)) return send(res, 200, await reprendreCours())
         return sansClasse(req) ? send(res, 204) : send(res, 200, REPRENDRE)
       }
+      const jauge = pathname.match(/^\/api\/progression\/cours\/([^/]+)$/)
+      if (jauge) return jaugeCours(req, res, jauge[1])
       if (pathname === '/api/progression/maitrise') {
         const code = competenceARevoir(req)
         if (code === null) return send(res, 200, [])
@@ -1656,6 +1735,8 @@ const server = createServer(async (req, res) => {
         citations: [`${section.id}/${section.blocks[0].id}`],
       })
     }
+    const luCours = pathname.match(/^\/api\/cours\/([^/]+)\/sections\/([^/]+)\/lu$/)
+    if (luCours && req.method === 'POST') return sectionCoursLue(req, res, luCours[1], luCours[2])
     if (/^\/api\/chapitres\/[^/]+\/sections\/[^/]+\/lu$/.test(pathname)) {
       res.writeHead(connecte(req) ? 204 : 401)
       return res.end()

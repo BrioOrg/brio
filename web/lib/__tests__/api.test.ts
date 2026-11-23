@@ -364,3 +364,63 @@ describe('marquerSectionCoursLue', () => {
     await expect(marquerSectionCoursLue('c', 's')).rejects.toThrow('Section non enregistrée')
   })
 })
+
+describe('soumettre — a refusal of 403', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    clearCookies()
+    document.cookie = 'XSRF-TOKEN=tok-403'
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function repondre403(corps: unknown) {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(corps === null ? null : JSON.stringify(corps), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          })
+      )
+    )
+  }
+
+  it('speaks of the course only when the backend says the course is out of scope', async () => {
+    repondre403({ code: 'cours_hors_portee', error: 'Exercise not accessible to this student: x' })
+    const { soumettre } = await import('@/lib/api')
+    await expect(soumettre('x', {})).rejects.toThrow('Ce cours n’est pas ouvert à ta classe.')
+  })
+
+  it.each([
+    ['a CSRF refusal', { status: 403, error: 'Forbidden', path: '/api/exercices/x/soumissions' }],
+    ['a password to change', { error: 'Choisis ton nouveau mot de passe avant de continuer.' }],
+    ['an empty body', null],
+  ])('keeps the generic message for %s, never a course', async (_cas, corps) => {
+    repondre403(corps)
+    const { soumettre } = await import('@/lib/api')
+    await expect(soumettre('x', {})).rejects.toThrow('Erreur lors de la soumission')
+  })
+})
+
+describe('marquerSectionCoursLue — session ended', () => {
+  beforeEach(() => {
+    vi.resetModules()
+    clearCookies()
+    document.cookie = 'XSRF-TOKEN=tok-401'
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('says the session expired on 401', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(null, { status: 401 }))
+    )
+    const { marquerSectionCoursLue } = await import('@/lib/api')
+    await expect(marquerSectionCoursLue('c', 's')).rejects.toThrow('Ta session a expiré')
+  })
+})

@@ -304,9 +304,20 @@ export async function soumettre(
   // openapi-fetch surfaces as no `error` rather than a populated one.
   if (error || !response.ok) {
     if (response.status === 401) throw sessionExpiree()
-    if (response.status === 403) throw new Error('Ce cours n’est plus ouvert à ta classe.')
+    // Only the course-scope refusal speaks of a course; any other 403 (CSRF, a password to change)
+    // keeps the generic message (ADR 0050 §3).
+    if (response.status === 403 && estRefusDePortee(error)) {
+      throw new Error('Ce cours n’est pas ouvert à ta classe.')
+    }
     if (response.status === 404) throw new Error('Exercice introuvable')
     throw new Error('Erreur lors de la soumission')
   }
   return SoumissionResultSchema.parse(data)
+}
+
+/** The body of exercices' course-scope refusal (`ExercicesExceptionHandler`, code `cours_hors_portee`). */
+const RefusDePorteeSchema = z.object({ code: z.literal('cours_hors_portee') })
+
+function estRefusDePortee(corps: unknown): boolean {
+  return RefusDePorteeSchema.safeParse(corps).success
 }

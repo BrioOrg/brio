@@ -3,13 +3,15 @@
 import { useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { TuteurEtEntraide } from '@/components/chapter-rail'
+import { TuteurPanel } from '@/components/tutor-panel'
 import { Icon } from '@/components/ui/icon'
 import type { TutorTarget } from '@/lib/api'
 import { indexDiapo } from '@/lib/diapos'
 import { useModeChapitre } from './mode-context'
 
 type AideSceneProps = {
-  target: Extract<TutorTarget, { kind: 'chapitre' }>
+  /** A catalogue chapter (tutor and entraide) or a teacher course (tutor only, ADR 0050 §7). */
+  target: TutorTarget
   /** Each exercise's `exerciceId`, by block id (`exercicesParBloc`). */
   exercices: Readonly<Record<string, string>>
 }
@@ -18,7 +20,8 @@ type AideSceneProps = {
  * The tutor and the class entraide of the interactive mode (#250), whose rail is hidden. A drawer,
  * opened by the floating button or `T`, scoped to the current slide: on an exercise slide the
  * tutor is told which exercise and the entraide shows that exercise's threads; elsewhere both are
- * about the chapter. Closing it leaves the student on the slide they were on.
+ * about the chapter. Closing it leaves the student on the slide they were on. On a teacher course
+ * it holds the tutor alone, as its reading rail does: the entraide is not open on courses (#401).
  */
 export function AideScene(props: AideSceneProps) {
   const ctx = useModeChapitre()
@@ -38,6 +41,21 @@ function TiroirAide({
   const retour = useRef<HTMLElement | null>(null)
   const blocs = deck[index].blockIds as readonly string[]
   const exerciceId = blocs.map((id) => exercices[id]).find(Boolean) ?? null
+  const tuteur = {
+    target,
+    exerciceId,
+    // Only an exercise reaches the backend: elsewhere the tutor reads the whole chapter or course.
+    contexte: exerciceId
+      ? 'Ta question porte sur cet exercice.'
+      : target.kind === 'cours'
+        ? 'Ta question porte sur tout le cours.'
+        : 'Ta question porte sur tout le chapitre.',
+    onCitation: (blockId: string) => {
+      retour.current = null
+      setAideOuverte(false)
+      aller(indexDiapo(deck, blockId))
+    },
+  }
 
   return (
     <Dialog.Root open={aideOuverte} onOpenChange={setAideOuverte}>
@@ -53,7 +71,8 @@ function TiroirAide({
             if (retour.current?.isConnected) retour.current.focus()
             retour.current = null
           }}
-          className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border-t border-line bg-surface-panel px-5 pb-8 pt-4 focus-visible:outline-none motion-safe:data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)] lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-full lg:max-w-sm lg:rounded-none lg:border-l lg:border-t-0 lg:motion-safe:data-[state=open]:animate-[slideInRight_var(--duration-slow)_var(--ease-out)]">
+          className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border-t border-line bg-surface-panel px-5 pb-8 pt-4 focus-visible:outline-none motion-safe:data-[state=open]:animate-[slideUp_var(--duration-slow)_var(--ease-out)] lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-full lg:max-w-sm lg:rounded-none lg:border-l lg:border-t-0 lg:motion-safe:data-[state=open]:animate-[slideInRight_var(--duration-slow)_var(--ease-out)]"
+        >
           <div className="mb-4 flex items-center justify-between">
             <Dialog.Title className="font-display text-base font-extrabold text-ink">
               Besoin d’aide ?
@@ -66,28 +85,22 @@ function TiroirAide({
             </Dialog.Close>
           </div>
           <Dialog.Description className="sr-only">
-            Le tuteur et les questions de ta classe, sans quitter la diapo.
+            {target.kind === 'chapitre'
+              ? 'Le tuteur et les questions de ta classe, sans quitter la diapo.'
+              : 'Le tuteur, sans quitter la diapo.'}
           </Dialog.Description>
-          <TuteurEtEntraide
-            tuteur={{
-              target,
-              exerciceId,
-              // Only an exercise reaches the backend: elsewhere the tutor reads the whole chapter.
-              contexte: exerciceId
-                ? 'Ta question porte sur cet exercice.'
-                : 'Ta question porte sur tout le chapitre.',
-              onCitation: (blockId) => {
-                retour.current = null
-                setAideOuverte(false)
-                aller(indexDiapo(deck, blockId))
-              },
-            }}
-            entraide={
-              exerciceId
-                ? { portee: 'exercice', porteeRef: exerciceId }
-                : { portee: 'chapitre', porteeRef: target.slug }
-            }
-          />
+          {target.kind === 'chapitre' ? (
+            <TuteurEtEntraide
+              tuteur={tuteur}
+              entraide={
+                exerciceId
+                  ? { portee: 'exercice', porteeRef: exerciceId }
+                  : { portee: 'chapitre', porteeRef: target.slug }
+              }
+            />
+          ) : (
+            <TuteurPanel {...tuteur} />
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

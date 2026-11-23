@@ -120,3 +120,19 @@ describe('ContenuAReprendreSchema', () => {
     ).toBe(false)
   })
 })
+
+describe('ContenuAReprendreSchema — a backend from before teacher courses', () => {
+  it('refuses a chapter without its type: the home page then draws no block, never a broken one', () => {
+    expect(
+      ContenuAReprendreSchema.safeParse({
+        chapitreId: 'les-fractions',
+        titre: 'Les fractions',
+        niveauCode: '5e',
+        matiereCode: 'mathematiques',
+        sectionsLues: 1,
+        sectionsTotal: 3,
+        derniereActivite: '2026-11-23T10:00:00Z',
+      }).success
+    ).toBe(false)
+  })
+})
