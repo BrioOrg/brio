@@ -16,11 +16,9 @@ import fr.brio.progression.domain.Chapitre;
 import fr.brio.progression.domain.EvenementXp;
 import fr.brio.progression.domain.ExerciceReussi;
 import fr.brio.progression.domain.Maitrise;
-import fr.brio.progression.domain.Niveau;
 import fr.brio.progression.domain.NiveauMaitrise;
 import fr.brio.progression.domain.SectionLue;
 import fr.brio.progression.domain.Serie;
-import fr.brio.progression.domain.Solde;
 import fr.brio.progression.domain.SoumissionCompetence;
 import fr.brio.progression.infrastructure.ChapitreProjectionRepository;
 import fr.brio.progression.infrastructure.DernierTravail;
@@ -90,6 +88,7 @@ public class ProgressionService {
     private final SoumissionCompetenceRepository soumissionsCompetences;
     private final MaitriseRepository maitrises;
     private final ApplicationEventPublisher events;
+    private final CompteurXp compteur;
 
     ProgressionService(
             EvenementXpRepository evenements,
@@ -110,6 +109,7 @@ public class ProgressionService {
         this.soumissionsCompetences = soumissionsCompetences;
         this.maitrises = maitrises;
         this.events = events;
+        this.compteur = new CompteurXp(evenements, soldes, series);
     }
 
     /** Upserts the local projection of a published chapter's structure. */
@@ -135,6 +135,11 @@ public class ProgressionService {
 
         if (!e.correct()) {
             return; // an error costs nothing (ADR 0022 barème)
+        }
+        if (e.coursId() != null) {
+            // A teacher-course solve is keyed by the editor's stable id, not the per-version UUID:
+            // ProgressionCoursService records it and awards its XP (ADR 0050 §5).
+            return;
         }
 
         String motif = e.premiereTentative() ? MOTIF_1ER_COUP : MOTIF_APRES_ERREUR;
@@ -321,14 +326,7 @@ public class ProgressionService {
 
     /** Marks the student active on the day of {@code quand} and updates the streak. */
     private void enregistrerActivite(UUID eleveId, Instant quand) {
-        LocalDate jour = quand.atZone(ZONE).toLocalDate();
-        // Create the row race-free first (#344), so the find+save below is a plain update, never a
-        // second concurrent INSERT that would collide on series_pkey and roll back the whole award.
-        // After creerSiAbsent the row exists, so orElseGet is only a defensive fallback.
-        series.creerSiAbsent(eleveId);
-        Serie serie = series.findById(eleveId).orElseGet(() -> new Serie(eleveId));
-        serie.enregistrerActivite(jour, quand);
-        series.save(serie);
+        compteur.enregistrerActivite(eleveId, quand);
     }
 
     /** Records the submission for each of its competences, then refreshes their mastery. */
@@ -473,17 +471,10 @@ public class ProgressionService {
     }
 
     private boolean plafondAtteint(UUID eleveId, Instant quand) {
-        Instant debutDuJour = quand.atZone(ZONE).toLocalDate().atStartOfDay(ZONE).toInstant();
-        return evenements.sommePointsDepuis(eleveId, debutDuJour) >= PLAFOND_QUOTIDIEN;
+        return compteur.plafondAtteint(eleveId, quand);
     }
 
     private void recalculerSolde(UUID eleveId, Instant quand) {
-        // Create then lock the balance row before summing (#344): concurrent awards for the same
-        // student serialize here, so each sum sees every already-committed event and the stored
-        // total never drops one. The row is guaranteed to exist for the lock by creerSiAbsent.
-        soldes.creerSiAbsent(eleveId);
-        soldes.verrouiller(eleveId);
-        int total = evenements.sommePointsPourEleve(eleveId);
-        soldes.save(new Solde(eleveId, total, Niveau.pour(total), quand));
+        compteur.recalculerSolde(eleveId, quand);
     }
 }

@@ -2,6 +2,8 @@ package fr.brio.exercices;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.brio.contenu.api.AccesCours;
+import fr.brio.contenu.api.CoursAccesApi;
 import fr.brio.contenu.api.ExerciceContentApi;
 import fr.brio.contenu.api.ExerciceDefinition;
 import fr.brio.exercices.api.SoumissionEnregistree;
@@ -26,18 +28,21 @@ public class ExercicesService {
     private final SoumissionRepository soumissionRepository;
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher events;
+    private final CoursAccesApi coursAccesApi;
 
     ExercicesService(
             ExerciceContentApi exerciceContentApi,
             EvaluatorDispatcher dispatcher,
             SoumissionRepository soumissionRepository,
             ObjectMapper objectMapper,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            CoursAccesApi coursAccesApi) {
         this.exerciceContentApi = exerciceContentApi;
         this.dispatcher = dispatcher;
         this.soumissionRepository = soumissionRepository;
         this.objectMapper = objectMapper;
         this.events = events;
+        this.coursAccesApi = coursAccesApi;
     }
 
     @Transactional
@@ -46,9 +51,14 @@ public class ExercicesService {
 
         ExerciceDefinition definition = exerciceContentApi.findById(exerciceId)
                 .orElseThrow(() -> new ExerciceNotFoundException(exerciceId));
+        verifierAccesAuCours(studentRef, definition);
 
-        // Computed before persisting the current submission, so it reflects prior attempts only.
-        boolean premiereTentative = !soumissionRepository.existsByStudentRefAndExerciceId(studentRef, exerciceId);
+        // Computed before persisting the current submission, so it reflects prior attempts only — on
+        // every version of a teacher-course exercise, so a republication is not a fresh first try.
+        boolean premiereTentative = !(definition.coursId() == null
+                ? soumissionRepository.existsByStudentRefAndExerciceId(studentRef, exerciceId)
+                : soumissionRepository.existsByStudentRefAndExerciceIdIn(
+                        studentRef, exerciceContentApi.versionsDuMemeExercice(exerciceId)));
 
         EvaluationResult result = dispatcher.dispatch(definition.type(), definition.evaluationJson(), answer);
 
@@ -82,7 +92,32 @@ public class ExercicesService {
                 premiereTentative,
                 soumission.getCompetencies(),
                 definition.difficulte(),
-                soumission.getSubmittedAt()));
+                soumission.getSubmittedAt(),
+                definition.coursId(),
+                definition.exerciceCle()));
+    }
+
+    /**
+     * A teacher-course exercise is graded only for a student who may open the course right now
+     * (ADR 0050 §3), by the same rule as {@code GET /api/cours/{id}}: no submission, no event, no
+     * XP otherwise. An exercise of an older version of a still visible course stays answerable (a
+     * homework can pin a version). A non-account ref has no classes, so it is out of scope.
+     */
+    private void verifierAccesAuCours(String studentRef, ExerciceDefinition definition) {
+        if (definition.coursId() == null) {
+            return; // catalogue exercise: public, as before
+        }
+        AccesCours acces;
+        try {
+            acces = coursAccesApi.accesPourEleve(UUID.fromString(studentRef), definition.coursId());
+        } catch (IllegalArgumentException notARealAccount) {
+            acces = AccesCours.HORS_PORTEE;
+        }
+        switch (acces) {
+            case VISIBLE -> { }
+            case INTROUVABLE -> throw new ExerciceNotFoundException(definition.id());
+            case HORS_PORTEE -> throw new CoursHorsPorteeException(definition.id());
+        }
     }
 
     private String resolveStudentRef() {

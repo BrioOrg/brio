@@ -11,7 +11,9 @@ import { z } from 'zod'
  * (never a fabricated number).
  *
  * Backend contract (fr.brio.progression.web.ProgressionController):
- *   GET /api/progression/moi   200 -> ProgressionInfo · 401 when no session
+ *   GET /api/progression/moi              200 -> ProgressionInfo · 401 when no session
+ *   GET /api/progression/cours/{coursId}  200 -> ProgressionCoursInfo · 204 no gauge · 401
+ *   GET /api/progression/reprendre        200 -> ContenuAReprendre · 204 nothing to resume
  *
  * Auth is the session cookie (SecurityConfig gates every /api/** behind
  * form-login); all calls use `credentials: 'include'` so the cookie rides.
@@ -105,9 +107,10 @@ export async function getSerie(baseUrl: string): Promise<SerieInfo | null> {
 
 /**
  * The chapter a student left unfinished (fr.brio.progression.api.ChapitreAReprendre, #323).
- * `chapitreId` is also the catalogue slug. The endpoint answers 204 when there is nothing to resume.
+ * `chapitreId` is also the catalogue slug.
  */
 export const ChapitreAReprendreSchema = z.object({
+  type: z.literal('chapitre'),
   chapitreId: z.string(),
   titre: z.string(),
   niveauCode: z.string(),
@@ -118,6 +121,64 @@ export const ChapitreAReprendreSchema = z.object({
 })
 
 export type ChapitreAReprendre = z.infer<typeof ChapitreAReprendreSchema>
+
+/**
+ * A teacher course the student left unfinished (fr.brio.progression.api.CoursAReprendre, ADR 0050).
+ * Only sent while the student can still open it; `titre` is its published title. Links to
+ * `/cours/{coursId}`.
+ */
+export const CoursAReprendreSchema = z.object({
+  type: z.literal('cours'),
+  coursId: z.string(),
+  titre: z.string(),
+  sectionsLues: z.number(),
+  sectionsTotal: z.number(),
+  derniereActivite: z.string(),
+})
+
+export type CoursAReprendre = z.infer<typeof CoursAReprendreSchema>
+
+/**
+ * What « Reprendre » proposes (GET /api/progression/reprendre): a chapter or a teacher course,
+ * told apart by `type`. The endpoint answers 204 when there is nothing to resume.
+ */
+export const ContenuAReprendreSchema = z.discriminatedUnion('type', [
+  ChapitreAReprendreSchema,
+  CoursAReprendreSchema,
+])
+
+export type ContenuAReprendre = z.infer<typeof ContenuAReprendreSchema>
+
+/**
+ * The student's gauge for one teacher course (fr.brio.progression.api.ProgressionCoursInfo,
+ * GET /api/progression/cours/{coursId}, ADR 0050). 204 when the course is unknown to progression
+ * or the student never opened it: then there is no gauge, never a 0 %.
+ */
+export const ProgressionCoursSchema = z.object({
+  coursId: z.string(),
+  pourcentage: z.number(),
+  termine: z.boolean(),
+  sectionsLues: z.number(),
+  sectionsTotal: z.number(),
+})
+
+export type ProgressionCours = z.infer<typeof ProgressionCoursSchema>
+
+/**
+ * Return the authenticated student's gauge for a teacher course, or null when there is none
+ * (204) or no session (401).
+ */
+export async function getProgressionCours(
+  baseUrl: string,
+  coursId: string
+): Promise<ProgressionCours | null> {
+  const res = await fetch(`${baseUrl}/api/progression/cours/${encodeURIComponent(coursId)}`, {
+    credentials: 'include',
+  })
+  if (res.status === 401 || res.status === 204) return null
+  if (!res.ok) throw new Error('Impossible de récupérer la progression du cours.')
+  return ProgressionCoursSchema.parse(await res.json())
+}
 
 /**
  * Mastery of one competence (fr.brio.progression.api.MaitriseInfo). `niveau` is 0 to 4, absent

@@ -2,18 +2,23 @@ package fr.brio.contenu;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.brio.contenu.api.AccesCours;
+import fr.brio.contenu.api.SectionCoursLue;
 import fr.brio.contenu.domain.Cours;
 import fr.brio.contenu.domain.CoursVersionId;
 import fr.brio.contenu.infrastructure.CoursPorteeRepository;
 import fr.brio.contenu.infrastructure.CoursRepository;
 import fr.brio.contenu.infrastructure.CoursVersionRepository;
+import java.time.Instant;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,16 +39,19 @@ public class CoursLectureService {
     private final CoursVersionRepository coursVersionRepository;
     private final CoursPorteeRepository coursPorteeRepository;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher events;
 
     CoursLectureService(
             CoursRepository coursRepository,
             CoursVersionRepository coursVersionRepository,
             CoursPorteeRepository coursPorteeRepository,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher events) {
         this.coursRepository = coursRepository;
         this.coursVersionRepository = coursVersionRepository;
         this.coursPorteeRepository = coursPorteeRepository;
         this.objectMapper = objectMapper;
+        this.events = events;
     }
 
     /**
@@ -67,6 +75,63 @@ public class CoursLectureService {
         }
         return coursPorteeRepository.findByIdCoursId(coursId).stream()
                 .anyMatch(p -> classesEleve.contains(p.getClasseId()));
+    }
+
+    /**
+     * The access outcome of {@code GET /api/cours/{id}} for these classes: not found (no published
+     * version), out of scope, or visible. The visibility half is {@link #estVisiblePour} itself, so
+     * every caller applies the one rule (ADR 0050 §2, S3).
+     */
+    @Transactional(readOnly = true)
+    public AccesCours acces(UUID coursId, Set<UUID> classesEleve) {
+        if (versionPubliee(coursId).isEmpty()) {
+            return AccesCours.INTROUVABLE;
+        }
+        return estVisiblePour(coursId, classesEleve) ? AccesCours.VISIBLE : AccesCours.HORS_PORTEE;
+    }
+
+    /**
+     * Among {@code coursIds}, those visible to the given classes ({@link #estVisiblePour}), each
+     * with the title of its published version — the title the course page shows, not the draft's
+     * (ADR 0050 §2, S1).
+     */
+    @Transactional(readOnly = true)
+    public Map<UUID, String> titresVisibles(Set<UUID> coursIds, Set<UUID> classesEleve) {
+        Map<UUID, String> titres = new LinkedHashMap<>();
+        if (classesEleve.isEmpty()) {
+            return titres;
+        }
+        for (UUID coursId : coursIds) {
+            if (estVisiblePour(coursId, classesEleve)) {
+                contenuPublie(coursId).ifPresent(c -> titres.put(coursId, c.path("title").asText()));
+            }
+        }
+        return titres;
+    }
+
+    /** Whether the currently published version of the course has this section. */
+    @Transactional(readOnly = true)
+    public boolean sectionPubliee(UUID coursId, String sectionId) {
+        return contenuPublie(coursId).map(c -> CoursStructure.contientSection(c, sectionId)).orElse(false);
+    }
+
+    /**
+     * Records that a student read a section of a teacher course by publishing
+     * {@link SectionCoursLue} (ADR 0050 §1), after the same checks as reading the course: not
+     * found (no published version, or the section is not in it) or out of scope publish nothing.
+     */
+    // The transaction is what carries the event: progression listens after commit (#252).
+    @Transactional
+    public AccesCours marquerSectionLue(UUID coursId, String sectionId, UUID eleveId, Set<UUID> classesEleve) {
+        AccesCours acces = acces(coursId, classesEleve);
+        if (acces != AccesCours.VISIBLE) {
+            return acces;
+        }
+        if (!sectionPubliee(coursId, sectionId)) {
+            return AccesCours.INTROUVABLE;
+        }
+        events.publishEvent(new SectionCoursLue(eleveId, coursId, sectionId, Instant.now()));
+        return AccesCours.VISIBLE;
     }
 
     /**

@@ -1,6 +1,6 @@
 import {
-  ChapitreAReprendreSchema,
   CompteInfoSchema,
+  ContenuAReprendreSchema,
   DevoirEleveVueSchema,
   MaClasseSchema,
   MaitriseInfoSchema,
@@ -43,7 +43,7 @@ export const lireClasses = (cookie: string) =>
 export const lireDevoirs = (cookie: string) =>
   lire('/api/devoirs', z.array(DevoirEleveVueSchema), cookie)
 export const lireReprendre = (cookie: string) =>
-  lire('/api/progression/reprendre', ChapitreAReprendreSchema, cookie)
+  lire('/api/progression/reprendre', ContenuAReprendreSchema, cookie)
 export const lireMaitrise = (cookie: string) =>
   lire('/api/progression/maitrise', z.array(MaitriseInfoSchema), cookie)
 export const lireProgression = (cookie: string) =>

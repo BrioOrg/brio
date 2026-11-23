@@ -30,6 +30,26 @@ const TITRE: Record<NiveauCelebration, string> = {
   complet: 'Tous les exercices réussis !',
 }
 
+/** A teacher course says « cours », never « chapitre », and announces no bonus (ADR 0050 §7). */
+const MOTS = {
+  chapitre: {
+    fin: 'Fin du chapitre',
+    parcouru: 'Tu as parcouru toutes les diapos de ce chapitre.',
+    termine: 'Chapitre terminé',
+    avancee: 'Ton avancée dans le chapitre',
+    progression: 'Progression du chapitre',
+    retour: 'Revenir au parcours',
+  },
+  cours: {
+    fin: 'Fin du cours',
+    parcouru: 'Tu as parcouru toutes les diapos de ce cours.',
+    termine: 'Cours terminé',
+    avancee: 'Ton avancée dans le cours',
+    progression: 'Progression du cours',
+    retour: 'Revenir à tes cours',
+  },
+} as const
+
 /** When the slide's last beat has landed, `n` beats in. */
 function finDesTemps(n: number): number {
   return duration.stagger * Math.max(0, n - 1) + duration.beat
@@ -147,6 +167,7 @@ export function FinDeChapitre() {
 
   if (!ctx || !b) return null
   const { chemin, deck, aller, parcoursHref, basculer } = ctx
+  const mots = MOTS[ctx.nature]
 
   return (
     <>
@@ -156,12 +177,10 @@ export function FinDeChapitre() {
           tabIndex={-1}
           className="font-display text-2xl font-black tracking-tight text-ink focus:outline-none"
         >
-          {TITRE[b.niveau]}
+          {b.niveau === 'sobre' ? mots.fin : TITRE[b.niveau]}
         </h2>
         {b.niveau === 'sobre' && (
-          <p className="mt-2 font-prose text-base leading-relaxed text-ink">
-            Tu as parcouru toutes les diapos de ce chapitre.
-          </p>
+          <p className="mt-2 font-prose text-base leading-relaxed text-ink">{mots.parcouru}</p>
         )}
         <span
           ref={eclats}
@@ -176,13 +195,7 @@ export function FinDeChapitre() {
           data-bilan="reussis"
           className="flex items-center gap-2 font-display text-lg font-extrabold text-ink"
         >
-          <Icon
-            name="check"
-            weight="bold"
-            size={22}
-            className="text-accent"
-            aria-hidden="true"
-          />
+          <Icon name="check" weight="bold" size={22} className="text-accent" aria-hidden="true" />
           {b.reussis} exercice{b.reussis > 1 ? 's' : ''} réussi{b.reussis > 1 ? 's' : ''}
         </p>
       )}
@@ -205,7 +218,7 @@ export function FinDeChapitre() {
         <div data-bilan="completion" className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between font-display text-xs font-extrabold uppercase tracking-widest">
             <span className="text-ink-muted">
-              {b.completion.a >= 100 ? 'Chapitre terminé' : 'Ton avancée dans le chapitre'}
+              {b.completion.a >= 100 ? mots.termine : mots.avancee}
             </span>
             <span aria-hidden="true" className="tabular-nums text-accent">
               {completion} %
@@ -216,7 +229,7 @@ export function FinDeChapitre() {
             aria-valuenow={b.completion.a}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label={`Progression du chapitre : ${b.completion.a} %`}
+            aria-label={`${mots.progression} : ${b.completion.a} %`}
             className="h-2 overflow-hidden rounded-pill bg-surface-raised"
           >
             <div
@@ -262,13 +275,13 @@ export function FinDeChapitre() {
             </Link>
             <Link href={parcoursHref}>
               <Button variant="secondary" size="sm">
-                Revenir au parcours
+                {mots.retour}
               </Button>
             </Link>
           </>
         ) : (
           <Link href={parcoursHref}>
-            <Button size="sm">Revenir au parcours</Button>
+            <Button size="sm">{mots.retour}</Button>
           </Link>
         )}
         <Button variant="secondary" size="sm" onClick={basculer}>
