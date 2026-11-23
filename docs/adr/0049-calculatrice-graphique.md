@@ -46,22 +46,40 @@ line, in the same order and with the same ids:
    number) as constant nodes, every single letter as a variable (`ax` is a·x, as on paper; the
    caller decides what each letter means), calls `f(…)`, `f'(…)`, `f''(…)` to the names the
    caller declares (one lowercase letter other than x, y, e, optionally one digit: `f1`, which
-   ADR 0038 figures allow), primes `'`, `’`, `′`, a position on every node, and the angle unit
-   carried by the `sin`/`cos`/`tan` nodes (`degrees: true`). A known unsupported name
-   (`arcsin(`, `sinh(`, `max(`…) is reported as an unknown function instead of being read as
-   letters. Functions still need brackets (`sin x` is refused, as `sqrt x` was).
+   ADR 0038 figures allow), primes `'`, `’`, `′`, a position on every node, the typed text of a
+   number, and the angle unit carried by the `sin`/`cos`/`tan` nodes (`degrees: true`). A known
+   unsupported name (`arcsin(`, `sinh(`, `max(`…) is reported as such ("La calculatrice ne
+   connaît pas la fonction arcsin.") instead of being read as letters. Functions still need
+   brackets (`sin x` is refused, as `sqrt x` was).
+   **`f`, `g` and `h` followed by `(` are always function calls**, as in a French textbook: if
+   no line defines g, `g(2)` is "Je ne connais pas la fonction g. Définis-la d’abord, par exemple
+   g(x) = x²." Every other letter followed by a bracket is a product (`k(x − 1)`, `a(x + 1)`),
+   so `y = a(x − 2)² + b` works with sliders. The messages the calculator inherits from ADR 0038
+   take French spacing (a no-break space before `: ; ? !` and inside `« »`) in calculator mode
+   only; the figure messages keep theirs, and their tests are unchanged.
+   **Bounds**, in calculator mode: a line of at most **500 characters** and **150 nested
+   levels** (brackets, functions, signs, powers). Deeper input would overflow the call stack
+   further down (sampling, derivatives, LaTeX): a link with `?e=` must never crash the page. Both
+   give "Cette expression devient trop longue à calculer.", at the character that goes over.
 2. **Lines.** A line has at most one `=`; `< > ≤ ≥ ≠` are refused (inequalities are out of
    scope). Each side is parsed with the other side blanked, so every position is a position in
    the whole line. The left side decides the kind from its text: `f(x) =` is a definition,
    a single letter other than x and y is a constant (whose value may use other constants and
    functions, but neither x nor y), `y =` with no y on the right is an explicit curve; anything
-   else with x or y is implicit; an equality with neither is refused.
+   else is an equality. A function name is one lowercase letter, with an optional digit; its
+   letter may not be x, y or e (`x1(x)`, `e2(x)` are refused: they would read x·1, Euler's
+   number), and `F(x) = …` is "Écris le nom de la fonction en minuscule : f(x) = …".
+   An equality with neither x nor y draws nothing (`2 = 3`), and so does an equality **true at
+   every point** (`y = y`, `2 = 2`, `(x + 1)² = x² + 2x + 1`): "Cette égalité est vraie pour tous
+   les points : il n’y a rien à tracer." It is tested at seven fixed points, once its constants
+   are known; a curve whose two sides differ at one of them is drawn.
 3. **Resolution.** Lines come in any order. The first line that names a letter owns it; a
    second definition is refused on the second line only. Dependencies are ordered by Tarjan's
-   strongly connected components: a cycle (`f(x) = g(x)`, `g(x) = f(x)`, or `a = a + 1`) is an
-   error on each of its lines and nothing loops; a line using a definition in error is in error
-   too. A letter nobody defines is an error that carries `curseurPropose: 'a'`, so the screen
-   offers "Ajouter un curseur a".
+   strongly connected components: a cycle (`f(x) = g(x)`, `g(x) = f(x)`) is an error on each of
+   its lines and nothing loops (a line that uses itself, `a = a + 1`, reads "Cette ligne utilise
+   a pour définir a."); a line using a definition in error is in error too. A letter nobody
+   defines is an error that carries `curseurPropose: 'a'`, so the screen offers "Ajouter un
+   curseur a".
 4. **Inlining and compilation.** A call is inlined: `f(x − 1)` becomes the body of f with
    x − 1 for x, and `f⁽ⁿ⁾(u)` the n-th symbolic derivative of that body. Every curve is then one
    tree in x (and y), compiled once into nested closures (`grapheur/compilation.ts`): sub-trees
@@ -69,46 +87,117 @@ line, in the same order and with the same ids:
    closure, nothing is looked up at call time. Curves are sampled hundreds of thousands of times
    a frame; measured on a laptop (Node 22), a million evaluations take about 15 ms for
    x² + y² − 4 and about 120 ms for 3x³ − 2x² + x/4 − sin(2x) + √(x² + 1).
-   ±Infinity is NaN, as in ADR 0038. An inlined line above 50 000 nodes is refused
-   ("trop longue"), so a chain of doubling definitions cannot freeze the page.
+   ±Infinity is NaN, as in ADR 0038. **Bounds of a resolved line**: one budget of **50 000
+   steps** per line, spent by the inlining and by the derivatives (one step per node built or
+   derived), then at most **50 000 nodes** and **1 000 levels** in the tree compiled (the
+   closures recurse once per level when called). Past them, the line is "trop longue". A
+   `RangeError` thrown while a line is read is caught for that line only, as a last net.
+   Derivatives therefore cost work linear in their result, and a line that would need more than
+   the budget is refused after a bounded amount of work (before this bound, V1 measured 1,6 to
+   4,2 s of a blocked page on f⁽¹⁰⁾ of a product of six functions; the tests count steps, not
+   milliseconds).
 5. **Derivatives** (`grapheur/derivee.ts`): symbolic rules of a lycée textbook (sum, product,
    quotient, power with a constant exponent, a^v, general u^v = e^(v ln u), chain rule for sin
    cos tan exp ln log √ abs; |u|' = u/|u|, undefined at 0), then a light simplification (0 and 1
-   neutral, numbers folded, a number in front). In degrees `sin°(u) = sin(u·π/180)`, so every
+   neutral, numbers folded, a number in front), done once on the tree and then locally by each
+   node built, never again on a sub-tree. In degrees `sin°(u) = sin(u·π/180)`, so every
    trigonometric derivative takes the factor π/180. A quotient, a power or a function value is
    folded only when the result is a whole number, so that `1/3` and `√2` are never replaced by a
    rounded decimal that the exact fractions would then read. The derivative is evaluated, never
    displayed. Checked against the centred difference quotient on 40 functions.
+   When a calculation calls a derivative and the formula has no value at that point
+   (`f(x) = x|x|`: f'(0) reads 0/0), the value shown is the **limit from both sides**: g(±10⁻⁴)
+   and g(±10⁻⁵), each side extrapolated linearly to 0, the two within 10⁻⁹ of each other; it is
+   rounded to 9 significant digits and never exact. Otherwise (`f(x) = x√x`, not defined left of
+   0; `|x|`, a corner) the line reads "Je ne sais pas calculer f′(0) avec cette écriture." —
+   never "division par zéro", which would be false of the function.
 6. **Exact fractions** (`grapheur/rationnel.ts`): a calculation line is worked out in BigInt
-   fractions when it only uses + − × ÷, whole powers (|exponent| ≤ 64), the square root of a
-   perfect square and constants: `2/3 + 1/6` is `5/6`, `(1/2)^3` is `1/8`, `√(4/9)` is `2/3`,
-   `0,1 + 0,2` is `3/10`. A number is read from its first 15 significant digits, so a typed
-   `0,1` and a slider value `0,30000000000000004` are the fractions they show. Beyond 2 048 bits a
-   fraction is dropped for the decimal value. A division by zero (or 0 to a negative power) in a
-   calculation or a constant is refused; a curve with a pole is drawn without an error.
-   `formaterRationnel` writes `5/6`, `−5/6` (U+2212), `3`; `latexRationnel` writes `\frac{5}{6}`.
+   fractions when it only uses + − × ÷, whole powers, the square root of a perfect square and
+   constants: `2/3 + 1/6` is `5/6`, `(1/2)^3` is `1/8`, `√(4/9)` is `2/3`, `0,1 + 0,2` is
+   `3/10`, `10^400/10^399` is `10`. A typed number is read **from its digits**
+   (`12345678901234567` stays itself, and so does its preview); a computed one (a slider value)
+   from its first 15 significant digits, so `0,30000000000000004` is 3/10. **Bound**: a
+   numerator or denominator of at most **2 048 bits**, checked before a power is computed (so
+   |exponent| ≤ 2 048 too); beyond, the decimal value is used. The decimal value of a fraction
+   is a 64-bit quotient scaled by a power of two, so huge terms give the right double.
+   A division by zero (or 0 to a negative power) in a calculation or a constant is refused; a
+   curve with a pole is drawn without an error. **`0⁰` is refused** ("0⁰ n’est pas défini."), as
+   lycée calculators do; `x^0` on a curve stays 1. A value beyond a double is "Ce nombre est trop
+   grand pour la calculatrice." (2^2048, exp(1000), `a = 10^309`), told apart from a value that
+   does not exist ("Ce calcul n’a pas de valeur réelle.": √(−1), ln(0), tan(90°)).
+   **Decimal results** are rounded to **12 significant digits**, and a result below 10⁻¹² of the
+   largest term of a sum or the largest angle met in the calculation is 0: `sin(π)` is 0,
+   `√2·√2` is 2, `cos(60°)` is 0,5, while `π/10²⁰` keeps its value. A constant shows its value
+   rounded; the lines that use it read the full double. **Known limit**: `1/(√2·√2 − 2)` divides
+   by the residue before it is rounded and shows 2 251 799 813 690 000; only symbolic algebra
+   (√2·√2 = 2 exactly) would avoid it.
+   `formaterRationnel` writes `5/6`, `−5/6` (U+2212), `3`, and groups digits by three from five
+   digits on with a narrow no-break space (`12 345`, `.claude/rules/content.md`);
+   `latexRationnel` writes `\frac{5}{6}` and groups with `\,`.
 7. **LaTeX preview** (`grapheur/latex.ts`, `latexOf`): `1/2x` is `\frac{1}{2}x`,
    `(x+1)/(x−1)` is `\frac{x+1}{x-1}` (the bar replaces the brackets), `x^{2}`, `\sqrt{…}`,
    `\left|…\right|`, `\sin\left(…\right)`, implicit products kept implicit except before a
    figure or a fraction (`2\times 3`), only the brackets the reading needs, French decimal comma
-   `2{,}5`, thin-space grouping of long integers. A definition line reads `f(x)=…`.
-8. **Messages** are French sentences (UX writer, gate 2 of #418), with a non-breaking space
+   `2{,}5`, thin-space grouping of long integers, a typed number written from its digits. A
+   power of a root keeps its brackets: `√x²` (read (√x)², ADR 0038) is
+   `\left(\sqrt{x}\right)^{2}`, never `\sqrt{x}^{2}`, which reads √(x²). A definition line reads
+   `f(x)=…`.
+8. **Angles**: one type, `ModeAngle = 'radians' | 'degres'`, from the parser to the language.
+   In degrees an angle is reduced modulo 360 exactly before conversion, so every multiple of 90°
+   gives exactly 0, 1 or −1, and tan is not defined at 90° modulo 180°. In radians tan is not
+   defined where |cos| < 10⁻¹² (`tan(π/2)` would otherwise read 1,6·10¹⁶).
+9. **Messages** are French sentences (UX writer, gate 2 of #418), with a non-breaking space
    before `:`; they are exported (`MESSAGES_CALCULATRICE`) so the screen and its tests use the
    same text.
+10. **Identifiers.** The public API of the engine is French (`analyserLignes`, `LigneAnalysee`,
+    `genre`, `formaterRationnel`…), against the convention of English identifiers: the contract
+    was set in French by #417 before construction and other PRs are built on it, so the deviation
+    is **deliberate** and limited to it. Internal identifiers added since are English where they
+    were touched; nothing is renamed wholesale.
 
 ### 2. Implicit curves (#419)
 
-`traceImplicite(F, fenetre, toSvg, { budget })` (`grapheur/implicite.ts`), pure and
-deterministic: a coarse grid (about 32 × 32 cells, square in pixels), subdivided as a quadtree
-where F changes sign, vanishes or becomes undefined, down to about one pixel; marching squares
-with linear interpolation on the edges, saddle cells decided by the value at the centre. A sign
-change without a zero (a pole: `1/(x − 1)`, `tan`) is rejected by a continuity test (|F| at the
-interpolated point compared with the corners, and a refinement that does not converge to 0).
-Double zeros (`(x − 1)² = 0`, `x² + y² = 0`) are found as local minima of |F| under a tolerance in
-pixels where the sign does not change, and drawn (a line; a point drawn as a point). Segments are
-stitched into polylines, simplified as in `function-plot.ts`, clipped to the frame. The number of
-evaluations is bounded (200 000 by default): `sin(xy) = 0` on a large window is drawn as well as
-the budget allows, never frozen.
+`traceImplicite(F, fenetre, versSvg, { budget })` (`grapheur/implicite.ts`, PR #429) returns
+`{ chemins, points }`: polylines in SVG coordinates, and isolated points (`x² + y² = 0`). Pure and
+deterministic (every loop in a fixed order, tested).
+
+1. **Lattice.** 32 cells along the longer side of the view, as many along the other as fit, so
+   cells are about square in pixels; depth ⌈log₂(cell px)⌉, at most 12, so the finest cells are
+   ≤ 1 px. Values are cached on an integer lattice (two units per finest cell): a corner shared by
+   four cells is evaluated once.
+2. **Refinement, breadth first.** A cell is split when its corners and centre change sign,
+   include an undefined value but not only undefined values, include an exact 0 but are not all 0,
+   or **dip towards zero**: dip = mean of the corners' |F| minus the centre's |F|, and the cell
+   is split if min |F| < `DIP_FACTOR` (4) × dip. A bilinear F has no dip, so lines cost nothing
+   beyond their own cells.
+3. **Budget.** Evaluations are counted (200 000 by default; `options.budget` is capped at
+   **1 000 000**), and F reads NaN past it (a hard cap). Refinement may use **80 %**: a level that
+   would go over is not started, so an over-dense curve (`sin(xy) = 0` on [−50 ; 50]²) is drawn
+   evenly at a coarser level, never frozen. The other 20 % checks crossings and double zeros.
+4. **Marching squares** on the leaves, with linear interpolation; saddles decided by the sign of
+   the centre, a centre exactly 0 joining all four crossings (the X of `x² = y²`).
+5. **Poles.** A crossing is kept only if F tends to 0 there: up to **3 regula-falsi steps** on
+   the edge, accepted as soon as **|F(p)| < min(|F(a)|, |F(b)|)**. Around a simple pole (1/u,
+   tan) |F(p)| is never below the smaller end, so no vertical line crosses an asymptote; a jump
+   without a zero fails the same way.
+6. **Double zeros** (`(x − 1)² = 0`, `x² + y² = 0`): lattice corners without a sign change where
+   |F| is a local minimum along x or y, the neighbours on that axis of the same sign, the slope
+   putting the zero within half a step, and no axis neighbour of the opposite sign. Kept points
+   are linked into one-point-wide lines; a cluster at most 2 steps wide is one point in `points`.
+7. **Polylines** are stitched by the identity of their ends (not rounded coordinates), clipped
+   to the frame (Liang–Barsky) and simplified by **Ramer–Douglas–Peucker at 0,08 px**, the
+   tolerance of `function-plot.ts` (its greedy pass is quadratic on the long straight runs a grid
+   produces).
+
+Known limits: a zero lying only on the edge of the domain (`√(1 − x² − y²) = 0`) is not found;
+a curve ending at the edge of its domain stops ≤ 1 px short; an isolated cone point
+(`|x − a| + |y − b| = 0`) is not found; an F within a fraction of a pixel of 0 without a zero
+(`(x² + y² − 4)² + 10⁻⁶`) is drawn, as by any sampling plotter; where the budget stops refinement
+a curve may show a small gap at a T-junction; `tan(x) = 0` costs about 100 000 evaluations on
+800 × 600 px.
+
+**Merge order**: #427 (this ADR) before #429, which adds `implicite.ts` and its exports after the
+language's in `index.ts`.
 
 ### 3. Page and state in the address (#421)
 
@@ -190,16 +279,23 @@ that reads `tokens.css`. Colour is never the only cue: the swatch and the name s
   when we build them.
 - Letters are single, so `ax` is a·x; a multi-letter name is impossible. A defined function
   name followed by a bracket is a call: `a(x + 1)` is a·(x + 1) only while no `a(x) = …` line
-  exists.
+  exists, and `f`, `g`, `h` followed by a bracket are always calls (`g(x + 1)` is never g·(x + 1)).
+- Bounds (500 characters, 150 levels, 50 000 steps and nodes, 1 000 levels once resolved) refuse
+  a few lines a student could type on purpose; they keep a shared link from crashing the page.
 - `√` takes the factor right after it (`√x²` is (√x)², as in ADR 0038): the preview shows it.
 - The derivative is not displayed (only evaluated); its simplification is light.
 - Exact fractions stop at whole powers and perfect squares; `√8 = 2√2` is shown as a decimal.
-- A number typed with more than 15 significant digits is read as its first 15 for the fraction.
+- Rounding to 12 significant digits hides the residues of doubles in a result, not inside a
+  calculation: `1/(√2·√2 − 2)` shows a huge number instead of an error (§1.6).
+- A calculation on a derivative that its formula cannot compute may show a limit (≈), not an
+  exact value; a function with no limit there gets a message, not a number.
 
 ### Follow-ups
 
-- #419 adds `grapheur/implicite.ts`; #421–#424 build the page, the reading, the figure link and
-  the course block on this engine; #420 the tokens.
+- #419 adds `grapheur/implicite.ts` (PR #429, merged after #427); #421–#424 build the page, the
+  reading, the figure link and the course block on this engine; #420 the tokens.
+- The CI mutation job does not cover `packages/content`, where this engine lives (#430, a human
+  decision); mutation scores so far come from local runs.
 - Later, out of this epic: inequalities (shaded regions), points and lists, parametric and polar
   curves, a map in Outils.
 

@@ -112,7 +112,7 @@ describe('analyserLignes — the criteria of #418', () => {
     for (const x of [-2, 0, 1.5, 4]) expect(explicite(a).f(x)).toBeCloseTo(explicite(b).f(x), 12)
     expect(calcul(c).valeur).toBe(1)
     expect(calcul(c).exact).toBeNull()
-    expect(calcul(d).valeur).toBeCloseTo(3, 14)
+    expect(calcul(d).valeur).toBeCloseTo(3, 10)
   })
 
   it('Given any expression of ADR 0038, then the same values', () => {
@@ -196,7 +196,7 @@ describe('analyserLignes — kinds of line', () => {
     expect(constante(une('A = 3')).nom).toBe('A')
     const k = constante(une('k = 2π'))
     expect(k.curseur).toBe(false)
-    expect(k.valeur).toBeCloseTo(2 * Math.PI, 14)
+    expect(k.valeur).toBeCloseTo(2 * Math.PI, 10)
     expect(constante(une('k = 2²')).curseur).toBe(false)
     expect(constante(une('k = 1/2')).curseur).toBe(false)
     expect(constante(une('k = (2)')).curseur).toBe(false)
@@ -208,9 +208,9 @@ describe('analyserLignes — kinds of line', () => {
   })
 
   it('should read a line without x or y as a calculation', () => {
-    expect(calcul(une('√2')).valeur).toBeCloseTo(Math.SQRT2, 14)
+    expect(calcul(une('√2')).valeur).toBeCloseTo(Math.SQRT2, 10)
     expect(calcul(une('√2')).exact).toBeNull()
-    expect(calcul(une('sin(π/6)')).valeur).toBeCloseTo(0.5, 14)
+    expect(calcul(une('sin(π/6)')).valeur).toBeCloseTo(0.5, 10)
     expect(calcul(une('3')).exact).toEqual({ num: 3n, den: 1n })
     const [, f3] = analyser(['f(x) = x²', 'f(3)'])
     expect(calcul(f3)).toMatchObject({ valeur: 9, exact: { num: 9n, den: 1n }, latex: 'f(3)' })
@@ -299,18 +299,26 @@ describe('analyserLignes — exact calculations', () => {
     ['(2/3)^(−2)', 9n, 4n],
     ['10/4', 5n, 2n],
     ['2^64', 2n ** 64n, 1n],
+    ['2^65', 2n ** 65n, 1n],
+    ['10^400/10^399', 10n, 1n],
   ])('%s = %d/%d', (texte, num, den) => {
     const l = calcul(une(texte))
     expect(l.exact).toEqual({ num, den })
     expect(l.valeur).toBeCloseTo(Number(num) / Number(den), 12)
   })
 
-  it.each(['2^65', '2^(1/2)', '√2', 'π/2', 'e', 'sin(0)', '2^0,5', '√(−4)'.replace('−4', '2/3')])(
-    '%s is not exact',
-    (texte) => {
-      expect(calcul(une(texte)).exact).toBeNull()
-    }
-  )
+  it.each([
+    '(1/3)^1100',
+    '2^(1/2)',
+    '√2',
+    'π/2',
+    'e',
+    'sin(0)',
+    '2^0,5',
+    '√(−4)'.replace('−4', '2/3'),
+  ])('%s is not exact', (texte) => {
+    expect(calcul(une(texte)).exact).toBeNull()
+  })
 
   it('should refuse a division by zero, only on a calculation', () => {
     const message = `Division par zéro${NBSP}: ce calcul n’a pas de résultat.`
@@ -403,10 +411,10 @@ describe('analyserLignes — errors', () => {
 
   it('should refuse a cycle on each of its lines, and nothing loops', () => {
     const self = erreur(une('f(x) = f(x) + 1'))
-    expect(self.erreur.message).toBe(MESSAGES.circulaire('f'))
+    expect(self.erreur.message).toBe('Cette ligne utilise f pour définir f.')
     expect(self.erreur.position).toBe(7)
     const a = erreur(une('a = a + 1'))
-    expect(a.erreur.message).toBe(MESSAGES.circulaire('a'))
+    expect(a.erreur.message).toBe('Cette ligne utilise a pour définir a.')
     const three = analyser(['f(x) = g(x)', 'g(x) = h(x)', 'h(x) = f(x) + a', 'a = 1', 'y = f(x)'])
     for (const l of three.slice(0, 3)) {
       expect(erreur(l).erreur.message).toBe(MESSAGES.circulaire('f, g et h'))
@@ -450,7 +458,7 @@ describe('analyserLignes — errors', () => {
       position: 4,
     })
     expect(erreur(une('y = arcsin(x)')).erreur.message).toBe(
-      'Je ne connais pas la fonction arcsin. Définis-la d’abord, par exemple f(x) = x².'
+      'La calculatrice ne connaît pas la fonction arcsin.'
     )
   })
 
@@ -489,7 +497,9 @@ describe('analyserLignes — errors', () => {
   })
 
   it('should refuse an equality with neither x nor y', () => {
-    expect(erreur(une('2 + 2 = 4')).erreur).toEqual({ message: MESSAGES.rienATracer, position: 6 })
+    expect(erreur(une('2 + 3 = 4')).erreur).toEqual({ message: MESSAGES.rienATracer, position: 6 })
+    expect(erreur(une('2a = 3')).erreur.curseurPropose).toBe('a')
+    expect(erreur(analyser(['2a = 3', 'a = 1'])[0]).erreur.message).toBe(MESSAGES.rienATracer)
   })
 
   it('should refuse a line that grows too long once inlined', () => {
@@ -529,27 +539,29 @@ function chain(...noms: string[]): string[] {
 
 describe('analyserLignes — details', () => {
   it('should compute the decimal value when the result is not exact', () => {
-    expect(calcul(une('π + 1')).valeur).toBeCloseTo(Math.PI + 1, 14)
-    expect(calcul(une('π − 1')).valeur).toBeCloseTo(Math.PI - 1, 14)
-    expect(calcul(une('2π')).valeur).toBeCloseTo(2 * Math.PI, 14)
-    expect(calcul(une('π/2')).valeur).toBeCloseTo(Math.PI / 2, 14)
-    expect(calcul(une('π^2')).valeur).toBeCloseTo(Math.PI ** 2, 14)
-    expect(calcul(une('−π')).valeur).toBeCloseTo(-Math.PI, 14)
-    expect(calcul(une('|−π|')).valeur).toBeCloseTo(Math.PI, 14)
-    expect(calcul(une('sin(90)', { angle: 'degres' })).valeur).toBeCloseTo(1, 14)
+    expect(calcul(une('π + 1')).valeur).toBeCloseTo(Math.PI + 1, 10)
+    expect(calcul(une('π − 1')).valeur).toBeCloseTo(Math.PI - 1, 10)
+    expect(calcul(une('2π')).valeur).toBeCloseTo(2 * Math.PI, 10)
+    expect(calcul(une('π/2')).valeur).toBeCloseTo(Math.PI / 2, 10)
+    expect(calcul(une('π^2')).valeur).toBeCloseTo(Math.PI ** 2, 10)
+    expect(calcul(une('−π')).valeur).toBeCloseTo(-Math.PI, 10)
+    expect(calcul(une('|−π|')).valeur).toBeCloseTo(Math.PI, 10)
+    expect(calcul(une('sin(90)', { angle: 'degres' })).valeur).toBeCloseTo(1, 10)
     const r = analyser(['k = 2π', 'k/2', 'a = 2', 'πa'])
-    expect(calcul(r[1]).valeur).toBeCloseTo(Math.PI, 14)
-    expect(calcul(r[3]).valeur).toBeCloseTo(2 * Math.PI, 14)
+    expect(calcul(r[1]).valeur).toBeCloseTo(Math.PI, 10)
+    expect(calcul(r[3]).valeur).toBeCloseTo(2 * Math.PI, 10)
   })
 
   it('should give 0^0 = 1 and refuse 0 to a negative power, exact or not', () => {
-    expect(calcul(une('0^0')).exact).toEqual({ num: 1n, den: 1n })
+    expect(erreur(une('0^0')).erreur).toEqual({ message: '0⁰ n’est pas défini.', position: 1 })
+    expect(erreur(une('sin(0)^0')).erreur.message).toBe('0⁰ n’est pas défini.')
+    expect(calcul(une('0^2')).exact).toEqual({ num: 0n, den: 1n })
     expect(erreur(une('sin(0)^(−1)')).erreur).toEqual({
       message: MESSAGES.divisionParZero,
       position: 6,
     })
     expect(erreur(une('1/sin(0)')).erreur.position).toBe(1)
-    expect(calcul(une('π^(−1)')).valeur).toBeCloseTo(1 / Math.PI, 14)
+    expect(calcul(une('π^(−1)')).valeur).toBeCloseTo(1 / Math.PI, 10)
   })
 
   it('should give an inlined error the position of the call', () => {

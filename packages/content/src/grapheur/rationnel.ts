@@ -11,8 +11,11 @@ export type Rationnel = { num: bigint; den: bigint }
 /** Beyond this many bits in a numerator or denominator, the fraction is not shown. */
 export const BITS_MAX = 2048
 
-/** The largest |exponent| of a power computed exactly. */
-export const EXPOSANT_MAX = 64
+/**
+ * The largest |exponent| of a power computed exactly; the size of the result is bounded too
+ * (BITS_MAX), so 10^400 is exact (1 329 bits) and 2^2048 is not.
+ */
+export const EXPOSANT_MAX = BITS_MAX
 
 function abs(n: bigint): bigint {
   return n < 0n ? -n : n
@@ -80,7 +83,7 @@ export function valeurAbsolue(a: Rationnel): Rationnel {
 export function puissance(a: Rationnel, e: Rationnel): Rationnel | null {
   if (e.den !== 1n || abs(e.num) > BigInt(EXPOSANT_MAX)) return null
   const n = Number(abs(e.num))
-  // Checked before computing: 2^64 of a 2048-bit number would take a while for nothing.
+  // Checked before computing: a huge power of a long number would take a while for nothing.
   if (Math.max(bits(a.num), bits(a.den)) * n > BITS_MAX) return null
   const num = a.num ** BigInt(n)
   const den = a.den ** BigInt(n)
@@ -137,22 +140,32 @@ export function rationnelDepuisNombre(v: number): Rationnel | null {
 /** The decimal value of a fraction, as close as a double allows. */
 export function valeurDe(r: Rationnel): number {
   const direct = Number(r.num) / Number(r.den)
-  if (Number.isFinite(direct)) return direct
-  // Both terms beyond the range of a double: drop the same number of bits from each.
-  const shift = BigInt(Math.max(bits(r.num), bits(r.den)) - 1000)
-  return Number(r.num >> shift) / Number(r.den >> shift)
+  if (Number.isFinite(direct) && direct !== 0) return direct
+  if (r.num === 0n) return 0
+  // A term beyond the range of a double: a 64-bit quotient q, then q·2^shift. A denominator of
+  // 10^400 under a numerator of 10^401 is 10, not Infinity/Infinity.
+  const signe = r.num < 0n ? -1 : 1
+  const num = abs(r.num)
+  const shift = bits(num) - bits(r.den) - 64
+  const q = shift >= 0 ? num / (r.den << BigInt(shift)) : (num << BigInt(-shift)) / r.den
+  return signe * Number(q) * Math.pow(2, shift)
 }
 
-/** "5/6", "−5/6" (minus sign U+2212), "3". */
+/** Groups the digits of a long whole number by three with `sep` (5 digits and more). */
+function grouper(chiffres: string, sep: string): string {
+  return chiffres.length < 5 ? chiffres : chiffres.replace(/\B(?=(\d{3})+(?!\d))/g, sep)
+}
+
+/** "5/6", "−5/6" (minus sign U+2212), "3", "12 345" (narrow no-break space U+202F). */
 export function formaterRationnel(r: Rationnel): string {
   const signe = r.num < 0n ? '−' : ''
-  const num = abs(r.num).toString()
-  return r.den === 1n ? signe + num : `${signe}${num}/${r.den.toString()}`
+  const num = grouper(abs(r.num).toString(), '\u202f')
+  return r.den === 1n ? signe + num : `${signe}${num}/${grouper(r.den.toString(), '\u202f')}`
 }
 
 /** "\frac{5}{6}", "-\frac{5}{6}", "3", for KaTeX. */
 export function latexRationnel(r: Rationnel): string {
   const signe = r.num < 0n ? '-' : ''
-  const num = abs(r.num).toString()
-  return r.den === 1n ? signe + num : `${signe}\\frac{${num}}{${r.den.toString()}}`
+  const num = grouper(abs(r.num).toString(), '\\,')
+  return r.den === 1n ? signe + num : `${signe}\\frac{${num}}{${grouper(r.den.toString(), '\\,')}}`
 }

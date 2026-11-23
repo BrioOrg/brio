@@ -18,12 +18,15 @@
 //   constants    π, pi and e (Euler's number), kept as `constant` nodes so they print as typed
 //   letters      every single letter is a variable: the caller decides what each one means
 //   user calls   f(…), f'(…), f''(…) for the names in `calculator.functions` (f, g, f1…)
-//   positions    every node carries the index of the character it starts at (`pos`)
+//   positions    every node carries the index of the character it starts at (`pos`), and a
+//                number the text it was typed as (`text`), for exact fractions and the preview
+//   bounds       at most 500 characters and 150 nested levels (the deeper input would
+//                overflow the call stack further down: sampling, derivatives, LaTeX)
 // Without the option nothing changes: ADR 0038 figures read exactly what they read before.
 
 // `pos` is only set in calculator mode: the 0-based index of the character the node comes from.
 export type ExpressionNode =
-  | { type: 'number'; value: number; pos?: number }
+  | { type: 'number'; value: number; text?: string; pos?: number }
   | { type: 'variable'; name: string; pos?: number }
   | { type: 'constant'; name: ExpressionConstant; pos?: number }
   | { type: 'negate'; operand: ExpressionNode; pos?: number }
@@ -51,14 +54,27 @@ export type ExpressionFunction = 'sqrt' | 'abs' | 'sin' | 'cos' | 'tan' | 'exp' 
 /** π, and e (Euler's number) in calculator mode. */
 export type ExpressionConstant = 'π' | 'e'
 
-export type AngleUnit = 'radians' | 'degrees'
+/** The angle unit of sin, cos and tan (the calculator's own word for it, ADR 0049). */
+export type ModeAngle = 'radians' | 'degres'
+
+/** Longest line the calculator reads, in characters. */
+export const CALCULATOR_MAX_LENGTH = 500
+
+/** Deepest nesting the calculator reads (brackets, functions, signs, powers). */
+export const CALCULATOR_MAX_DEPTH = 150
+
+/** The message of both bounds; the language uses it for its own bounds too. */
+export const TOO_LONG = 'Cette expression devient trop longue à calculer.'
+
+/** f, g and h followed by a bracket are always function calls, as in a French textbook. */
+const FUNCTION_LETTERS: ReadonlySet<string> = new Set(['f', 'g', 'h'])
 
 /** The graphing-calculator syntax (ADR 0049). */
 export type CalculatorSyntax = {
   /** The names of the functions the student defined: `f(…)` is a call, `f'(…)` a derivative. */
   functions?: readonly string[]
   /** The unit of the argument of sin, cos and tan. Default: radians. */
-  angle?: AngleUnit
+  angle?: ModeAngle
 }
 
 /** A message in French for the author, and the 0-based index of the character it is about. */
@@ -227,10 +243,7 @@ function tokenize(source: string, calculator?: CalculatorSyntax): Token[] {
       if (calculator) {
         const run = /^[a-zA-Z]+/.exec(source.slice(i))?.[0] ?? c
         if (UNKNOWN_FUNCTIONS.has(run) && /^\s*\(/.test(source.slice(i + run.length))) {
-          throw new ExpressionSyntaxError(
-            `Je ne connais pas la fonction ${run}. Définis-la d’abord, par exemple f(x) = x².`,
-            i
-          )
+          throw new ExpressionSyntaxError(`La calculatrice ne connaît pas la fonction ${run}.`, i)
         }
       }
       const word = words.find(([w]) => source.startsWith(w, i))
@@ -350,6 +363,8 @@ class Parser {
   private index = 0
   /** Open |…| groups: inside one, a bar closes it instead of opening a new one. */
   private absDepth = 0
+  /** Nesting of `primary` and `signed`, bounded in calculator mode. */
+  private depth = 0
 
   private readonly tokens: Token[]
   private readonly allowed: ReadonlySet<string>
@@ -440,10 +455,19 @@ class Parser {
     const t = this.peek()
     if (t.kind === 'op' && (t.op === '-' || t.op === '+')) {
       this.advance()
+      this.enter(t.pos)
       const operand = this.signed()
+      this.depth--
       return t.op === '-' ? this.at({ type: 'negate', operand }, t.pos) : operand
     }
     return this.power()
+  }
+
+  /** One level deeper; in calculator mode, refused past CALCULATOR_MAX_DEPTH. */
+  private enter(pos: number): void {
+    if (++this.depth > CALCULATOR_MAX_DEPTH && this.calculator) {
+      throw new ExpressionSyntaxError(TOO_LONG, pos)
+    }
   }
 
   private power(): ExpressionNode {
@@ -457,10 +481,20 @@ class Parser {
   }
 
   private primary(): ExpressionNode {
-    const t = this.advance()
+    this.enter(this.peek().pos)
+    const node = this.primaryAt(this.advance())
+    this.depth--
+    return node
+  }
+
+  private primaryAt(t: Token): ExpressionNode {
     switch (t.kind) {
-      case 'number':
-        return this.at({ type: 'number', value: t.value }, t.pos)
+      case 'number': {
+        const node: ExpressionNode = { type: 'number', value: t.value }
+        // The text keeps every digit: 12345678901234567 is not the double it rounds to.
+        if (this.calculator && /^[\d.,]+$/.test(t.text)) node.text = t.text
+        return this.at(node, t.pos)
+      }
       case 'pi':
         return { type: 'number', value: Math.PI }
       case 'constant':
@@ -478,7 +512,7 @@ class Parser {
           )
         }
         const node: ExpressionNode = { type: 'call', fn: t.fn, arg: this.primary() }
-        if (this.calculator?.angle === 'degrees' && isTrigonometric(t.fn)) node.degrees = true
+        if (this.calculator?.angle === 'degres' && isTrigonometric(t.fn)) node.degrees = true
         return this.at(node, t.pos)
       }
       case 'lparen': {
@@ -558,6 +592,12 @@ class Parser {
         t.pos
       )
     }
+    if (FUNCTION_LETTERS.has(t.name) && this.peek().kind === 'lparen') {
+      throw new ExpressionSyntaxError(
+        `Je ne connais pas la fonction ${t.name}. Définis-la d’abord, par exemple ${t.name}(x) = x².`,
+        t.pos
+      )
+    }
     return this.at({ type: 'variable', name: t.name }, t.pos)
   }
 
@@ -580,6 +620,38 @@ export function isTrigonometric(fn: ExpressionFunction): boolean {
 /** One degree in radians: sin, cos and tan in degrees take their argument times this. */
 export const DEGREE = Math.PI / 180
 
+/**
+ * tan in radians, not defined where cos is 0 to the precision of a double: Math.tan(π/2) is
+ * 1,6·10¹⁶, which a student would read as a value.
+ */
+function tangent(v: number): number {
+  return Math.abs(Math.cos(v)) < 1e-12 ? NaN : Math.tan(v)
+}
+
+const SIN_QUARTERS = [0, 1, 0, -1]
+const COS_QUARTERS = [1, 0, -1, 0]
+const TAN_QUARTERS = [0, NaN, 0, NaN]
+
+/**
+ * sin, cos or tan of an angle in degrees, reduced modulo 360 first (exact for a double): every
+ * multiple of 90° gives exactly 0, 1 or −1, and tan is not defined at 90° modulo 180°.
+ */
+function trigInDegrees(fn: 'sin' | 'cos' | 'tan', degrees: number): number {
+  const r = ((degrees % 360) + 360) % 360
+  if (r % 90 === 0) {
+    const q = r / 90
+    return (fn === 'sin' ? SIN_QUARTERS : fn === 'cos' ? COS_QUARTERS : TAN_QUARTERS)[q]
+  }
+  const rad = r * DEGREE
+  return fn === 'sin' ? Math.sin(rad) : fn === 'cos' ? Math.cos(rad) : tangent(rad)
+}
+
+/** A built-in function applied to v, in degrees when asked (sin, cos, tan only). */
+export function applyBuiltin(fn: ExpressionFunction, v: number, degrees?: boolean): number {
+  if (degrees && (fn === 'sin' || fn === 'cos' || fn === 'tan')) return trigInDegrees(fn, v)
+  return mathOf(fn)(v)
+}
+
 /** The JavaScript function computing a built-in function; sin, cos, tan take radians here. */
 export function mathOf(fn: ExpressionFunction): (v: number) => number {
   switch (fn) {
@@ -592,7 +664,7 @@ export function mathOf(fn: ExpressionFunction): (v: number) => number {
     case 'cos':
       return Math.cos
     case 'tan':
-      return Math.tan
+      return tangent
     case 'exp':
       return Math.exp
     case 'ln':
@@ -627,8 +699,10 @@ function compile(node: ExpressionNode): Compiled {
     }
     case 'call': {
       const arg = compile(node.arg)
-      const math = mathOf(node.fn)
-      return node.degrees ? (scope) => math(arg(scope) * DEGREE) : (scope) => math(arg(scope))
+      const fn = node.fn
+      if (node.degrees) return (scope) => applyBuiltin(fn, arg(scope), true)
+      const math = mathOf(fn)
+      return (scope) => math(arg(scope))
     }
     // The tree does not hold the definition of f: whoever resolves user calls compiles them
     // (ADR 0049, grapheur/langage.ts). Read alone, a call is not defined.
@@ -683,6 +757,9 @@ function collectVariables(node: ExpressionNode, into: Set<string>): Set<string> 
 export function parseExpression(source: string, options: ParseOptions = {}): ParseResult {
   const allowed = new Set(options.variables ?? ['x'])
   try {
+    if (options.calculator && source.length > CALCULATOR_MAX_LENGTH) {
+      throw new ExpressionSyntaxError(TOO_LONG, CALCULATOR_MAX_LENGTH)
+    }
     const tree = new Parser(
       tokenize(source, options.calculator),
       allowed,
@@ -704,8 +781,21 @@ export function parseExpression(source: string, options: ParseOptions = {}): Par
     }
   } catch (e) {
     if (e instanceof ExpressionSyntaxError) {
-      return { ok: false, error: { message: e.message, position: e.position } }
+      const message = options.calculator ? frenchSpacing(e.message) : e.message
+      return { ok: false, error: { message, position: e.position } }
     }
     throw e
   }
+}
+
+/**
+ * French typography for the messages students read in the calculator: a non-breaking space
+ * before : ; ? ! and inside « ». The ADR 0038 messages keep their spaces (authors' tools and
+ * their tests read them as they are).
+ */
+function frenchSpacing(message: string): string {
+  return message
+    .replace(/ ([:;?!])/g, '\u00a0$1')
+    .replace(/« /g, '«\u00a0')
+    .replace(/ »/g, '\u00a0»')
 }

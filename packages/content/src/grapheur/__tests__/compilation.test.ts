@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseExpression, type AngleUnit, type ExpressionNode } from '../../expression'
+import { parseExpression, type ModeAngle, type ExpressionNode } from '../../expression'
 import { compilerX, compilerXY } from '../compilation'
 
-function tree(source: string, angle: AngleUnit = 'radians'): ExpressionNode {
+function tree(source: string, angle: ModeAngle = 'radians'): ExpressionNode {
   const r = parseExpression(source, { calculator: { angle, functions: ['f'] } })
   if (!r.ok) throw new Error(`${source}: ${r.error.message}`)
   return r.expression.tree
@@ -37,9 +37,9 @@ describe('compilerXY', () => {
   })
 
   it('should take sin, cos, tan in degrees', () => {
-    expect(compilerXY(tree('sin(x)', 'degrees'))(90, 0)).toBeCloseTo(1, 14)
-    expect(compilerXY(tree('cos(y)', 'degrees'))(0, 180)).toBeCloseTo(-1, 14)
-    expect(compilerXY(tree('sin(30)', 'degrees'))(0, 0)).toBeCloseTo(0.5, 14)
+    expect(compilerXY(tree('sin(x)', 'degres'))(90, 0)).toBeCloseTo(1, 14)
+    expect(compilerXY(tree('cos(y)', 'degres'))(0, 180)).toBeCloseTo(-1, 14)
+    expect(compilerXY(tree('sin(30)', 'degres'))(0, 0)).toBeCloseTo(0.5, 14)
     expect(compilerXY(tree('sin(x)'))(Math.PI / 2, 0)).toBeCloseTo(1, 14)
   })
 
@@ -74,14 +74,25 @@ describe('compilerX', () => {
     expect(compilerX(tree('1/0'))(0)).toBeNaN()
   })
 
-  // A loose bound (normally a few ms): it guards against a tree walk per call, not a benchmark.
-  it('should be fast: 100 000 evaluations in well under a second', () => {
-    const f = compilerX(tree('3x³ − 2x² + x/4 − sin(2x) + √(x² + 1)'))
-    const start = performance.now()
-    let s = 0
-    for (let i = 0; i < 100_000; i++) s += f(i / 1000)
-    expect(Number.isFinite(s)).toBe(true)
-    expect(performance.now() - start).toBeLessThan(1000)
+  // Counted, not timed: the closures must not read the tree again when they are called.
+  it('should not walk the tree when called: changing it afterwards changes nothing', () => {
+    const t = tree('3x³ − 2x² + x/4 − sin(2x) + √(x² + 1)')
+    const f = compilerX(t)
+    const g = compilerXY(t)
+    const before = [f(0.5), g(0.5, 0), f(-2)]
+    const visit = (node: ExpressionNode): void => {
+      if (node.type === 'number') node.value = 1000
+      if (node.type === 'variable') node.name = 'z'
+      if (node.type === 'binary') node.op = '-'
+      if ('left' in node) {
+        visit(node.left)
+        visit(node.right)
+      }
+      if ('operand' in node) visit(node.operand)
+      if ('arg' in node) visit(node.arg)
+    }
+    visit(t)
+    expect([f(0.5), g(0.5, 0), f(-2)]).toEqual(before)
   })
 })
 
@@ -95,6 +106,6 @@ describe('compilerXY — folded operations', () => {
     ['√(4)x', 2],
     ['sin(90)x', 1],
   ])('%s at x = 1', (source, expected) => {
-    expect(compilerXY(tree(source, 'degrees'))(1, 0)).toBeCloseTo(expected, 14)
+    expect(compilerXY(tree(source, 'degres'))(1, 0)).toBeCloseTo(expected, 14)
   })
 })

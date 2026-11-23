@@ -5,9 +5,8 @@
 // The derivative is evaluated, never shown: the simplification does not try to make it pretty.
 
 import {
-  DEGREE,
+  applyBuiltin,
   isTrigonometric,
-  mathOf,
   type ExpressionFunction,
   type ExpressionNode,
 } from '../expression'
@@ -88,7 +87,7 @@ export function negate(u: ExpressionNode): ExpressionNode {
 function call(fn: ExpressionFunction, arg: ExpressionNode, degrees?: true): ExpressionNode {
   // Folded only to a whole number (√4, cos(0)): √2 stays √2, for the same reason as `fold`.
   if (arg.type === 'number') {
-    const v = mathOf(fn)(degrees ? arg.value * DEGREE : arg.value)
+    const v = applyBuiltin(fn, arg.value, degrees)
     if (Number.isInteger(v)) return num(v)
   }
   // ln(e) = 1: the derivative of e^v (taken as a general power) needs it.
@@ -195,7 +194,20 @@ function outerDerivative(
   }
 }
 
-function derive(tree: ExpressionNode, v: string): ExpressionNode {
+/** Thrown when a derivative would take more steps than its budget allows. */
+export class DeriveeTropLongue extends Error {
+  constructor() {
+    super('dérivée trop longue')
+  }
+}
+
+/** The number of steps a derivative may take: one per node of the tree it derives. */
+export type BudgetDerivee = { reste: number }
+
+// The tree is simplified once by `deriver`; every node built here goes through the simplifying
+// constructors, so no sub-tree is simplified again (which made long trees quadratic).
+function derive(tree: ExpressionNode, v: string, budget: BudgetDerivee): ExpressionNode {
+  if (--budget.reste < 0) throw new DeriveeTropLongue()
   switch (tree.type) {
     case 'number':
     case 'constant':
@@ -203,61 +215,75 @@ function derive(tree: ExpressionNode, v: string): ExpressionNode {
     case 'variable':
       return tree.name === v ? ONE : ZERO
     case 'negate':
-      return negate(derive(tree.operand, v))
+      return negate(derive(tree.operand, v, budget))
     case 'call': {
-      const u = simplifier(tree.arg)
-      return times(outerDerivative(tree.fn, u, tree.degrees), derive(u, v))
+      const u = tree.arg
+      return times(outerDerivative(tree.fn, u, tree.degrees), derive(u, v, budget))
     }
     // (f⁽ⁿ⁾∘u)' = f⁽ⁿ⁺¹⁾(u)·u': whoever knows f evaluates the higher derivative.
     case 'userCall': {
-      const u = simplifier(tree.arg)
+      const u = tree.arg
       return times(
         { type: 'userCall', name: tree.name, order: tree.order + 1, arg: u },
-        derive(u, v)
+        derive(u, v, budget)
       )
     }
     case 'binary': {
-      const l = simplifier(tree.left)
-      const r = simplifier(tree.right)
+      const l = tree.left
+      const r = tree.right
       switch (tree.op) {
         case '+':
-          return plus(derive(l, v), derive(r, v))
+          return plus(derive(l, v, budget), derive(r, v, budget))
         case '-':
-          return minus(derive(l, v), derive(r, v))
+          return minus(derive(l, v, budget), derive(r, v, budget))
         case '*':
-          return plus(times(derive(l, v), r), times(l, derive(r, v)))
+          return plus(times(derive(l, v, budget), r), times(l, derive(r, v, budget)))
         case '/':
-          return over(minus(times(derive(l, v), r), times(l, derive(r, v))), power(r, num(2)))
+          return over(
+            minus(times(derive(l, v, budget), r), times(l, derive(r, v, budget))),
+            power(r, num(2))
+          )
         case '^':
-          return derivePower(l, r, v)
+          return derivePower(l, r, v, budget)
       }
     }
   }
 }
 
-function derivePower(u: ExpressionNode, w: ExpressionNode, v: string): ExpressionNode {
+function derivePower(
+  u: ExpressionNode,
+  w: ExpressionNode,
+  v: string,
+  budget: BudgetDerivee
+): ExpressionNode {
   const baseVaries = dependsOn(u, v)
   const exponentVaries = dependsOn(w, v)
   if (!exponentVaries) {
     // (u^n)' = n·u^(n−1)·u'
-    return times(times(w, power(u, minus(w, ONE))), derive(u, v))
+    return times(times(w, power(u, minus(w, ONE))), derive(u, v, budget))
   }
   if (!baseVaries) {
     // (a^w)' = a^w·ln(a)·w', with ln(e) = 1
     const lnA = u.type === 'constant' && u.name === 'e' ? ONE : call('ln', u)
-    return times(times(power(u, w), lnA), derive(w, v))
+    return times(times(power(u, w), lnA), derive(w, v, budget))
   }
   // u^w = e^(w·ln u): (u^w)' = u^w·(w'·ln u + w·u'/u)
   return times(
     power(u, w),
-    plus(times(derive(w, v), call('ln', u)), over(times(w, derive(u, v)), u))
+    plus(times(derive(w, v, budget), call('ln', u)), over(times(w, derive(u, v, budget)), u))
   )
 }
 
 /**
  * The derivative of the tree with respect to `variable` (x by default), simplified. Other letters
  * are constants. A call f⁽ⁿ⁾(u) to a function the student defined becomes f⁽ⁿ⁺¹⁾(u)·u'.
+ * `budget` bounds the work (one step per node derived, shared sub-trees counted each time they
+ * are met): past it, DeriveeTropLongue is thrown. Default: unbounded.
  */
-export function deriver(tree: ExpressionNode, variable: string = 'x'): ExpressionNode {
-  return simplifier(derive(tree, variable))
+export function deriver(
+  tree: ExpressionNode,
+  variable: string = 'x',
+  budget: BudgetDerivee = { reste: Infinity }
+): ExpressionNode {
+  return derive(simplifier(tree), variable, budget)
 }

@@ -6,7 +6,7 @@
 // The tree is resolved: no user call is left (the language inlines them), and every letter other
 // than x and y is a constant whose value is given.
 
-import { DEGREE, mathOf, type ExpressionNode } from '../expression'
+import { applyBuiltin, mathOf, type ExpressionNode } from '../expression'
 
 export type FonctionXY = (x: number, y: number) => number
 
@@ -37,13 +37,13 @@ function compile(node: ExpressionNode, constants: ReadonlyMap<string, number>): 
     }
     case 'call': {
       const a = compile(node.arg, constants)
-      const math = mathOf(node.fn)
-      const scale = node.degrees ? DEGREE : 1
-      if (a.k !== null) return constant(math(a.k * scale))
+      const fn = node.fn
+      const degrees = node.degrees === true
+      if (a.k !== null) return constant(applyBuiltin(fn, a.k, degrees))
       const run = a.run
-      return node.degrees
-        ? { run: (x, y) => math(run(x, y) * DEGREE), k: null }
-        : { run: (x, y) => math(run(x, y)), k: null }
+      if (degrees) return { run: (x, y) => applyBuiltin(fn, run(x, y), true), k: null }
+      const math = mathOf(fn)
+      return { run: (x, y) => math(run(x, y)), k: null }
     }
     case 'binary':
       return compileBinary(node.op, compile(node.left, constants), compile(node.right, constants))

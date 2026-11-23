@@ -11,9 +11,15 @@
 // Pure: no React, no DOM. Messages are French sentences with the position of the faulty
 // character; their wording comes from the UX writer (gate 2 of #418).
 
-import { DEGREE, mathOf, parseExpression, type ExpressionNode } from '../expression'
+import {
+  applyBuiltin,
+  parseExpression,
+  TOO_LONG,
+  type ExpressionNode,
+  type ModeAngle,
+} from '../expression'
 import { compilerX, compilerXY } from './compilation'
-import { deriver } from './derivee'
+import { DeriveeTropLongue, deriver } from './derivee'
 import { latexName, latexOf } from './latex'
 import {
   ajouter,
@@ -34,7 +40,7 @@ import {
 export type { Rationnel } from './rationnel'
 export { formaterRationnel, latexRationnel } from './rationnel'
 
-export type ModeAngle = 'radians' | 'degres'
+export type { ModeAngle } from '../expression'
 
 export type LigneSaisie = { id: string; texte: string }
 
@@ -75,13 +81,18 @@ export type OptionsAnalyse = {
 
 const NBSP = ' '
 
-/** Beyond this many nodes once calls are inlined, a line is refused rather than compiled. */
+/**
+ * Bounds of a line once its calls are inlined and derived: beyond this many nodes, or this
+ * depth, it is refused rather than compiled (the closures recurse once per level when called).
+ */
 export const NOEUDS_MAX = 50_000
+export const PROFONDEUR_MAX = 1_000
 
 export const MESSAGES = {
   lettreInconnue: (a: string) => `La lettre ${a} n’est pas définie.`,
   dejaDefinie: (a: string, ligne: number) =>
     `La lettre ${a} est déjà définie à la ligne ${ligne}. Choisis une autre lettre ou supprime l’une des deux lignes.`,
+  circulaireSeule: (a: string) => `Cette ligne utilise ${a} pour définir ${a}.`,
   circulaire: (noms: string) =>
     `Ces lignes se renvoient l’une à l’autre${NBSP}: ${noms}. Change l’une des définitions pour casser la boucle.`,
   inequation:
@@ -94,10 +105,10 @@ export const MESSAGES = {
   nomEuler: (exemple: string) =>
     `e est le nombre d’Euler (≈${NBSP}2,718)${NBSP}: choisis une autre lettre, par exemple ${exemple}.`,
   variableDeFonction: (f: string) =>
-    `La variable d’une fonction s’écrit x${NBSP}: écris ${f}(x) = ….`,
+    `La variable d’une fonction s’écrit x${NBSP}: écris ${f}(x) = …`,
   fonctionAvecY: (f: string) => `${f}(x) ne peut dépendre que de x, pas de y.`,
   constanteAvecXY: (a: string) =>
-    `${a} est une constante${NBSP}: sa valeur ne peut dépendre ni de x ni de y. Pour tracer une courbe, écris y = ….`,
+    `${a} est une constante${NBSP}: sa valeur ne peut dépendre ni de x ni de y. Pour tracer une courbe, écris y = …`,
   yHorsEquation: `Une expression avec y se trace comme une équation${NBSP}: écris par exemple x² + y² = 4.`,
   rienATracer: `Cette égalité ne contient ni x ni y${NBSP}: il n’y a rien à tracer.`,
   nombreDejaConnu: (c: string) =>
@@ -106,7 +117,12 @@ export const MESSAGES = {
     `${nom} n’est pas utilisable${NBSP}: sa définition, ligne ${ligne}, contient une erreur.`,
   calculSansValeur: 'Ce calcul n’a pas de valeur réelle.',
   constanteSansValeur: (a: string) => `La valeur de ${a} n’est pas définie.`,
-  tropLongue: 'Cette expression devient trop longue à calculer.',
+  toujoursVraie: `Cette égalité est vraie pour tous les points${NBSP}: il n’y a rien à tracer.`,
+  nomMinuscule: (f: string) => `Écris le nom de la fonction en minuscule${NBSP}: ${f}(x) = …`,
+  tropGrand: 'Ce nombre est trop grand pour la calculatrice.',
+  zeroPuissanceZero: '0⁰ n’est pas défini.',
+  deriveeIncalculable: (appel: string) => `Je ne sais pas calculer ${appel} avec cette écriture.`,
+  tropLongue: TOO_LONG,
 } as const
 
 // ---------------------------------------------------------------------------------------------
@@ -124,6 +140,7 @@ type Forme =
   | { type: 'egalite'; egal: number; gauche: string; droite: string; tete: Tete | null }
 
 const TETE_FONCTION = /^(\s*)([a-z]\d?)(\s*\(\s*)([a-zA-Z])\s*\)\s*$/
+const TETE_FONCTION_MAJUSCULE = /^(\s*)([A-Z])\d?\s*\(\s*[a-zA-Z]\s*\)\s*$/
 const TETE_CONSTANTE = /^(\s*)([a-zA-Z])\s*$/
 const INEQUATION = /[<>≤≥⩽⩾≠]/
 const LITTERAL = /^\s*[+\-−–]?\s*(\d+([.,]\d+)?|[.,]\d+)\s*$/
@@ -169,6 +186,16 @@ function forme(texte: string): Forme {
       },
     }
   }
+  const majuscule = TETE_FONCTION_MAJUSCULE.exec(gauche)
+  if (majuscule) {
+    return {
+      type: 'erreur',
+      erreur: {
+        message: MESSAGES.nomMinuscule(majuscule[2].toLowerCase()),
+        position: majuscule[1].length,
+      },
+    }
+  }
   const c = TETE_CONSTANTE.exec(gauche)
   const tete: Tete | null =
     c && c[2] !== 'x' && c[2] !== 'y'
@@ -179,10 +206,12 @@ function forme(texte: string): Forme {
 
 /** The error a head carries by itself (a reserved name, a variable other than x); null if none. */
 function erreurDeTete(tete: Tete): ErreurLigne | null {
-  if (tete.nom === 'x' || tete.nom === 'y') {
+  // The letter decides, digit or not: x1(x) or e2(x) would read x·1 or Euler's number.
+  const lettre = tete.nom[0]
+  if (lettre === 'x' || lettre === 'y') {
     return { message: MESSAGES.nomVariable, position: tete.position }
   }
-  if (tete.nom === 'e') {
+  if (lettre === 'e') {
     return {
       message: MESSAGES.nomEuler(tete.type === 'fonction' ? 'f' : 'a'),
       position: tete.position,
@@ -269,18 +298,13 @@ function references(tree: ExpressionNode, into: Reference[] = []): Reference[] {
 function lire(
   source: string,
   fonctions: readonly string[],
-  angle: 'radians' | 'degrees'
+  angle: ModeAngle
 ): { ok: true; tree: ExpressionNode } | { ok: false; erreur: ErreurLigne } {
   const r = parseExpression(source, { calculator: { functions: fonctions, angle } })
   return r.ok ? { ok: true, tree: r.expression.tree } : { ok: false, erreur: r.error }
 }
 
-function sens(
-  texte: string,
-  f: Forme,
-  fonctions: readonly string[],
-  angle: 'radians' | 'degrees'
-): Sens {
+function sens(texte: string, f: Forme, fonctions: readonly string[], angle: ModeAngle): Sens {
   if (f.type === 'vide') return { genre: 'vide' }
   if (f.type === 'erreur') return { genre: 'erreur', erreur: f.erreur }
   if (f.type === 'expression') {
@@ -348,15 +372,12 @@ function sens(
       latex,
     }
   }
-  const varsG = variablesDe(g)
   const varsD = variablesDe(droite.tree)
   if (g.type === 'variable' && g.name === 'y' && !varsD.has('y')) {
     return { genre: 'explicite', corps: droite.tree, latex }
   }
-  if (!varsG.has('x') && !varsG.has('y') && !varsD.has('x') && !varsD.has('y')) {
-    return { genre: 'erreur', erreur: { message: MESSAGES.rienATracer, position: f.egal }, latex }
-  }
-  // F(x, y) = left − right: the curve is where F is 0.
+  // F(x, y) = left − right: the curve is where F is 0. An equality with neither x nor y, or
+  // true everywhere (y = y), is refused once its letters are known (`evaluer`).
   const corps: ExpressionNode = {
     type: 'binary',
     op: '-',
@@ -372,10 +393,11 @@ function sens(
 
 class TropLongue extends Error {}
 
-class DivisionParZero extends Error {
+/** A calculation refused, with its French message and the position in the line. */
+class ErreurCalcul extends Error {
   readonly position: number
-  constructor(position: number) {
-    super('division par zéro')
+  constructor(message: string, position: number) {
+    super(message)
     this.position = position
   }
 }
@@ -395,8 +417,11 @@ function substituer(
   switch (tree.type) {
     case 'variable':
       return tree.name === 'x' ? arg : at({ type: 'variable', name: tree.name })
-    case 'number':
-      return at({ type: 'number', value: tree.value })
+    case 'number': {
+      const node: ExpressionNode = { type: 'number', value: tree.value }
+      if (tree.text !== undefined) node.text = tree.text
+      return at(node)
+    }
     case 'constant':
       return at({ type: 'constant', name: tree.name })
     case 'negate':
@@ -427,33 +452,79 @@ function substituer(
   }
 }
 
-function taille(tree: ExpressionNode): number {
-  switch (tree.type) {
-    case 'number':
-    case 'variable':
-    case 'constant':
-      return 1
-    case 'negate':
-      return 1 + taille(tree.operand)
-    case 'call':
-    case 'userCall':
-      return 1 + taille(tree.arg)
-    case 'binary':
-      return 1 + taille(tree.left) + taille(tree.right)
+/**
+ * Whether a tree is beyond NOEUDS_MAX nodes or PROFONDEUR_MAX levels. Iterative, and it stops
+ * as soon as it knows: a derived tree shares sub-trees, and walked as a tree it can be huge.
+ */
+export function tropGrandArbre(
+  tree: ExpressionNode,
+  noeuds: number = NOEUDS_MAX,
+  profondeur: number = PROFONDEUR_MAX
+): boolean {
+  const pile: Array<[ExpressionNode, number]> = [[tree, 1]]
+  let compte = 0
+  for (let item = pile.pop(); item !== undefined; item = pile.pop()) {
+    const [node, d] = item
+    if (++compte > noeuds || d > profondeur) return true
+    switch (node.type) {
+      case 'negate':
+        pile.push([node.operand, d + 1])
+        break
+      case 'call':
+      case 'userCall':
+        pile.push([node.arg, d + 1])
+        break
+      case 'binary':
+        pile.push([node.left, d + 1], [node.right, d + 1])
+        break
+      case 'number':
+      case 'variable':
+      case 'constant':
+        break
+    }
   }
+  return false
 }
 
 type Valeur = { v: number; r: Rationnel | null }
 
-/** A calculation worked out once, in doubles and, where it can be, in exact fractions. */
+/**
+ * A calculation worked out once, in doubles and, where it can be, in exact fractions. `echelle`
+ * records the largest term of a sum and the largest angle met: a result 10¹² times smaller is a
+ * rounding residue (sin(π) = 1,2·10⁻¹⁶, √2·√2 − 2 = 4,4·10⁻¹⁶), not a value (π/10²⁰ is one).
+ */
 function calculer(
   tree: ExpressionNode,
   valeurs: ReadonlyMap<string, number>,
-  exacts: ReadonlyMap<string, Rationnel | null>
+  exacts: ReadonlyMap<string, Rationnel | null>,
+  echelle: { max: number }
 ): Valeur {
+  return calculerNoeud(tree, valeurs, exacts, echelle)
+}
+
+/** Records a magnitude where a rounding residue can appear: a term of a sum, an angle. */
+function noter(echelle: { max: number }, v: number): void {
+  const m = Math.abs(v)
+  if (m - m === 0 && m > echelle.max) echelle.max = m
+}
+
+function calculerNoeud(
+  tree: ExpressionNode,
+  valeurs: ReadonlyMap<string, number>,
+  exacts: ReadonlyMap<string, Rationnel | null>,
+  echelle: { max: number }
+): Valeur {
+  const sous = (t: ExpressionNode) => calculer(t, valeurs, exacts, echelle)
   switch (tree.type) {
     case 'number':
-      return { v: tree.value, r: rationnelDepuisNombre(tree.value) }
+      // Typed digits are read from their text: 12345678901234567 is not the double it rounds to.
+      return {
+        v: tree.value,
+        r:
+          tree.text !== undefined
+            ? rationnelDepuisDecimal(tree.text)
+            : rationnelDepuisNombre(tree.value),
+      }
     case 'constant':
       return { v: tree.name === 'π' ? Math.PI : Math.E, r: null }
     case 'variable':
@@ -461,39 +532,147 @@ function calculer(
     case 'userCall':
       return { v: NaN, r: null }
     case 'negate': {
-      const a = calculer(tree.operand, valeurs, exacts)
+      const a = sous(tree.operand)
       return { v: -a.v, r: a.r && opposer(a.r) }
     }
     case 'call': {
-      const a = calculer(tree.arg, valeurs, exacts)
-      const v = mathOf(tree.fn)(tree.degrees ? a.v * DEGREE : a.v)
+      const a = sous(tree.arg)
+      // ln(0) is −∞ for a double: not a value, not an overflow either.
+      const v = applyBuiltin(tree.fn, a.v, tree.degrees)
+      if (tree.fn === 'sin' || tree.fn === 'cos' || tree.fn === 'tan') noter(echelle, a.v)
+      if ((tree.fn === 'ln' || tree.fn === 'log') && a.v === 0) return { v: NaN, r: null }
       const r =
         a.r && (tree.fn === 'sqrt' ? racine(a.r) : tree.fn === 'abs' ? valeurAbsolue(a.r) : null)
       return { v, r }
     }
     case 'binary': {
-      const a = calculer(tree.left, valeurs, exacts)
-      const b = calculer(tree.right, valeurs, exacts)
+      const a = sous(tree.left)
+      const b = sous(tree.right)
       const ra = a.r
       const rb = b.r
       switch (tree.op) {
         case '+':
+          noter(echelle, a.v)
+          noter(echelle, b.v)
           return { v: a.v + b.v, r: ra && rb && ajouter(ra, rb) }
         case '-':
+          noter(echelle, a.v)
+          noter(echelle, b.v)
           return { v: a.v - b.v, r: ra && rb && soustraire(ra, rb) }
         case '*':
           return { v: a.v * b.v, r: ra && rb && multiplier(ra, rb) }
         case '/': {
-          if (b.r ? estNul(b.r) : b.v === 0) throw new DivisionParZero(tree.pos ?? 0)
+          if (rb ? estNul(rb) : b.v === 0) {
+            throw new ErreurCalcul(MESSAGES.divisionParZero, tree.pos ?? 0)
+          }
           return { v: a.v / b.v, r: ra && rb && diviser(ra, rb) }
         }
         case '^': {
-          if ((a.r ? estNul(a.r) : a.v === 0) && b.v < 0) throw new DivisionParZero(tree.pos ?? 0)
+          if (ra ? estNul(ra) : a.v === 0) {
+            if (rb ? estNul(rb) : b.v === 0) {
+              throw new ErreurCalcul(MESSAGES.zeroPuissanceZero, tree.pos ?? 0)
+            }
+            if (b.v < 0) throw new ErreurCalcul(MESSAGES.divisionParZero, tree.pos ?? 0)
+          }
           return { v: Math.pow(a.v, b.v), r: ra && rb && puissance(ra, rb) }
         }
       }
     }
   }
+}
+
+/** Significant digits of a decimal calculation: what is left after rounding residues. */
+export const CHIFFRES_SIGNIFICATIFS = 12
+
+/**
+ * The value shown for a calculation: the exact fraction's when there is one; otherwise the double
+ * rounded to 12 significant digits, and 0 below 10⁻¹² of the largest term or angle met (sin(π) is 0,
+ * √2·√2 is 2). A French message for a value that is not a number or does not fit a double.
+ */
+function valeurAffichee(c: Valeur, echelle: number): number | { message: string } {
+  const v = c.r ? valeurDe(c.r) : c.v
+  if (Number.isNaN(v)) return { message: MESSAGES.calculSansValeur }
+  if (!Number.isFinite(v)) return { message: MESSAGES.tropGrand }
+  if (c.r) return v
+  if (Math.abs(v) < 1e-12 * echelle) return 0
+  return Number(v.toPrecision(CHIFFRES_SIGNIFICATIFS))
+}
+
+/** The first call to a derivative (f'(…), f''(…)) in the tree, if any. */
+function premiereDerivee(
+  tree: ExpressionNode
+): Extract<ExpressionNode, { type: 'userCall' }> | null {
+  switch (tree.type) {
+    case 'userCall':
+      return tree.order > 0 ? tree : premiereDerivee(tree.arg)
+    case 'negate':
+      return premiereDerivee(tree.operand)
+    case 'call':
+      return premiereDerivee(tree.arg)
+    case 'binary':
+      return premiereDerivee(tree.left) ?? premiereDerivee(tree.right)
+    case 'number':
+    case 'variable':
+    case 'constant':
+      return null
+  }
+}
+
+/** Every derivative call f⁽ⁿ⁾(u) of the tree becomes f⁽ⁿ⁾(u + x): x is the step h of a limit. */
+function decalerDerivees(tree: ExpressionNode): ExpressionNode {
+  switch (tree.type) {
+    case 'userCall': {
+      const arg = decalerDerivees(tree.arg)
+      return {
+        ...tree,
+        arg:
+          tree.order > 0
+            ? { type: 'binary', op: '+', left: arg, right: { type: 'variable', name: 'x' } }
+            : arg,
+      }
+    }
+    case 'negate':
+      return { ...tree, operand: decalerDerivees(tree.operand) }
+    case 'call':
+      return { ...tree, arg: decalerDerivees(tree.arg) }
+    case 'binary':
+      return { ...tree, left: decalerDerivees(tree.left), right: decalerDerivees(tree.right) }
+    case 'number':
+    case 'variable':
+    case 'constant':
+      return tree
+  }
+}
+
+/**
+ * The value at h = 0 of g(h), from both sides: g(±10⁻⁴) and g(±10⁻⁵), each side extrapolated
+ * linearly to 0, and the two sides must agree within 10⁻⁹. For f(x) = x|x|, f'(h) = 2|h| has
+ * the limit 0 at 0 where the formula reads 0/0; for f(x) = x√x the left side is not defined, and
+ * there is no limit to show. Null when the sides disagree or are not defined.
+ */
+export function limiteBilaterale(g: (h: number) => number): number | null {
+  const gauche = (10 * g(-1e-5) - g(-1e-4)) / 9
+  const droite = (10 * g(1e-5) - g(1e-4)) / 9
+  if (!Number.isFinite(gauche) || !Number.isFinite(droite)) return null
+  const tolerance = 1e-9 * Math.max(1, Math.abs(gauche), Math.abs(droite))
+  if (Math.abs(gauche - droite) > tolerance) return null
+  const v = (gauche + droite) / 2
+  return Math.abs(v) < 1e-9 ? 0 : Number(v.toPrecision(9))
+}
+
+/** The text of a call as typed from `pos` (f'(0), f''(1/2)), primes written ′. */
+function texteAppel(texte: string, pos: number): string {
+  let i = pos
+  while (i < texte.length && texte[i] !== '(') i++
+  let profondeur = 0
+  for (; i < texte.length; i++) {
+    if (texte[i] === '(') profondeur++
+    else if (texte[i] === ')' && --profondeur === 0) break
+  }
+  return texte
+    .slice(pos, i + 1)
+    .replace(/['’′]/g, '′')
+    .replace(/\s+/g, '')
 }
 
 /** Tarjan's strongly connected components, dependencies first. */
@@ -538,6 +717,17 @@ function enumerer(noms: readonly string[]): string {
     : `${noms.slice(0, -1).join(', ')} et ${noms[noms.length - 1]}`
 }
 
+/** Points where an equality in x and y is tried before it is called true everywhere. */
+const POINTS_ESSAI: ReadonlyArray<readonly [number, number]> = [
+  [0.3711, -1.2343],
+  [2.718, 0.577],
+  [-3.14, 4.2],
+  [10.5, -7.25],
+  [-0.123, 0.987],
+  [5.5, 5.5],
+  [1.4142, 1.7321],
+]
+
 /**
  * Reads the lines together: same order and same ids as the input. Never throws; a line that
  * cannot be drawn or computed comes back as an `erreur`, and the others are still read.
@@ -546,7 +736,7 @@ export function analyserLignes(
   lignes: readonly LigneSaisie[],
   options: OptionsAnalyse = {}
 ): LigneAnalysee[] {
-  const angle = options.angle === 'degres' ? 'degrees' : 'radians'
+  const angle: ModeAngle = options.angle === 'degres' ? 'degres' : 'radians'
   const formes = lignes.map((l) => forme(l.texte))
 
   // 1. Who defines which letter: the first line wins, from its text alone.
@@ -554,15 +744,25 @@ export function analyserLignes(
   const fonctions: string[] = []
   formes.forEach((f, i) => {
     // A head with a wrong variable (f(t) = …) still owns f: its users say f is broken.
-    if (f.type !== 'egalite' || !f.tete || RESERVES.has(f.tete.nom)) return
+    if (f.type !== 'egalite' || !f.tete || RESERVES.has(f.tete.nom[0])) return
     if (proprietaire.has(f.tete.nom)) return
     proprietaire.set(f.tete.nom, i)
     if (f.tete.type === 'fonction') fonctions.push(f.tete.nom)
   })
 
-  // 2. Each line parsed, knowing the function names; a second definition is refused.
+  // 2. Each line parsed, knowing the function names; a second definition is refused. A line too
+  //    deep for the call stack is refused on its own (the parser bounds the input; this is the
+  //    net under it).
   const sensDe: Sens[] = formes.map((f, i) => {
-    const s = sens(lignes[i].texte, f, fonctions, angle)
+    let s: Sens
+    try {
+      s = sens(lignes[i].texte, f, fonctions, angle)
+    } catch (e) {
+      if (e instanceof RangeError) {
+        return { genre: 'erreur', erreur: { message: MESSAGES.tropLongue, position: 0 } }
+      }
+      throw e
+    }
     if (s.genre !== 'fonction' && s.genre !== 'constante') return s
     const premier = proprietaire.get(s.nom)
     if (premier === undefined || premier === i) return s
@@ -613,8 +813,9 @@ export function analyserLignes(
       const s = sensDe[proprietaire.get(nom)!]
       corps = s.genre === 'fonction' ? resoudre(s.corps, budget) : { type: 'number', value: NaN }
     } else {
-      corps = deriver(corpsDe(nom, ordre - 1, budget))
-      if (taille(corps) > NOEUDS_MAX) throw new TropLongue()
+      // The derivative spends the same budget as the inlining: one step per node it derives.
+      corps = deriver(corpsDe(nom, ordre - 1, budget), 'x', budget)
+      if (tropGrandArbre(corps)) throw new TropLongue()
     }
     corpsDerives.set(cle, corps)
     return corps
@@ -671,7 +872,10 @@ export function analyserLignes(
           id: lignes[i].id,
           genre: 'erreur',
           erreur: {
-            message: MESSAGES.circulaire(enumerer(noms)),
+            message:
+              noms.length === 1
+                ? MESSAGES.circulaireSeule(noms[0])
+                : MESSAGES.circulaire(enumerer(noms)),
             position: dansCycle?.position ?? 0,
           },
           latex: s.latex,
@@ -692,12 +896,36 @@ export function analyserLignes(
         }
         continue
       }
-      const ligne = evaluer(i, s)
+      let ligne: LigneAnalysee
+      try {
+        ligne = evaluer(i, s)
+      } catch (e) {
+        if (!(
+          e instanceof TropLongue ||
+          e instanceof DeriveeTropLongue ||
+          e instanceof RangeError
+        )) {
+          throw e
+        }
+        ligne = {
+          id: lignes[i].id,
+          genre: 'erreur',
+          erreur: { message: MESSAGES.tropLongue, position: 0 },
+          latex: s.latex,
+        }
+      }
       if (ligne.genre === 'erreur') enErreur.add(i)
       resultat[i] = ligne
     }
   }
   return resultat
+
+  /** The line inlined, within the bounds; throws TropLongue past them. */
+  function resolu(tree: ExpressionNode): ExpressionNode {
+    const corps = resoudre(tree, { reste: NOEUDS_MAX })
+    if (tropGrandArbre(corps)) throw new TropLongue()
+    return corps
+  }
 
   function evaluer(
     i: number,
@@ -710,61 +938,125 @@ export function analyserLignes(
       erreur: { message, position },
       latex: s.latex,
     })
-    let corps: ExpressionNode
-    try {
-      corps = resoudre(s.corps, { reste: NOEUDS_MAX })
-    } catch (e) {
-      if (e instanceof TropLongue) return erreur(MESSAGES.tropLongue, 0)
-      throw e
-    }
+    const corps = resolu(s.corps)
     switch (s.genre) {
       case 'fonction':
         return { id, latex: s.latex, genre: 'explicite', nom: s.nom, f: compilerX(corps, valeurs) }
       case 'explicite':
         return { id, latex: s.latex, genre: 'explicite', nom: null, f: compilerX(corps, valeurs) }
-      case 'implicite':
+      case 'implicite': {
+        const refus = egaliteSansCourbe(corps)
+        if (refus) return erreur(refus, s.corps.pos ?? 0)
         return { id, latex: s.latex, genre: 'implicite', F: compilerXY(corps, valeurs) }
+      }
       case 'constante': {
         const curseur = s.litteral !== null
         const impose = options.valeurs?.[s.nom]
-        let valeur: number
+        let interne: number
         let exact: Rationnel | null
+        let affichee: number | { message: string }
         if (curseur && impose !== undefined && Number.isFinite(impose)) {
-          valeur = impose
+          interne = impose
           exact = rationnelDepuisNombre(impose)
+          affichee = valeurAffichee({ v: impose, r: null }, Math.abs(impose))
         } else if (curseur) {
           exact = rationnelDepuisDecimal(s.litteral!)
-          valeur = exact ? valeurDe(exact) : NaN
+          interne = exact ? valeurDe(exact) : NaN
+          affichee = valeurAffichee({ v: interne, r: exact }, Math.abs(interne))
         } else {
-          let c: Valeur
-          try {
-            c = calculer(corps, valeurs, exacts)
-          } catch (e) {
-            if (e instanceof DivisionParZero) return erreur(MESSAGES.divisionParZero, e.position)
-            throw e
+          const c = calculLigne(i, s.corps, corps)
+          if ('message' in c) {
+            return c.message === MESSAGES.calculSansValeur
+              ? erreur(MESSAGES.constanteSansValeur(s.nom), s.position)
+              : erreur(c.message, c.position)
           }
-          exact = c.r
-          valeur = c.r ? valeurDe(c.r) : c.v
+          interne = c.interne
+          exact = c.exact
+          affichee = c.valeur
         }
-        if (!Number.isFinite(valeur)) return erreur(MESSAGES.constanteSansValeur(s.nom), s.position)
-        valeurs.set(s.nom, valeur)
+        if (typeof affichee !== 'number') {
+          return erreur(
+            affichee.message === MESSAGES.tropGrand
+              ? MESSAGES.tropGrand
+              : MESSAGES.constanteSansValeur(s.nom),
+            s.position
+          )
+        }
+        // The lines that use the constant read its full value; the line shows it rounded.
+        valeurs.set(s.nom, interne)
         exacts.set(s.nom, exact)
-        return { id, latex: s.latex, genre: 'constante', nom: s.nom, valeur, curseur }
+        return { id, latex: s.latex, genre: 'constante', nom: s.nom, valeur: affichee, curseur }
       }
       case 'calcul': {
-        let c: Valeur
-        try {
-          c = calculer(corps, valeurs, exacts)
-        } catch (e) {
-          if (e instanceof DivisionParZero) return erreur(MESSAGES.divisionParZero, e.position)
-          throw e
-        }
-        const valeur = c.r ? valeurDe(c.r) : c.v
-        if (!Number.isFinite(valeur)) return erreur(MESSAGES.calculSansValeur, 0)
-        return { id, latex: s.latex, genre: 'calcul', valeur, exact: c.r }
+        const c = calculLigne(i, s.corps, corps)
+        if ('message' in c) return erreur(c.message, c.position)
+        return { id, latex: s.latex, genre: 'calcul', valeur: c.valeur, exact: c.exact }
       }
     }
   }
+
+  /**
+   * A calculation line (or the value of a constant). When it calls a derivative and the formula
+   * has no value there (x√x derived reads 0/0 at 0), the value is the limit from both sides, if
+   * it exists, and never exact: the formula, not the function, is what fails.
+   */
+  function calculLigne(
+    i: number,
+    tree: ExpressionNode,
+    corps: ExpressionNode
+  ):
+    | { valeur: number; interne: number; exact: Rationnel | null }
+    | { message: string; position: number } {
+    const derivee = premiereDerivee(tree)
+    const echelle = { max: 0 }
+    let echec: { message: string; position: number }
+    try {
+      const c = calculer(corps, valeurs, exacts, echelle)
+      const valeur = valeurAffichee(c, echelle.max)
+      if (typeof valeur === 'number') {
+        return { valeur, interne: c.r ? valeurDe(c.r) : c.v, exact: c.r }
+      }
+      echec = { message: valeur.message, position: 0 }
+    } catch (e) {
+      if (!(e instanceof ErreurCalcul)) throw e
+      echec = { message: e.message, position: e.position }
+    }
+    if (!derivee) return echec
+    const g = compilerX(resolu(decalerDerivees(tree)), valeurs)
+    const limite = limiteBilaterale(g)
+    if (limite !== null) return { valeur: limite, interne: limite, exact: null }
+    return {
+      message: MESSAGES.deriveeIncalculable(texteAppel(lignes[i].texte, derivee.pos ?? 0)),
+      position: derivee.pos ?? 0,
+    }
+  }
+
+  /**
+   * Why an equality draws nothing: it has neither x nor y (2 = 3), or it holds everywhere
+   * (y = y, 2 = 2, (x + 1)² = x² + 2x + 1). Null when it draws a curve.
+   */
+  function egaliteSansCourbe(corps: ExpressionNode): string | null {
+    if (corps.type !== 'binary') return null
+    const gauche = compilerXY(corps.left, valeurs)
+    const droite = compilerXY(corps.right, valeurs)
+    let essais = 0
+    for (const [x, y] of POINTS_ESSAI) {
+      const l = gauche(x, y)
+      const r = droite(x, y)
+      if (!Number.isFinite(l) || !Number.isFinite(r)) continue
+      if (Math.abs(l - r) > 1e-9 * Math.max(1, Math.abs(l), Math.abs(r))) {
+        return dependDeXY(corps) ? null : MESSAGES.rienATracer
+      }
+      essais++
+    }
+    if (essais >= 3) return MESSAGES.toujoursVraie
+    return dependDeXY(corps) ? null : MESSAGES.rienATracer
+  }
+}
+
+function dependDeXY(tree: ExpressionNode): boolean {
+  const vars = variablesDe(tree)
+  return vars.has('x') || vars.has('y')
 }
 
 function latexSiPresent(latex: string | undefined): { latex?: string } {
