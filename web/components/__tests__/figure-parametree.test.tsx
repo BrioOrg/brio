@@ -2,6 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { FigureSpec } from '@brio/content'
 
+import { decoderEtat } from '@/lib/calculatrice-etat'
+
 import { FigureParametree } from '../figure-parametree'
 import { FigureRenderer } from '../figure-renderer'
 
@@ -87,5 +89,52 @@ describe('FigureParametree', () => {
   it('keeps the sliders out of print', () => {
     render(<FigureParametree spec={spec} alt="La droite d’équation y = ax." />)
     expect(screen.getByRole('slider').closest('.print\\:hidden')).not.toBeNull()
+  })
+})
+
+describe('the link to the calculator under a figure', () => {
+  const lien = { name: 'Ouvrir cette figure dans la calculatrice graphique' }
+
+  it('is under a figure with functions, with the calculator address, not printed', () => {
+    render(
+      <FigureRenderer spec={{ axes, functions: [{ name: 'f', expr: '2x' }] }} alt="Une droite." />
+    )
+    const a = screen.getByRole('link', lien)
+    expect(a.textContent).toBe('Ouvrir dans la calculatrice')
+    expect(a.getAttribute('href')).toMatch(/^\/explorer\/calculatrice\?e=/)
+    expect(a.closest('p')?.className).toContain('print:hidden')
+  })
+
+  it('is absent from a figure without functions, and from a preview', () => {
+    const { rerender } = render(<FigureRenderer spec={{ axes }} alt="Un repère." />)
+    expect(screen.queryByRole('link', lien)).toBeNull()
+    rerender(
+      <FigureRenderer
+        spec={{ axes, functions: [{ name: 'f', expr: '2x' }] }}
+        alt="Une droite."
+        sansLienCalculatrice
+      />
+    )
+    expect(screen.queryByRole('link', lien)).toBeNull()
+  })
+
+  it('carries the current slider value, which follows the slider', () => {
+    render(
+      <FigureParametree
+        spec={{
+          axes,
+          functions: [{ name: 'f', expr: 'ax' }],
+          parameters: [{ name: 'a', min: 0, max: 4, step: 1, value: 1 }],
+        }}
+        alt="Une droite."
+      />
+    )
+    const decode = () => {
+      const href = screen.getByRole('link', lien).getAttribute('href')!
+      return decoderEtat(new URL(href, 'http://x').searchParams.get('e')).lignes[1].texte
+    }
+    expect(decode()).toBe('a = 1')
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '3' } })
+    expect(decode()).toBe('a = 3')
   })
 })
