@@ -315,3 +315,6 @@ export { latexOf } from './grapheur/latex'
 export { deriver, simplifier } from './grapheur/derivee'
 export { compilerX, compilerXY, type FonctionXY } from './grapheur/compilation'
 export { rationnelDepuisDecimal, rationnelDepuisNombre, valeurDe } from './grapheur/rationnel'
+// Graphing calculator — implicit curves (ADR 0049)
+export type { Fenetre, OptionsImplicite, PointSvg, TraceImplicite } from './grapheur/implicite'
+export { BUDGET_IMPLICITE, traceImplicite } from './grapheur/implicite'
