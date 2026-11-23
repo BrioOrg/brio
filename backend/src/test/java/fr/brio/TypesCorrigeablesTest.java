@@ -2,7 +2,7 @@ package fr.brio;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import fr.brio.contenu.CoursStructure;
+import fr.brio.contenu.api.TypesCorrigeables;
 import fr.brio.exercices.domain.Evaluator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * The types a course counts toward its completion are exactly those exercices can grade (ADR 0050
  * §5). contenu cannot ask exercices (that would close a module cycle), so this test holds the two
- * lists together: a new evaluator, or a removed one, fails here until CoursStructure follows.
+ * lists together: a new evaluator, or a removed one, fails here until TypesCorrigeables follows.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -27,6 +27,6 @@ class TypesCorrigeablesTest {
     @Test
     void theCourseCountsExactlyTheTypesExercicesCanGrade() {
         assertThat(evaluateurs.stream().map(Evaluator::exerciseType).collect(Collectors.toSet()))
-                .isEqualTo(CoursStructure.TYPES_CORRIGEABLES);
+                .isEqualTo(TypesCorrigeables.TYPES);
     }
 }
