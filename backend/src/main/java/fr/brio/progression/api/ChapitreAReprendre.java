@@ -5,7 +5,8 @@ import java.time.Instant;
 /**
  * The chapter a student last read a section of without finishing it (#323).
  * {@code chapitreId} is the chapter document's id, which is also its catalogue slug:
- * with the niveau and matière codes it gives the chapter's URL.
+ * with the niveau and matière codes it gives the chapter's URL. Serialised with
+ * {@code "type": "chapitre"} since teacher courses can be resumed too (ADR 0050).
  */
 public record ChapitreAReprendre(
         String chapitreId,
@@ -14,4 +15,4 @@ public record ChapitreAReprendre(
         String matiereCode,
         int sectionsLues,
         int sectionsTotal,
-        Instant derniereActivite) {}
+        Instant derniereActivite) implements ContenuAReprendre {}

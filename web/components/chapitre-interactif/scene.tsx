@@ -179,7 +179,7 @@ function groupes(deck: readonly Diapo[]): { cle: string; sectionId?: string; ind
 function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
   const ctx = useModeChapitre()
   if (!ctx) return null
-  const { deck, index, sectionTitles, chemin, aller, exercices, vues } = ctx
+  const { deck, index, sectionTitles, chemin, aller, exercices, vues, nature } = ctx
 
   return (
     <InfobulleProvider>
@@ -195,7 +195,7 @@ function ListeDiapos({ onChoisir }: { onChoisir?: () => void }) {
                 const diapo = deck[i]
                 const courante = i === index
                 const etat = etatDiapo(diapo, courante, exercices, vues)
-                const libelle = libelleDiapo(diapo, i, deck.length, sectionTitles, etat)
+                const libelle = libelleDiapo(diapo, i, deck.length, sectionTitles, etat, nature)
                 return (
                   <li key={diapo.id}>
                     <Infobulle label={libelle} side="right">
@@ -266,7 +266,7 @@ export function BandeDiapos() {
   const ctx = useModeChapitre()
   if (!ctx || ctx.mode !== 'interactif' || ctx.bandeRepliee) return null
   return (
-    <nav aria-label="Diapos du chapitre" className="hidden lg:block">
+    <nav aria-label={`Diapos du ${ctx.nature}`} className="hidden lg:block">
       <div className="sticky top-20 z-10 max-h-[calc(100vh-6rem)] overflow-y-auto pb-6">
         <ListeDiapos />
       </div>
@@ -297,7 +297,7 @@ export function TiroirDiapos() {
               <Icon name="x" size={18} aria-hidden="true" />
             </Dialog.Close>
           </div>
-          <nav aria-label="Diapos du chapitre">
+          <nav aria-label={`Diapos du ${ctx.nature}`}>
             <ListeDiapos onChoisir={() => setTiroirOuvert(false)} />
           </nav>
         </Dialog.Content>

@@ -40,7 +40,11 @@ test('a course homework opens its course in one click, with the homework banner'
     .getByRole('link', { name: /Relire le cours sur les fractions/ })
     .click()
 
-  await expect(page).toHaveURL(`/cours/${COURS_LISIBLE}?devoir=${DEVOIR_LISIBLE}`, COMPILATION)
+  // The interactive mode (ADR 0050 §7) adds its first slide to the address; the homework stays.
+  await expect(page).toHaveURL(
+    new RegExp(`/cours/${COURS_LISIBLE}\\?devoir=${DEVOIR_LISIBLE}(&diapo=[^&]+)?$`),
+    COMPILATION
+  )
   await expect(page.getByRole('heading', { level: 1, name: TITRE_DU_COURS })).toBeVisible()
   await expect(page.getByText(BANDEAU)).toBeVisible()
 
@@ -183,7 +187,11 @@ test('Ma classe › À faire opens a course homework on its course', async ({ pa
   await devoir('Relire le cours sur les fractions')
     .getByRole('link', { name: 'Ouvrir le cours' })
     .click()
-  await expect(page).toHaveURL(`/cours/${COURS_LISIBLE}?devoir=${DEVOIR_LISIBLE}`, COMPILATION)
+  // The interactive mode (ADR 0050 §7) adds its first slide to the address; the homework stays.
+  await expect(page).toHaveURL(
+    new RegExp(`/cours/${COURS_LISIBLE}\\?devoir=${DEVOIR_LISIBLE}(&diapo=[^&]+)?$`),
+    COMPILATION
+  )
   await expect(page.getByRole('heading', { level: 1, name: TITRE_DU_COURS })).toBeVisible()
   await expect(page.getByText(BANDEAU)).toBeVisible()
 })

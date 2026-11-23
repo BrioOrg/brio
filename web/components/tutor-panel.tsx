@@ -181,7 +181,11 @@ export function TuteurPanel({ target, exerciceId, contexte, onCitation }: Tuteur
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Pose ta question sur ce chapitre…"
+            placeholder={
+              target.kind === 'cours'
+                ? 'Pose ta question sur ce cours…'
+                : 'Pose ta question sur ce chapitre…'
+            }
             rows={3}
             disabled={loading}
             className="w-full resize-none rounded-md border border-line bg-surface-page px-3 py-2 font-prose text-sm text-ink placeholder:text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
