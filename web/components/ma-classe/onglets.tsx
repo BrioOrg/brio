@@ -9,14 +9,43 @@ import type { Catalogue, CoursVisible } from '@/lib/api'
 
 // The three tabs of Ma classe, each one scoped to the class picked in the header.
 
-export function OngletAFaire({ cheminsChapitres }: { cheminsChapitres: Record<string, string> }) {
+// The latest courses shown under the homework to do; the tab « Cours du prof » lists them all.
+const PLAFOND_COURS_A_FAIRE = 3
+
+const coursDeLaClasse = (cours: CoursVisible[], classeId: string) =>
+  cours.filter((c) => c.classeIds.includes(classeId))
+
+export function OngletAFaire({
+  cheminsChapitres,
+  cours = [],
+  catalogue = [],
+}: {
+  cheminsChapitres: Record<string, string>
+  cours?: CoursVisible[]
+  catalogue?: Catalogue
+}) {
   const { id } = useClasseChoisie()
-  return <DevoirsEleve classeId={id} cheminsChapitres={cheminsChapitres} />
+  const duneClasse = coursDeLaClasse(cours, id)
+  return (
+    <DevoirsEleve
+      classeId={id}
+      cheminsChapitres={cheminsChapitres}
+      apresAFaire={
+        duneClasse.length > 0 ? (
+          <CoursDeTaClasse
+            cours={duneClasse}
+            catalogue={catalogue}
+            plafond={PLAFOND_COURS_A_FAIRE}
+          />
+        ) : null
+      }
+    />
+  )
 }
 
 export function OngletCours({ cours, catalogue }: { cours: CoursVisible[]; catalogue: Catalogue }) {
   const { id } = useClasseChoisie()
-  const duneClasse = cours.filter((c) => c.classeIds.includes(id))
+  const duneClasse = coursDeLaClasse(cours, id)
   if (duneClasse.length === 0) {
     return (
       <EmptyState
