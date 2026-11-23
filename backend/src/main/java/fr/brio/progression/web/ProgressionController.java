@@ -75,6 +75,7 @@ class ProgressionController {
     @GetMapping("/reprendre")
     @ApiResponse(responseCode = "200", description = "Dernier chapitre ou cours en cours")
     @ApiResponse(responseCode = "204", description = "Rien à reprendre", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Authentification requise", content = @Content)
     ResponseEntity<ContenuAReprendre> reprendre(@AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
         return reprendre.reprendre(eleveId)
@@ -89,6 +90,7 @@ class ProgressionController {
     @GetMapping("/cours/{coursId}")
     @ApiResponse(responseCode = "200", description = "Jauge du cours pour l'élève connecté")
     @ApiResponse(responseCode = "204", description = "Pas de jauge (cours inconnu ou jamais ouvert)", content = @Content)
+    @ApiResponse(responseCode = "401", description = "Authentification requise", content = @Content)
     ResponseEntity<ProgressionCoursInfo> progressionCours(
             @PathVariable UUID coursId, @AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());

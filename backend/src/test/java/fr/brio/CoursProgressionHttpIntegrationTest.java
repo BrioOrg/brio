@@ -125,6 +125,7 @@ class CoursProgressionHttpIntegrationTest {
         lu(brouillon, "s1", alice).andExpect(status().isNotFound());
         lu(UUID.randomUUID(), "s1", alice).andExpect(status().isNotFound());
         lu(coursId, "inconnue", alice).andExpect(status().isNotFound());
+        lu(coursId, "a".repeat(128), alice).andExpect(status().isNotFound()); // within the bound: unknown
         lu(coursId, "a".repeat(129), alice).andExpect(status().isBadRequest());
         mockMvc.perform(post("/api/cours/{c}/sections/{s}/lu", coursId, "s1").with(csrf()))
                 .andExpect(status().isUnauthorized());
@@ -246,6 +247,25 @@ class CoursProgressionHttpIntegrationTest {
         assertThat(jdbc.queryForObject(
                 "SELECT motif FROM progression.evenements_xp WHERE eleve_id = ? AND source_type = 'cours_exercice'",
                 String.class, aliceId)).isEqualTo("reussi_apres_erreur");
+    }
+
+    @Test
+    void givenAnExerciseOfAnOlderVersionOfAVisibleCourseThenItIsStillAnswerableAndCountsOnce() throws Exception {
+        UUID coursId = creerEtPublier();
+        String exerciceV1 = exerciceId(coursId); // a homework can pin this version
+        mockMvc.perform(post("/api/prof/cours/{id}/publier", coursId).with(teacher).with(csrf()))
+                .andExpect(status().isOk());
+        assertThat(exerciceId(coursId)).isNotEqualTo(exerciceV1);
+
+        soumettre(exerciceV1, "[\"côté\", \"droit\"]", alice);
+        soumettre(exerciceId(coursId), "[\"côté\", \"droit\"]", alice);
+
+        await().atMost(Duration.ofSeconds(10)).until(() -> jdbc.queryForObject(
+                "SELECT count(*) FROM progression.cours_exercices_reussis WHERE eleve_id = ?", Integer.class,
+                aliceId) == 1);
+        assertThat(jdbc.queryForObject(
+                "SELECT coalesce(sum(points), 0) FROM progression.evenements_xp WHERE eleve_id = ? "
+                        + "AND source_type = 'cours_exercice'", Integer.class, aliceId)).isEqualTo(10);
     }
 
     @Test

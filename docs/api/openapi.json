@@ -2768,6 +2768,9 @@
           },
           "204" : {
             "description" : "Rien à reprendre"
+          },
+          "401" : {
+            "description" : "Authentification requise"
           }
         }
       }
@@ -2873,6 +2876,9 @@
           },
           "204" : {
             "description" : "Pas de jauge (cours inconnu ou jamais ouvert)"
+          },
+          "401" : {
+            "description" : "Authentification requise"
           }
         }
       }
@@ -4734,7 +4740,11 @@
       },
       "ContenuAReprendre" : {
         "discriminator" : {
-          "propertyName" : "type"
+          "propertyName" : "type",
+          "mapping" : {
+            "chapitre" : "#/components/schemas/ChapitreAReprendre",
+            "cours" : "#/components/schemas/CoursAReprendre"
+          }
         },
         "properties" : {
           "type" : {
