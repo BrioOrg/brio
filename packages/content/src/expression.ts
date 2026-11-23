@@ -193,6 +193,30 @@ function isLetter(c: string): boolean {
   return /^[a-zA-Z]$/.test(c)
 }
 
+/**
+ * Calculator mode: a number written straight before `e` and an exponent (`1e-13`, `2e5`, `3E+2`)
+ * is the computer notation for 1 × 10⁻¹³, which a student did not learn and which would read
+ * 1·e − 13. It is refused, at the `e`, with the textbook writing. `2e`, `2e^x` and `2ex` stay
+ * products. `start` and `end` bound the digits of the number.
+ */
+function refuseScientificNotation(source: string, start: number, end: number): void {
+  const e = source[end]
+  if (e !== 'e' && e !== 'E') return
+  let i = end + 1
+  const sign = source[i]
+  const negative = sign === '-' || sign === '−'
+  if (negative || sign === '+') i++
+  if (!isDigit(source[i] ?? '')) return
+  const digits = i
+  while (isDigit(source[i] ?? '')) i++
+  const exponent = source.slice(digits, i)
+  const power = negative ? `10^(−${exponent})` : `10^${exponent}`
+  throw new ExpressionSyntaxError(
+    `L’écriture ${source.slice(start, i)} n’est pas permise : écris ${source.slice(start, end)} × ${power}.`,
+    end
+  )
+}
+
 function tokenize(source: string, calculator?: CalculatorSyntax): Token[] {
   const words = calculator ? SCIENTIFIC_WORDS : WORDS
   const userNames: ReadonlySet<string> = new Set(calculator?.functions ?? [])
@@ -223,6 +247,7 @@ function tokenize(source: string, calculator?: CalculatorSyntax): Token[] {
         )
       }
       const text = source.slice(start, i)
+      if (calculator) refuseScientificNotation(source, start, i)
       tokens.push({ kind: 'number', value: Number(text.replace(',', '.')), pos: start, text })
       continue
     }

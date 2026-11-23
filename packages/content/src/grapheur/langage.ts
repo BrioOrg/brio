@@ -118,6 +118,7 @@ export const MESSAGES = {
   calculSansValeur: 'Ce calcul n’a pas de valeur réelle.',
   constanteSansValeur: (a: string) => `La valeur de ${a} n’est pas définie.`,
   toujoursVraie: `Cette égalité est vraie pour tous les points${NBSP}: il n’y a rien à tracer.`,
+  vraieOuDefinie: `Cette égalité est vraie partout où elle est définie${NBSP}: il n’y a rien à tracer.`,
   nomMinuscule: (f: string) => `Écris le nom de la fonction en minuscule${NBSP}: ${f}(x) = …`,
   tropGrand: 'Ce nombre est trop grand pour la calculatrice.',
   zeroPuissanceZero: '0⁰ n’est pas défini.',
@@ -489,6 +490,13 @@ export function tropGrandArbre(
 type Valeur = { v: number; r: Rationnel | null }
 
 /**
+ * What a calculation met on its way: `max`, the largest term of a sum or angle; `depasse`, a
+ * double that overflowed to ±∞ (2^2048), after which ∞/∞ or ∞ − ∞ is NaN without meaning that
+ * the value does not exist.
+ */
+type Echelle = { max: number; depasse: boolean }
+
+/**
  * A calculation worked out once, in doubles and, where it can be, in exact fractions. `echelle`
  * records the largest term of a sum and the largest angle met: a result 10¹² times smaller is a
  * rounding residue (sin(π) = 1,2·10⁻¹⁶, √2·√2 − 2 = 4,4·10⁻¹⁶), not a value (π/10²⁰ is one).
@@ -497,13 +505,15 @@ function calculer(
   tree: ExpressionNode,
   valeurs: ReadonlyMap<string, number>,
   exacts: ReadonlyMap<string, Rationnel | null>,
-  echelle: { max: number }
+  echelle: Echelle
 ): Valeur {
-  return calculerNoeud(tree, valeurs, exacts, echelle)
+  const c = calculerNoeud(tree, valeurs, exacts, echelle)
+  if (c.v === Infinity || c.v === -Infinity) echelle.depasse = true
+  return c
 }
 
 /** Records a magnitude where a rounding residue can appear: a term of a sum, an angle. */
-function noter(echelle: { max: number }, v: number): void {
+function noter(echelle: Echelle, v: number): void {
   const m = Math.abs(v)
   if (m - m === 0 && m > echelle.max) echelle.max = m
 }
@@ -512,7 +522,7 @@ function calculerNoeud(
   tree: ExpressionNode,
   valeurs: ReadonlyMap<string, number>,
   exacts: ReadonlyMap<string, Rationnel | null>,
-  echelle: { max: number }
+  echelle: Echelle
 ): Valeur {
   const sous = (t: ExpressionNode) => calculer(t, valeurs, exacts, echelle)
   switch (tree.type) {
@@ -587,14 +597,17 @@ export const CHIFFRES_SIGNIFICATIFS = 12
 /**
  * The value shown for a calculation: the exact fraction's when there is one; otherwise the double
  * rounded to 12 significant digits, and 0 below 10⁻¹² of the largest term or angle met (sin(π) is 0,
- * √2·√2 is 2). A French message for a value that is not a number or does not fit a double.
+ * √2·√2 is 2). A French message for a value that is not a number or does not fit a double; a
+ * decimal calculation in which a term overflowed is too big, whatever it ends on (2^2048/2^2047
+ * reads ∞/∞, 1/2^2048 reads 0): never "pas de valeur réelle", never a made-up value.
  */
-function valeurAffichee(c: Valeur, echelle: number): number | { message: string } {
+function valeurAffichee(c: Valeur, echelle: Echelle): number | { message: string } {
   const v = c.r ? valeurDe(c.r) : c.v
+  if (!c.r && echelle.depasse) return { message: MESSAGES.tropGrand }
   if (Number.isNaN(v)) return { message: MESSAGES.calculSansValeur }
   if (!Number.isFinite(v)) return { message: MESSAGES.tropGrand }
   if (c.r) return v
-  if (Math.abs(v) < 1e-12 * echelle) return 0
+  if (Math.abs(v) < 1e-12 * echelle.max) return 0
   return Number(v.toPrecision(CHIFFRES_SIGNIFICATIFS))
 }
 
@@ -645,19 +658,79 @@ function decalerDerivees(tree: ExpressionNode): ExpressionNode {
 }
 
 /**
- * The value at h = 0 of g(h), from both sides: g(±10⁻⁴) and g(±10⁻⁵), each side extrapolated
- * linearly to 0, and the two sides must agree within 10⁻⁹. For f(x) = x|x|, f'(h) = 2|h| has
- * the limit 0 at 0 where the formula reads 0/0; for f(x) = x√x the left side is not defined, and
- * there is no limit to show. Null when the sides disagree or are not defined.
+ * One side of a limit at 0: g extrapolated linearly to 0 from the steps (s·10⁻⁴, s·10⁻⁵) and
+ * from (s·10⁻⁵, s·10⁻⁶). The two must coincide (within 10⁻⁸): a value that keeps moving as the
+ * step shrinks (1/h² gives −1,1·10¹¹ then −1,1·10¹³) is not a limit. Null otherwise.
+ */
+function limiteDUnCote(g: (h: number) => number, s: 1 | -1): number | null {
+  const [a, b, c] = [g(s * 1e-4), g(s * 1e-5), g(s * 1e-6)]
+  const grossiere = (10 * b - a) / 9
+  const fine = (10 * c - b) / 9
+  if (!Number.isFinite(grossiere) || !Number.isFinite(fine)) return null
+  if (Math.abs(grossiere - fine) > 1e-8 * Math.max(1, Math.abs(fine))) return null
+  return fine
+}
+
+/**
+ * The value at h = 0 of g(h), from both sides: each side must converge (`limiteDUnCote`), and
+ * the two sides must agree within 10⁻⁹. For f(x) = x|x|, f'(h) = 2|h| has the limit 0 at 0
+ * where the formula reads 0/0; for f(x) = x√x the left side is not defined, for 1/x the two
+ * sides agree on f'(h) = −1/h² but never converge, and there is no limit to show. Null when a
+ * side does not converge or the sides disagree.
  */
 export function limiteBilaterale(g: (h: number) => number): number | null {
-  const gauche = (10 * g(-1e-5) - g(-1e-4)) / 9
-  const droite = (10 * g(1e-5) - g(1e-4)) / 9
-  if (!Number.isFinite(gauche) || !Number.isFinite(droite)) return null
+  const gauche = limiteDUnCote(g, -1)
+  const droite = limiteDUnCote(g, 1)
+  if (gauche === null || droite === null) return null
   const tolerance = 1e-9 * Math.max(1, Math.abs(gauche), Math.abs(droite))
   if (Math.abs(gauche - droite) > tolerance) return null
   const v = (gauche + droite) / 2
   return Math.abs(v) < 1e-9 ? 0 : Number(v.toPrecision(9))
+}
+
+/**
+ * Whether F is defined at a and continuous there, as far as doubles tell: F(a) finite, and
+ * F(a ± h) closing in on it as h shrinks from 10⁻⁵ to 10⁻⁶ (by a factor 5 at least, or already
+ * within 10⁻⁹). A pole (1/x at 0), a hole (sin(x)/x at 0) or a jump fails.
+ */
+export function continueEn(F: (x: number) => number, a: number): boolean {
+  const v = F(a)
+  if (!Number.isFinite(v)) return false
+  const presque = 1e-9 * Math.max(1, Math.abs(v))
+  return [1, -1].every((s) => {
+    const loin = Math.abs(F(a + s * 1e-5) - v)
+    const pres = Math.abs(F(a + s * 1e-6) - v)
+    if (!Number.isFinite(loin) || !Number.isFinite(pres)) return false
+    return pres <= presque || pres <= loin / 5
+  })
+}
+
+/** Every call to a derivative (f'(…), f''(…)) in the tree, nested ones included. */
+function derivees(
+  tree: ExpressionNode,
+  into: Array<Extract<ExpressionNode, { type: 'userCall' }>> = []
+): Array<Extract<ExpressionNode, { type: 'userCall' }>> {
+  switch (tree.type) {
+    case 'userCall':
+      if (tree.order > 0) into.push(tree)
+      derivees(tree.arg, into)
+      break
+    case 'negate':
+      derivees(tree.operand, into)
+      break
+    case 'call':
+      derivees(tree.arg, into)
+      break
+    case 'binary':
+      derivees(tree.left, into)
+      derivees(tree.right, into)
+      break
+    case 'number':
+    case 'variable':
+    case 'constant':
+      break
+  }
+  return into
 }
 
 /** The text of a call as typed from `pos` (f'(0), f''(1/2)), primes written ′. */
@@ -958,11 +1031,17 @@ export function analyserLignes(
         if (curseur && impose !== undefined && Number.isFinite(impose)) {
           interne = impose
           exact = rationnelDepuisNombre(impose)
-          affichee = valeurAffichee({ v: impose, r: null }, Math.abs(impose))
+          affichee = valeurAffichee(
+            { v: impose, r: null },
+            { max: Math.abs(impose), depasse: false }
+          )
         } else if (curseur) {
           exact = rationnelDepuisDecimal(s.litteral!)
           interne = exact ? valeurDe(exact) : NaN
-          affichee = valeurAffichee({ v: interne, r: exact }, Math.abs(interne))
+          affichee = valeurAffichee(
+            { v: interne, r: exact },
+            { max: Math.abs(interne), depasse: false }
+          )
         } else {
           const c = calculLigne(i, s.corps, corps)
           if ('message' in c) {
@@ -996,9 +1075,11 @@ export function analyserLignes(
   }
 
   /**
-   * A calculation line (or the value of a constant). When it calls a derivative and the formula
-   * has no value there (x√x derived reads 0/0 at 0), the value is the limit from both sides, if
-   * it exists, and never exact: the formula, not the function, is what fails.
+   * A calculation line (or the value of a constant). A derivative f⁽ⁿ⁾(a) is computed only where
+   * f⁽ⁿ⁻¹⁾ is defined and continuous at a (the derivative-limit theorem): 1/x has no f'(0), and
+   * tan no f'(π/2), whatever the formula of f' reads there. When the formula has no value at a
+   * (x|x| derived reads 0/0 at 0), the value is the limit from both sides, if it exists, and never
+   * exact: the formula, not the function, is what fails.
    */
   function calculLigne(
     i: number,
@@ -1008,11 +1089,16 @@ export function analyserLignes(
     | { valeur: number; interne: number; exact: Rationnel | null }
     | { message: string; position: number } {
     const derivee = premiereDerivee(tree)
-    const echelle = { max: 0 }
+    const incalculable = derivee && {
+      message: MESSAGES.deriveeIncalculable(texteAppel(lignes[i].texte, derivee.pos ?? 0)),
+      position: derivee.pos ?? 0,
+    }
+    if (incalculable && !deriveesContinues(tree)) return incalculable
+    const echelle = { max: 0, depasse: false }
     let echec: { message: string; position: number }
     try {
       const c = calculer(corps, valeurs, exacts, echelle)
-      const valeur = valeurAffichee(c, echelle.max)
+      const valeur = valeurAffichee(c, echelle)
       if (typeof valeur === 'number') {
         return { valeur, interne: c.r ? valeurDe(c.r) : c.v, exact: c.r }
       }
@@ -1021,14 +1107,25 @@ export function analyserLignes(
       if (!(e instanceof ErreurCalcul)) throw e
       echec = { message: e.message, position: e.position }
     }
-    if (!derivee) return echec
+    if (!incalculable) return echec
     const g = compilerX(resolu(decalerDerivees(tree)), valeurs)
     const limite = limiteBilaterale(g)
     if (limite !== null) return { valeur: limite, interne: limite, exact: null }
-    return {
-      message: MESSAGES.deriveeIncalculable(texteAppel(lignes[i].texte, derivee.pos ?? 0)),
-      position: derivee.pos ?? 0,
-    }
+    return incalculable
+  }
+
+  /** Whether, for every f⁽ⁿ⁾(u) of the tree, f⁽ⁿ⁻¹⁾ is defined and continuous at u. */
+  function deriveesContinues(tree: ExpressionNode): boolean {
+    return derivees(tree).every((d) => {
+      const a = compilerX(resolu(d.arg), valeurs)(0)
+      const primitive: ExpressionNode = {
+        type: 'userCall',
+        name: d.name,
+        order: d.order - 1,
+        arg: { type: 'variable', name: 'x' },
+      }
+      return Number.isFinite(a) && continueEn(compilerX(resolu(primitive), valeurs), a)
+    })
   }
 
   /**
@@ -1039,19 +1136,44 @@ export function analyserLignes(
     if (corps.type !== 'binary') return null
     const gauche = compilerXY(corps.left, valeurs)
     const droite = compilerXY(corps.right, valeurs)
+    const termes = [...termesDe(corps.left), ...termesDe(corps.right)].map((t) =>
+      compilerXY(t, valeurs)
+    )
     let essais = 0
+    let horsDomaine = false
     for (const [x, y] of POINTS_ESSAI) {
       const l = gauche(x, y)
       const r = droite(x, y)
-      if (!Number.isFinite(l) || !Number.isFinite(r)) continue
-      if (Math.abs(l - r) > 1e-9 * Math.max(1, Math.abs(l), Math.abs(r))) {
+      if (!Number.isFinite(l) || !Number.isFinite(r)) {
+        horsDomaine = true
+        continue
+      }
+      // Strict: only a rounding residue of the largest term is equal (x² = x² + 10⁻¹⁰ is not).
+      const grandeur = termes.reduce(
+        (m, t) => Math.max(m, Math.abs(t(x, y)) || 0),
+        Math.max(Math.abs(l), Math.abs(r))
+      )
+      if (Math.abs(l - r) > 1e-12 + 1e-12 * grandeur) {
         return dependDeXY(corps) ? null : MESSAGES.rienATracer
       }
       essais++
     }
-    if (essais >= 3) return MESSAGES.toujoursVraie
+    if (essais >= 3) return horsDomaine ? MESSAGES.vraieOuDefinie : MESSAGES.toujoursVraie
     return dependDeXY(corps) ? null : MESSAGES.rienATracer
   }
+}
+
+/** The terms of a sum or difference, signs dropped: (x + 1)² − 2x is [(x + 1)², 2x]. */
+function termesDe(tree: ExpressionNode, into: ExpressionNode[] = []): ExpressionNode[] {
+  if (tree.type === 'binary' && (tree.op === '+' || tree.op === '-')) {
+    termesDe(tree.left, into)
+    termesDe(tree.right, into)
+  } else if (tree.type === 'negate') {
+    termesDe(tree.operand, into)
+  } else {
+    into.push(tree)
+  }
+  return into
 }
 
 function dependDeXY(tree: ExpressionNode): boolean {

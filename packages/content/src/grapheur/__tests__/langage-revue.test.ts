@@ -117,9 +117,10 @@ describe('2 · a derivative the formula cannot compute at a point (V4-B1)', () =
     expect(erreur(r[3]).erreur.message).toBe(MESSAGES.deriveeIncalculable('g′(0)'))
   })
 
-  it('should find the limit of sin(x)/x derived, and keep the division message without a derivative', () => {
+  // Round 3 (V4-N1): sin(x)/x is not defined at 0, so f'(0) does not exist; no limit is shown.
+  it('should not give f′(0) for sin(x)/x, and keep the division message without a derivative', () => {
     const r = analyser(['f(x) = sin(x)/x', "f'(0)", 'f(0)'])
-    expect(calcul(r[1]).valeur).toBe(0)
+    expect(erreur(r[1]).erreur.message).toBe(MESSAGES.deriveeIncalculable('f′(0)'))
     expect(erreur(r[2]).erreur.message).toBe(MESSAGES.divisionParZero)
   })
 

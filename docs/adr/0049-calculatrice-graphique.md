@@ -50,7 +50,10 @@ line, in the same order and with the same ids:
    number, and the angle unit carried by the `sin`/`cos`/`tan` nodes (`degrees: true`). A known
    unsupported name (`arcsin(`, `sinh(`, `max(`…) is reported as such ("La calculatrice ne
    connaît pas la fonction arcsin.") instead of being read as letters. Functions still need
-   brackets (`sin x` is refused, as `sqrt x` was).
+   brackets (`sin x` is refused, as `sqrt x` was). The computer notation for powers of ten — a
+   number written straight before `e`/`E` and an exponent, `1e-13`, `2e5`, `3E+2` — is refused,
+   at the `e`, with the textbook writing: "L’écriture 1e-13 n’est pas permise : écris
+   1 × 10^(−13)." (it would otherwise read 1·e − 13); `2e`, `2e^x`, `2ex` stay products.
    **`f`, `g` and `h` followed by `(` are always function calls**, as in a French textbook: if
    no line defines g, `g(2)` is "Je ne connais pas la fonction g. Définis-la d’abord, par exemple
    g(x) = x²." Every other letter followed by a bracket is a product (`k(x − 1)`, `a(x + 1)`),
@@ -72,7 +75,12 @@ line, in the same order and with the same ids:
    An equality with neither x nor y draws nothing (`2 = 3`), and so does an equality **true at
    every point** (`y = y`, `2 = 2`, `(x + 1)² = x² + 2x + 1`): "Cette égalité est vraie pour tous
    les points : il n’y a rien à tracer." It is tested at seven fixed points, once its constants
-   are known; a curve whose two sides differ at one of them is drawn.
+   are known, with a strict tolerance: the sides must agree within 10⁻¹² + 10⁻¹² × the largest
+   term met (each side and each term of their sums), so only a rounding residue counts as equal;
+   `x² = x² + 0,0000000001` is drawn (it holds nowhere). A curve whose two sides differ at one
+   of the points is drawn. When the equality holds at every point where it is defined but some
+   points are outside its domain (`ln(x) = ln(x)`), the message is "Cette égalité est vraie
+   partout où elle est définie : il n’y a rien à tracer."
 3. **Resolution.** Lines come in any order. The first line that names a letter owns it; a
    second definition is refused on the second line only. Dependencies are ordered by Tarjan's
    strongly connected components: a cycle (`f(x) = g(x)`, `g(x) = f(x)`) is an error on each of
@@ -105,12 +113,19 @@ line, in the same order and with the same ids:
    folded only when the result is a whole number, so that `1/3` and `√2` are never replaced by a
    rounded decimal that the exact fractions would then read. The derivative is evaluated, never
    displayed. Checked against the centred difference quotient on 40 functions.
-   When a calculation calls a derivative and the formula has no value at that point
-   (`f(x) = x|x|`: f'(0) reads 0/0), the value shown is the **limit from both sides**: g(±10⁻⁴)
-   and g(±10⁻⁵), each side extrapolated linearly to 0, the two within 10⁻⁹ of each other; it is
-   rounded to 9 significant digits and never exact. Otherwise (`f(x) = x√x`, not defined left of
-   0; `|x|`, a corner) the line reads "Je ne sais pas calculer f′(0) avec cette écriture." —
-   never "division par zéro", which would be false of the function.
+   A calculation that calls a derivative f⁽ⁿ⁾(a) follows the **derivative-limit theorem**:
+   f⁽ⁿ⁻¹⁾(a) must be finite and f⁽ⁿ⁻¹⁾ continuous at a (f⁽ⁿ⁻¹⁾(a ± h) closing in on f⁽ⁿ⁻¹⁾(a)
+   as h goes from 10⁻⁵ to 10⁻⁶), checked before the formula is even read: the formula of a
+   derivative can have a value where the function has none (1/x, 1/x³ or sin(x)/x at 0, tan at
+   π/2). When the formula has no value at a point where f⁽ⁿ⁻¹⁾ is continuous (`f(x) = x|x|`:
+   f'(0) reads 0/0), the value shown is the **limit from both sides**. Each side is g
+   extrapolated linearly to 0 from the steps (10⁻⁴, 10⁻⁵) and from (10⁻⁵, 10⁻⁶); the two
+   extrapolations must **converge** (within 10⁻⁸, relative: −1/h² agrees left and right but
+   keeps growing), then the two sides must agree within 10⁻⁹. The value is rounded to 9
+   significant digits and never exact (x|x| and x²|x| give f'(0) = 0). Otherwise (`f(x) = x√x`,
+   not defined left of 0; `|x|`, a corner; 1/x at 0; f'' of x²|x| at 0, whose f' formula reads
+   0/0) the line reads "Je ne sais pas calculer f′(0) avec cette écriture." — never "division
+   par zéro", nor a value, which would be false of the function.
 6. **Exact fractions** (`grapheur/rationnel.ts`): a calculation line is worked out in BigInt
    fractions when it only uses + − × ÷, whole powers, the square root of a perfect square and
    constants: `2/3 + 1/6` is `5/6`, `(1/2)^3` is `1/8`, `√(4/9)` is `2/3`, `0,1 + 0,2` is
@@ -124,10 +139,14 @@ line, in the same order and with the same ids:
    curve with a pole is drawn without an error. **`0⁰` is refused** ("0⁰ n’est pas défini."), as
    lycée calculators do; `x^0` on a curve stays 1. A value beyond a double is "Ce nombre est trop
    grand pour la calculatrice." (2^2048, exp(1000), `a = 10^309`), told apart from a value that
-   does not exist ("Ce calcul n’a pas de valeur réelle.": √(−1), ln(0), tan(90°)).
+   does not exist ("Ce calcul n’a pas de valeur réelle.": √(−1), ln(0), tan(90°)). A decimal
+   calculation in which **any term overflows** a double is too large whatever it ends on:
+   `2^2048/2^2047` (∞/∞), `2^2048 − 2^2048`, `1/2^2048` (which would read 0) — never "pas de
+   valeur réelle", never a made-up value.
    **Decimal results** are rounded to **12 significant digits**, and a result below 10⁻¹² of the
    largest term of a sum or the largest angle met in the calculation is 0: `sin(π)` is 0,
-   `√2·√2` is 2, `cos(60°)` is 0,5, while `π/10²⁰` keeps its value. A constant shows its value
+   `√2·√2` is 2, `cos(60°)` is 0,5, while `π/10²⁰` keeps its value. **The snap to 0 hides any
+   difference below 10⁻¹² of the largest term**: `π − 3,14159265358979` (3,2·10⁻¹⁵) shows 0. A constant shows its value
    rounded; the lines that use it read the full double. **Known limit**: `1/(√2·√2 − 2)` divides
    by the residue before it is rounded and shows 2 251 799 813 690 000; only symbolic algebra
    (√2·√2 = 2 exactly) would avoid it.
