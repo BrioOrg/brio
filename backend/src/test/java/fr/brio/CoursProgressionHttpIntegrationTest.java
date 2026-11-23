@@ -145,6 +145,12 @@ class CoursProgressionHttpIntegrationTest {
 
         assertThat(jdbc.queryForObject("SELECT count(*) FROM exercices.soumissions WHERE student_ref = ?",
                 Integer.class, bobId.toString())).isZero();
+        // Progression writes after commit, asynchronously: let a legitimate solve land first, so the
+        // checks below cannot pass merely because they looked too early (V5 S-c).
+        soumettre(exerciceId, "[\"côté\", \"droit\"]", alice);
+        await().atMost(Duration.ofSeconds(10)).until(() -> jdbc.queryForObject(
+                "SELECT count(*) FROM progression.cours_exercices_reussis WHERE eleve_id = ?", Integer.class,
+                aliceId) == 1);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM progression.cours_exercices_reussis WHERE eleve_id = ?",
                 Integer.class, bobId)).isZero();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM progression.cours_suivis WHERE eleve_id = ?",
