@@ -1,5 +1,6 @@
 package fr.brio.exercices.web;
 
+import fr.brio.exercices.CoursHorsPorteeException;
 import fr.brio.exercices.ExerciceNotFoundException;
 import fr.brio.exercices.NotAuthenticatedException;
 import fr.brio.exercices.domain.InvalidAnswerException;
@@ -16,6 +17,12 @@ class ExercicesExceptionHandler {
     @ExceptionHandler(ExerciceNotFoundException.class)
     ResponseEntity<Map<String, String>> handleNotFound(ExerciceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CoursHorsPorteeException.class)
+    ResponseEntity<Map<String, String>> handleHorsPortee(CoursHorsPorteeException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", ex.getMessage()));
     }
 

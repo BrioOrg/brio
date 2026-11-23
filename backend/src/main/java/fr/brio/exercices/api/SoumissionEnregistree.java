@@ -30,6 +30,10 @@ import java.util.UUID;
  * `difficulte` is the exercise's coarse difficulty band (copied from the definition, open enum,
  * may be null for legacy submissions or blocks that omit it). progression weights harder
  * exercises more without calling contenu; a null band is weighted as "standard".
+ *
+ * `coursId` and `exerciceCle` identify a teacher-course exercise (ADR 0050): the course and the
+ * editor's stable block id, so progression records the solve once per (student, course, key)
+ * whatever the version. Both are null for a chapter exercise and for an older event replayed.
  */
 public record SoumissionEnregistree(
         UUID eleveId,
@@ -41,9 +45,19 @@ public record SoumissionEnregistree(
         boolean premiereTentative,
         List<String> competencies,
         String difficulte,
-        Instant submittedAt) {
+        Instant submittedAt,
+        UUID coursId,
+        String exerciceCle) {
 
     public SoumissionEnregistree {
         competencies = competencies != null ? List.copyOf(competencies) : List.of();
+    }
+
+    /** A chapter submission (or an event recorded before ADR 0050): no course. */
+    public SoumissionEnregistree(UUID eleveId, UUID exerciceId, UUID soumissionId, String chapitreId,
+                                 boolean correct, double score, boolean premiereTentative,
+                                 List<String> competencies, String difficulte, Instant submittedAt) {
+        this(eleveId, exerciceId, soumissionId, chapitreId, correct, score, premiereTentative,
+                competencies, difficulte, submittedAt, null, null);
     }
 }
