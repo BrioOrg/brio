@@ -540,7 +540,7 @@ export default function DesignPage() {
 
         <Section title="Calculatrice graphique" id="calculatrice">
           <Label>Explorer › Les outils — l’état vit dans l’adresse (ici, rien n’est écrit)</Label>
-          <div className="h-144 overflow-hidden rounded-lg border border-line">
+          <div className="h-280 overflow-hidden rounded-lg border border-line">
             <Calculatrice
               etatInitial={{
                 v: 1,

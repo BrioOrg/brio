@@ -170,9 +170,14 @@ describe('formaterNombre', () => {
 })
 
 describe('formaterDecimal', () => {
-  it('efface le résidu des flottants', () => {
-    expect(formaterDecimal(Math.sin(Math.PI))).toEqual({ texte: '0', approche: false })
-    expect(formaterDecimal(0.1 + 0.2)).toEqual({ texte: '0,3', approche: false })
+  // Gate 5 (V4-B1): no absolute threshold any more, the engine rounds residues away relatively;
+  // what reaches the screen non-zero is never written "= 0".
+  it('n’écrit jamais « = 0 » pour une valeur non nulle, et « ≈ » pour un double arrondi', () => {
+    expect(formaterDecimal(Math.sin(Math.PI))).toEqual({
+      texte: '0,000000000000000122',
+      approche: true,
+    })
+    expect(formaterDecimal(0.1 + 0.2)).toEqual({ texte: '0,3', approche: true })
   })
 
   it('arrondit et dit quand la valeur est approchée', () => {

@@ -17,6 +17,10 @@ type CurseurProps = {
   onFocus?: () => void
   onKeyDown?: () => void
   onPointerDown?: () => void
+  /** How the value and the bounds are written; the course figures keep `formatNumber`. */
+  formater?: (v: number) => string
+  /** Extra classes of the range input (the calculator gives it a 44 px target). */
+  classeRange?: string
 }
 
 /**
@@ -25,16 +29,29 @@ type CurseurProps = {
  * course figures and the graphing calculator.
  */
 export const Curseur = forwardRef<HTMLInputElement, CurseurProps>(function Curseur(
-  { nom, min, max, pas, valeur, onChange, label, onFocus, onKeyDown, onPointerDown },
+  {
+    nom,
+    min,
+    max,
+    pas,
+    valeur,
+    onChange,
+    label,
+    onFocus,
+    onKeyDown,
+    onPointerDown,
+    formater = formatNumber,
+    classeRange,
+  },
   ref
 ) {
   const id = useId()
-  const texte = `${nom} = ${formatNumber(valeur)}`
+  const texte = `${nom} = ${formater(valeur)}`
   return (
     <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 font-prose text-sm text-ink">
       {/* The value, written as on the board; the slider carries the same text for screen readers. */}
       <output htmlFor={id} aria-hidden="true" className="min-w-[6ch] tabular-nums">
-        <i>{nom}</i> = {formatNumber(valeur)}
+        <i>{nom}</i> = {formater(valeur)}
       </output>
       <div className="flex flex-col">
         <input
@@ -51,14 +68,14 @@ export const Curseur = forwardRef<HTMLInputElement, CurseurProps>(function Curse
           onFocus={onFocus}
           onKeyDown={onKeyDown}
           onPointerDown={onPointerDown}
-          className="w-full cursor-pointer accent-accent"
+          className={['w-full cursor-pointer accent-accent', classeRange].filter(Boolean).join(' ')}
         />
         <div
           aria-hidden="true"
           className="flex justify-between text-xs tabular-nums text-ink-muted"
         >
-          <span>{formatNumber(min)}</span>
-          <span>{formatNumber(max)}</span>
+          <span>{formater(min)}</span>
+          <span>{formater(max)}</span>
         </div>
       </div>
     </div>

@@ -122,6 +122,8 @@ export const MESSAGES = {
   nomMinuscule: (f: string) => `Écris le nom de la fonction en minuscule${NBSP}: ${f}(x) = …`,
   tropGrand: 'Ce nombre est trop grand pour la calculatrice.',
   zeroPuissanceZero: '0⁰ n’est pas défini.',
+  puissanceNegative:
+    'La puissance d’un nombre négatif n’est définie ici que pour un exposant entier.',
   deriveeIncalculable: (appel: string) => `Je ne sais pas calculer ${appel} avec cette écriture.`,
   tropLongue: TOO_LONG,
 } as const
@@ -583,6 +585,11 @@ function calculerNoeud(
               throw new ErreurCalcul(MESSAGES.zeroPuissanceZero, tree.pos ?? 0)
             }
             if (b.v < 0) throw new ErreurCalcul(MESSAGES.divisionParZero, tree.pos ?? 0)
+          }
+          // (−8)^(1/3): no real value is chosen for a negative base and a non-integer exponent.
+          const entier = rb ? rb.den === 1n : Number.isInteger(b.v)
+          if ((ra ? ra.num < 0n : a.v < 0) && !entier) {
+            throw new ErreurCalcul(MESSAGES.puissanceNegative, tree.pos ?? 0)
           }
           return { v: Math.pow(a.v, b.v), r: ra && rb && puissance(ra, rb) }
         }

@@ -2,6 +2,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { analyserLignes } from '@brio/content'
+
 import { Calculatrice } from '@/components/calculatrice/calculatrice'
 import { encoderEtat, etatVide, type EtatCalculatrice } from '@/lib/calculatrice-etat'
 
@@ -50,9 +52,10 @@ describe('Calculatrice', () => {
     expect(courbes()).toHaveLength(1)
     expect(courbes()[0]).toHaveClass('stroke-courbe-1')
     expect(courbes()[0].getAttribute('d')).toMatch(/^M/)
-    const pastille = screen.getByRole('button', { name: 'Masquer la courbe 1' })
+    const pastille = screen.getByRole('button', { name: 'Afficher la courbe 1' })
+    expect(pastille).toHaveAttribute('aria-pressed', 'true')
     expect(pastille.querySelector('[data-pastille]')).toHaveClass('bg-courbe-1')
-    expect(repere()).toHaveAccessibleName(/1 courbe : y = x\^2, en bleu\./)
+    expect(repere()).toHaveAccessibleName(/1 courbe\u00a0: y = x\^2 \(en bleu\)\./)
   })
 
   it('donne à chaque nouvelle ligne la prochaine couleur libre', async () => {
@@ -77,8 +80,9 @@ describe('Calculatrice', () => {
 
     fireEvent.blur(champ(1))
     expect(champ(1)).toHaveAttribute('aria-invalid', 'true')
-    const message = document.getElementById(champ(1).getAttribute('aria-describedby') ?? '')
-    expect(message?.textContent).toBeTruthy()
+    const [a] = analyserLignes([{ id: 'x', texte: 'y = 2 +' }])
+    expect(a.genre).toBe('erreur')
+    if (a.genre === 'erreur') expect(champ(1)).toHaveAccessibleDescription(a.erreur.message)
   })
 
   it('affiche aussi l’erreur après une pause de frappe', () => {
@@ -147,7 +151,7 @@ describe('Calculatrice', () => {
     rendre()
     await user.type(champ(1), '2/3 + 1/6')
     expect(screen.getByText('Résultat : 5 sur 6')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Masquer la courbe/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /la courbe/ })).toBeNull()
 
     await user.click(
       screen.getByRole('button', { name: 'Afficher le résultat en écriture décimale' })
@@ -162,14 +166,15 @@ describe('Calculatrice', () => {
     const user = userEvent.setup()
     rendre({ v: 1, lignes: [{ texte: 'y = x' }] })
     expect(courbes()).toHaveLength(1)
-    const pastille = screen.getByRole('button', { name: 'Masquer la courbe 1' })
+    // A stable name; aria-pressed says whether the curve is shown (U7, gate 5).
+    const pastille = screen.getByRole('button', { name: 'Afficher la courbe 1' })
     expect(pastille).toHaveAttribute('aria-pressed', 'true')
     await user.click(pastille)
     expect(courbes()).toHaveLength(0)
-    const afficher = screen.getByRole('button', { name: 'Afficher la courbe 1' })
-    expect(afficher).toHaveAttribute('aria-pressed', 'false')
+    expect(pastille).toHaveAccessibleName('Afficher la courbe 1')
+    expect(pastille).toHaveAttribute('aria-pressed', 'false')
     expect(champ(1)).toBeEnabled()
-    await user.click(afficher)
+    await user.click(pastille)
     expect(courbes()).toHaveLength(1)
   })
 
@@ -242,16 +247,21 @@ describe('Calculatrice', () => {
   it('bascule l’unité des angles et le repère orthonormé', async () => {
     const user = userEvent.setup()
     rendre()
-    const radians = screen.getByRole('button', { name: 'Radians' })
-    const degres = screen.getByRole('button', { name: 'Degrés' })
+    const radians = screen.getByRole('button', { name: 'Angles en radians' })
+    const degres = screen.getByRole('button', { name: 'Angles en degrés' })
     expect(radians).toHaveAttribute('aria-pressed', 'true')
     await user.click(degres)
     expect(degres).toHaveAttribute('aria-pressed', 'true')
     expect(radians).toHaveAttribute('aria-pressed', 'false')
-    const ortho = screen.getByRole('button', { name: /^Repère orthonormé/ })
+    const ortho = screen.getByRole('button', {
+      name: 'Repère orthonormé\u00a0: mêmes unités sur les deux axes',
+    })
     expect(ortho).toHaveAttribute('aria-pressed', 'true')
+    // Not colour alone (V6, gate 5): a tick while it is on.
+    expect(ortho.querySelector('use')?.getAttribute('href')).toMatch(/check/)
     await user.click(ortho)
     expect(ortho).toHaveAttribute('aria-pressed', 'false')
+    expect(ortho.querySelector('use')).toBeNull()
   })
 
   it('écrit son état dans l’adresse après une pause, et pas à l’ouverture', () => {
@@ -284,5 +294,41 @@ describe('Calculatrice', () => {
       vi.advanceTimersByTime(1000)
     })
     expect(replace).not.toHaveBeenCalled()
+  })
+
+  // Gate 5 round 1 (V4-B4): a slider writes its line without an exponent, and reads it back.
+  it('écrit la ligne d’un curseur sans exposant', () => {
+    rendre({
+      v: 1,
+      lignes: [{ texte: 'a = 0', curseur: { min: 0, max: 0.000001, pas: 0.0000001 } }],
+    })
+    const curseur = screen.getByRole('slider', { name: 'Curseur a' })
+    fireEvent.change(curseur, { target: { value: '0.0000003' } })
+    expect(champ(1)).toHaveValue('a = 0,0000003')
+    expect(curseur).toHaveAttribute('aria-valuetext', 'a = 0,0000003')
+    // A 44 px target for the range itself (U7-R2).
+    expect(curseur).toHaveClass('min-h-11')
+    expect(screen.getByRole('textbox', { name: 'Maximum du curseur a' })).toHaveValue('0,000001')
+  })
+
+  it('ne dit jamais « = » pour un résultat arrondi (V4-B3)', async () => {
+    const user = userEvent.setup()
+    rendre({ v: 1, lignes: [{ texte: '1 + 10^(-11)' }] })
+    await user.click(
+      screen.getByRole('button', { name: 'Afficher le résultat en écriture décimale' })
+    )
+    expect(screen.getByText('Résultat : environ 1')).toBeInTheDocument()
+  })
+
+  it('accepte un maximum groupé, et refuse une borne hors du plan', async () => {
+    const user = userEvent.setup()
+    rendre({ v: 1, lignes: [{ texte: 'a = 2' }] })
+    const max = screen.getByRole('textbox', { name: 'Maximum du curseur a' })
+    await user.clear(max)
+    await user.type(max, '20 000{Enter}')
+    expect(screen.getByRole('slider', { name: 'Curseur a' })).toHaveAttribute('max', '20000')
+    await user.clear(max)
+    await user.type(max, '2000000{Enter}')
+    expect(max).toHaveAttribute('aria-invalid', 'true')
   })
 })

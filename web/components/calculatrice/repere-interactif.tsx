@@ -18,8 +18,10 @@ import {
   orthonormer,
   zoomAuCentre,
   zoomAutour,
+  type CourbeDessinee,
   type CourbeVue,
   type Fenetre,
+  type GeometrieCourbe,
   type ModeAngle,
   type TailleVue,
   type TexteVue,
@@ -32,6 +34,7 @@ import { Infobulle } from '@/components/ui/infobulle'
 import { CURVE_FILL, CURVE_STROKE } from '@/lib/curve-colours'
 
 import { BARRE, BOUTON_ICONE, BOUTON_SEGMENT } from './classes'
+import { pauseCss } from './pause'
 
 // The grid of the calculator (spec U4 §5): an SVG the size of its box, measured with a
 // ResizeObserver. Dragging moves the plane, the wheel and a pinch zoom about the pointer; buttons
@@ -42,6 +45,24 @@ import { BARRE, BOUTON_ICONE, BOUTON_SEGMENT } from './classes'
 const ZOOM_MOLETTE = 0.0018
 /** The + and − buttons. */
 const ZOOM_BOUTON = 1.5
+/**
+ * A trace of the curves slower than this is not redone while the plane is dragged, pinched or
+ * wheeled: the curves already traced are moved with the grid, and traced again once it stops.
+ */
+const BUDGET_IMAGE_MS = 8
+
+type Trace = { fenetre: Fenetre; taille: TailleVue; courbes: CourbeDessinee[]; duree: number }
+
+/** The SVG transform that moves what was traced for `de` to where it lies in `vers`. */
+function transformation(de: Fenetre, vers: Fenetre, t: TailleVue): string | undefined {
+  if (de === vers) return undefined
+  const kx = (de.xMax - de.xMin) / (vers.xMax - vers.xMin)
+  const ky = (de.yMax - de.yMin) / (vers.yMax - vers.yMin)
+  const tx = ((de.xMin - vers.xMin) * t.largeur) / (vers.xMax - vers.xMin)
+  const ty = ((vers.yMax - de.yMax) * t.hauteur) / (vers.yMax - vers.yMin)
+  if (kx === 1 && ky === 1 && tx === 0 && ty === 0) return undefined
+  return `matrix(${kx} 0 0 ${ky} ${tx} ${ty})`
+}
 
 type Point = { x: number; y: number }
 
@@ -135,22 +156,57 @@ export function RepereInteractif({
     fenetreRef.current = f
     onFenetre(f)
   }
-  const changerRef = useRef(changer)
+  // During a gesture, at most one new window per frame.
+  const image = useRef(0)
+  const onFenetreRef = useRef(onFenetre)
   useLayoutEffect(() => {
-    changerRef.current = changer
+    onFenetreRef.current = onFenetre
   })
+  const changerGeste = useRef((f: Fenetre) => {
+    fenetreRef.current = f
+    if (image.current) return
+    image.current = requestAnimationFrame(() => {
+      image.current = 0
+      if (fenetreRef.current) onFenetreRef.current(fenetreRef.current)
+    })
+  }).current
+  useEffect(() => () => cancelAnimationFrame(image.current), [])
 
-  // The drawing follows the typing and the drag, but never holds them up.
+  const [enGeste, setEnGeste] = useState(false)
+  const [cache] = useState(() => new Map<string, GeometrieCourbe>())
+
+  // Grid, axes and numbers: cheap, always for the window of the moment.
+  const fond = useMemo(
+    () => (effective && tailleSure ? modeleVue(effective, tailleSure) : null),
+    [effective, tailleSure]
+  )
+
+  // The curves follow the typing and the drag, but never hold them up: computed from a deferred
+  // value, each one taken from the cache when nothing it depends on changed (V1, gate 5).
   const vue = useDeferredValue(
-    useMemo(() => ({ effective, tailleSure, courbes }), [effective, tailleSure, courbes])
+    useMemo(
+      () => ({ effective, tailleSure, courbes, enGeste }),
+      [effective, tailleSure, courbes, enGeste]
+    )
   )
-  const modele = useMemo(
-    () =>
-      vue.effective && vue.tailleSure
-        ? modeleVue(vue.effective, vue.tailleSure, vue.courbes)
-        : null,
-    [vue]
-  )
+  const derniere = useRef<Trace | null>(null)
+  const trace = useMemo<Trace | null>(() => {
+    const { effective: f, tailleSure: t, courbes: cs, enGeste: geste } = vue
+    if (!f || !t) return null
+    const avant = derniere.current
+    if (geste && avant && avant.taille === t && avant.duree > BUDGET_IMAGE_MS) return avant
+    const debut = performance.now()
+    const m = modeleVue(f, t, cs, { cache })
+    return { fenetre: f, taille: t, courbes: m.courbes, duree: performance.now() - debut }
+  }, [vue, cache])
+  useLayoutEffect(() => {
+    derniere.current = trace
+  }, [trace])
+
+  const transform =
+    trace && effective && tailleSure && trace.taille === tailleSure
+      ? transformation(trace.fenetre, effective, tailleSure)
+      : undefined
 
   // --- Pan and pinch ------------------------------------------------------------------------------
   const pointeurs = useRef(new Map<number, Point>())
@@ -164,6 +220,7 @@ export function RepereInteractif({
     if (e.pointerType === 'mouse' && e.button !== 0) return
     e.currentTarget.setPointerCapture?.(e.pointerId)
     pointeurs.current.set(e.pointerId, position(e))
+    setEnGeste(true)
   }
 
   function surPointerMove(e: React.PointerEvent<SVGSVGElement>) {
@@ -174,7 +231,7 @@ export function RepereInteractif({
     const apres = position(e)
     if (pointeurs.current.size === 1) {
       pointeurs.current.set(e.pointerId, apres)
-      changer(deplacer(f, apres.x - avant.x, apres.y - avant.y, t))
+      changerGeste(deplacer(f, apres.x - avant.x, apres.y - avant.y, t))
       return
     }
     // Two fingers: zoom by the change of their distance about their middle, and follow it.
@@ -187,17 +244,19 @@ export function RepereInteractif({
     const m1 = { x: (apres.x + autre.x) / 2, y: (apres.y + autre.y) / 2 }
     let g = d0 > 0 && d1 > 0 ? zoomAutour(f, depuisSvg(f, t)(m0.x, m0.y), d1 / d0) : f
     g = deplacer(g, m1.x - m0.x, m1.y - m0.y, t)
-    changer(g)
+    changerGeste(g)
   }
 
   function surPointerFin(e: React.PointerEvent<SVGSVGElement>) {
     pointeurs.current.delete(e.pointerId)
+    if (pointeurs.current.size === 0) setEnGeste(false)
   }
 
   // The wheel: a native listener, the only way to keep the page from scrolling.
   useEffect(() => {
     const svg = svgRef.current
     if (!svg) return
+    let fin: ReturnType<typeof setTimeout> | undefined
     function surMolette(e: WheelEvent) {
       const f = fenetreRef.current
       const t = tailleRef.current
@@ -207,17 +266,25 @@ export function RepereInteractif({
       const facteur = Math.exp(-e.deltaY * unite * ZOOM_MOLETTE)
       const r = svg!.getBoundingClientRect()
       const point = depuisSvg(f, t)(e.clientX - r.left, e.clientY - r.top)
-      changerRef.current(zoomAutour(f, point, facteur))
+      changerGeste(zoomAutour(f, point, facteur))
+      // A wheel has no release: the gesture ends after a pause.
+      setEnGeste(true)
+      clearTimeout(fin)
+      fin = setTimeout(() => setEnGeste(false), pauseCss())
     }
     svg.addEventListener('wheel', surMolette, { passive: false })
-    return () => svg.removeEventListener('wheel', surMolette)
-  }, [])
+    return () => {
+      clearTimeout(fin)
+      svg.removeEventListener('wheel', surMolette)
+    }
+  }, [changerGeste])
 
   const zoomer = (facteur: number) => {
     const f = fenetreRef.current
     if (f) changer(zoomAuCentre(f, facteur))
   }
 
+  const modele = fond
   const largeur = modele?.largeur ?? 0
   const hauteur = modele?.hauteur ?? 0
 
@@ -232,6 +299,7 @@ export function RepereInteractif({
         onPointerMove={surPointerMove}
         onPointerUp={surPointerFin}
         onPointerCancel={surPointerFin}
+        onLostPointerCapture={surPointerFin}
         className="absolute inset-0 size-full cursor-grab touch-none select-none text-ink active:cursor-grabbing"
       >
         <title id={titreId}>Repère</title>
@@ -256,8 +324,8 @@ export function RepereInteractif({
                 ) : null
               )}
             </g>
-            <g>
-              {modele.courbes.map((c) => (
+            <g transform={transform}>
+              {(trace?.courbes ?? []).map((c) => (
                 <g key={c.id} data-courbe={c.id}>
                   {c.d && (
                     <path
@@ -268,6 +336,7 @@ export function RepereInteractif({
                       strokeLinejoin="round"
                       strokeLinecap="round"
                       strokeDasharray={c.pointille ? CURVE_DASH : undefined}
+                      vectorEffect="non-scaling-stroke"
                     />
                   )}
                   {c.points.map((p, j) => (
@@ -294,7 +363,7 @@ export function RepereInteractif({
           <button
             type="button"
             aria-pressed={angle === 'radians'}
-            aria-label="Radians"
+            aria-label="Angles en radians"
             onClick={() => onAngle('radians')}
             className={BOUTON_SEGMENT}
           >
@@ -303,7 +372,7 @@ export function RepereInteractif({
           <button
             type="button"
             aria-pressed={angle === 'degres'}
-            aria-label="Degrés"
+            aria-label="Angles en degrés"
             onClick={() => onAngle('degres')}
             className={BOUTON_SEGMENT}
           >
@@ -314,10 +383,12 @@ export function RepereInteractif({
           <button
             type="button"
             aria-pressed={orthonorme}
-            aria-label="Repère orthonormé : mêmes unités sur les deux axes"
+            aria-label={'Repère orthonormé\u00a0: mêmes unités sur les deux axes'}
             onClick={() => onOrthonorme(!orthonorme)}
-            className={BOUTON_SEGMENT}
+            className={`${BOUTON_SEGMENT} inline-flex items-center gap-1.5`}
           >
+            {/* Not colour alone: a tick says the grid is orthonormal (V6, gate 5). */}
+            {orthonorme && <Icon name="check" weight="bold" size={14} />}
             Orthonormé
           </button>
         </div>

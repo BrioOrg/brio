@@ -1,3 +1,5 @@
+import { nombreExact, type LigneAnalysee, type ModeAngle } from '@brio/content'
+
 import type { CurveColour } from '@/lib/curve-colours'
 import type { CurseurEtat, EtatCalculatrice } from '@/lib/calculatrice-etat'
 
@@ -87,17 +89,73 @@ export function curseurPour(curseur: CurseurEtat | undefined, valeur: number): C
   }
 }
 
-/** A number typed in French or English: "−1,5", "-1.5", "2". Null when it is not one. */
+/** A number typed in French or English: "−1,5", "-1.5", "2", "1 000". Null when it is not one. */
 export function lireNombre(texte: string): number | null {
-  const t = texte.trim().replace(/[−–]/g, '-').replace(',', '.')
+  const t = texte
+    .trim()
+    .replace(/[ \u00a0\u202f\u2009]/g, '')
+    .replace(/[\u2212\u2013]/g, '-')
+    .replace(',', '.')
   if (!/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t)) return null
   const v = Number(t)
   return Number.isFinite(v) ? v : null
 }
 
-/** A value on the slider's grid: min + k·pas, without the floating-point tail. */
+/** Decimals a number is written with, in full: 0,25 → 2, 1e−7 → 7, 3 → 0. */
+export function decimalesDe(v: number): number {
+  return nombreExact(v, { grouper: false }).split(',')[1]?.length ?? 0
+}
+
+/**
+ * A value on the slider's grid, min + k·pas, written with no more decimals than the step and the
+ * minimum have: no floating-point tail.
+ */
 export function surLaGrille(v: number, c: CurseurEtat): number {
   const k = Math.round((v - c.min) / c.pas)
   const brut = Math.min(c.max, Math.max(c.min, c.min + k * c.pas))
-  return Number(brut.toPrecision(12))
+  const d = Math.min(100, Math.max(decimalesDe(c.pas), decimalesDe(c.min)))
+  const v2 = Number(brut.toFixed(d))
+  return Object.is(v2, -0) ? 0 : v2
+}
+
+/**
+ * The line of a slider constant for a value: `a = 0,0000001`, never an exponent, so the engine
+ * reads back exactly the same value.
+ */
+export function texteConstante(nom: string, v: number): string {
+  return `${nom} = ${nombreExact(v, { grouper: false })}`
+}
+
+/**
+ * What the geometry of a curve depends on (V1-I2, gate 5): its own text, the angle unit, and the
+ * text of every definition it may use, directly or through another (a slider's value is in its
+ * text). Conservative: a name counts as used when its letters appear in the text, so a false
+ * match only costs a trace, never a stale curve. Colour and stroke are not in it.
+ */
+export function cleDeCourbe(
+  texte: string,
+  lignes: readonly Ligne[],
+  analyse: readonly LigneAnalysee[],
+  angle: ModeAngle
+): string {
+  const definitions = new Map<string, string>()
+  lignes.forEach((l, i) => {
+    const a = analyse[i]
+    if (a?.genre === 'constante' || (a?.genre === 'explicite' && a.nom !== null)) {
+      definitions.set(a.nom as string, l.texte)
+    }
+  })
+  const utilisees = new Set<string>()
+  const aLire = [texte]
+  while (aLire.length > 0) {
+    const t = aLire.pop() as string
+    for (const [nom, def] of definitions) {
+      if (!utilisees.has(nom) && t.includes(nom)) {
+        utilisees.add(nom)
+        aLire.push(def)
+      }
+    }
+  }
+  const deps = [...utilisees].sort().map((n) => [n, definitions.get(n)])
+  return JSON.stringify([texte, angle, deps])
 }
