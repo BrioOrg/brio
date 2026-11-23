@@ -25,6 +25,13 @@ test.beforeEach(async ({ context, baseURL }) => {
   await context.addCookies([{ name: 'JSESSIONID', value: 'e2e-eleve', url: baseURL ?? '' }])
 })
 
+// Since PL-6b (#400, ADR 0050 §7) a course opens in the interactive mode, as a chapter does, and
+// that mode hides the reading chrome (the site header and its trail), as on a chapter. The trail
+// is checked in reading mode, the one a chapter's trail is checked in (chapitre.spec.ts).
+async function enLecture(context: import('@playwright/test').BrowserContext, baseURL?: string) {
+  await context.addCookies([{ name: 'brio_mode_chapitre', value: 'lecture', url: baseURL ?? '' }])
+}
+
 // C13 (corrigé) : un des 3 cours les plus récents, sans devoir, en 2 clics depuis l'Accueil.
 test('C13 : un cours récent sans devoir s’atteint en deux clics depuis l’Accueil', async ({
   page,
@@ -44,7 +51,11 @@ test('C13 : un cours récent sans devoir s’atteint en deux clics depuis l’Ac
     .click()
   clics++
 
-  await expect(page).toHaveURL(`/cours/${COURS_RECENT_SANS_DEVOIR}`, COMPILATION)
+  // The interactive mode (ADR 0050 §7) writes its first slide in the address, as on a chapter.
+  await expect(page).toHaveURL(
+    new RegExp(`/cours/${COURS_RECENT_SANS_DEVOIR}(\\?diapo=[^&]+)?$`),
+    COMPILATION
+  )
   await expect(page.getByRole('heading', { level: 1, name: TITRE_C003 })).toBeVisible()
   expect(clics).toBe(2)
 
@@ -79,11 +90,14 @@ test('plafond : 3 cours, du plus récent au plus ancien, puis « Voir tous les c
 // C1 : fil « Ma classe › Cours du prof › titre », deux entrées liées (desktop).
 test('C1 : le fil d’un cours a « Ma classe » et « Cours du prof », liés', async ({
   page,
+  context,
+  baseURL,
 }, testInfo) => {
   test.skip(
     testInfo.project.name === 'mobile',
     'le fil se replie sur mobile (voir le test suivant)'
   )
+  await enLecture(context, baseURL)
   await page.goto(`/cours/${COURS_RECENT_SANS_DEVOIR}`)
 
   const fil = filDAriane(page)
@@ -105,8 +119,11 @@ test('C1 : le fil d’un cours a « Ma classe » et « Cours du prof », liés',
 
 test('C1 (mobile) : le fil se replie sur le titre, « Ma classe » reste la page courante de la barre', async ({
   page,
+  context,
+  baseURL,
 }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'repli propre au mobile')
+  await enLecture(context, baseURL)
   await page.goto(`/cours/${COURS_RECENT_SANS_DEVOIR}`)
 
   const fil = filDAriane(page)

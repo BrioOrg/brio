@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { flushSync } from 'react-dom'
 import type { Diapo } from '@brio/content'
-import { marquerSectionLue } from '@/lib/api'
+import { marquerSectionCoursLue, marquerSectionLue } from '@/lib/api'
 import { getMoi } from '@/lib/session'
 import type { ChapitreSuivant } from '@/lib/bilan'
 import {
@@ -35,7 +35,7 @@ import {
   terminer,
   transition,
 } from './animation'
-import { useBilanSession, type BilanSession } from './bilan-session'
+import { useBilanSession, type BilanSession, type Cible } from './bilan-session'
 import { basculerPleinEcran, estPleinEcran, quitterPleinEcran } from './plein-ecran'
 import { basculerSons, jouer } from './sons'
 
@@ -64,7 +64,9 @@ type ModeChapitreContext = {
   /** The chapter's path, without query: each slide's link is `<chemin>?diapo=<id>`. */
   chemin: string
   parcoursHref: string
-  /** The next chapter of the track, in catalogue order; null for the last one. */
+  /** What is being read (ADR 0050 §7): its end slide and labels say « chapitre » or « cours ». */
+  nature: Cible['type']
+  /** The next chapter of the track, in catalogue order; null for the last one and for a course. */
   suivant: ChapitreSuivant | null
   /** What `progression` says for the end slide (#249). */
   bilanSession: BilanSession
@@ -224,9 +226,32 @@ const SEUIL_DECISION = 10 // px before a touch counts as a horizontal swipe
 const SEUIL_DISTANCE = 0.2 // share of the width that changes slide
 const SEUIL_VITESSE = 0.5 // px/ms that changes slide, however short the swipe
 
-type Props = {
+/**
+ * A catalogue chapter, placed in its track, or a teacher course (ADR 0050 §7): the target decides
+ * where « section lue » goes and where the end slide reads the completion. A course has no next
+ * one: courses have no order.
+ */
+type CibleProps =
+  | {
+      chapitreId: string
+      /** The chapter's place in the catalogue, for its completion on the student's path. */
+      niveau: string
+      matiere: string
+      slug: string
+      suivant?: (ChapitreSuivant & { slug: string }) | null
+      coursId?: undefined
+    }
+  | {
+      coursId: string
+      chapitreId?: undefined
+      niveau?: undefined
+      matiere?: undefined
+      slug?: undefined
+      suivant?: undefined
+    }
+
+type Props = CibleProps & {
   children: React.ReactNode
-  chapitreId: string
   deck: readonly Diapo[]
   /** The block ids of the exercises a student can check (`exercicesCorriges`). */
   exercices?: readonly string[]
@@ -235,31 +260,36 @@ type Props = {
   sectionTitles: Readonly<Record<string, string>>
   chemin: string
   parcoursHref: string
-  /** The chapter's place in the catalogue, for its completion on the student's path. */
-  niveau: string
-  matiere: string
-  slug: string
-  suivant?: (ChapitreSuivant & { slug: string }) | null
   initialMode: ModeChapitre
   initialIndex: number
 }
 
-export function ModeChapitreProvider({
-  children,
-  chapitreId,
-  deck,
-  exercices: corriges = [],
-  etapes = SANS_ETAPES,
-  sectionTitles,
-  chemin,
-  parcoursHref,
-  niveau,
-  matiere,
-  slug,
-  suivant = null,
-  initialMode,
-  initialIndex,
-}: Props) {
+export function ModeChapitreProvider(props: Props) {
+  const {
+    children,
+    deck,
+    exercices: corriges = [],
+    etapes = SANS_ETAPES,
+    sectionTitles,
+    chemin,
+    parcoursHref,
+    initialMode,
+    initialIndex,
+  } = props
+  const suivant = props.suivant ?? null
+  const cible = useMemo<Cible>(
+    () =>
+      props.coursId !== undefined
+        ? { type: 'cours', coursId: props.coursId }
+        : {
+            type: 'chapitre',
+            chapitreId: props.chapitreId,
+            niveau: props.niveau,
+            matiere: props.matiere,
+            slug: props.slug,
+          },
+    [props.coursId, props.chapitreId, props.niveau, props.matiere, props.slug]
+  )
   const [mode, setMode] = useState<ModeChapitre>(initialMode)
   const [index, setIndex] = useState(initialIndex)
   const [sortante, setSortante] = useState<string | null>(null)
@@ -278,9 +308,7 @@ export function ModeChapitreProvider({
   const [revisionProgression, setRevisionProgression] = useState(0)
   const reducedMotion = useReducedMotion()
   const bilanSession = useBilanSession({
-    niveau,
-    matiere,
-    slug,
+    cible,
     finOuverte: mode === 'interactif' && deck[index]?.kind === 'fin',
   })
   const racine = useRef<HTMLDivElement>(null)
@@ -349,7 +377,11 @@ export function ModeChapitreProvider({
         .catch(() => false)
       void eleve.current.then((estEleve) => {
         if (!estEleve) return
-        marquerSectionLue(chapitreId, sectionId).then(
+        const signal =
+          cible.type === 'cours'
+            ? marquerSectionCoursLue(cible.coursId, sectionId)
+            : marquerSectionLue(cible.chapitreId, sectionId)
+        signal.then(
           () => {
             // Several sections read in a row reload the gauge once.
             clearTimeout(rechargement.current)
@@ -363,7 +395,7 @@ export function ModeChapitreProvider({
         )
       })
     },
-    [chapitreId]
+    [cible]
   )
 
   // Reading mode: a marker closes each section (`data-fin-section`); on screen, it is read.
@@ -780,6 +812,7 @@ export function ModeChapitreProvider({
       sectionTitles,
       chemin,
       parcoursHref,
+      nature: cible.type,
       suivant,
       bilanSession,
       aller,
@@ -814,6 +847,7 @@ export function ModeChapitreProvider({
       sectionTitles,
       chemin,
       parcoursHref,
+      cible.type,
       suivant,
       bilanSession,
       aller,

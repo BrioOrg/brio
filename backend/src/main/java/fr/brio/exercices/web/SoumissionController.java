@@ -34,7 +34,8 @@ class SoumissionController {
             description = "Évalue la réponse et retourne le résultat avec la correction. Requiert une authentification.")
     @ApiResponse(responseCode = "200", description = "Réponse évaluée")
     @ApiResponse(responseCode = "401", description = "Non authentifié")
-    @ApiResponse(responseCode = "404", description = "Exercice introuvable")
+    @ApiResponse(responseCode = "403", description = "Exercice d'un cours d'enseignant non accessible à l'élève (hors portée)")
+    @ApiResponse(responseCode = "404", description = "Exercice introuvable (ou cours non publié)")
     @ApiResponse(responseCode = "422", description = "Format de réponse invalide ou type d'exercice non supporté")
     ResponseEntity<SoumissionResponse> soumettre(
             @PathVariable UUID id,

@@ -92,6 +92,11 @@ DO NOTHING`), pas une erreur.
 
 ### 3. Alimentation par événements (jamais d'appel sortant)
 
+> **Amendé par [ADR 0050](0050-progression-cours-enseignant.md) §2 (2026-11-23).** Une seule
+> exception, en lecture : la couche `fr.brio.progression.web` peut appeler
+> `CoursAccesApi.titresVisiblesPourEleve` pour filtrer ce qu'elle affiche dans « Reprendre ».
+> Les écritures restent exclusivement alimentées par des événements (test ArchUnit).
+
 `progression` **écoute** ; il n'appelle personne. Événements et **module
 émetteur** :
 

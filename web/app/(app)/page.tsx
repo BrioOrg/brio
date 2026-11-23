@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
-import type { ChapitreAReprendre, DevoirEleveVue, MaClasse } from '@brio/api-client'
+import type { ContenuAReprendre, DevoirEleveVue, MaClasse } from '@brio/api-client'
 
 import { ARevoir } from '@/components/a-revoir'
 import { CarteLien, Fleche, TITRE_DE_BLOC } from '@/components/carte-lien'
@@ -87,7 +87,7 @@ export default async function AccueilPage() {
             chemins={cheminsChapitres(catalogue)}
           />
         )}
-        {reprendre && <Reprendre chapitre={reprendre} />}
+        {reprendre && <Reprendre contenu={reprendre} />}
         {aRevoir && <ARevoir competence={aRevoir} />}
         {rienAFaire && (
           <PremiereConnexion monNiveau={catalogue.find((n) => n.niveauCode === moi.niveau)} />
@@ -139,8 +139,10 @@ function PourTaClasse({
   )
 }
 
-function Reprendre({ chapitre }: { chapitre: ChapitreAReprendre }) {
-  const { chapitreId, titre, niveauCode, matiereCode, sectionsLues, sectionsTotal } = chapitre
+/** The chapter or teacher course left unfinished (ADR 0050). The backend only sends a course the
+ * student can still open; the link depends on its type. */
+function Reprendre({ contenu }: { contenu: ContenuAReprendre }) {
+  const { titre, sectionsLues, sectionsTotal } = contenu
   return (
     <section aria-labelledby="reprendre-heading">
       <h2 id="reprendre-heading" className={TITRE_DE_BLOC}>
@@ -150,13 +152,20 @@ function Reprendre({ chapitre }: { chapitre: ChapitreAReprendre }) {
         <p className="font-display text-lg font-extrabold tracking-tight text-ink">{titre}</p>
         <ProgressBar value={sectionsLues} max={sectionsTotal} />
         <div>
-          <Link href={`/${niveauCode}/${matiereCode}/${chapitreId}`}>
+          <Link href={lienReprendre(contenu)}>
             <Button tabIndex={-1}>Continuer</Button>
           </Link>
         </div>
       </Panel>
     </section>
   )
+}
+
+// Template literals starting with `/` on purpose: scripts/mesh/lib/route-graph.mjs reads route
+// links statically from the source (see web/lib/lien-devoir.ts).
+function lienReprendre(contenu: ContenuAReprendre): string {
+  if (contenu.type === 'cours') return `/cours/${encodeURIComponent(contenu.coursId)}`
+  return `/${contenu.niveauCode}/${contenu.matiereCode}/${contenu.chapitreId}`
 }
 
 /** Nothing to do yet: the subjects of the student's level, or every level if it is unknown. */

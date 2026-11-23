@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class CoursEditionService {
     private final ExerciceExtractor exerciceExtractor;
     private final PublicationValidator publicationValidator;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher events;
 
     CoursEditionService(
             CoursRepository coursRepository,
@@ -48,7 +50,8 @@ public class CoursEditionService {
             ExerciceRepository exerciceRepository,
             ExerciceExtractor exerciceExtractor,
             PublicationValidator publicationValidator,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher events) {
         this.coursRepository = coursRepository;
         this.coursVersionRepository = coursVersionRepository;
         this.coursPorteeRepository = coursPorteeRepository;
@@ -56,6 +59,7 @@ public class CoursEditionService {
         this.exerciceExtractor = exerciceExtractor;
         this.publicationValidator = publicationValidator;
         this.objectMapper = objectMapper;
+        this.events = events;
     }
 
     /** Create a new draft course. Returns its generated id. */
@@ -93,7 +97,8 @@ public class CoursEditionService {
      * Validate the current draft and freeze it as the next immutable version. Exercises get
      * fresh UUIDs and their correction fields are stripped from the stored content. The version
      * row is written before its exercises (FK) and before the course is marked published (FK on
-     * {@code version_publiee}).
+     * {@code version_publiee}). Announces the version's structure ({@code CoursPublie}) in the same
+     * transaction, so progression projects it once the publication commits (ADR 0050 §1).
      */
     @Transactional
     public PublicationResult publier(UUID coursId, UUID auteurId) {
@@ -118,6 +123,7 @@ public class CoursEditionService {
         exerciceRepository.saveAll(exercices);
         cours.marquerPublie(version);
         coursRepository.save(cours);
+        events.publishEvent(CoursStructure.de(coursId, version, stripped));
 
         return new PublicationResult(coursId, version);
     }
