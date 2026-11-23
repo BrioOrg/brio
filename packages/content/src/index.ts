@@ -316,7 +316,7 @@ export { compilerX, compilerXY, type FonctionXY } from './grapheur/compilation'
 export { rationnelDepuisDecimal, rationnelDepuisNombre, valeurDe } from './grapheur/rationnel'
 // Graphing calculator — implicit curves (ADR 0049)
 export type { Fenetre, OptionsImplicite, PointSvg, TraceImplicite } from './grapheur/implicite'
-export { BUDGET_IMPLICITE, traceImplicite } from './grapheur/implicite'
+export { BUDGET_IMPLICITE, BUDGET_IMPLICITE_MAX, traceImplicite } from './grapheur/implicite'
 // Graphing calculator — the view: window, graduations, pan, zoom, drawing model (ADR 0049)
 export type {
   TailleVue,
