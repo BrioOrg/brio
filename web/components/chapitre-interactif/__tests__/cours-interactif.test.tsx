@@ -26,7 +26,7 @@ import { ProgressionProvider } from '@/components/progression-context'
 import { ChapterProgress } from '@/components/chapter-progress'
 import { ChapterView, exercicesCorriges, type ChapitreResponse } from '@/components/chapter-view'
 import { ModeChapitreProvider } from '../mode-context'
-import { BarreScene, CommandesScene } from '../scene'
+import { BandeDiapos, BarreScene, CommandesScene } from '../scene'
 
 // A teacher course in the interactive mode (ADR 0050 §7): its « section lue » goes to the course
 // endpoint, its end slide reads the course gauge, says « cours » and has no next one.
@@ -183,5 +183,31 @@ describe('ChapterProgress on a teacher course', () => {
     await act(async () => {})
     expect(container.querySelector('[role="progressbar"]')).toBeNull()
     expect(getProgressionCours).not.toHaveBeenCalled()
+  })
+})
+
+describe('nothing on a teacher course says « chapitre » (ADR 0050 §7, S2)', () => {
+  it('names the slide strip and the end slide after the course', async () => {
+    render(
+      <ProgressionProvider>
+        <ModeChapitreProvider
+          coursId={COURS_ID}
+          deck={DECK}
+          sectionTitles={{ s1: 'Leçon', s2: 'Exemple' }}
+          chemin={`/cours/${COURS_ID}`}
+          parcoursHref="/ma-classe/cours"
+          initialMode="interactif"
+          initialIndex={FIN}
+        >
+          <BandeDiapos />
+          <ChapterView chapitre={COURS} deck={DECK} />
+        </ModeChapitreProvider>
+      </ProgressionProvider>
+    )
+    await act(async () => {})
+    expect(screen.getAllByRole('navigation', { name: 'Diapos du cours' }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('navigation', { name: 'Diapos du chapitre' })).toBeNull()
+    expect(screen.getAllByRole('link', { name: /Fin du cours/ }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('link', { name: /Fin du chapitre/ })).toBeNull()
   })
 })

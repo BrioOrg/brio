@@ -1430,6 +1430,7 @@ async function sectionCoursLue(req, res, segmentCours, segmentSection) {
 
 /** GET /api/progression/cours/{coursId}: the gauge only for a student with rows on it, else 204. */
 async function jaugeCours(req, res, segment) {
+  if (!connecte(req)) return send(res, 401)
   const coursId = idDeCours(segment)
   if (coursId === null) return send(res, 400)
   if (!coursEnCours(req) || coursId !== COURS[0].id) return send(res, 204)

@@ -92,6 +92,9 @@ const KIND_LABEL: Record<Diapo['kind'], string> = {
   fin: 'Fin du chapitre',
 }
 
+/** A teacher course's end slide says « cours » (ADR 0050 §7). */
+const FIN_DU_COURS = 'Fin du cours'
+
 /**
  * Where an exercise slide stands in this session (#246): solved, or seen and left with no answer.
  * `null` says nothing: not an auto-graded exercise, not seen yet, current, or tried.
@@ -129,9 +132,11 @@ export function libelleDiapo(
   index: number,
   total: number,
   sectionTitles: Readonly<Record<string, string>>,
-  etat: EtatDiapo = null
+  etat: EtatDiapo = null,
+  nature: 'chapitre' | 'cours' = 'chapitre'
 ): string {
-  const parts = [`Diapo ${index + 1} sur ${total}`, KIND_LABEL[diapo.kind]]
+  const kind = diapo.kind === 'fin' && nature === 'cours' ? FIN_DU_COURS : KIND_LABEL[diapo.kind]
+  const parts = [`Diapo ${index + 1} sur ${total}`, kind]
   if ('sectionId' in diapo && sectionTitles[diapo.sectionId]) {
     parts.push(sectionTitles[diapo.sectionId])
   }

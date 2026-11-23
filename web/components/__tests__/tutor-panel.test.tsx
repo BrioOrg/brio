@@ -172,9 +172,7 @@ describe('TuteurPanel — session cap', () => {
     expect(screen.getByText('À propos de : Définition')).toBeInTheDocument()
     await user.type(screen.getByLabelText('Ta question au tuteur'), 'Pourquoi ?')
     await user.click(screen.getByRole('button', { name: /envoyer/i }))
-    await waitFor(() =>
-      expect(askTuteurForTarget).toHaveBeenCalledWith(TARGET, 'Pourquoi ?', null)
-    )
+    await waitFor(() => expect(askTuteurForTarget).toHaveBeenCalledWith(TARGET, 'Pourquoi ?', null))
   })
 
   it('hands a citation to onCitation instead of scrolling', async () => {
@@ -192,5 +190,20 @@ describe('TuteurPanel — session cap', () => {
     await user.click(screen.getByRole('button', { name: /envoyer/i }))
     await user.click(await screen.findByRole('button', { name: 'def-1' }))
     expect(onCitation).toHaveBeenCalledWith('def-1')
+  })
+})
+
+describe('TuteurPanel — the field names what the question is about', () => {
+  it('says « chapitre » on a chapter and « cours » on a teacher course (ADR 0050 §7)', () => {
+    const { unmount } = renderPanel()
+    expect(screen.getByPlaceholderText('Pose ta question sur ce chapitre…')).toBeInTheDocument()
+    unmount()
+
+    render(
+      <ChapterInteractionProvider>
+        <TuteurPanel target={{ kind: 'cours', coursId: 'c0ffee00-0000-4000-8000-000000000001' }} />
+      </ChapterInteractionProvider>
+    )
+    expect(screen.getByPlaceholderText('Pose ta question sur ce cours…')).toBeInTheDocument()
   })
 })
