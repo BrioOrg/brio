@@ -202,6 +202,15 @@ class ProgressionCoursIntegrationTest {
 
         assertThat(xp("cours_section")).as("course sections count toward the cap").isZero();
         assertThat(cours.jauge(eleve, coursId).orElseThrow().sectionsLues()).isEqualTo(1);
+
+        // The next day (the capped award is gone from today's sum), the same section read earns it,
+        // as a chapter exercise solved again would.
+        jdbc.update("UPDATE progression.evenements_xp SET created_at = now() - interval '2 days' "
+                + "WHERE eleve_id = ? AND source_type = 'exercice'", eleve);
+        lire("a");
+        assertThat(xp("cours_section")).isEqualTo(2);
+        lire("a");
+        assertThat(xp("cours_section")).as("still once per section").isEqualTo(2);
     }
 
     @Test
@@ -261,12 +270,13 @@ class ProgressionCoursIntegrationTest {
         cours.onSectionCoursLue(new SectionCoursLue(eleve, coursId, section, Instant.now()));
     }
 
-    /** Same pair as the listener: the course solve, then streak and mastery, in one transaction. */
+    /** Same three steps as the listener, in one transaction: course solve, streak and mastery, XP. */
     private void soumettre(UUID exerciceId, String cle, boolean correct) {
         SoumissionEnregistree e = soumission(exerciceId, cle, correct);
         tx.executeWithoutResult(s -> {
-            cours.onSoumission(e);
+            cours.enregistrerReussite(e);
             progression.attribuerPourSoumission(e);
+            cours.attribuerXpReussite(e);
         });
     }
 

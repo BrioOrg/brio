@@ -126,7 +126,9 @@ Nous retenons **l'option A**.
 - `CoursPublie(UUID coursId, int version, List<String> sectionIds, List<String> exerciceCles)`,
   structurel. Il est émis dans la transaction de `publier`, et réémis pour chaque cours publié au
   démarrage par une amorce idempotente (rattrapage des cours déjà publiés). `exerciceCles` ne
-  contient que les blocs d'exercice **corrigeables** (`exerciseType ≠ 'paper'`). Le message ne
+  contient que les blocs d'exercice **corrigeables** : les types qui ont un évaluateur dans
+`exercices` (`multiple-choice`, `short-answer`, `numeric`, `fill-blank`), donc ni `paper` ni un type
+sans évaluateur (`free-text`, `ordering`, inconnu ; précision porte 5, S3 et V1). Le message ne
   porte ni titre, ni statut, ni classe.
 - `SectionCoursLue(UUID eleveId, UUID coursId, String sectionId, Instant survenuLe)`. Il est émis
   par `POST /api/cours/{coursId}/sections/{sectionId}/lu` après contrôle de portée (404 si non
@@ -174,8 +176,12 @@ sérialisation (`SELECT … FOR UPDATE`) et porte la complétion collante.
 `progression.cours_exercices_reussis (…, UNIQUE (eleve_id, cours_id, exercice_cle))` enregistrent
 les faits. Les tables des chapitres (V20) ne changent pas.
 
-L'idempotence est structurelle : les insertions passent par `INSERT … ON CONFLICT DO NOTHING`,
-et **l'XP n'est attribuée que si l'insertion a créé la ligne**. La projection (`CoursPublie`, y
+L'idempotence est structurelle : les faits passent par `INSERT … ON CONFLICT DO NOTHING`, et
+**l'XP est attribuée une fois par (élève, clé source)**. *Précision de mise en œuvre (porte 5, S3) :
+comme pour un exercice de chapitre, un fait enregistré un jour où le plafond est atteint rapporte son
+XP la fois suivante.* Tous les flux de `progression` prennent leurs verrous dans un seul ordre : suivi
+du cours → série → maîtrise → solde (porte 5, V1 : l'ordre inverse solde/maîtrise interbloquait un
+exercice de cours et un exercice de chapitre de la même compétence). La projection (`CoursPublie`, y
 compris réémis par l'amorce) **ne touche jamais** aux faits d'un élève : ni `cours_sections_lues`,
 ni `cours_exercices_reussis`, ni `cours_suivis.termine_at`, ni `evenements_xp` (S2, figé par un test).
 

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * publishing transaction commits and is persisted in `event_publication`, so the
  * award survives a crash and can be replayed — while keeping `progression`
  * fully decoupled from `exercices`. A teacher-course solve is then recorded by its stable key,
- * in the same transaction, before the streak (ADR 0050).
+ * in the same transaction (ADR 0050).
  */
 @Component
 class SoumissionXpListener {
@@ -26,8 +26,9 @@ class SoumissionXpListener {
 
     @ApplicationModuleListener
     void onSoumissionEnregistree(SoumissionEnregistree evenement) {
-        // Course follow-up lock first, then streak and mastery (lock order, ADR 0050 §4).
-        progressionCours.onSoumission(evenement);
+        // One lock order for every flow (CompteurXp): course follow-up, streak and mastery, balance.
+        progressionCours.enregistrerReussite(evenement);
         progression.attribuerPourSoumission(evenement);
+        progressionCours.attribuerXpReussite(evenement);
     }
 }

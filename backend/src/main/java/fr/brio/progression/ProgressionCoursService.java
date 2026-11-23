@@ -27,11 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>Facts are keyed by the editor's stable ids, so a republication that keeps its sections and
  * exercises keeps the gauge. Every fact is an {@code INSERT … ON CONFLICT DO NOTHING}, and XP is
- * awarded only when that insert created the row: a replayed or doubled event earns nothing twice.
+ * awarded once per (student, source key): a replayed or doubled event earns nothing twice.
  * The student's follow-up row is locked first and completion is evaluated under that lock, before
  * any other per-student lock, so the last section and the last exercise landing together still see
- * each other and mark the course done. Lock order: course follow-up → streak → balance; chapter
- * flows take streak → balance only, so the two never deadlock.
+ * each other and mark the course done. Locks follow the one order of {@link CompteurXp}.
  */
 @Service
 public class ProgressionCoursService {
@@ -64,43 +63,56 @@ public class ProgressionCoursService {
         }
     }
 
-    /** Records a section read, awards its XP (+2, within the daily cap) and re-checks completion. */
+    /** Records a section read, re-checks completion and awards its XP (+2, within the daily cap). */
     @Transactional
     public void onSectionCoursLue(SectionCoursLue e) {
         Instant quand = e.survenuLe() != null ? e.survenuLe() : Instant.now();
         boolean dejaTermine = suivre(e.eleveId(), e.coursId());
-        boolean nouvelle = cours.enregistrerSectionLue(e.eleveId(), e.coursId(), e.sectionId(), quand);
+        cours.enregistrerSectionLue(e.eleveId(), e.coursId(), e.sectionId(), quand);
         evaluerCompletion(e.eleveId(), e.coursId(), dejaTermine, quand);
         compteur.enregistrerActivite(e.eleveId(), quand); // a section read is activity too (#95)
-        if (nouvelle) {
-            attribuer(e.eleveId(), SOURCE_COURS_SECTION, e.coursId() + "/" + e.sectionId(),
-                    ProgressionService.MOTIF_SECTION, ProgressionService.XP_SECTION, quand);
-        }
+        attribuer(e.eleveId(), SOURCE_COURS_SECTION, e.coursId() + "/" + e.sectionId(),
+                ProgressionService.MOTIF_SECTION, ProgressionService.XP_SECTION, quand);
     }
 
     /**
-     * Records a solved course exercise by its stable key, re-checks completion and awards its XP
-     * once. Runs <b>before</b> {@link ProgressionService#attribuerPourSoumission} in the listener, so
-     * the follow-up lock is taken first (lock order: course follow-up → streak → balance).
+     * Records a solved course exercise by its stable key and re-checks completion. First of the
+     * three steps of a submission, so the follow-up lock is taken first; the listener then runs
+     * {@link ProgressionService#attribuerPourSoumission} (streak, mastery) and
+     * {@link #attribuerXpReussite} (balance), keeping the one lock order of {@link CompteurXp}.
      */
     @Transactional
-    public void onSoumission(SoumissionEnregistree e) {
-        if (e.coursId() == null || e.exerciceCle() == null || !e.correct()) {
+    public void enregistrerReussite(SoumissionEnregistree e) {
+        if (!reussiteDeCours(e)) {
             return;
         }
-        Instant quand = e.submittedAt() != null ? e.submittedAt() : Instant.now();
+        Instant quand = quand(e);
         boolean dejaTermine = suivre(e.eleveId(), e.coursId());
-        boolean nouveau = cours.enregistrerExerciceReussi(e.eleveId(), e.coursId(), e.exerciceCle(), quand);
+        cours.enregistrerExerciceReussi(e.eleveId(), e.coursId(), e.exerciceCle(), quand);
         evaluerCompletion(e.eleveId(), e.coursId(), dejaTermine, quand);
-        compteur.enregistrerActivite(e.eleveId(), quand);
-        // Transition: a solve already rewarded under the per-version UUID key earns nothing more.
-        if (nouveau && !evenements.existsByEleveIdAndSourceTypeAndSourceRef(
-                e.eleveId(), ProgressionService.SOURCE_EXERCICE, e.exerciceId().toString())) {
-            boolean premier = e.premiereTentative();
-            attribuer(e.eleveId(), SOURCE_COURS_EXERCICE, e.coursId() + "/" + e.exerciceCle(),
-                    premier ? ProgressionService.MOTIF_1ER_COUP : ProgressionService.MOTIF_APRES_ERREUR,
-                    premier ? ProgressionService.XP_1ER_COUP : ProgressionService.XP_APRES_ERREUR, quand);
+    }
+
+    /** Awards a solved course exercise's XP once per stable key, within the daily cap. Last step. */
+    @Transactional
+    public void attribuerXpReussite(SoumissionEnregistree e) {
+        if (!reussiteDeCours(e)
+                // Transition: a solve already rewarded under the per-version UUID key earns nothing more.
+                || evenements.existsByEleveIdAndSourceTypeAndSourceRef(
+                        e.eleveId(), ProgressionService.SOURCE_EXERCICE, e.exerciceId().toString())) {
+            return;
         }
+        boolean premier = e.premiereTentative();
+        attribuer(e.eleveId(), SOURCE_COURS_EXERCICE, e.coursId() + "/" + e.exerciceCle(),
+                premier ? ProgressionService.MOTIF_1ER_COUP : ProgressionService.MOTIF_APRES_ERREUR,
+                premier ? ProgressionService.XP_1ER_COUP : ProgressionService.XP_APRES_ERREUR, quand(e));
+    }
+
+    private static boolean reussiteDeCours(SoumissionEnregistree e) {
+        return e.coursId() != null && e.exerciceCle() != null && e.correct();
+    }
+
+    private static Instant quand(SoumissionEnregistree e) {
+        return e.submittedAt() != null ? e.submittedAt() : Instant.now();
     }
 
     /**
@@ -166,10 +178,17 @@ public class ProgressionCoursService {
         }
     }
 
-    /** XP within the daily cap; course sections count toward it, unlike chapter sections (ADR 0050 §5). */
+    /**
+     * XP once per (student, source), within the daily cap; course sections count toward it, unlike
+     * chapter sections (ADR 0050 §5). Like a chapter exercise, a fact recorded on a capped day earns
+     * its XP the next time it is done. The balance is locked before the cap is read, so awards of one
+     * student serialize and cannot overshoot it together.
+     */
     private void attribuer(UUID eleveId, String sourceType, String sourceRef, String motif, short points,
                            Instant quand) {
-        if (compteur.plafondAtteint(eleveId, quand)) {
+        compteur.verrouillerSolde(eleveId);
+        if (evenements.existsByEleveIdAndSourceTypeAndSourceRef(eleveId, sourceType, sourceRef)
+                || compteur.plafondAtteint(eleveId, quand)) {
             return;
         }
         if (cours.insererXp(eleveId, sourceType, sourceRef, motif, points, quand)) {

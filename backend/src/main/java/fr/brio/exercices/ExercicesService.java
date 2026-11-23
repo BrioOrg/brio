@@ -53,8 +53,12 @@ public class ExercicesService {
                 .orElseThrow(() -> new ExerciceNotFoundException(exerciceId));
         verifierAccesAuCours(studentRef, definition);
 
-        // Computed before persisting the current submission, so it reflects prior attempts only.
-        boolean premiereTentative = !soumissionRepository.existsByStudentRefAndExerciceId(studentRef, exerciceId);
+        // Computed before persisting the current submission, so it reflects prior attempts only — on
+        // every version of a teacher-course exercise, so a republication is not a fresh first try.
+        boolean premiereTentative = !(definition.coursId() == null
+                ? soumissionRepository.existsByStudentRefAndExerciceId(studentRef, exerciceId)
+                : soumissionRepository.existsByStudentRefAndExerciceIdIn(
+                        studentRef, exerciceContentApi.versionsDuMemeExercice(exerciceId)));
 
         EvaluationResult result = dispatcher.dispatch(definition.type(), definition.evaluationJson(), answer);
 

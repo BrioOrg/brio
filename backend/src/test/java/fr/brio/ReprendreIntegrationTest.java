@@ -54,6 +54,8 @@ class ReprendreIntegrationTest {
         lire(chapitre, 2, maintenant);
 
         reprendre().andExpect(status().isOk())
+                // The discriminant the client requires since teacher courses can be resumed (ADR 0050).
+                .andExpect(jsonPath("$.type").value("chapitre"))
                 .andExpect(jsonPath("$.chapitreId").value(chapitre))
                 .andExpect(jsonPath("$.titre").value("Titre de " + chapitre))
                 .andExpect(jsonPath("$.niveauCode").value("3e"))

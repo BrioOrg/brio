@@ -13,8 +13,12 @@ import java.util.UUID;
 /**
  * The bookkeeping shared by chapter and course progression (ADR 0022, ADR 0050): streak activity,
  * the daily XP cap and the materialised balance. A plain helper, not a bean, so both services call
- * it directly. Lock order for one student: course follow-up (course flows only) → streak → balance,
- * which keeps concurrent chapter and course awards from deadlocking.
+ * it directly.
+ *
+ * <p>Lock order for one student, in every progression flow: course follow-up (course flows only) →
+ * streak → mastery rows → balance. A flow that skips a step keeps the order of the others, so no two
+ * flows wait on each other in a cycle (#400 porte 5: a course award once took the balance before
+ * the mastery rows a chapter award holds first).
  */
 final class CompteurXp {
 
@@ -38,6 +42,15 @@ final class CompteurXp {
         Serie serie = series.findById(eleveId).orElseGet(() -> new Serie(eleveId));
         serie.enregistrerActivite(jour, quand);
         series.save(serie);
+    }
+
+    /**
+     * Creates then locks the balance row: XP awards of one student then serialize, so a daily-cap
+     * check made after it sees every committed award (no overshoot across courses).
+     */
+    void verrouillerSolde(UUID eleveId) {
+        soldes.creerSiAbsent(eleveId);
+        soldes.verrouiller(eleveId);
     }
 
     boolean plafondAtteint(UUID eleveId, Instant quand) {

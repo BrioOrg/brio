@@ -3,6 +3,7 @@ package fr.brio.contenu.infrastructure;
 import fr.brio.contenu.api.ExerciceContentApi;
 import fr.brio.contenu.api.ExerciceDefinition;
 import fr.brio.contenu.domain.Exercice;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,17 @@ class ExerciceContentApiImpl implements ExerciceContentApi {
     @Override
     public Optional<ExerciceDefinition> findById(UUID id) {
         return exerciceRepository.findById(id).map(this::toDefinition);
+    }
+
+    @Override
+    public List<UUID> versionsDuMemeExercice(UUID id) {
+        return exerciceRepository.findById(id)
+                .map(e -> e.getCoursId() == null
+                        ? List.of(e.getId())
+                        : exerciceRepository.findByCoursIdAndSlug(e.getCoursId(), e.getSlug()).stream()
+                                .map(Exercice::getId)
+                                .toList())
+                .orElse(List.of(id));
     }
 
     private ExerciceDefinition toDefinition(Exercice exercice) {

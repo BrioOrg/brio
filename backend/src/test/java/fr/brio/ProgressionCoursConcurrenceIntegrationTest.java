@@ -23,6 +23,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.context.ApplicationEventPublisher;
+import java.time.Duration;
+import static org.awaitility.Awaitility.await;
 
 /**
  * Concurrent writes on one (student, course) (ADR 0050 §4, plan technique #400 §7). Not
@@ -35,6 +38,9 @@ import org.springframework.transaction.support.TransactionTemplate;
  *       {@code termine_at} NULL (write skew) → red.</li>
  *   <li>P3 — drop the {@code WHERE … version <} guard from {@code projeterVersion}: v1 after v2
  *       leaves v1's structure → red.</li>
+ *   <li>P7 — in {@code SoumissionXpListener}, award the course XP before
+ *       {@code attribuerPourSoumission} (balance before mastery): a pair deadlocks, one award is
+ *       lost → red.</li>
  * </ul>
  */
 @SpringBootTest
@@ -46,6 +52,7 @@ class ProgressionCoursConcurrenceIntegrationTest {
     @Autowired ProgressionService progression;
     @Autowired JdbcTemplate jdbc;
     @Autowired TransactionTemplate tx;
+    @Autowired ApplicationEventPublisher events;
 
     /** P1 — two tabs (or a double trigger) mark the same section read at once. */
     @Test
@@ -78,8 +85,9 @@ class ProgressionCoursConcurrenceIntegrationTest {
             List<Throwable> echecs = enParallele(
                     () -> cours.onSectionCoursLue(new SectionCoursLue(eleve, coursId, "b", Instant.now())),
                     () -> tx.executeWithoutResult(s -> {
-                        cours.onSoumission(solve);
+                        cours.enregistrerReussite(solve);
                         progression.attribuerPourSoumission(solve);
+                        cours.attribuerXpReussite(solve);
                     }));
 
             assertThat(echecs).as("iteration %d", i).isEmpty();
@@ -104,6 +112,37 @@ class ProgressionCoursConcurrenceIntegrationTest {
                     Integer.class, coursId)).isEqualTo(2);
             assertThat(jdbc.queryForList("SELECT cle FROM progression.cours_elements WHERE cours_id = ?",
                     String.class, coursId)).as("iteration %d", i).containsExactly("a");
+        }
+    }
+
+    /**
+     * P7 — a course solve and a chapter solve of the same student on the same new competence, through
+     * the real listener: chapter flows lock mastery then balance, so the course flow must too, or
+     * PostgreSQL kills one of the two (deadlock) and its award is lost with no retry.
+     */
+    @Test
+    void givenACourseSolveAndAChapterSolveOnTheSameNewCompetenceThenBothAreAwarded() throws Exception {
+        for (int i = 0; i < 30; i++) {
+            UUID eleve = UUID.randomUUID();
+            UUID coursId = UUID.randomUUID();
+            String competence = "c4.test." + UUID.randomUUID();
+            cours.enregistrerCours(new CoursPublie(coursId, 1, List.of("a"), List.of("e1")));
+            SoumissionEnregistree deCours = new SoumissionEnregistree(eleve, UUID.randomUUID(), UUID.randomUUID(),
+                    null, true, 1.0, true, List.of(competence), null, Instant.now(), coursId, "e1");
+            SoumissionEnregistree deChapitre = new SoumissionEnregistree(eleve, UUID.randomUUID(), UUID.randomUUID(),
+                    "chapitre-" + i, true, 1.0, true, List.of(competence), null, Instant.now());
+
+            List<Throwable> echecs = enParallele(
+                    () -> tx.executeWithoutResult(s -> events.publishEvent(deCours)),
+                    () -> tx.executeWithoutResult(s -> events.publishEvent(deChapitre)));
+
+            assertThat(echecs).as("iteration %d", i).isEmpty();
+            int iteration = i;
+            await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+                    assertThat(jdbc.queryForObject(
+                            "SELECT coalesce(sum(points), 0) FROM progression.evenements_xp WHERE eleve_id = ?",
+                            Integer.class, eleve))
+                            .as("iteration %d: both awards, none lost to a deadlock", iteration).isEqualTo(20));
         }
     }
 

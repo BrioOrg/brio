@@ -15,13 +15,17 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.brio.contenu.api.ChapitrePublie;
 import fr.brio.contenu.api.CoursAccesApi;
+import fr.brio.contenu.api.SectionTerminee;
+import fr.brio.progression.ProgressionService;
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.CompteService;
 import fr.brio.identite.api.ClasseInfo;
 import fr.brio.identite.domain.InscriptionId;
 import fr.brio.identite.infrastructure.InscriptionRepository;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +60,7 @@ class CoursProgressionHttpIntegrationTest {
     @Autowired InscriptionRepository inscriptions;
     @Autowired CoursAccesApi coursAcces;
     @Autowired JdbcTemplate jdbc;
+    @Autowired ProgressionService progression;
     @Autowired org.springframework.context.ApplicationContext context;
 
     MockMvc mockMvc;
@@ -206,6 +211,53 @@ class CoursProgressionHttpIntegrationTest {
         mockMvc.perform(get("/api/progression/reprendre").with(alice)).andExpect(status().isNoContent());
     }
 
+    @Test
+    void givenAChapterAndACourseInProgressThenReprendreProposesTheLatestRead() throws Exception {
+        String chapitre = "chapitre-" + UUID.randomUUID();
+        progression.enregistrerChapitre(new ChapitrePublie(
+                chapitre, "3e", "mathematiques", 1, "published", 3, 0, "Les fractions"));
+        progression.onSectionTerminee(new SectionTerminee(aliceId, chapitre, "s1", Instant.now().minusSeconds(3600)));
+        UUID coursId = creerEtPublier();
+
+        lu(coursId, "s1", alice).andExpect(status().isNoContent());
+        attendreReprendre(alice); // the course was read last
+
+        progression.onSectionTerminee(new SectionTerminee(aliceId, chapitre, "s2", Instant.now().plusSeconds(3600)));
+        mockMvc.perform(get("/api/progression/reprendre").with(alice))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("chapitre"))
+                .andExpect(jsonPath("$.chapitreId").value(chapitre));
+    }
+
+    // ── first attempt across versions (S3 I-2) ────────────────────────────────
+
+    @Test
+    void givenAMissOnVersionOneWhenSolvedOnVersionTwoThenItIsNotAFirstTry() throws Exception {
+        UUID coursId = creerEtPublier();
+        soumettre(exerciceId(coursId), "[\"droit\", \"côté\"]", alice); // wrong, on v1
+        mockMvc.perform(post("/api/prof/cours/{id}/publier", coursId).with(teacher).with(csrf()))
+                .andExpect(status().isOk()); // v2: new exercise UUIDs, same block id
+
+        soumettre(exerciceId(coursId), "[\"côté\", \"droit\"]", alice); // right, on v2
+
+        await().atMost(Duration.ofSeconds(10)).until(() -> jdbc.queryForObject(
+                "SELECT coalesce(sum(points), 0) FROM progression.evenements_xp WHERE eleve_id = ? "
+                        + "AND source_type = 'cours_exercice'", Integer.class, aliceId) > 0);
+        assertThat(jdbc.queryForObject(
+                "SELECT motif FROM progression.evenements_xp WHERE eleve_id = ? AND source_type = 'cours_exercice'",
+                String.class, aliceId)).isEqualTo("reussi_apres_erreur");
+    }
+
+    @Test
+    void givenAStudentOutOfScopeThenTheRefusalCarriesItsOwnCode() throws Exception {
+        UUID coursId = creerEtPublier();
+        mockMvc.perform(post("/api/exercices/{id}/soumissions", exerciceId(coursId)).with(bob).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"answer\": {\"blanks\": [\"côté\", \"droit\"]}}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("cours_hors_portee"));
+    }
+
     // ── S3: one visibility rule ───────────────────────────────────────────────
 
     @Test
@@ -255,6 +307,13 @@ class CoursProgressionHttpIntegrationTest {
     private org.springframework.test.web.servlet.ResultActions lu(UUID coursId, String section, RequestPostProcessor qui)
             throws Exception {
         return mockMvc.perform(post("/api/cours/{c}/sections/{s}/lu", coursId, section).with(qui).with(csrf()));
+    }
+
+    private void soumettre(String exerciceId, String blanks, RequestPostProcessor qui) throws Exception {
+        mockMvc.perform(post("/api/exercices/{id}/soumissions", exerciceId).with(qui).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"answer\": {\"blanks\": " + blanks + "}}"))
+                .andExpect(status().isOk());
     }
 
     private void attendreReprendre(RequestPostProcessor qui) {

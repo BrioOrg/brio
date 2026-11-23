@@ -1,7 +1,6 @@
 package fr.brio.progression.infrastructure;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collection;
@@ -22,8 +21,11 @@ public class CoursProgressionRepository {
     public static final String SECTION = "section";
     public static final String EXERCICE = "exercice";
 
-    @PersistenceContext
-    private EntityManager em;
+    private final EntityManager em;
+
+    CoursProgressionRepository(EntityManager em) {
+        this.em = em;
+    }
 
     // ── projection (structural) ──────────────────────────────────────────────
 
