@@ -286,7 +286,7 @@ describe('CoursPage', () => {
         'd1',
       ],
       ['a rejected read', () => lireDevoirs.mockRejectedValue(new TypeError('fetch failed')), 'd1'],
-    ])('adds no link for %s', async (_cas, preparer, devoirId) => {
+    ])('adds no homework link for %s', async (_cas, preparer, devoirId) => {
       preparer()
       await renderPage({ devoir: devoirId, disponible: false })
 
@@ -307,7 +307,7 @@ describe('CoursPage', () => {
       )
     })
 
-    it('adds no link when not opened from a homework', async () => {
+    it('adds no homework link when not opened from a homework', async () => {
       await renderPage({ disponible: false })
 
       expect(lireDevoirs).not.toHaveBeenCalled()
@@ -315,7 +315,7 @@ describe('CoursPage', () => {
       expect(screen.queryByRole('link', { name: 'Retour à mes devoirs' })).toBeNull()
     })
 
-    it('adds no link when ?devoir= is repeated', async () => {
+    it('adds no homework link when ?devoir= is repeated', async () => {
       await renderPage({ devoir: ['d1', 'd2'], disponible: false })
 
       expect(screen.getByRole('alert')).toHaveTextContent('Cours indisponible')
