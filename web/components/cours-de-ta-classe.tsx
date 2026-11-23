@@ -10,6 +10,12 @@ const DATE_PUBLICATION = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'Europe/Paris',
 })
 
+// The title of the full list (« Cours du prof » tab) and of the capped block (« À faire » tab), whose
+// spacing follows its neighbours « À faire » and « Terminés ».
+const TITRE = 'font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted'
+const TITRE_LISTE = `mb-4 ${TITRE}`
+const TITRE_BLOC = `mb-2 ${TITRE}`
+
 /** The subject's label from the catalogue, or null when the catalogue doesn't list it. */
 function libelleMatiere(catalogue: Catalogue, cours: CoursVisible): string | null {
   const niveau = catalogue.find((n) => n.niveauCode === cours.niveauCode)
@@ -25,20 +31,25 @@ function libelleMatiere(catalogue: Catalogue, cours: CoursVisible): string | nul
 export function CoursDeTaClasse({
   cours,
   catalogue,
+  plafond,
 }: {
   cours: CoursVisible[]
   catalogue: Catalogue
+  /** Keep only the first `plafond` courses and link to the full list when there are more. */
+  plafond?: number
 }) {
+  const affiches = plafond === undefined ? cours : cours.slice(0, plafond)
+  const voirTous = plafond !== undefined && cours.length > plafond
   return (
-    <section className="mt-10" aria-labelledby="cours-classe-heading">
-      <h2
-        id="cours-classe-heading"
-        className="mb-4 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted"
-      >
+    <section
+      className={plafond === undefined ? 'mt-10' : undefined}
+      aria-labelledby="cours-classe-heading"
+    >
+      <h2 id="cours-classe-heading" className={plafond === undefined ? TITRE_LISTE : TITRE_BLOC}>
         Les cours de ta classe
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {cours.map((c) => {
+        {affiches.map((c) => {
           const matiere = libelleMatiere(catalogue, c)
           const details = [matiere, c.enseignant ? `par ${c.enseignant}` : null].filter(Boolean)
           return (
@@ -70,6 +81,15 @@ export function CoursDeTaClasse({
           )
         })}
       </ul>
+      {voirTous && (
+        <Link
+          href="/ma-classe/cours"
+          className="mt-3 inline-flex min-h-11 items-center gap-1 font-display text-sm font-extrabold text-accent-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          Voir tous les cours du prof
+          <Icon name="arrow-right" size={16} aria-hidden="true" />
+        </Link>
+      )}
     </section>
   )
 }
