@@ -270,6 +270,8 @@ with the same tokens and the same `buildDeck`.
 - #246: full-screen exercise. (No store to lift any more: §1, amended.)
 - Teacher courses (`/cours/[coursId]`, F3) also render through `ChapterView`. They get the
   interactive mode in a later issue; this ADR covers catalogue chapters only.
+  Amended by [ADR 0050](0050-progression-cours-enseignant.md) §7 (#400): teacher courses get the
+  interactive mode, with a discriminated target (`chapitre` | `cours`).
 
 ## Alternatives considered
 

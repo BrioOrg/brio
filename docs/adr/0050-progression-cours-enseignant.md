@@ -1,7 +1,8 @@
 <!-- mesh:contrat=decision-conseil v1 -->
 # 0050 — Progression des cours d'enseignant : lecture, réussites et « Reprendre »
 
-- **Status**: Proposed
+- **Status**: Accepted — signé par Gabrielle (humaine, N3) le 2026-11-23, points 1 à 7 tels que
+  recommandés
 - **Date**: 2026-11-23
 - **Deciders**: Conseil N2 du mesh, P2 (stratège produit), B1 (architecte technique) et V5
   (gardien des données de mineurs), **puis signature de l'humaine (N3)**. Ticket PL-6b (#400),
@@ -14,8 +15,8 @@
 > --open-prs` → OK. Numéros réservés dans #400 : ADR **0050**, migration **V45**.
 >
 > **Statut.** Décision **N3** : nouveau traitement de données de lecture de mineurs (ADR 0018,
-> 0022). L'ADR reste `Proposed` jusqu'à la signature de l'humaine, et **aucun code** de PL-6b ne
-> part avant.
+> 0022). Proposée le 2026-11-23, **signée par Gabrielle le 2026-11-23** (« Je signe tout » : les
+> sept points ci-dessous, avec les recommandations de B1 et V5).
 >
 > **Amende** : ADR 0022 §3 (une exception de lecture, bornée, §2 ci-dessous) et ADR 0032
 > l.271-272 (le mode interactif s'étend aux cours, §6).
@@ -255,15 +256,20 @@ mergé) n'est pas touchée. La page `/cours/[coursId]` est modifiée **après** 
 - **Durée de conservation (I1)** : **aucune durée n'est définie aujourd'hui ; la conservation est
   illimitée de fait** tant qu'aucune règle commune n'est posée. Ni les chapitres (V19-V20) ni les
   cours (V45) ne sont couverts par une purge : la seule purge existante est celle de `social`
-  (ADR 0023 §6), et aucun chemin de suppression de compte n'existe. **Décision de l'humaine** :
-  ⟦ À SIGNER — voir « Points à signer », n° 2 ⟧.
+  (ADR 0023 §6), et aucun chemin de suppression de compte n'existe. **Décision de l'humaine
+  (2026-11-23)** : durée provisoire = **vie du compte** ; le ticket transverse **#435**
+  (propriétaire : Gabrielle) fixe une durée concrète, l'effacement à la suppression d'un compte et
+  la purge anticipée des lignes d'un cours qui n'est plus visible (I1c). **#435 doit être fermé
+  avant** qu'un établissement réel active la voie A (ADR 0018 §3) ou qu'un compte voie B réel soit
+  ouvert.
 - **Retrait d'accès** : un cours retiré ou dépublié n'efface pas l'historique de l'élève (sa
   propre trace), mais ne lui est plus jamais proposé ni décompté hors de la page (jauge en 204
   si aucune ligne, « Reprendre » filtré). Ces lignes ne servant plus la finalité, la règle de
   conservation prévoit leur purge anticipée (I1c).
 - **Registre des traitements (I2)** : aucune entrée n'existe ; ADR 0016, 0017 et 0018 renvoient
   à un registre futur, et `CAHIER-DES-CHARGES-V2.md:258` exige qu'il soit écrit **en même temps**
-  que les migrations. Lieu : ⟦ À SIGNER — voir « Points à signer », n° 3 ⟧. Entrée **complète**
+  que les migrations. Lieu (décision de l'humaine, 2026-11-23) : **dans le dépôt**,
+  `docs/rgpd/registre-des-traitements.md`, créé par PL-6b avec V45. Entrée **complète**
   proposée, pour les chapitres **et** les cours :
 
   > **Suivi de progression de l'élève**
@@ -279,7 +285,8 @@ mergé) n'est pas touchée. La page `/cours/[coursId]` est modifiée **après** 
   >   l'identifiant dans `system.event_publication` pour un événement non abouti.
   > - *Destinataires* : l'élève seul. Aucun accès enseignant, établissement ou administrateur.
   > - *Base légale* : celle du compte de l'élève (ADR 0018 §1, voie A ou B).
-  > - *Durée* : celle signée au point n° 2.
+  > - *Durée* : vie du compte, à titre provisoire ; durée concrète et effacement à fixer par #435,
+  >   avant toute activation réelle (ADR 0018 §3).
   > - *Mesures* : pseudonymat (UUID, aucun nom ni classe dans le schéma `progression`), identité
   >   tirée de la session sur toutes les routes, aucune donnée hors UE, XP sans boucle pilotable
   >   par l'élève (unicité des clés, plafond quotidien).
@@ -288,10 +295,10 @@ mergé) n'est pas touchée. La page `/cours/[coursId]` est modifiée **après** 
 
 | Réserve (rapport V5, 2026-11-18, tour 1) | Traitement dans ce texte |
 |---|---|
-| **I1** — « La durée de conservation est présentée comme alignée sur les chapitres, alors qu'elle est en fait illimitée. » | (a) formule remplacée par « aucune durée définie ; conservation illimitée de fait » ; (b) durée **à signer** (point n° 2) ; (c) purge anticipée des lignes d'un cours qui n'est plus visible incluse dans la règle. Fait nouveau : la purge `social` (ADR 0023 §6) existe et sert de modèle, mais ne couvre pas `progression`. |
-| **I2** — « Le texte du registre étend une entrée qui n'existe pas. » | Entrée **complète** « Suivi de progression de l'élève » (chapitres et cours, `evenements_xp`, série, maîtrise, `event_publication`) ; lieu du registre **à signer** (point n° 3). |
-| **I3** — « Un exercice de cours peut être soumis hors portée. » | Option (a) retenue au §3, à signer (point n° 4) : contrôle dans `exercices` avant évaluation, 403/404, ni soumission ni événement. Section « Personnes concernées » rendue exacte. Interaction avec les devoirs vérifiée (aucun cas nouveau). |
-| **I4** — « La jauge répond sans contrôle de portée. » | 204 si l'élève n'a aucune ligne pour ce cours (§5), à signer (point n° 5). Test C12 étendu : élève B sans lecture → 204. |
+| **I1** — « La durée de conservation est présentée comme alignée sur les chapitres, alors qu'elle est en fait illimitée. » | (a) formule remplacée par « aucune durée définie ; conservation illimitée de fait » ; (b) durée signée (point n° 2, #435) ; (c) purge anticipée des lignes d'un cours qui n'est plus visible incluse dans la règle. Fait nouveau : la purge `social` (ADR 0023 §6) existe et sert de modèle, mais ne couvre pas `progression`. |
+| **I2** — « Le texte du registre étend une entrée qui n'existe pas. » | Entrée **complète** « Suivi de progression de l'élève » (chapitres et cours, `evenements_xp`, série, maîtrise, `event_publication`) ; lieu du registre signé (point n° 3). |
+| **I3** — « Un exercice de cours peut être soumis hors portée. » | Option (a) retenue au §3 (point n° 4) : contrôle dans `exercices` avant évaluation, 403/404, ni soumission ni événement. Section « Personnes concernées » rendue exacte. Interaction avec les devoirs vérifiée (aucun cas nouveau). |
+| **I4** — « La jauge répond sans contrôle de portée. » | 204 si l'élève n'a aucune ligne pour ce cours (§5, point n° 5). Test C12 étendu : élève B sans lecture → 204. |
 | **S1** — titre de brouillon dans « Reprendre » | Le titre renvoyé est celui de la version publiée, celui de la page (§2). |
 | **S2** — l'amorce ne touche jamais aux faits d'un élève | Règle écrite au §4 et figée par un test. |
 | **S3** — une seule implémentation du prédicat | §2 : même méthode que `estVisiblePour`, test de parité « 200 sur `GET /api/cours/{id}` ⇔ présent dans `titresVisiblesPourEleve` », javadoc de `CoursAccesApi` mise à jour. |
@@ -299,13 +306,15 @@ mergé) n'est pas touchée. La page `/cours/[coursId]` est modifiée **après** 
 | **S5** — citations du plan | Lignes recitées au SHA `8b3c450` (`CoursController.java:80-87`) ; la borne à 128 est prouvée par un test, sans code nouveau. |
 | **S6** — `event_publication` | Cité dans les catégories et dans l'entrée du registre ; inclus dans la règle de conservation. |
 
-## Points à signer par l'humaine (N3)
+## Points signés par l'humaine (N3, 2026-11-23)
 
 1. Le traitement (option A), avec la section « Données de mineurs », et l'amendement de
    l'ADR 0022 §3 (§2). *Avis V5 : favorable une fois I1-I3 corrigés ; l'exception filtre et
    n'élargit rien.*
-2. La **durée de conservation** des données de progression (chapitres et cours).
-3. Le **lieu du registre** des traitements et l'entrée « Suivi de progression de l'élève ».
+2. La **durée de conservation** des données de progression (chapitres et cours) : vie du compte,
+   provisoire, et ticket #435 à fermer avant toute activation réelle.
+3. Le **lieu du registre** des traitements (`docs/rgpd/registre-des-traitements.md`) et l'entrée
+   « Suivi de progression de l'élève ».
 4. Le **contrôle de portée à la soumission** d'un exercice de cours dans PL-6b (§3).
 5. La **jauge en 204** pour un cours sans ligne de l'élève (§5).
 6. Les écarts de barème : sections de cours **comptées** dans le plafond ; exercices `paper`
@@ -335,11 +344,11 @@ mergé) n'est pas touchée. La page `/cours/[coursId]` est modifiée **après** 
 
 ### Follow-ups
 - Signal P1 : `ChapitrePublie` compte les exercices `paper` dans le total des chapitres.
-- Ticket transverse de conservation et d'effacement des données `progression` (selon point n° 2).
+- #435 : conservation et effacement des données `progression` (chapitres et cours), avant toute
+  activation réelle.
 - Signal P1 : la liste « Mes cours » (`CoursLectureService.coursVisiblesPour`, l.90) affiche le
   titre du brouillon, pas celui de la version publiée (même incohérence que S1, hors périmètre).
-- Une note « amendé par 0050 » sous ADR 0022 §3 et ADR 0032 l.271-272, posée par P3 **après**
-  signature.
+- Notes « amendé par 0050 » sous ADR 0022 §3 et ADR 0032 (cours d'enseignant), posées par P3.
 
 ## Alternatives considered
 
@@ -361,6 +370,7 @@ mergé) n'est pas touchée. La page `/cours/[coursId]` est modifiée **après** 
 
 ## Liens
 
-- Issues #400 (PL-6b) et #398 (PL-6a, fiche besoin), épopée #358 ; PL-3 #396 (ADR 0046).
+- Issues #400 (PL-6b), #398 (PL-6a, fiche besoin), #435 (conservation), épopée #358 ; PL-3 #396
+  (ADR 0046).
 - ADR 0007, 0018, 0019, 0022, 0023 §6, 0029, 0032, 0046.
 - `docs/mesh/CONTRATS.md` §5 et §6.
