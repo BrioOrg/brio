@@ -24,7 +24,7 @@
  *   POST /api/exercices/{id}/soumissions          graded from content/ like the backend's
  *                                                 evaluators (#246); 401 without a session
  *   POST /api/chapitres/{id}/sections/{s}/lu      204 with a session, 401 without
- *   GET  /api/devoirs, /api/cours                 the test student's homework and courses
+ *   GET  /api/devoirs, /api/cours                 the test student's homework and courses (courses newest first)
  *   GET  /api/cours/{id}                          a published teacher course, as CoursController
  *                                                 serves it: 401 without a session, 400 for an id
  *                                                 UUID.fromString rejects (GlobalExceptionHandler's
@@ -240,6 +240,33 @@ const COURS = [
     matiereCode: 'mathematiques',
     enseignant: 'M. Dubois',
     publieAt: '2026-10-01T08:00:00Z',
+    classeIds: [CLASSE.id],
+  },
+  {
+    id: '00000000-0000-4000-8000-00000000c003',
+    titre: 'Les angles, version M. Dubois',
+    niveauCode: '5e',
+    matiereCode: 'mathematiques',
+    enseignant: 'M. Dubois',
+    publieAt: '2026-10-14T08:00:00Z',
+    classeIds: [CLASSE.id],
+  },
+  {
+    id: '00000000-0000-4000-8000-00000000c004',
+    titre: 'Le cercle, version M. Dubois',
+    niveauCode: '5e',
+    matiereCode: 'mathematiques',
+    enseignant: 'M. Dubois',
+    publieAt: '2026-10-08T08:00:00Z',
+    classeIds: [CLASSE.id],
+  },
+  {
+    id: '00000000-0000-4000-8000-00000000c005',
+    titre: 'Les priorités opératoires, version M. Dubois',
+    niveauCode: '5e',
+    matiereCode: 'mathematiques',
+    enseignant: 'M. Dubois',
+    publieAt: '2026-09-20T08:00:00Z',
     classeIds: [CLASSE.id],
   },
 ]
@@ -840,7 +867,11 @@ const server = createServer(async (req, res) => {
     }
     if (pathname === '/api/cours') {
       if (!connecte(req)) return send(res, 401)
-      return send(res, 200, sansClasse(req) ? [] : COURS)
+      return send(
+        res,
+        200,
+        sansClasse(req) ? [] : [...COURS].sort((a, b) => b.publieAt.localeCompare(a.publieAt))
+      )
     }
     const unCours = pathname.match(/^\/api\/cours\/([^/]+)$/)
     if (unCours) return coursPublie(req, res, unCours[1])

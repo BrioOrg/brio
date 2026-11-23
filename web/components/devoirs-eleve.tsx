@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 
 import { listerMesDevoirs, type DevoirEleveVue } from '@brio/api-client'
@@ -28,9 +28,12 @@ const STATUT_LABEL: Record<string, string> = {
 export function DevoirsEleve({
   classeId,
   cheminsChapitres,
+  apresAFaire,
 }: {
   classeId: string
   cheminsChapitres: Record<string, string>
+  /** Shown between « À faire » and « Terminés », once the list has settled. */
+  apresAFaire?: ReactNode
 }) {
   const [devoirs, setDevoirs] = useState<DevoirEleveVue[] | null>(null)
   const [deconnecte, setDeconnecte] = useState(false)
@@ -52,6 +55,8 @@ export function DevoirsEleve({
   const estTermine = (d: DevoirEleveVue) => d.corrige || d.statutRendu === 'rendu'
   const aFaire = deLaClasse.filter((d) => !estTermine(d))
   const termines = deLaClasse.filter(estTermine)
+  const reglee = devoirs !== null || deconnecte || erreur !== null
+  const emplacement = reglee && apresAFaire ? apresAFaire : null
   const carte = (d: DevoirEleveVue, enCours: boolean) => (
     <CarteDevoir key={d.id} devoir={d} aFaire={enCours} lien={lienDevoir(d, cheminsChapitres)} />
   )
@@ -75,8 +80,10 @@ export function DevoirsEleve({
         </section>
       )}
 
+      {emplacement && <div className="mt-6">{emplacement}</div>}
+
       {termines.length > 0 && (
-        <section className={aFaire.length > 0 ? 'mt-6' : undefined}>
+        <section className={aFaire.length > 0 || emplacement ? 'mt-6' : undefined}>
           <h2 className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
             Terminés
           </h2>
