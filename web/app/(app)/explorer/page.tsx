@@ -126,6 +126,30 @@ export default async function ExplorerPage() {
             </li>
           </ul>
         </section>
+
+        <section className="mt-10" aria-labelledby="outils-heading">
+          <h2 id="outils-heading" className={TITRE_DE_BLOC}>
+            Les outils
+          </h2>
+          <p className="-mt-2 mb-4 font-prose text-sm text-ink-muted">
+            Des outils pour essayer, tracer et vérifier par toi-même.
+          </p>
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <li>
+              <CarteLien href="/explorer/calculatrice">
+                <span className="font-display text-lg font-extrabold tracking-tight text-ink">
+                  Calculatrice graphique
+                </span>
+                <span className="flex items-center justify-between gap-2 font-prose text-sm text-ink-muted">
+                  Trace des courbes et bouge des curseurs pour voir ce qui change.
+                  <span className="shrink-0">
+                    <Fleche />
+                  </span>
+                </span>
+              </CarteLien>
+            </li>
+          </ul>
+        </section>
       </main>
     </div>
   )

@@ -91,4 +91,19 @@ describe('ExplorerPage', () => {
     expect(carte).toHaveTextContent('Choisis un sujet')
     expect(document.body).not.toHaveTextContent(/vrais sujets/i)
   })
+
+  // #421 : la calculatrice graphique, dans une section « Les outils » placée en dernier.
+  it('propose la calculatrice graphique dans « Les outils », en dernière section', async () => {
+    await renderPage(() => Promise.resolve('5e'))
+
+    const outils = screen.getByRole('region', { name: 'Les outils' })
+    expect(outils).toHaveTextContent('Des outils pour essayer, tracer et vérifier par toi-même.')
+    const carte = within(outils).getByRole('link', { name: /Calculatrice graphique/ })
+    expect(carte).toHaveAttribute('href', '/explorer/calculatrice')
+    expect(carte).toHaveTextContent(
+      'Trace des courbes et bouge des curseurs pour voir ce qui change.'
+    )
+    const sections = within(screen.getByRole('main')).getAllByRole('region')
+    expect(sections[sections.length - 1]).toBe(outils)
+  })
 })

@@ -43,6 +43,7 @@
     { "id": "eleve-annales", "label": "S'entraîner sur une annale", "persona": "eleve", "chaude": false, "arrivee": "/annales", "budget": 1, "cible": 1 },
     { "id": "eleve-profil", "label": "Voir mon profil", "persona": "eleve", "chaude": false, "arrivee": "/profil", "budget": 1, "cible": 1 },
     { "id": "eleve-parametres", "label": "Ouvrir mes paramètres", "persona": "eleve", "chaude": false, "arrivee": "/parametres", "budget": 1, "cible": 1 },
+    { "id": "eleve-calculatrice", "label": "Ouvrir la calculatrice graphique", "persona": "eleve", "chaude": false, "arrivee": "/explorer/calculatrice", "budget": 2, "cible": 2 },
     { "id": "eleve-rejoindre-classe", "label": "Rejoindre une classe avec un code", "persona": "eleve", "chaude": false, "arrivee": "/rejoindre", "budget": 2, "cible": 2 },
     { "id": "prof-creer-devoir", "label": "Créer un devoir", "persona": "enseignant", "chaude": true, "arrivee": "/prof/devoirs/nouveau", "budget": 2, "cible": 2 },
     { "id": "prof-suivre-devoir", "label": "Suivre et corriger un devoir", "persona": "enseignant", "chaude": true, "via": ["/prof/devoirs"], "arrivee": "/prof/devoirs/[id]", "budget": 2, "cible": 2 },

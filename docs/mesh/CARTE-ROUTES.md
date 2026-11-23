@@ -12,6 +12,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 |---|---|---|---:|---:|---:|---|
 | Reprendre le chapitre en cours | eleve | 🔥 | 1 | 1 | 1 | `/` → `/[niveau]/[matiere]/[slug]` |
 | Ouvrir un chapitre de ma matière | eleve | 🔥 | 2 | 2 | 2 | `/` → `/[niveau]/[matiere]` → `/[niveau]/[matiere]/[slug]` |
+| Retravailler une notion à revoir | eleve | 🔥 | 1 | 1 | 1 | `/` → `/[niveau]/[matiere]/[slug]` |
 | Voir mes devoirs à faire | eleve | 🔥 | 1 | 1 | 1 | `/` → `/ma-classe` |
 | Lire un cours publié par mon prof | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/cours/[coursId]` |
 | Ouvrir le cours de mon devoir | eleve | 🔥 | 1 | 1 | 1 | `/` → `/cours/[coursId]` |
@@ -22,6 +23,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | S'entraîner sur une annale | eleve |  | 1 | 1 | 1 | `/` → `/annales` |
 | Voir mon profil | eleve |  | 1 | 1 | 1 | `/` → `/profil` |
 | Ouvrir mes paramètres | eleve |  | 1 | 1 | 1 | `/` → `/parametres` |
+| Ouvrir la calculatrice graphique | eleve |  | 2 | 2 | 2 | `/` → `/explorer` → `/explorer/calculatrice` |
 | Rejoindre une classe avec un code | eleve |  | 2 | 2 | 2 | `/` → `/ma-classe` → `/rejoindre` |
 | Créer un devoir | enseignant | 🔥 | 2 | 2 | 2 | `/prof` → `/prof/devoirs` → `/prof/devoirs/nouveau` |
 | Suivre et corriger un devoir | enseignant | 🔥 | 2 | 2 | 2 | `/prof` → `/prof/devoirs` → `/prof/devoirs/[id]` |
@@ -53,6 +55,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 2 | `/[niveau]` |
 | 2 | `/communaute/[questionId]` |
 | 2 | `/communaute/nouvelle` |
+| 2 | `/explorer/calculatrice` |
 | 2 | `/ma-classe/cours` |
 | 2 | `/ma-classe/salon` |
 | 2 | `/rejoindre` |
@@ -78,6 +81,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 |---:|---|
 | 0 | `/explorer` |
 | 1 | `/admin/communaute` |
+| 1 | `/explorer/calculatrice` |
 
 ## Profondeur de chaque route — entrée « visiteur » (`/commencer`)
 
