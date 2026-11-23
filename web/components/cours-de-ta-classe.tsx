@@ -35,10 +35,13 @@ export function CoursDeTaClasse({
   const affiches = plafond === undefined ? cours : cours.slice(0, plafond)
   const voirTous = plafond !== undefined && cours.length > plafond
   return (
-    <section className={plafond === undefined ? 'mt-10' : undefined} aria-labelledby="cours-classe-heading">
+    <section
+      className={plafond === undefined ? 'mt-10' : undefined}
+      aria-labelledby="cours-classe-heading"
+    >
       <h2
         id="cours-classe-heading"
-        className={`${plafond === undefined ? 'mb-4' : 'mb-2'} font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted"
+        className={`${plafond === undefined ? 'mb-4' : 'mb-2'} font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted`}
       >
         Les cours de ta classe
       </h2>
