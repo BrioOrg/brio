@@ -14,8 +14,14 @@ import { ChapterInteractionProvider } from '@/components/chapter-interaction-con
 import { tutorRequestCap } from '@/lib/tutor-config'
 
 // A teacher course lives outside the public catalogue tree, so it has no niveau/matiere
-// breadcrumb or sibling-chapter sidebar. Same reader, same <ChapterView/> — the content is
-// indistinguishable from a catalogue chapter (ADR 0019 §1); only the surrounding nav differs.
+// breadcrumb or sibling-chapter sidebar: its trail is « Ma classe › Cours du prof › title » (#398).
+// Same reader, same <ChapterView/> — the content is indistinguishable from a catalogue chapter
+// (ADR 0019 §1); only the surrounding nav differs.
+const FIL = [
+  { label: 'Ma classe', href: '/ma-classe' },
+  { label: 'Cours du prof', href: '/ma-classe/cours' },
+] as const
+
 export default async function CoursPage({
   params,
   searchParams,
@@ -46,7 +52,7 @@ export default async function CoursPage({
   if (!cours) {
     return (
       <div className="min-h-screen bg-surface-page font-prose text-ink">
-        <SiteHeader crumbs={[{ label: 'Cours' }]} />
+        <SiteHeader crumbs={[...FIL, { label: 'Cours indisponible' }]} />
         <main className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
           <div
             role="alert"
@@ -58,16 +64,14 @@ export default async function CoursPage({
             </p>
           </div>
           {/* Below the alert, not inside it: the link colour lacks contrast on the warning tint. */}
-          {devoirEleve && (
-            <div className="mt-4">
-              <Link href="/ma-classe">
-                <Button variant="secondary" size="sm" tabIndex={-1}>
-                  <Icon name="arrow-left" size={16} aria-hidden="true" />
-                  Retour à mes devoirs
-                </Button>
-              </Link>
-            </div>
-          )}
+          <div className="mt-4">
+            <Link href={devoirEleve ? '/ma-classe' : '/ma-classe/cours'}>
+              <Button variant="secondary" size="sm" tabIndex={-1}>
+                <Icon name="arrow-left" size={16} aria-hidden="true" />
+                {devoirEleve ? 'Retour à mes devoirs' : 'Voir les cours du prof'}
+              </Button>
+            </Link>
+          </div>
         </main>
       </div>
     )
@@ -78,7 +82,7 @@ export default async function CoursPage({
 
   return (
     <div className="min-h-screen bg-surface-page font-prose text-ink">
-      <SiteHeader crumbs={[{ label: cours.title }]} />
+      <SiteHeader crumbs={[...FIL, { label: cours.title }]} />
 
       <ChapterInteractionProvider tutorRequestCap={tutorRequestCap()}>
         <div className="mx-auto max-w-5xl px-4 pb-24 pt-6 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_312px] lg:gap-8 lg:pb-12">

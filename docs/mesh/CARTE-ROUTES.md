@@ -14,7 +14,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | Ouvrir un chapitre de ma matière | eleve | 🔥 | 2 | 2 | 2 | `/` → `/[niveau]/[matiere]` → `/[niveau]/[matiere]/[slug]` |
 | Retravailler une notion à revoir | eleve | 🔥 | 1 | 1 | 1 | `/` → `/[niveau]/[matiere]/[slug]` |
 | Voir mes devoirs à faire | eleve | 🔥 | 1 | 1 | 1 | `/` → `/ma-classe` |
-| Lire un cours publié par mon prof | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/cours/[coursId]` |
+| Lire un cours publié par mon prof (sans devoir) | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/cours/[coursId]` |
 | Ouvrir le cours de mon devoir | eleve | 🔥 | 1 | 1 | 1 | `/` → `/cours/[coursId]` |
 | Ouvrir le chapitre de mon devoir | eleve | 🔥 | 1 | 1 | 1 | `/` → `/[niveau]/[matiere]/[slug]` |
 | Écrire dans le salon de ma classe | eleve | 🔥 | 2 | 2 | 2 | `/` → `/ma-classe` → `/ma-classe/salon` |
