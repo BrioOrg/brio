@@ -3,6 +3,7 @@ package fr.brio.contenu.web;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.brio.contenu.CoursLectureService;
 import fr.brio.contenu.CoursVisible;
+import fr.brio.contenu.api.AccesCours;
 import fr.brio.identite.api.EnseignantContexteQuery;
 import fr.brio.identite.api.InscriptionsQuery;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -33,6 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 @Tag(name = "Contenu", description = "Accès aux chapitres de cours")
 class CoursController {
+
+    /** Same bound as the course schema's ids and progression's key columns (ADR 0050). */
+    static final int ID_SECTION_MAX = 128;
 
     private final CoursLectureService coursLectureService;
     private final InscriptionsQuery inscriptionsQuery;
@@ -86,5 +91,32 @@ class CoursController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(contenu);
+    }
+
+    @PostMapping("/cours/{coursId}/sections/{sectionId}/lu")
+    @Operation(
+            summary = "Marque une section d'un cours d'enseignant comme lue",
+            description = "Signal léger : enregistre la lecture d'une section pour l'élève connecté (jauge, "
+                    + "« Reprendre » et XP de section du cours). Mêmes règles d'accès que la lecture du cours.")
+    @ApiResponse(responseCode = "204", description = "Lecture enregistrée")
+    @ApiResponse(responseCode = "400", description = "Identifiant de section trop long")
+    @ApiResponse(responseCode = "401", description = "Authentification requise")
+    @ApiResponse(responseCode = "403", description = "Cours non accessible à l'élève (hors portée)")
+    @ApiResponse(responseCode = "404", description = "Cours introuvable, non publié, ou section absente de la version publiée")
+    ResponseEntity<Void> marquerSectionLue(
+            @PathVariable UUID coursId,
+            @PathVariable String sectionId,
+            @AuthenticationPrincipal UserDetails principal) {
+        if (sectionId.length() > ID_SECTION_MAX) {
+            return ResponseEntity.badRequest().build();
+        }
+        UUID eleveId = UUID.fromString(principal.getUsername());
+        Set<UUID> classesEleve = inscriptionsQuery.classesDeLEleve(eleveId);
+        AccesCours resultat = coursLectureService.marquerSectionLue(coursId, sectionId, eleveId, classesEleve);
+        return switch (resultat) {
+            case VISIBLE -> ResponseEntity.noContent().build();
+            case HORS_PORTEE -> ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            case INTROUVABLE -> ResponseEntity.notFound().build();
+        };
     }
 }

@@ -28,7 +28,9 @@ class ExerciceContentApiImpl implements ExerciceContentApi {
                 exercice.getType(),
                 exercice.getCompetencies(),
                 exercice.getDifficulte(),
-                exercice.getEvaluation()
+                exercice.getEvaluation(),
+                exercice.getCoursId(),
+                exercice.getCoursId() != null ? exercice.getSlug() : null
         );
     }
 }
