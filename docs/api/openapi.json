@@ -1234,8 +1234,18 @@
               }
             }
           },
+          "403" : {
+            "description" : "Exercice d'un cours d'enseignant non accessible à l'élève (hors portée)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SoumissionResponse"
+                }
+              }
+            }
+          },
           "404" : {
-            "description" : "Exercice introuvable",
+            "description" : "Exercice introuvable (ou cours non publié)",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -1620,6 +1630,47 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/cours/{coursId}/sections/{sectionId}/lu" : {
+      "post" : {
+        "tags" : [ "Contenu" ],
+        "summary" : "Marque une section d'un cours d'enseignant comme lue",
+        "description" : "Signal léger : enregistre la lecture d'une section pour l'élève connecté (jauge, « Reprendre » et XP de section du cours). Mêmes règles d'accès que la lecture du cours.",
+        "operationId" : "marquerSectionCoursLue",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "sectionId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Lecture enregistrée"
+          },
+          "400" : {
+            "description" : "Identifiant de section trop long"
+          },
+          "401" : {
+            "description" : "Authentification requise"
+          },
+          "403" : {
+            "description" : "Cours non accessible à l'élève (hors portée)"
+          },
+          "404" : {
+            "description" : "Cours introuvable, non publié, ou section absente de la version publiée"
           }
         }
       }
@@ -2702,11 +2753,15 @@
         "operationId" : "reprendre",
         "responses" : {
           "200" : {
-            "description" : "Dernier chapitre en cours",
+            "description" : "Dernier chapitre ou cours en cours",
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ChapitreAReprendre"
+                  "oneOf" : [ {
+                    "$ref" : "#/components/schemas/ChapitreAReprendre"
+                  }, {
+                    "$ref" : "#/components/schemas/CoursAReprendre"
+                  } ]
                 }
               }
             }
@@ -2788,6 +2843,36 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/progression/cours/{coursId}" : {
+      "get" : {
+        "tags" : [ "progression-controller" ],
+        "operationId" : "progressionCours",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Jauge du cours pour l'élève connecté",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProgressionCoursInfo"
+                }
+              }
+            }
+          },
+          "204" : {
+            "description" : "Pas de jauge (cours inconnu ou jamais ouvert)"
           }
         }
       }
@@ -4615,33 +4700,76 @@
         }
       },
       "ChapitreAReprendre" : {
-        "type" : "object",
-        "properties" : {
-          "chapitreId" : {
-            "type" : "string"
-          },
-          "titre" : {
-            "type" : "string"
-          },
-          "niveauCode" : {
-            "type" : "string"
-          },
-          "matiereCode" : {
-            "type" : "string"
-          },
-          "sectionsLues" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "sectionsTotal" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "derniereActivite" : {
-            "type" : "string",
-            "format" : "date-time"
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/ContenuAReprendre"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "chapitreId" : {
+              "type" : "string"
+            },
+            "titre" : {
+              "type" : "string"
+            },
+            "niveauCode" : {
+              "type" : "string"
+            },
+            "matiereCode" : {
+              "type" : "string"
+            },
+            "sectionsLues" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "sectionsTotal" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "derniereActivite" : {
+              "type" : "string",
+              "format" : "date-time"
+            }
           }
-        }
+        } ]
+      },
+      "ContenuAReprendre" : {
+        "discriminator" : {
+          "propertyName" : "type"
+        },
+        "properties" : {
+          "type" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "CoursAReprendre" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/ContenuAReprendre"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "coursId" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "titre" : {
+              "type" : "string"
+            },
+            "sectionsLues" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "sectionsTotal" : {
+              "type" : "integer",
+              "format" : "int32"
+            },
+            "derniereActivite" : {
+              "type" : "string",
+              "format" : "date-time"
+            }
+          }
+        } ]
       },
       "ParcoursChapitre" : {
         "type" : "object",
@@ -4693,6 +4821,30 @@
           "dernierTravail" : {
             "type" : "string",
             "format" : "date-time"
+          }
+        }
+      },
+      "ProgressionCoursInfo" : {
+        "type" : "object",
+        "properties" : {
+          "coursId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "pourcentage" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "termine" : {
+            "type" : "boolean"
+          },
+          "sectionsLues" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sectionsTotal" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

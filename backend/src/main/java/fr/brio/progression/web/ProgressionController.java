@@ -89,7 +89,7 @@ class ProgressionController {
     @GetMapping("/cours/{coursId}")
     @ApiResponse(responseCode = "200", description = "Jauge du cours pour l'élève connecté")
     @ApiResponse(responseCode = "204", description = "Pas de jauge (cours inconnu ou jamais ouvert)", content = @Content)
-    ResponseEntity<ProgressionCoursInfo> cours(
+    ResponseEntity<ProgressionCoursInfo> progressionCours(
             @PathVariable UUID coursId, @AuthenticationPrincipal UserDetails principal) {
         UUID eleveId = UUID.fromString(principal.getUsername());
         return progressionCours.jauge(eleveId, coursId)

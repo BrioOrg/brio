@@ -103,7 +103,7 @@ class CoursController {
     @ApiResponse(responseCode = "401", description = "Authentification requise")
     @ApiResponse(responseCode = "403", description = "Cours non accessible à l'élève (hors portée)")
     @ApiResponse(responseCode = "404", description = "Cours introuvable, non publié, ou section absente de la version publiée")
-    ResponseEntity<Void> marquerSectionLue(
+    ResponseEntity<Void> marquerSectionCoursLue(
             @PathVariable UUID coursId,
             @PathVariable String sectionId,
             @AuthenticationPrincipal UserDetails principal) {
