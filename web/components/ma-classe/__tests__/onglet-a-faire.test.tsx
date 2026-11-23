@@ -65,12 +65,7 @@ const devoir = (id: string, titre: string, sur: Record<string, unknown> = {}) =>
   ...sur,
 })
 
-// The props agreed in the plan (B1 §2.2): `cours` and `catalogue`, both optional.
-const Onglet = OngletAFaire as unknown as (p: {
-  cheminsChapitres: Record<string, string>
-  cours?: ReturnType<typeof cours>[]
-  catalogue?: typeof catalogue
-}) => React.JSX.Element
+const Onglet = OngletAFaire
 
 function afficher(coursDeLaClasse: ReturnType<typeof cours>[]) {
   return render(

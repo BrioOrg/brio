@@ -92,6 +92,24 @@ describe('/ma-classe (page serveur)', () => {
     })
   })
 
+  it('n’envoie au client que les libellés du catalogue, sans aucun chapitre', async () => {
+    const { api, Page } = await charger()
+    vi.mocked(api.getCatalogue).mockResolvedValue(CATALOGUE as never)
+    vi.mocked(api.getCoursVisibles).mockResolvedValue(COURS as never)
+
+    render(await Page())
+
+    expect(propsOnglet.at(-1)?.catalogue).toEqual([
+      {
+        niveauCode: '5e',
+        niveauLibelle: '5e',
+        matieres: [
+          { matiereCode: 'mathematiques', matiereLibelle: 'Mathématiques', chapitres: [] },
+        ],
+      },
+    ])
+  })
+
   it('cours illisibles : la page se rend avec cours = [] et les chemins de chapitres intacts', async () => {
     const { api, Page } = await charger()
     vi.mocked(api.getCatalogue).mockResolvedValue(CATALOGUE as never)

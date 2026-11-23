@@ -25,12 +25,7 @@ const cours = (n: number) => ({
 })
 const liste = (k: number) => Array.from({ length: k }, (_, i) => cours(i + 1))
 
-// The optional prop is the one agreed in the plan (B1 §2.3): `plafond`.
-const Avec = CoursDeTaClasse as unknown as (p: {
-  cours: ReturnType<typeof liste>
-  catalogue: never
-  plafond?: number
-}) => React.JSX.Element
+const Avec = CoursDeTaClasse
 
 describe('CoursDeTaClasse avec plafond', () => {
   it('plafond 3, 4 cours : 3 cartes dans l’ordre reçu, la 4e absente, lien « Voir tous les cours du prof »', () => {

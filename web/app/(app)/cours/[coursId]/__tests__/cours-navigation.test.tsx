@@ -159,6 +159,11 @@ describe('Cours du prof — fil et sortie (PL-6a)', () => {
         () => lireDevoirs.mockRejectedValue(new Error('401')),
       ],
       [
+        'quand la liste des devoirs est absente (enseignant, session échue)',
+        async () => renderPage({ disponible: false, devoir: 'd1' }),
+        () => lireDevoirs.mockResolvedValue(null),
+      ],
+      [
         'quand la liste des devoirs est vide',
         async () => renderPage({ disponible: false, devoir: 'd1' }),
         () => lireDevoirs.mockResolvedValue([]),

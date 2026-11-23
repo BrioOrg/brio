@@ -80,7 +80,7 @@ export function DevoirsEleve({
         </section>
       )}
 
-      {emplacement && <div className="mt-6">{emplacement}</div>}
+      {emplacement && <div className={aFaire.length > 0 ? 'mt-6' : undefined}>{emplacement}</div>}
 
       {termines.length > 0 && (
         <section className={aFaire.length > 0 || emplacement ? 'mt-6' : undefined}>

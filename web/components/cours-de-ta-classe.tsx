@@ -10,6 +10,12 @@ const DATE_PUBLICATION = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'Europe/Paris',
 })
 
+// The title of the full list (« Cours du prof » tab) and of the capped block (« À faire » tab), whose
+// spacing follows its neighbours « À faire » and « Terminés ».
+const TITRE = 'font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted'
+const TITRE_LISTE = `mb-4 ${TITRE}`
+const TITRE_BLOC = `mb-2 ${TITRE}`
+
 /** The subject's label from the catalogue, or null when the catalogue doesn't list it. */
 function libelleMatiere(catalogue: Catalogue, cours: CoursVisible): string | null {
   const niveau = catalogue.find((n) => n.niveauCode === cours.niveauCode)
@@ -39,10 +45,7 @@ export function CoursDeTaClasse({
       className={plafond === undefined ? 'mt-10' : undefined}
       aria-labelledby="cours-classe-heading"
     >
-      <h2
-        id="cours-classe-heading"
-        className={`${plafond === undefined ? 'mb-4' : 'mb-2'} font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted`}
-      >
+      <h2 id="cours-classe-heading" className={plafond === undefined ? TITRE_LISTE : TITRE_BLOC}>
         Les cours de ta classe
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -81,7 +84,7 @@ export function CoursDeTaClasse({
       {voirTous && (
         <Link
           href="/ma-classe/cours"
-          className="mt-3 inline-flex min-h-6 items-center gap-1 font-display text-sm font-extrabold text-accent-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="mt-3 inline-flex min-h-11 items-center gap-1 font-display text-sm font-extrabold text-accent-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Voir tous les cours du prof
           <Icon name="arrow-right" size={16} aria-hidden="true" />
