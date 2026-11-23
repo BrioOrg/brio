@@ -91,6 +91,7 @@ export function BlockRenderer({
             alt={block.alt as string}
             caption={block.caption as string | undefined}
             blockId={block.id}
+            sansLienCalculatrice={apercu}
           />
         </div>
       )

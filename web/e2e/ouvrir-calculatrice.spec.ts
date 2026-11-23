@@ -27,9 +27,7 @@ test('the figure opens in the calculator at the slider value, and back returns t
     await expect(curseur).toHaveValue('2')
   }).toPass()
 
-  await figure
-    .getByRole('link', { name: 'Ouvrir cette figure dans la calculatrice graphique' })
-    .click()
+  await figure.getByRole('link', { name: 'Ouvrir dans la calculatrice graphique' }).click()
   // next dev compiles the route on its first visit.
   await expect(page).toHaveURL(/\/explorer\/calculatrice\?e=/, { timeout: 20_000 })
 
@@ -66,15 +64,35 @@ test('in the interactive mode, back from the calculator returns to the same slid
   ).toBeAttached({
     timeout: 20_000,
   })
-  await page
-    .getByRole('link', { name: 'Ouvrir cette figure dans la calculatrice graphique' })
-    .click()
+  await page.getByRole('link', { name: 'Ouvrir dans la calculatrice graphique' }).click()
   await expect(page).toHaveURL(/\/explorer\/calculatrice\?e=/, { timeout: 20_000 })
   await expect(page.getByRole('textbox', { name: 'Expression 1' })).toHaveValue('f(x) = ax')
 
   await page.goBack()
   await expect(page).toHaveURL(diapo, { timeout: 20_000 })
   await expect(page.locator('[data-diapo="intro-coefficient-curseur"]').first()).toBeVisible()
+})
+
+test('in a 360 x 800 slide, the focused link stays above the sticky Précédent / Suivant bar', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 800 })
+  await page.goto(`${CHAPITRE}?diapo=intro-coefficient-curseur`)
+  await expect(
+    page.locator('[data-chapitre-mode="interactif"][data-transitions="pretes"]')
+  ).toBeAttached({ timeout: 20_000 })
+
+  const lien = page.getByRole('link', { name: 'Ouvrir dans la calculatrice graphique' })
+  await lien.focus()
+  await expect(lien).toBeFocused()
+  await expect(async () => {
+    const boite = await lien.boundingBox()
+    const barre = await page.getByRole('button', { name: /Suivant/ }).boundingBox()
+    expect(boite).not.toBeNull()
+    expect(barre).not.toBeNull()
+    // The ring is 2 px + 2 px offset around the link.
+    expect(boite!.y + boite!.height + 4).toBeLessThanOrEqual(barre!.y)
+  }).toPass()
 })
 
 test('a figure without functions has no link', async ({ page, context, baseURL }) => {

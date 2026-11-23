@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { FigureSpec } from '@brio/content'
 
+import { analyserLignes } from '@brio/content'
+
 import { decoderEtat } from '@/lib/calculatrice-etat'
-import { figureVersCalculatrice, hrefCalculatrice } from '../figure-vers-calculatrice'
+import { ecrireNombre, figureVersCalculatrice, hrefCalculatrice } from '../figure-vers-calculatrice'
 
 // The two real figures of chapter 5e (ADR 0038), as written in content/.
 const proportionnalite: FigureSpec = {
@@ -66,5 +68,70 @@ describe('hrefCalculatrice', () => {
     expect(href.startsWith('/explorer/calculatrice?e=')).toBe(true)
     const e = new URL(href, 'http://x').searchParams.get('e')
     expect(decoderEtat(e)).toEqual(figureVersCalculatrice(proportionnalite, { a: 2 }))
+  })
+})
+
+describe('a figure the calculator would read otherwise', () => {
+  const axes = dependance.axes
+  const parametre = (name: string): FigureSpec => ({
+    axes,
+    functions: [{ name: 'f', expr: `${name}x` }],
+    parameters: [{ name, min: 0, max: 4, step: 1, value: 2 }],
+  })
+
+  it.each(['e', 'y'])('gives no link for a parameter named %s', (name) => {
+    expect(figureVersCalculatrice(parametre(name))).toBeNull()
+    expect(hrefCalculatrice(parametre(name))).toBeNull()
+  })
+
+  it.each(['y', 'e', 'F'])('gives no link for a function named %s', (name) => {
+    const spec: FigureSpec = { axes, functions: [{ name, expr: '2x' }] }
+    expect(figureVersCalculatrice(spec)).toBeNull()
+  })
+
+  it('keeps a link for the ordinary letters', () => {
+    expect(figureVersCalculatrice(parametre('a'))).not.toBeNull()
+    expect(figureVersCalculatrice(parametre('b'))).not.toBeNull()
+  })
+
+  it('gives no link past the 12 lines the calculator holds, and one at 12', () => {
+    const noms = 'fghkmnpqrstuv'
+    const fonctions = (n: number): FigureSpec => ({
+      axes,
+      functions: Array.from({ length: n }, (_, i) => ({ name: noms[i], expr: 'x' })),
+    })
+    expect(figureVersCalculatrice(fonctions(12))).not.toBeNull()
+    expect(figureVersCalculatrice(fonctions(13))).toBeNull()
+  })
+})
+
+describe('ecrireNombre', () => {
+  it.each([
+    [1.5, '1,5'],
+    [2, '2'],
+    [0, '0'],
+    [-0, '0'],
+    [-2.5, '\u22122,5'],
+    [100, '100'],
+    [1e-7, '0,0000001'],
+    [-1e-7, '\u22120,0000001'],
+    [1e21, '1000000000000000000000'],
+  ])('writes %s as %s, without an exponent', (n, texte) => {
+    expect(ecrireNombre(n)).toBe(texte)
+  })
+
+  it.each([1e-7, -1e-7, 1e21, -3.25, 1e15])('is read back as the same constant: %s', (n) => {
+    const [ligne] = analyserLignes([{ id: 'l', texte: `a = ${ecrireNombre(n)}` }])
+    expect(ligne.genre).toBe('constante')
+    expect(ligne.genre === 'constante' && ligne.valeur).toBe(n)
+  })
+
+  it('writes a slider value of 1e-7 in the address text', () => {
+    const spec: FigureSpec = {
+      axes: dependance.axes,
+      functions: [{ name: 'f', expr: 'ax' }],
+      parameters: [{ name: 'a', min: 0, max: 1, step: 1e-7, value: 1e-7 }],
+    }
+    expect(figureVersCalculatrice(spec)?.lignes[1].texte).toBe('a = 0,0000001')
   })
 })

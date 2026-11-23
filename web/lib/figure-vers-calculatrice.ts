@@ -1,4 +1,4 @@
-import { fenetreValide, formatNumber, type FigureSpec } from '@brio/content'
+import { analyserLignes, fenetreValide, type FigureSpec } from '@brio/content'
 
 import {
   adresseAvecEtat,
@@ -16,6 +16,24 @@ import type { CurveColour } from '@/lib/curve-colours'
 
 export const CALCULATRICE_HREF = '/explorer/calculatrice'
 
+/**
+ * A number the calculator reads back as is: decimal comma, U+2212 for the minus, never an
+ * exponent (`String(1e-7)` is "1e-7", which the calculator refuses).
+ */
+export function ecrireNombre(n: number): string {
+  const arrondi = Number(n.toFixed(10))
+  const abs = Math.abs(arrondi)
+  const texte =
+    abs >= 1e21
+      ? BigInt(abs).toString()
+      : abs
+          .toFixed(10)
+          .replace(/(\.\d*?)0+$/, '$1')
+          .replace(/\.$/, '')
+          .replace('.', ',')
+  return arrondi < 0 ? `\u2212${texte}` : texte
+}
+
 /** The calculator's state for a figure; null when the figure has no function to open. */
 export function figureVersCalculatrice(
   spec: FigureSpec,
@@ -26,7 +44,7 @@ export function figureVersCalculatrice(
   if (functions.length === 0 || functions.length + parameters.length > LIGNES_MAX) return null
 
   // A tone n takes curve colour n; the other curves take the next colour no line has.
-  const taken: CurveColour[] = functions.flatMap((fn) => (fn.tone ? [fn.tone as CurveColour] : []))
+  const taken: CurveColour[] = functions.flatMap((fn) => (fn.tone ? [fn.tone] : []))
   const lignes: EtatCalculatrice['lignes'] = functions.map((fn) => {
     const couleur: CurveColour = fn.tone ?? prochaineCouleur(taken)
     if (!fn.tone) taken.push(couleur)
@@ -39,7 +57,7 @@ export function figureVersCalculatrice(
 
   for (const p of parameters) {
     lignes.push({
-      texte: `${p.name} = ${formatNumber(parameterValues[p.name] ?? p.value)}`,
+      texte: `${p.name} = ${ecrireNombre(parameterValues[p.name] ?? p.value)}`,
       curseur: { min: p.min, max: p.max, pas: p.step },
     })
   }
@@ -50,6 +68,11 @@ export function figureVersCalculatrice(
     yMin: spec.axes.y.from,
     yMax: spec.axes.y.to,
   }
+  // A figure the course editor accepts can still name a function or a letter the calculator
+  // reads otherwise (a parameter `e` or `y`, a function `y`): no link rather than a broken one.
+  const analyse = analyserLignes(lignes.map((l, i) => ({ id: `l${i}`, texte: l.texte })))
+  if (analyse.some((a) => a.genre === 'erreur')) return null
+
   return {
     v: 1,
     lignes,

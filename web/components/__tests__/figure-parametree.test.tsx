@@ -93,7 +93,7 @@ describe('FigureParametree', () => {
 })
 
 describe('the link to the calculator under a figure', () => {
-  const lien = { name: 'Ouvrir cette figure dans la calculatrice graphique' }
+  const lien = { name: 'Ouvrir dans la calculatrice graphique' }
 
   it('is under a figure with functions, with the calculator address, not printed', () => {
     render(
