@@ -19,9 +19,15 @@ export const E_MAX = 12_000
 
 const fini = z.number().finite()
 
+/** A slider's bounds stay within the plane the calculator draws (CENTRE_MAX). */
+export const BORNE_CURSEUR = 1e6
+
+const borne = fini.min(-BORNE_CURSEUR).max(BORNE_CURSEUR)
+
+// The same rules as the slider's own fields: min < max, 0 < pas ≤ max − min (V1, gate 5).
 const CurseurSchema = z
-  .object({ min: fini, max: fini, pas: fini.positive() })
-  .refine((c) => c.max > c.min, 'max > min')
+  .object({ min: borne, max: borne, pas: fini.positive().max(2 * BORNE_CURSEUR) })
+  .refine((c) => c.max > c.min && c.pas <= c.max - c.min, 'min < max, pas ≤ max − min')
 
 const LigneSchema = z.object({
   texte: z.string().max(TEXTE_MAX),

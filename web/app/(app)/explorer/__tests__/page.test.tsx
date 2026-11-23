@@ -105,5 +105,7 @@ describe('ExplorerPage', () => {
     )
     const sections = within(screen.getByRole('main')).getAllByRole('region')
     expect(sections[sections.length - 1]).toBe(outils)
+    // Full width on a phone (V6, gate 5 of #421).
+    expect(carte.closest('li')).toHaveClass('col-span-2', 'sm:col-span-1')
   })
 })

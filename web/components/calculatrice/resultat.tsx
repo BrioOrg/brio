@@ -28,7 +28,7 @@ export function Resultat({ valeur, exact }: { valeur: number; exact: Rationnel |
   const [enDecimal, setEnDecimal] = useState(false)
   // A whole number is the same in both writings: no switch.
   const fraction = exact !== null && exact.den !== 1n
-  const decimal = formaterDecimal(valeur)
+  const decimal = formaterDecimal(valeur, exact)
 
   let visuel: React.ReactNode
   let lecture: string

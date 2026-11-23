@@ -135,7 +135,8 @@ export default async function ExplorerPage() {
             Des outils pour essayer, tracer et vérifier par toi-même.
           </p>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            <li>
+            {/* Full width on a phone: its sentence is long for half a screen (V6, gate 5). */}
+            <li className="col-span-2 sm:col-span-1">
               <CarteLien href="/explorer/calculatrice">
                 <span className="font-display text-lg font-extrabold tracking-tight text-ink">
                   Calculatrice graphique
