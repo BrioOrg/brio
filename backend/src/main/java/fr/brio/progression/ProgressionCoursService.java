@@ -28,8 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Facts are keyed by the editor's stable ids, so a republication that keeps its sections and
  * exercises keeps the gauge. Every fact is an {@code INSERT … ON CONFLICT DO NOTHING}, and XP is
  * awarded only when that insert created the row: a replayed or doubled event earns nothing twice.
- * The student's follow-up row is locked first, so the last section and the last exercise landing
- * together still see each other and mark the course done.
+ * The student's follow-up row is locked first and completion is evaluated under that lock, before
+ * any other per-student lock, so the last section and the last exercise landing together still see
+ * each other and mark the course done. Lock order: course follow-up → streak → balance; chapter
+ * flows take streak → balance only, so the two never deadlock.
  */
 @Service
 public class ProgressionCoursService {
@@ -66,18 +68,20 @@ public class ProgressionCoursService {
     @Transactional
     public void onSectionCoursLue(SectionCoursLue e) {
         Instant quand = e.survenuLe() != null ? e.survenuLe() : Instant.now();
-        compteur.enregistrerActivite(e.eleveId(), quand); // streak first: same lock order as submissions
         boolean dejaTermine = suivre(e.eleveId(), e.coursId());
-        if (cours.enregistrerSectionLue(e.eleveId(), e.coursId(), e.sectionId(), quand)) {
+        boolean nouvelle = cours.enregistrerSectionLue(e.eleveId(), e.coursId(), e.sectionId(), quand);
+        evaluerCompletion(e.eleveId(), e.coursId(), dejaTermine, quand);
+        compteur.enregistrerActivite(e.eleveId(), quand); // a section read is activity too (#95)
+        if (nouvelle) {
             attribuer(e.eleveId(), SOURCE_COURS_SECTION, e.coursId() + "/" + e.sectionId(),
                     ProgressionService.MOTIF_SECTION, ProgressionService.XP_SECTION, quand);
         }
-        evaluerCompletion(e.eleveId(), e.coursId(), dejaTermine, quand);
     }
 
     /**
-     * Records a solved course exercise by its stable key, awards its XP once and re-checks
-     * completion. The submission's streak and mastery are recorded by {@link ProgressionService}.
+     * Records a solved course exercise by its stable key, re-checks completion and awards its XP
+     * once. Runs <b>before</b> {@link ProgressionService#attribuerPourSoumission} in the listener, so
+     * the follow-up lock is taken first (lock order: course follow-up → streak → balance).
      */
     @Transactional
     public void onSoumission(SoumissionEnregistree e) {
@@ -86,16 +90,17 @@ public class ProgressionCoursService {
         }
         Instant quand = e.submittedAt() != null ? e.submittedAt() : Instant.now();
         boolean dejaTermine = suivre(e.eleveId(), e.coursId());
-        if (cours.enregistrerExerciceReussi(e.eleveId(), e.coursId(), e.exerciceCle(), quand)
-                // Transition: a solve already rewarded under the per-version UUID key earns nothing more.
-                && !evenements.existsByEleveIdAndSourceTypeAndSourceRef(
-                        e.eleveId(), ProgressionService.SOURCE_EXERCICE, e.exerciceId().toString())) {
+        boolean nouveau = cours.enregistrerExerciceReussi(e.eleveId(), e.coursId(), e.exerciceCle(), quand);
+        evaluerCompletion(e.eleveId(), e.coursId(), dejaTermine, quand);
+        compteur.enregistrerActivite(e.eleveId(), quand);
+        // Transition: a solve already rewarded under the per-version UUID key earns nothing more.
+        if (nouveau && !evenements.existsByEleveIdAndSourceTypeAndSourceRef(
+                e.eleveId(), ProgressionService.SOURCE_EXERCICE, e.exerciceId().toString())) {
             boolean premier = e.premiereTentative();
             attribuer(e.eleveId(), SOURCE_COURS_EXERCICE, e.coursId() + "/" + e.exerciceCle(),
                     premier ? ProgressionService.MOTIF_1ER_COUP : ProgressionService.MOTIF_APRES_ERREUR,
                     premier ? ProgressionService.XP_1ER_COUP : ProgressionService.XP_APRES_ERREUR, quand);
         }
-        evaluerCompletion(e.eleveId(), e.coursId(), dejaTermine, quand);
     }
 
     /**

@@ -13,8 +13,8 @@ import java.util.UUID;
 /**
  * The bookkeeping shared by chapter and course progression (ADR 0022, ADR 0050): streak activity,
  * the daily XP cap and the materialised balance. A plain helper, not a bean, so both services call
- * it directly. Lock order for one student is always streak → course follow-up → balance, which keeps
- * concurrent chapter and course awards from deadlocking.
+ * it directly. Lock order for one student: course follow-up (course flows only) → streak → balance,
+ * which keeps concurrent chapter and course awards from deadlocking.
  */
 final class CompteurXp {
 
