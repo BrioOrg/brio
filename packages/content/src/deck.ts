@@ -41,7 +41,9 @@ function roleOf(block: DeckBlock): Role {
   if (block.type === 'callout') {
     return typeof block.variant === 'string' && LEAD_CALLOUTS.has(block.variant) ? 'lead' : 'aside'
   }
-  // prose, steps, heading, objectives (when not first), reference, and any future type
+  // prose, steps, heading, objectives (when not first), reference, and any future type. A
+  // calculator (ADR 0049 §6) is a lead too: it opens its own slide, as wide as a figure, and its
+  // instruction is the slide's text; a prose right before it introduces it (rule 3).
   return 'lead'
 }
 

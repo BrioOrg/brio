@@ -224,6 +224,18 @@ describe('buildDeck', () => {
     ).toEqual(['lecon:d', 'lecon:f'])
   })
 
+  it('should give a calculator its own slide, introduced by the prose before it (ADR 0049)', () => {
+    const calculatrice = (id: string) => block(id, 'calculatrice')
+    expect(
+      middle({
+        sections: [
+          section('s1', prose('p'), figure('f'), calculatrice('c'), exercise('x')),
+          section('s2', prose('q'), calculatrice('k')),
+        ],
+      })
+    ).toEqual(['lecon:p+f', 'lecon:c', 'exercice:x', 'lecon:q+k'])
+  })
+
   it('should treat an unknown block type as a lead', () => {
     expect(middle({ sections: [section('s1', block('n', 'nouveau'), figure('f'))] })).toEqual([
       'lecon:n+f',
@@ -319,11 +331,11 @@ describe('buildDeck on the catalogue', () => {
       movedOntoExercise: decks.flat().filter((d) => d.kind === 'exercice' && d.blockIds.length > 1)
         .length,
     }).toEqual({
-      slides: 998,
+      slides: 999,
       fewest: 10,
       median: 22,
       most: 34,
-      blocksPerSlide: { 0: 50, 1: 789, 2: 122, 3: 33, 4: 2, 5: 2 },
+      blocksPerSlide: { 0: 50, 1: 790, 2: 122, 3: 33, 4: 2, 5: 2 },
       movedOntoExercise: 36,
     })
   })
