@@ -4,14 +4,14 @@
 > Ce document remplace la version précédente écrite sur un état du projet dépassé.
 > Les modèles indiqués par agent sont une **proposition de coût**, à valider.
 
-31 agents spécialisés, regroupés en 7 pôles, qui transforment chaque signal (une
+32 agents spécialisés, regroupés en 7 pôles, qui transforment chaque signal (une
 friction, un bug, une idée) en changement livré, vérifié, testé par des utilisateurs
 simulés, puis en leçon qui rend le système meilleur.
 
 **L'exigence numéro un :** un utilisateur trouve ce qu'il cherche, là où il s'attend
 à le trouver, en un minimum de gestes.
 
-| 31 | 7 | 10 | 8 | 3 |
+| 32 | 7 | 10 | 8 | 3 |
 |---|---|---|---|---|
 | agents à rôle unique | pôles | contrats d'échange | portes de qualité | boucles d'auto-correction |
 
@@ -36,12 +36,12 @@ simulés, puis en leçon qui rend le système meilleur.
 
 ---
 
-## Les 31 agents, par pôle
+## Les 32 agents, par pôle
 
 Chaque fiche vit dans `.claude/agents/<ID>-<slug>.md` et donne : mission, déclencheur,
 production, outils, modèle proposé, éventuel droit de veto, et liens (reçoit de / envoie à).
 
-### Pilotage · 3 agents · orienter, décider, tracer
+### Pilotage · 4 agents · orienter, décider, tracer, aiguiller
 - **P1 Chef d'orchestre** — reçoit chaque signal, choisit qui travaille, tient la file
   et le budget, casse les boucles au-delà de trois tours, escalade vers l'humain.
   *(Haiku pour router, Opus pour arbitrer)*
@@ -49,6 +49,10 @@ production, outils, modèle proposé, éventuel droit de veto, et liens (reçoit
   (Given/When/Then), priorise la fluidité d'abord. *(Opus)*
 - **P3 Greffier des décisions** — rédige et tient les ADR, vérifie que docs et code
   disent la même chose. *(Sonnet)*
+- **P4 Aiguilleur** *(ajouté le 24/11, #449)* — avant les portes 4, 5 et 6, ne réveille que
+  les gardiens et contrôles locaux dont le diff touche le périmètre, raison à l'appui ; aux
+  tours 2-3, seulement ce que la correction touche, plus les gardiens qui avaient un constat.
+  Script déterministe `scripts/mesh/aiguillage.mjs`. *(Haiku)*
 
 ### Expérience utilisateur · 7 agents · fluidité, clarté, accessibilité
 - **U1 Cartographe des parcours** ⛔ *veto : allongement d'une route chaude* — carte des

@@ -1,12 +1,12 @@
 # docs/mesh — le mesh d'agents de Brio
 
 Le **mesh** est le système multi-agents qui développe Brio : chaque signal (friction,
-bug, idée) traverse 8 portes de qualité, du besoin à la leçon, porté par 31 agents à
+bug, idée) traverse 8 portes de qualité, du besoin à la leçon, porté par 32 agents à
 rôle unique.
 
 ## Par où commencer
 
-- **[`PLAN-AGENT-MESH.md`](PLAN-AGENT-MESH.md)** — le plan complet (doctrine, les 31 agents,
+- **[`PLAN-AGENT-MESH.md`](PLAN-AGENT-MESH.md)** — le plan complet (doctrine, les 32 agents,
   les 8 portes, les 10 contrats, la gouvernance, les 3 boucles, l'ordre de construction,
   les coûts). **Référence normative.**
 - **[`LABELS.md`](LABELS.md)** — les labels `mesh:*` qui portent l'état d'un signal.
