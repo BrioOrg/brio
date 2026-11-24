@@ -311,6 +311,7 @@ export {
   NOEUDS_MAX,
 } from './grapheur/langage'
 export { latexOf } from './grapheur/latex'
+export { latexVersTexte } from './grapheur/latex-vers-texte'
 export { deriver, simplifier, DeriveeTropLongue, type BudgetDerivee } from './grapheur/derivee'
 export { compilerX, compilerXY, type FonctionXY } from './grapheur/compilation'
 export { rationnelDepuisDecimal, rationnelDepuisNombre, valeurDe } from './grapheur/rationnel'
@@ -368,3 +369,11 @@ export {
   pointsRemarquables,
   pointsRemarquablesParCourbe,
 } from './grapheur/points-remarquables'
+// Graphing calculator — the course block `calculatrice` (ADR 0049 §6)
+export type { CalculatriceFenetre, CalculatriceIssue, CalculatriceSpec } from './calculatrice-rules'
+export {
+  checkCalculatrice,
+  CALCULATRICE_CONSIGNE_MAX,
+  CALCULATRICE_MAX_EXPRESSIONS,
+  MESSAGES_BLOC_CALCULATRICE,
+} from './calculatrice-rules'

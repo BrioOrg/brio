@@ -21,6 +21,17 @@ export const CHAMP =
 export const CHAMP_INVALIDE =
   'border-feedback-incorrect focus:border-feedback-incorrect focus:[box-shadow:0_0_0_3px_color-mix(in_oklab,var(--color-feedback-incorrect)_25%,transparent)]'
 
+/**
+ * The maths field of a line (MathLive, #417): the frame of CHAMP on the custom element, its caret,
+ * selection and placeholder from the tokens; no menu, and its keyboard toggle on touch screens only
+ * (a « Clavier » button stands for it with a mouse).
+ */
+export const CHAMP_MATH =
+  'block min-h-11 w-full min-w-0 rounded-md border-2 bg-surface-raised px-3 py-2 font-prose text-base text-ink transition-[border-color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)] outline-none focus-within:border-accent focus-within:[box-shadow:0_0_0_3px_color-mix(in_oklab,var(--color-accent)_25%,transparent)] [--caret-color:var(--color-accent)] [--selection-background-color:var(--color-accent-soft)] [--selection-color:var(--color-ink)] [--contains-highlight-background-color:var(--color-surface-panel)] [--placeholder-color:var(--color-ink-muted)] [--smart-fence-color:var(--color-ink-muted)] [--primary-color:var(--color-accent)] [&::part(menu-toggle)]:hidden pointer-fine:[&::part(virtual-keyboard-toggle)]:hidden'
+
+export const CHAMP_MATH_INVALIDE =
+  'border-feedback-incorrect focus-within:border-feedback-incorrect focus-within:[box-shadow:0_0_0_3px_color-mix(in_oklab,var(--color-feedback-incorrect)_25%,transparent)]'
+
 /** Border of a hidden curve's pastille: a ring in the curve's colour. */
 export const CURVE_BORDER = {
   1: 'border-courbe-1',

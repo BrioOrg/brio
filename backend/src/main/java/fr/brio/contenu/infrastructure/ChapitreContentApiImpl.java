@@ -91,6 +91,10 @@ class ChapitreContentApiImpl implements ChapitreContentApi {
             return new TextBlock(id, type, calculText(b));
         }
 
+        if ("calculatrice".equals(type)) {
+            return new TextBlock(id, type, calculatriceText(b));
+        }
+
         // prose/callout: "text"; formula: "latex"; reference/steps/objectives: "title"; image: "alt"
         String text = b.has("text") ? b.path("text").asText("")
                 : b.has("latex") ? b.path("latex").asText("")
@@ -125,6 +129,26 @@ class ChapitreContentApiImpl implements ChapitreContentApi {
         }
         if (b.hasNonNull("conclusion")) {
             parts.add(b.path("conclusion").asText());
+        }
+        return String.join(" ; ", parts);
+    }
+
+    /**
+     * A course calculator as the tutor reads it (ADR 0049 §6): its instruction, then its starting
+     * expressions as the author wrote them, joined by " ; ", as for a worked calculation. What the
+     * student changes in it is not saved, so the tutor knows only the starting lines.
+     */
+    static String calculatriceText(JsonNode b) {
+        List<String> parts = new ArrayList<>();
+        String consigne = b.path("consigne").asText("").strip();
+        if (!consigne.isEmpty()) {
+            parts.add(consigne);
+        }
+        for (JsonNode expression : b.path("expressions")) {
+            String texte = expression.asText("").strip();
+            if (!texte.isEmpty()) {
+                parts.add(texte);
+            }
         }
         return String.join(" ; ", parts);
     }

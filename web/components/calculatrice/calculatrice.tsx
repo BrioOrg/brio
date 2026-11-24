@@ -37,6 +37,7 @@ import {
   texteConstante,
   type Ligne,
 } from './lignes'
+import { basculerClavier, chargerMathLive } from './mathlive'
 import { pauseCss } from './pause'
 import { RepereInteractif } from './repere-interactif'
 
@@ -74,12 +75,19 @@ export function Calculatrice({
   etatInitial,
   synchroniserAdresse = true,
   hauteur = 'page',
+  onEtat,
 }: {
   etatInitial: EtatCalculatrice
   /** Writes the state in the page's address; off for a demonstration (the /design page). */
   synchroniserAdresse?: boolean
-  /** Side by side, it fills the screen under the top bar, or the box it is set in. */
-  hauteur?: 'page' | 'parent'
+  /**
+   * Side by side, it fills the screen under the top bar, or the box it is set in. `compact`, for
+   * a course block (#424): a shorter grid, and the list at its own height, without a scroll of
+   * its own inside the chapter's.
+   */
+  hauteur?: 'page' | 'parent' | 'compact'
+  /** Told the current state at each change of the work (a course block links it to Explorer). */
+  onEtat?: (etat: EtatCalculatrice) => void
 }) {
   const [lignes, setLignes] = useState<Ligne[]>(() => lignesDepuisEtat(etatInitial))
   const [fenetre, setFenetre] = useState<Fenetre | null>(etatInitial.fenetre ?? null)
@@ -91,10 +99,24 @@ export function Calculatrice({
   const [focus, setFocus] = useState<{ id: string; cible: 'champ' | 'curseur' } | null>(null)
 
   const prochainId = useRef(lignes.length)
-  const champs = useRef(new Map<string, HTMLInputElement>())
+  const champs = useRef(new Map<string, HTMLElement>())
   const curseurs = useRef(new Map<string, HTMLInputElement>())
   const minuteries = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   const limiteId = useId()
+  // The line whose field had the focus last: the « Clavier » button opens the keyboard there.
+  const derniere = useRef<string | null>(null)
+  const [mathlive, setMathlive] = useState(false)
+  useEffect(() => {
+    let annule = false
+    chargerMathLive()
+      .then(() => {
+        if (!annule) setMathlive(true)
+      })
+      .catch(() => undefined)
+    return () => {
+      annule = true
+    }
+  }, [])
 
   const analyse = useAnalyse(lignes, angle)
   const peutAjouter = lignes.length < LIGNES_MAX
@@ -158,6 +180,17 @@ export function Calculatrice({
     }, pauseCss())
     return () => clearTimeout(minuterie)
   }, [lignes, fenetre, angle, orthonorme, synchroniserAdresse])
+
+  // The state, for a caller that shows it elsewhere (« Ouvrir en grand », #424).
+  const onEtatRef = useRef(onEtat)
+  useEffect(() => {
+    onEtatRef.current = onEtat
+  })
+  useEffect(() => {
+    onEtatRef.current?.(
+      etatDepuisLignes(lignes, { ...(fenetre && { fenetre }), angle, orthonorme })
+    )
+  }, [lignes, fenetre, angle, orthonorme])
 
   // --- Focus after a change of the list -----------------------------------------------------------
   useEffect(() => {
@@ -298,7 +331,7 @@ export function Calculatrice({
           hauteur === 'parent' ? 'h-full' : '',
           // A focused control never hides under the sticky top bar (h-14) or, on a phone, the
           // bottom bar (h-16): the browser scrolls it clear (WCAG 2.4.11, U7 at gate 5).
-          '[&_:is(input,button,a)]:scroll-mt-16 [&_:is(input,button,a)]:scroll-mb-20 sm:[&_:is(input,button,a)]:scroll-mb-4',
+          '[&_:is(input,button,a,math-field)]:scroll-mt-16 [&_:is(input,button,a,math-field)]:scroll-mb-20 sm:[&_:is(input,button,a,math-field)]:scroll-mb-4',
         ].join(' ')}
         onKeyDownCapture={(e) => {
           // Any key stops the animations, but Enter or Space on a play button: it toggles.
@@ -311,7 +344,11 @@ export function Calculatrice({
         <div
           className={[
             'flex flex-col @4xl:flex-row',
-            hauteur === 'parent' ? 'h-full' : '@4xl:h-[calc(100dvh-var(--spacing)*14)]',
+            hauteur === 'parent'
+              ? 'h-full'
+              : hauteur === 'compact'
+                ? '@4xl:h-112'
+                : '@4xl:h-[calc(100dvh-var(--spacing)*14)]',
           ].join(' ')}
         >
           <div
@@ -327,7 +364,9 @@ export function Calculatrice({
                   const a = analyse[i] ?? { id: ligne.id, genre: 'vide' as const }
                   const actions: ActionsLigne = {
                     onTexte: (t) => surTexte(ligne.id, t),
-                    onFocus: () => undefined,
+                    onFocus: () => {
+                      derniere.current = ligne.id
+                    },
                     onBlur: () => surBlur(ligne.id),
                     onEntree: () => {
                       if (i === lignes.length - 1) ajouter()
@@ -373,18 +412,39 @@ export function Calculatrice({
                 })}
               </ol>
               <div className="flex flex-col gap-2 px-3 py-4">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="min-h-11 w-full"
-                  aria-disabled={!peutAjouter || undefined}
-                  aria-describedby={peutAjouter ? undefined : limiteId}
-                  onClick={() => ajouter()}
-                >
-                  <Icon name="plus" size={16} />
-                  Ajouter une expression
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="min-h-11 flex-1"
+                    aria-disabled={!peutAjouter || undefined}
+                    aria-describedby={peutAjouter ? undefined : limiteId}
+                    onClick={() => ajouter()}
+                  >
+                    <Icon name="plus" size={16} />
+                    Ajouter une expression
+                  </Button>
+                  {mathlive && (
+                    // MathLive's virtual keyboard, the maths keypad: its own toggle in each field on
+                    // a touch screen, this button with a mouse (#417).
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="hidden min-h-11 pointer-fine:inline-flex"
+                      aria-label="Clavier mathématique"
+                      onPointerDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        const id = derniere.current ?? lignes[0]?.id
+                        const champ = id ? champs.current.get(id) : undefined
+                        if (champ) basculerClavier(champ)
+                      }}
+                    >
+                      Clavier
+                    </Button>
+                  )}
+                </div>
                 {!peutAjouter && (
                   <p id={limiteId} className="font-prose text-sm text-ink-muted">
                     12 expressions au maximum
@@ -402,7 +462,7 @@ export function Calculatrice({
           <div
             className={[
               'relative order-first min-h-64 min-w-0 shrink-0 border-b border-line @4xl:order-none @4xl:h-auto @4xl:flex-1 @4xl:border-b-0',
-              hauteur === 'parent' ? 'h-1/2' : 'h-[55svh]',
+              hauteur === 'parent' ? 'h-1/2' : hauteur === 'compact' ? 'h-72' : 'h-[55svh]',
             ].join(' ')}
           >
             <RepereInteractif

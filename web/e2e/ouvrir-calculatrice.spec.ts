@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 // « Ouvrir dans la calculatrice » under a course figure with functions (#423, ADR 0049 §5): the
 // figure's curve and slider, at the slider's current value, in the calculator; back returns to the
@@ -6,6 +6,13 @@ import { expect, test } from '@playwright/test'
 // nothing else of it).
 
 const CHAPITRE = '/5e/mathematiques/proportionnalite-pourcentages'
+
+/** The LaTeX of a line's maths field (MathLive, #417), once it has replaced the plain field. */
+async function latex(page: Page, n: number): Promise<string> {
+  const mf = page.locator(`math-field[aria-label="Expression ${n}"]`)
+  await expect(mf).toBeAttached()
+  return mf.evaluate((el) => (el as HTMLElement & { value: string }).value)
+}
 
 test('the figure opens in the calculator at the slider value, and back returns to it', async ({
   page,
@@ -31,8 +38,8 @@ test('the figure opens in the calculator at the slider value, and back returns t
   // next dev compiles the route on its first visit.
   await expect(page).toHaveURL(/\/explorer\/calculatrice\?e=/, { timeout: 20_000 })
 
-  await expect(page.getByRole('textbox', { name: 'Expression 1' })).toHaveValue('f(x) = ax')
-  await expect(page.getByRole('textbox', { name: 'Expression 2' })).toHaveValue('a = 2')
+  await expect.poll(() => latex(page, 1)).toBe('f(x)=ax')
+  await expect.poll(() => latex(page, 2)).toBe('a=2')
   const reglette = page.getByRole('slider', { name: /Curseur a/ })
   await expect(reglette).toHaveAttribute('min', '0.5')
   await expect(reglette).toHaveAttribute('max', '4')
@@ -66,7 +73,7 @@ test('in the interactive mode, back from the calculator returns to the same slid
   })
   await page.getByRole('link', { name: 'Ouvrir dans la calculatrice graphique' }).click()
   await expect(page).toHaveURL(/\/explorer\/calculatrice\?e=/, { timeout: 20_000 })
-  await expect(page.getByRole('textbox', { name: 'Expression 1' })).toHaveValue('f(x) = ax')
+  await expect.poll(() => latex(page, 1)).toBe('f(x)=ax')
 
   await page.goBack()
   await expect(page).toHaveURL(diapo, { timeout: 20_000 })

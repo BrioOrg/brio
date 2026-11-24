@@ -126,6 +126,7 @@
         { "$ref": "#/$defs/tableBlock" },
         { "$ref": "#/$defs/stepsBlock" },
         { "$ref": "#/$defs/calculBlock" },
+        { "$ref": "#/$defs/calculatriceBlock" },
         { "$ref": "#/$defs/objectivesBlock" },
         { "$ref": "#/$defs/listBlock" },
         { "$ref": "#/$defs/unknownBlock" }
@@ -1393,6 +1394,45 @@
       }
     },
 
+    "calculatriceBlock": {
+      "description": "A compact graphing calculator in the course (ADR 0049 §6): starting lines the student may edit, sliders included, with 'Revenir au départ' and 'Ouvrir en grand'. Nothing the student does is saved. check-content and the teacher editor also check that every expression is read by the calculator's engine, together (calculatrice-rules.ts).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "expressions"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "calculatrice" },
+        "consigne": {
+          "description": "Written above the calculator, at most 280 characters: 'Déplace le curseur $a$. Que se passe-t-il quand $a$ est négatif ?'",
+          "$ref": "#/$defs/richText"
+        },
+        "expressions": {
+          "description": "The starting lines, in the calculator's language (not LaTeX): 'y = ax + 1', 'a = 1', 'x^2 + y^2 = 4'.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "fenetre": {
+          "description": "The starting window, [min, max] on each axis, min < max. The calculator's default view when absent.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y"],
+          "properties": {
+            "x": { "$ref": "#/$defs/calculatriceIntervalle" },
+            "y": { "$ref": "#/$defs/calculatriceIntervalle" }
+          }
+        }
+      }
+    },
+
+    "calculatriceIntervalle": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number" }
+    },
+
     "objectivesBlock": {
       "description": "Chapter objectives. Two independent facets: 'items' are the free-text objective sentences a teacher writes ('what you'll be able to do'); 'competencies' are coded references into the controlled referential (ADR 0009), a separate machine-readable facet. Either may be empty, but a block with neither carries no information.",
       "type": "object",
@@ -1452,6 +1492,7 @@
               "table",
               "steps",
               "calcul",
+              "calculatrice",
               "objectives",
               "list"
             ]

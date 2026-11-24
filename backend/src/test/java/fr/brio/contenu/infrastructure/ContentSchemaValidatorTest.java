@@ -594,6 +594,41 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptACalculatorWithAndWithoutItsOptionalFields() {
+        String complet =
+                """
+                { "id": "explorer-a", "type": "calculatrice",
+                  "consigne": "Déplace le curseur $a$. Que se passe-t-il quand $a$ est négatif ?",
+                  "expressions": ["f(x) = ax + 1", "a = 1"],
+                  "fenetre": { "x": [-5, 5], "y": [-5, 5] } }
+                """;
+        String minimal =
+                """
+                { "id": "c2", "type": "calculatrice", "expressions": ["y = x^2"] }
+                """;
+        for (String block : List.of(complet, minimal)) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectACalculatorWithoutExpressionOrWithAnUnknownField() {
+        String sansExpression =
+                """
+                { "id": "c1", "type": "calculatrice", "expressions": [] }
+                """;
+        assertThat(violationsOf(chapterWith(sansExpression)))
+                .containsExactly(new ContentViolation(ContentViolation.EMPTY, "s1", "c1", "expressions"));
+        String fenetreIncomplete =
+                """
+                { "id": "c1", "type": "calculatrice", "expressions": ["y = x"],
+                  "fenetre": { "x": [-5, 5, 6], "y": [-5, 5] } }
+                """;
+        assertThatThrownBy(() -> validator.validate(chapterWith(fenetreIncomplete)))
+                .isInstanceOf(InvalidContentException.class);
+    }
+
+    @Test
     void shouldAcceptATreeOfPossiblesAndAWeightedTree() {
         String possibles =
                 """
