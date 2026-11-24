@@ -331,4 +331,14 @@ describe('Calculatrice', () => {
     await user.type(max, '2000000{Enter}')
     expect(max).toHaveAttribute('aria-invalid', 'true')
   })
+
+  // Gate 5 round 3 (V4): a value computed with doubles is never "=", even on an integer.
+  it.each(['π*10^12', 'e^30', 'sqrt(2)*10^11', 'sqrt(1,0000000000001)'])(
+    'écrit %s avec « ≈ »',
+    (texte) => {
+      rendre({ v: 1, lignes: [{ texte }] })
+      expect(screen.getByText(/^Résultat : environ /)).toBeInTheDocument()
+      expect(screen.getByText(/^≈/)).toBeInTheDocument()
+    }
+  )
 })

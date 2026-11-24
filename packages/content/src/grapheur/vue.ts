@@ -277,12 +277,77 @@ function px(v: number): string {
   return (Math.round(v * 100) / 100).toString()
 }
 
-function cheminSvg(morceaux: readonly PointSvg[][]): string {
+/** A path never goes further than this many pixels outside the drawing. */
+const MARGE_CHEMIN = 1000
+/** Coordinates are first brought within this, so that no difference between two overflows. */
+const BORNE_COORDONNEE = 1e12
+
+const borne = (v: number) => Math.max(-BORNE_COORDONNEE, Math.min(BORNE_COORDONNEE, v))
+
+/**
+ * The part of the segment a→b inside the rectangle (Liang–Barsky), or null when it misses it.
+ */
+function couper(
+  a: PointSvg,
+  b: PointSvg,
+  r: { x0: number; y0: number; x1: number; y1: number }
+): [PointSvg, PointSvg] | null {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  let t0 = 0
+  let t1 = 1
+  const bords: [number, number][] = [
+    [-dx, a.x - r.x0],
+    [dx, r.x1 - a.x],
+    [-dy, a.y - r.y0],
+    [dy, r.y1 - a.y],
+  ]
+  for (const [p, q] of bords) {
+    if (p === 0) {
+      if (q < 0) return null
+      continue
+    }
+    const t = q / p
+    if (p < 0) {
+      if (t > t1) return null
+      if (t > t0) t0 = t
+    } else {
+      if (t < t0) return null
+      if (t < t1) t1 = t
+    }
+  }
+  const en = (t: number) => (t === 0 ? a : t === 1 ? b : { x: a.x + t * dx, y: a.y + t * dy })
+  return [en(t0), en(t1)]
+}
+
+/**
+ * The pieces as one SVG path, cut to MARGE_CHEMIN around the drawing: a point far off
+ * (y = 10³⁰⁷·sin x, finite but huge) never reaches `d`, where it would make the browser drop the
+ * whole curve; the segment towards it is kept up to the margin, so the curve still leaves the
+ * drawing the way it should (#444).
+ */
+function cheminSvg(morceaux: readonly PointSvg[][], taille: TailleVue): string {
+  const r = {
+    x0: -MARGE_CHEMIN,
+    y0: -MARGE_CHEMIN,
+    x1: taille.largeur + MARGE_CHEMIN,
+    y1: taille.hauteur + MARGE_CHEMIN,
+  }
   const parts: string[] = []
   for (const m of morceaux) {
-    if (m.length < 2) continue
-    parts.push(`M${px(m[0].x)} ${px(m[0].y)}`)
-    for (let i = 1; i < m.length; i++) parts.push(`L${px(m[i].x)} ${px(m[i].y)}`)
+    let dernier: PointSvg | null = null
+    for (let i = 1; i < m.length; i++) {
+      const a = { x: borne(m[i - 1].x), y: borne(m[i - 1].y) }
+      const b = { x: borne(m[i].x), y: borne(m[i].y) }
+      const s = couper(a, b, r)
+      if (!s) {
+        dernier = null
+        continue
+      }
+      if (dernier === null || s[0] !== a) parts.push(`M${px(s[0].x)} ${px(s[0].y)}`)
+      parts.push(`L${px(s[1].x)} ${px(s[1].y)}`)
+      dernier = s[1] === b ? b : null
+    }
   }
   return parts.join('')
 }
@@ -415,7 +480,7 @@ export function dessinerCourbe(
       id: c.id,
       couleur: c.couleur,
       pointille: c.pointille,
-      d: cheminSvg(morceaux),
+      d: cheminSvg(morceaux, taille),
       points: [],
     }
   }
@@ -424,7 +489,7 @@ export function dessinerCourbe(
     id: c.id,
     couleur: c.couleur,
     pointille: c.pointille,
-    d: cheminSvg(trace.chemins),
+    d: cheminSvg(trace.chemins, taille),
     points: trace.points,
   }
 }
