@@ -26,8 +26,11 @@ function actions(): ActionsLigne {
   }
 }
 
-function rendre(texte: string, options: Partial<Ligne> & { peutAjouter?: boolean } = {}) {
-  const { peutAjouter = true, ...reste } = options
+function rendre(
+  texte: string,
+  options: Partial<Ligne> & { peutAjouter?: boolean; erreurVisible?: boolean } = {}
+) {
+  const { peutAjouter = true, erreurVisible = true, ...reste } = options
   const ligne: Ligne = { id: 'l0', texte, couleur: 2, style: 'plein', masquee: false, ...reste }
   const [analyse] = analyserLignes([{ id: 'l0', texte }])
   const a = actions()
@@ -38,7 +41,7 @@ function rendre(texte: string, options: Partial<Ligne> & { peutAjouter?: boolean
           ligne={ligne}
           numero={3}
           analyse={analyse}
-          erreurVisible
+          erreurVisible={erreurVisible}
           premiere={false}
           peutAjouter={peutAjouter}
           limiteId={peutAjouter ? undefined : 'limite'}
@@ -164,5 +167,26 @@ describe('LigneExpression', () => {
     expect(screen.getByRole('textbox', { name: 'Pas du curseur a' })).toHaveFocus()
     await user.tab()
     expect(screen.getByRole('button', { name: 'Lancer l’animation du curseur a' })).toHaveFocus()
+  })
+
+  // #417: an undefined letter is said at once, while typing; other errors wait for the pause.
+  it('propose le curseur d’une lettre inconnue tout de suite, pendant la saisie', async () => {
+    const a = rendre('y = ax', { erreurVisible: false })
+    expect(screen.getByText('La lettre a n’est pas définie.')).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Ajouter un curseur a' }))
+    expect(a.onAjouterCurseur).toHaveBeenCalledWith('a')
+  })
+
+  it('attend la pause pour les autres erreurs', () => {
+    rendre('y = 2x +', { erreurVisible: false })
+    expect(screen.getByRole('textbox', { name: 'Expression 3' })).not.toHaveAttribute(
+      'aria-invalid'
+    )
+    expect(screen.queryByText(/il manque/i)).not.toBeInTheDocument()
+  })
+
+  it('n’affiche plus d’aperçu sous le champ : le champ est l’écriture', () => {
+    rendre('y = 1/2x + 1')
+    expect(document.querySelector('.katex')).toBeNull()
   })
 })

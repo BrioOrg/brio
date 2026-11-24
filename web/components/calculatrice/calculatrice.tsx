@@ -91,7 +91,7 @@ export function Calculatrice({
   const [focus, setFocus] = useState<{ id: string; cible: 'champ' | 'curseur' } | null>(null)
 
   const prochainId = useRef(lignes.length)
-  const champs = useRef(new Map<string, HTMLInputElement>())
+  const champs = useRef(new Map<string, HTMLElement>())
   const curseurs = useRef(new Map<string, HTMLInputElement>())
   const minuteries = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   const limiteId = useId()

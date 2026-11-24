@@ -18,14 +18,20 @@
 //   constants    π, pi and e (Euler's number), kept as `constant` nodes so they print as typed
 //   letters      every single letter is a variable: the caller decides what each one means
 //   user calls   f(…), f'(…), f''(…) for the names in `calculator.functions` (f, g, f1…)
+//   d/dx(…)      the derivative of what the brackets hold, with respect to x; only this exact
+//                prefix: d stays an ordinary letter elsewhere (d = 2, dx is d·x)
 //   positions    every node carries the index of the character it starts at (`pos`), and a
 //                number the text it was typed as (`text`), for exact fractions and the preview
 //   bounds       at most 500 characters and 150 nested levels (the deeper input would
 //                overflow the call stack further down: sampling, derivatives, LaTeX)
 // Without the option nothing changes: ADR 0038 figures read exactly what they read before.
 
+import { DeriveeTropLongue, deriver } from './grapheur/derivee'
+
 // `pos` is only set in calculator mode: the 0-based index of the character the node comes from.
-export type ExpressionNode =
+// `ddx`, on the root of a derivative read from d/dx(…), is the tree it derives: the preview writes
+// \frac{d}{dx}(…) from it, every other reader sees the derivative itself.
+export type ExpressionNode = (
   | { type: 'number'; value: number; text?: string; pos?: number }
   | { type: 'variable'; name: string; pos?: number }
   | { type: 'constant'; name: ExpressionConstant; pos?: number }
@@ -47,6 +53,7 @@ export type ExpressionNode =
     }
   /** A call to a function the student defined, `order` times derived: f(…), f'(…), f''(…). */
   | { type: 'userCall'; name: string; order: number; arg: ExpressionNode; pos?: number }
+) & { ddx?: ExpressionNode }
 
 /** sqrt and abs always; the others in calculator mode only. `log` is the decimal logarithm. */
 export type ExpressionFunction = 'sqrt' | 'abs' | 'sin' | 'cos' | 'tan' | 'exp' | 'ln' | 'log'
@@ -65,6 +72,12 @@ export const CALCULATOR_MAX_DEPTH = 150
 
 /** The message of both bounds; the language uses it for its own bounds too. */
 export const TOO_LONG = 'Cette expression devient trop longue à calculer.'
+
+/** The derivative operator of the calculator, recognised only as this exact prefix. */
+const DDX = 'd/dx('
+
+/** Steps a d/dx(…) may take (one per node derived) before it is refused as too long. */
+const DDX_BUDGET = 50_000
 
 /** f, g and h followed by a bracket are always function calls, as in a French textbook. */
 const FUNCTION_LETTERS: ReadonlySet<string> = new Set(['f', 'g', 'h'])
@@ -109,6 +122,7 @@ type Token =
   | { kind: 'lparen'; pos: number }
   | { kind: 'rparen'; pos: number }
   | { kind: 'bar'; pos: number }
+  | { kind: 'ddx'; pos: number }
   | { kind: 'end'; pos: number }
 
 class ExpressionSyntaxError extends Error {
@@ -280,6 +294,18 @@ function tokenize(source: string, calculator?: CalculatorSyntax): Token[] {
       i++
       continue
     }
+    if (calculator && source.startsWith(DDX, i)) {
+      // d/dx(: the opening bracket stays, the parser reads it as the operand.
+      tokens.push({ kind: 'ddx', pos: i })
+      i += DDX.length - 1
+      continue
+    }
+    if (calculator && (c === '∛' || c === '∜')) {
+      throw new ExpressionSyntaxError(
+        'La calculatrice ne connaît que la racine carrée : pour une racine n-ième de a, écris a^(1/n).',
+        i
+      )
+    }
     if (isLetter(c)) {
       if (calculator) {
         const run = /^[a-zA-Z]+/.exec(source.slice(i))?.[0] ?? c
@@ -395,6 +421,8 @@ function describe(token: Token): string {
       return ')'
     case 'bar':
       return '|'
+    case 'ddx':
+      return 'd/dx'
     case 'end':
       return ''
   }
@@ -487,6 +515,7 @@ class Parser {
       t.kind === 'pi' ||
       t.kind === 'constant' ||
       t.kind === 'function' ||
+      t.kind === 'ddx' ||
       t.kind === 'lparen' ||
       (t.kind === 'bar' && this.absDepth === 0)
     )
@@ -573,6 +602,19 @@ class Parser {
         }
         this.advance()
         return inner
+      }
+      case 'ddx': {
+        // The operand is the bracket that follows: d/dx(x² sin(x)), d/dx(d/dx(x³)).
+        const operand = this.primary()
+        let derivee: ExpressionNode
+        try {
+          derivee = deriver(operand, 'x', { reste: DDX_BUDGET })
+        } catch (e) {
+          if (e instanceof DeriveeTropLongue) throw new ExpressionSyntaxError(TOO_LONG, t.pos)
+          throw e
+        }
+        // A copy: the derivative may share its root with the operand or a constant node.
+        return this.at({ ...derivee, ddx: operand }, t.pos)
       }
       case 'bar': {
         this.absDepth++
