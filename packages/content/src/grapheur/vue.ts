@@ -180,7 +180,16 @@ export function graduations(
   max: number,
   pixels: number
 ): { pas: number; valeurs: number[] } {
-  const pas = pasGraduation(max - min, pixels)
+  return multiples(min, max, pixels, pasGraduation(max - min, pixels))
+}
+
+/** The multiples of `pas` between min and max. */
+function multiples(
+  min: number,
+  max: number,
+  pixels: number,
+  pas: number
+): { pas: number; valeurs: number[] } {
   const valeurs: number[] = []
   if (!(max > min)) return { pas, valeurs }
   const premier = Math.ceil(min / pas - 1e-9)
@@ -193,6 +202,37 @@ export function graduations(
     valeurs.push(Object.is(v, -0) ? 0 : v)
   }
   return { pas, valeurs }
+}
+
+/** The next 1-2-5 step: 1 → 2 → 5 → 10. */
+function pasSuivant(pas: number): number {
+  const p = 10 ** Math.floor(Math.log10(pas) + 1e-9)
+  const c = Math.round(pas / p)
+  return Number(((c === 1 ? 2 : c === 2 ? 5 : 10) * p).toPrecision(1))
+}
+
+/** The least gap between two numbers side by side on the x axis, in pixels. */
+const ECART_NOMBRES = 8
+
+/**
+ * The graduations of the x axis: the 1-2-5 step, made coarser until its numbers, written side by
+ * side, do not overlap (#443: at 10⁻⁶ about 10⁶, « 999 999,9999996 » is 15 characters wide).
+ */
+export function graduationsX(
+  min: number,
+  max: number,
+  pixels: number
+): { pas: number; valeurs: number[] } {
+  let g = graduations(min, max, pixels)
+  for (let i = 0; i < 30 && max > min && g.valeurs.length > 1; i++) {
+    const ecart = (g.pas * pixels) / (max - min)
+    const d = decimalesDuPas(g.pas)
+    let plusLarge = 0
+    for (const v of g.valeurs) plusLarge = Math.max(plusLarge, largeurTexte(formaterNombre(v, d)))
+    if (ecart >= plusLarge + ECART_NOMBRES) break
+    g = multiples(min, max, pixels, pasSuivant(g.pas))
+  }
+  return g
 }
 
 // --- French numbers ------------------------------------------------------------------------------
@@ -363,7 +403,7 @@ function axeX(
   zeroAffiche: boolean
 ): AxeVue {
   const { largeur, hauteur } = taille
-  const { pas, valeurs } = graduations(f.xMin, f.xMax, largeur)
+  const { pas, valeurs } = graduationsX(f.xMin, f.xMax, largeur)
   const decimales = decimalesDuPas(pas)
   const yAxe = toSvg(0, 0).y
   const visible = yAxe >= 0 && yAxe <= hauteur
@@ -458,7 +498,7 @@ function grille(
   taille: TailleVue,
   toSvg: (x: number, y: number) => PointSvg
 ): ModeleVue['grille'] {
-  const xs = graduations(f.xMin, f.xMax, taille.largeur).valeurs.filter((v) => v !== 0)
+  const xs = graduationsX(f.xMin, f.xMax, taille.largeur).valeurs.filter((v) => v !== 0)
   const ys = graduations(f.yMin, f.yMax, taille.hauteur).valeurs.filter((v) => v !== 0)
   return {
     verticales: xs.map((v) => toSvg(v, 0).x),
