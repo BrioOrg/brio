@@ -109,7 +109,17 @@ function Nombre({ t, className = '' }: { t: TexteVue; className?: string }) {
  * The drawing of a grid: grid lines, axes, curves, then the numbers with their halo, in the
  * layers of FigureRenderer. Shared by the interactive grid and the printed one of a course block.
  */
-export function CouchesRepere({ modele }: { modele: ModeleVue }) {
+export function CouchesRepere({
+  modele,
+  courbes = modele.courbes,
+  transform,
+}: {
+  modele: ModeleVue
+  /** The curves, when traced apart from the grid (the interactive grid traces them deferred). */
+  courbes?: readonly CourbeDessinee[]
+  /** Moves curves traced for an earlier window to where they lie now. */
+  transform?: string
+}) {
   const { largeur, hauteur } = modele
   return (
     <>
@@ -131,8 +141,8 @@ export function CouchesRepere({ modele }: { modele: ModeleVue }) {
           ) : null
         )}
       </g>
-      <g>
-        {modele.courbes.map((c) => (
+      <g transform={transform}>
+        {courbes.map((c) => (
           <g key={c.id} data-courbe={c.id}>
             {c.d && (
               <path
@@ -143,6 +153,7 @@ export function CouchesRepere({ modele }: { modele: ModeleVue }) {
                 strokeLinejoin="round"
                 strokeLinecap="round"
                 strokeDasharray={c.pointille ? CURVE_DASH : undefined}
+                vectorEffect="non-scaling-stroke"
               />
             )}
             {c.points.map((p, j) => (
@@ -364,62 +375,9 @@ export function RepereInteractif({
       >
         <title id={titreId}>Repère</title>
         <desc id={descId}>{effective ? description(effective) : ''}</desc>
-<<<<<<< HEAD
-        {modele && <CouchesRepere modele={modele} />}
-=======
         {modele && (
-          <>
-            <g className="stroke-line" strokeWidth={1}>
-              {modele.grille.verticales.map((x) => (
-                <line key={`v${x}`} x1={x} y1={0} x2={x} y2={hauteur} />
-              ))}
-              {modele.grille.horizontales.map((y) => (
-                <line key={`h${y}`} x1={0} y1={y} x2={largeur} y2={y} />
-              ))}
-            </g>
-            <g>
-              {[modele.axeX, modele.axeY].map((axe, i) =>
-                axe.ligne ? (
-                  <g key={i}>
-                    <line {...axe.ligne} stroke="currentColor" strokeWidth={1.5} />
-                    {axe.fleche && <polygon points={axe.fleche} fill="currentColor" />}
-                  </g>
-                ) : null
-              )}
-            </g>
-            <g transform={transform}>
-              {(trace?.courbes ?? []).map((c) => (
-                <g key={c.id} data-courbe={c.id}>
-                  {c.d && (
-                    <path
-                      d={c.d}
-                      fill="none"
-                      className={CURVE_STROKE[c.couleur]}
-                      strokeWidth={2}
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      strokeDasharray={c.pointille ? CURVE_DASH : undefined}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  )}
-                  {c.points.map((p, j) => (
-                    <circle key={j} cx={p.x} cy={p.y} r={3} className={CURVE_FILL[c.couleur]} />
-                  ))}
-                </g>
-              ))}
-            </g>
-            <g>
-              {[...modele.axeX.nombres, ...modele.axeY.nombres].map((t) => (
-                <Nombre key={`${t.texte}-${t.x}-${t.y}`} t={t} />
-              ))}
-              {modele.origine && <Nombre t={modele.origine} />}
-              {[modele.axeX.nom, modele.axeY.nom].map((t) =>
-                t ? <Nombre key={t.texte} t={t} className="text-sm italic" /> : null
-              )}
-            </g>
-          </>
+          <CouchesRepere modele={modele} courbes={trace?.courbes ?? []} transform={transform} />
         )}
->>>>>>> origin/develop
       </svg>
 
       <div className="absolute right-3 top-3 z-10 flex gap-2">
