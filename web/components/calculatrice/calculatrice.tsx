@@ -74,12 +74,19 @@ export function Calculatrice({
   etatInitial,
   synchroniserAdresse = true,
   hauteur = 'page',
+  onEtat,
 }: {
   etatInitial: EtatCalculatrice
   /** Writes the state in the page's address; off for a demonstration (the /design page). */
   synchroniserAdresse?: boolean
-  /** Side by side, it fills the screen under the top bar, or the box it is set in. */
-  hauteur?: 'page' | 'parent'
+  /**
+   * Side by side, it fills the screen under the top bar, or the box it is set in. `compact`, for
+   * a course block (#424): a shorter grid, and the list at its own height, without a scroll of
+   * its own inside the chapter's.
+   */
+  hauteur?: 'page' | 'parent' | 'compact'
+  /** Told the current state at each change of the work (a course block links it to Explorer). */
+  onEtat?: (etat: EtatCalculatrice) => void
 }) {
   const [lignes, setLignes] = useState<Ligne[]>(() => lignesDepuisEtat(etatInitial))
   const [fenetre, setFenetre] = useState<Fenetre | null>(etatInitial.fenetre ?? null)
@@ -158,6 +165,17 @@ export function Calculatrice({
     }, pauseCss())
     return () => clearTimeout(minuterie)
   }, [lignes, fenetre, angle, orthonorme, synchroniserAdresse])
+
+  // The state, for a caller that shows it elsewhere (« Ouvrir en grand », #424).
+  const onEtatRef = useRef(onEtat)
+  useEffect(() => {
+    onEtatRef.current = onEtat
+  })
+  useEffect(() => {
+    onEtatRef.current?.(
+      etatDepuisLignes(lignes, { ...(fenetre && { fenetre }), angle, orthonorme })
+    )
+  }, [lignes, fenetre, angle, orthonorme])
 
   // --- Focus after a change of the list -----------------------------------------------------------
   useEffect(() => {
@@ -311,7 +329,11 @@ export function Calculatrice({
         <div
           className={[
             'flex flex-col @4xl:flex-row',
-            hauteur === 'parent' ? 'h-full' : '@4xl:h-[calc(100dvh-var(--spacing)*14)]',
+            hauteur === 'parent'
+              ? 'h-full'
+              : hauteur === 'compact'
+                ? '@4xl:h-112'
+                : '@4xl:h-[calc(100dvh-var(--spacing)*14)]',
           ].join(' ')}
         >
           <div
@@ -402,7 +424,7 @@ export function Calculatrice({
           <div
             className={[
               'relative order-first min-h-64 min-w-0 shrink-0 border-b border-line @4xl:order-none @4xl:h-auto @4xl:flex-1 @4xl:border-b-0',
-              hauteur === 'parent' ? 'h-1/2' : 'h-[55svh]',
+              hauteur === 'parent' ? 'h-1/2' : hauteur === 'compact' ? 'h-72' : 'h-[55svh]',
             ].join(' ')}
           >
             <RepereInteractif

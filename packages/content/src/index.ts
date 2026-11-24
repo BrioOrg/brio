@@ -354,3 +354,11 @@ export {
   dessinerCourbe,
   modeleVue,
 } from './grapheur/vue'
+// Graphing calculator — the course block `calculatrice` (ADR 0049 §6)
+export type { CalculatriceFenetre, CalculatriceIssue, CalculatriceSpec } from './calculatrice-rules'
+export {
+  checkCalculatrice,
+  CALCULATRICE_CONSIGNE_MAX,
+  CALCULATRICE_MAX_EXPRESSIONS,
+  MESSAGES_BLOC_CALCULATRICE,
+} from './calculatrice-rules'

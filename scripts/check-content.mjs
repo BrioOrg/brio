@@ -73,6 +73,13 @@
  *    the first, balanced, without relation; a note short and not blank. KaTeX itself runs in
  *    the web's tests (web/lib/__tests__/calcul-catalogue.test.ts): this script has no dependency.
  *
+ * 4c. Calculator blocks (ADR 0049 §6): every expression is read by the calculator's own engine
+ *    (packages/content/src/grapheur), together, as the student's calculator reads them, and its
+ *    French message is printed at the block path; at most 8 expressions; a window neither empty
+ *    nor inverted; an instruction of at most 280 characters. Rules in
+ *    packages/content/src/calculatrice-rules.ts, shared with the teacher editor. The expressions
+ *    are calculator lines, not rich text: their `*` is a product.
+ *
  * 5. Chapter id uniqueness — a chapter's `id` is its slug and must be unique across
  *    content/chapitres and content/annales (ADR 0011, #218): ingestion keys chapters
  *    on `id` alone.
@@ -108,6 +115,7 @@ let checkSolidRules
 let checkFigureGeometry
 let expandTransformations
 let checkFunctionPlot
+let checkCalculatrice
 // packages/content imports its own modules without an extension, as the bundlers expect; Node's
 // type stripping does not guess one, so add `.ts` to the relative imports it cannot resolve.
 register(
@@ -138,6 +146,7 @@ try {
     '../packages/content/src/transformations.ts'
   ))
   ;({ checkFunctionPlot } = await import('../packages/content/src/function-rules.ts'))
+  ;({ checkCalculatrice } = await import('../packages/content/src/calculatrice-rules.ts'))
 } catch (e) {
   console.error(
     '✗ check-content loads packages/content as TypeScript: run `pnpm check:content`\n' +
@@ -258,6 +267,8 @@ function walkStrings(node, file, path) {
       if (node.type === 'code' && key === 'code') continue
       // An exercise's `program` link (#232) holds an id and Scratch inputs, not rich text.
       if (node.type === 'exercise' && key === 'program') continue
+      // A calculator block's expressions are calculator lines (ADR 0049), where `*` is a product.
+      if (node.type === 'calculatrice' && key === 'expressions') continue
       walkStrings(value, file, path ? `${path}.${key}` : key)
     }
   }
@@ -707,6 +718,14 @@ function checkCalculBlock(block, file, path) {
   for (const issue of checkCalcul(block)) fail(file, `${path}.${issue.path}`, calculMessage(issue))
 }
 
+// --- Calculator blocks (ADR 0049 §6) ---
+// The rules and their French messages live in packages/content/src/calculatrice-rules.ts, shared
+// with the teacher editor: an expression's message is the calculator's own.
+
+function checkCalculatriceBlock(block, file, path) {
+  for (const issue of checkCalculatrice(block)) fail(file, `${path}.${issue.path}`, issue.message)
+}
+
 // The rules live in packages/content/src/tree-rules.ts, shared with the teacher editor (ADR 0040);
 // only their English wording is here.
 function treeMessage(issue) {
@@ -981,6 +1000,7 @@ function checkFigures(doc, file) {
       if (block.type === 'figure') checkFigureBlock(block, file, path)
       else if (block.type === 'chart') checkChartBlock(block, file, path)
       else if (block.type === 'calcul') checkCalculBlock(block, file, path)
+      else if (block.type === 'calculatrice') checkCalculatriceBlock(block, file, path)
       else if (block.type === 'tree') checkTreeBlock(block, file, path)
       else if (block.type === 'solid') checkSolidBlock(block, file, path)
       else if (block.type === 'code' && block.language === 'scratch') checkScratchBlock(block, file, path)
@@ -1111,4 +1131,4 @@ if (errors.length > 0) {
   process.exit(1)
 }
 
-console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + trees + solids + Scratch programmes + maths tones + unique chapter and block ids).`)
+console.log(`✓ Content checks passed in ${fileCount} file(s) (rich-text delimiters + figure specs + charts + calculations + calculators + trees + solids + Scratch programmes + maths tones + unique chapter and block ids).`)

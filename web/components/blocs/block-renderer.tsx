@@ -9,6 +9,7 @@ import {
 
 import { ExerciceWidget, PaperExercise, type CourseSection } from '@/components/exercice-widget'
 import { CalculRenderer } from '@/components/calcul-renderer'
+import { CalculatriceBloc } from '@/components/calculatrice/calculatrice-bloc'
 import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { SolidRenderer } from '@/components/solid-renderer'
@@ -19,6 +20,7 @@ import { Icon } from '@/components/ui/icon'
 import { Etapes } from '@/components/chapitre-interactif/etapes'
 import { RichTextRenderer } from '@/components/blocs/rich-text'
 import { SharedBlock } from '@/components/blocs/shared-block'
+import { lireBlocCalculatrice } from '@/lib/calculatrice-bloc'
 import { renderKatex } from '@/lib/katex'
 
 type Choice = { id: string; text: string }
@@ -142,6 +144,12 @@ export function BlockRenderer({
 
     case 'calcul':
       return <CalculRenderer id={block.id} spec={block as unknown as CalculSpec} />
+
+    case 'calculatrice': {
+      // A compact graphing calculator (ADR 0049 §6), the only client part of the block.
+      const bloc = lireBlocCalculatrice(block)
+      return bloc ? <CalculatriceBloc bloc={bloc} /> : null
+    }
 
     case 'objectives':
       return <ObjectivesBlock id={block.id} block={block} />

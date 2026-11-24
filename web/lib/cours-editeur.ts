@@ -7,6 +7,7 @@
 
 import {
   checkCalcul,
+  checkCalculatrice,
   checkChart,
   checkSolid,
   checkTones,
@@ -42,6 +43,7 @@ export type BlocType =
   | 'callout'
   | 'steps'
   | 'calcul'
+  | 'calculatrice'
   | 'table'
   | 'reference'
   | 'figure'
@@ -119,6 +121,12 @@ export const BLOCS: {
     label: 'Calcul',
     description: 'Un calcul en ligne ou une équation, aligné sur le signe =',
     icone: '=',
+  },
+  {
+    type: 'calculatrice',
+    label: 'Calculatrice',
+    description: 'Une calculatrice graphique préréglée, que l’élève manipule',
+    icone: '⌗',
   },
   {
     type: 'table',
@@ -215,6 +223,7 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   callout: 'Encadré',
   steps: 'Étapes',
   calcul: 'Calcul',
+  calculatrice: 'Calculatrice',
   table: 'Tableau',
   reference: 'Référence',
   figure: 'Figure',
@@ -310,6 +319,10 @@ export function nouveauBloc(
         title: '',
         lines: [{ latex: '' }, { latex: '' }] as LigneCalcul[],
       }
+    case 'calculatrice':
+      // Une calculatrice graphique (ADR 0049 §6) : une première expression à écrire, sans
+      // consigne ni fenêtre (la vue par défaut de la calculatrice) tant que le prof n'en donne pas.
+      return { id: genId(), type, consigne: '', expressions: [''] }
     case 'table':
       // Une grille 2×1 prête à remplir : une ligne d'en-têtes (facultative dans le schéma, mais
       // proposée par défaut) et une première ligne de corps. Le schéma exige au moins une ligne
@@ -523,6 +536,11 @@ function blocServi(bloc: Bloc): Bloc {
     case 'table':
       if (Array.isArray(b.headers) && (b.headers as unknown[]).every(vide)) delete b.headers
       return b
+    case 'calculatrice':
+      // Une consigne vide ne part pas ; sans fenêtre, la calculatrice prend sa vue par défaut.
+      if (vide(b.consigne)) delete b.consigne
+      if (b.fenetre === undefined) delete b.fenetre
+      return b
     case 'chart':
       // Un circulaire n'a pas d'axes : le schéma refuse leurs champs. Ils restent dans l'éditeur
       // (repasser en barres les retrouve) mais ne partent pas. `showValues: false` est la valeur
@@ -597,6 +615,8 @@ const LIBELLES_CHAMPS: Record<string, string> = {
   items: 'les objectifs',
   competencies: 'les compétences',
   code: 'le programme',
+  consigne: 'la consigne',
+  expressions: 'les expressions',
 }
 
 /** Le premier segment d'un chemin de champ : `choices[1].text` → `choices`. */
@@ -771,6 +791,13 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
     case 'calcul':
       for (const i of checkCalcul(b)) {
         p.push({ code: `CALCUL_${i.code}`, champ: i.path, message: libelleCalcul(i) })
+      }
+      break
+    case 'calculatrice':
+      // Les règles et les mots de check-content (calculatrice-rules.ts) : le message d'une
+      // expression est celui de la calculatrice elle-même.
+      for (const i of checkCalculatrice(b)) {
+        p.push({ code: 'CALCULATRICE', champ: i.path, message: i.message })
       }
       break
     case 'tree':
