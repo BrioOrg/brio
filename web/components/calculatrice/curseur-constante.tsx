@@ -2,15 +2,15 @@
 
 import { forwardRef, useEffect, useId, useState } from 'react'
 
-import { formatNumber } from '@brio/content'
+import { nombreExact } from '@brio/content'
 
 import { Curseur } from '@/components/curseur'
 import { Icon } from '@/components/ui/icon'
 import { Infobulle } from '@/components/ui/infobulle'
-import type { CurseurEtat } from '@/lib/calculatrice-etat'
+import { BORNE_CURSEUR, type CurseurEtat } from '@/lib/calculatrice-etat'
 
 import { BOUTON_ICONE, CHAMP, CHAMP_INVALIDE } from './classes'
-import { lireNombre } from './lignes'
+import { lireNombre, surLaGrille } from './lignes'
 
 // The slider of a constant line (spec U4 §4): the shared Curseur, a play button the student alone
 // starts, and its minimum, maximum and step, which the student may edit. A bound is applied when
@@ -32,12 +32,12 @@ function ChampBorne({
   onValider: (v: number) => boolean
 }) {
   const id = useId()
-  const [texte, setTexte] = useState(formatNumber(valeur))
+  const [texte, setTexte] = useState(nombreExact(valeur))
   const [refuse, setRefuse] = useState(false)
 
   // A bound changed elsewhere (a widened slider) is shown as it is.
   useEffect(() => {
-    setTexte(formatNumber(valeur))
+    setTexte(nombreExact(valeur))
     setRefuse(false)
   }, [valeur])
 
@@ -67,7 +67,7 @@ function ChampBorne({
           // A refused bound goes back to the one in force: on leaving, the field never shows a
           // value the slider does not use.
           if (!valider()) {
-            setTexte(formatNumber(valeur))
+            setTexte(nombreExact(valeur))
             setRefuse(false)
           }
         }}
@@ -80,7 +80,7 @@ function ChampBorne({
         className={[
           CHAMP,
           refuse ? CHAMP_INVALIDE : 'border-line',
-          'min-h-11 w-16 px-2 text-center text-sm tabular-nums',
+          'min-h-11 w-24 px-2 text-center text-sm tabular-nums',
         ].join(' ')}
       />
     </div>
@@ -108,7 +108,9 @@ export const CurseurConstante = forwardRef<
     if (
       !(suivant.max > suivant.min) ||
       !(suivant.pas > 0) ||
-      suivant.pas > suivant.max - suivant.min
+      suivant.pas > suivant.max - suivant.min ||
+      Math.abs(suivant.min) > BORNE_CURSEUR ||
+      Math.abs(suivant.max) > BORNE_CURSEUR
     ) {
       return false
     }
@@ -130,7 +132,9 @@ export const CurseurConstante = forwardRef<
               pas={curseur.pas}
               valeur={valeur}
               label={`Curseur ${nom}`}
-              onChange={onValeur}
+              onChange={(v) => onValeur(surLaGrille(v, curseur))}
+              formater={nombreExact}
+              classeRange="min-h-11"
               onFocus={arreter}
               onKeyDown={arreter}
               onPointerDown={arreter}

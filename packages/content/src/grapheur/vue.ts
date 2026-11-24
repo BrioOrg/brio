@@ -4,7 +4,8 @@
 // mobile app can reuse it as is.
 
 import { sampleCurve } from '../function-plot'
-import { traceImplicite, type Fenetre, type PointSvg } from './implicite'
+import { BUDGET_IMPLICITE, traceImplicite, type Fenetre, type PointSvg } from './implicite'
+import { formaterNombre } from './nombres'
 
 export type { Fenetre, PointSvg } from './implicite'
 
@@ -22,9 +23,6 @@ export const PX_PAR_GRADUATION = 80
 export const X_PAR_DEFAUT = 10
 
 const FACTEURS_PAS = [1, 2, 5] as const
-
-const NBSP_FINE = ' '
-const MOINS = '−'
 
 // --- Window -------------------------------------------------------------------------------------
 
@@ -199,59 +197,7 @@ export function graduations(
 
 // --- French numbers ------------------------------------------------------------------------------
 
-const formats = new Map<string, Intl.NumberFormat>()
-
-function format(options: Intl.NumberFormatOptions): Intl.NumberFormat {
-  const cle = JSON.stringify(options)
-  let f = formats.get(cle)
-  if (!f) {
-    f = new Intl.NumberFormat('fr-FR', { useGrouping: true, ...options })
-    formats.set(cle, f)
-  }
-  return f
-}
-
-/** Intl's French, with U+2212 for minus and a narrow no-break space between digit groups. */
-function versFrancais(texte: string): string {
-  return texte.replace(/[-‐-‒]/g, MOINS).replace(/[   ]/g, NBSP_FINE)
-}
-
-/**
- * A number in French with at most `decimales` decimals: comma, U+2212, thin spaces between groups
- * of three digits, never an exponent, never "−0".
- */
-export function formaterNombre(v: number, decimales: number): string {
-  if (!Number.isFinite(v)) return ''
-  const d = Math.max(0, Math.min(20, Math.floor(decimales)))
-  const texte = format({ maximumFractionDigits: d }).format(v)
-  return versFrancais(texte.replace(/^-(0(,0*)?)$/, '$1'))
-}
-
-/** |v| under this, for a value computed with doubles, is a rounding residue: shown as 0. */
-export const RESIDU = 1e-10
-
-/**
- * A computed value as the calculator shows it in decimal writing: the floating-point residue
- * removed (sin π is 0, not 1,22e−16), rounded to 10 significant digits, then written with two
- * decimals (three significant digits under 0,1), `approche` when that is not the exact value.
- */
-export function formaterDecimal(v: number): { texte: string; approche: boolean } | null {
-  if (!Number.isFinite(v)) return null
-  if (Number.isSafeInteger(v)) return { texte: formaterNombre(v, 0), approche: false }
-  const propre = Math.abs(v) < RESIDU ? 0 : Number(v.toPrecision(10))
-  const absolu = Math.abs(propre)
-  if (absolu >= 1e10) {
-    const texte = versFrancais(format({ maximumSignificantDigits: 10 }).format(propre))
-    return { texte, approche: !Number.isSafeInteger(propre) }
-  }
-  const decimales =
-    propre === 0 ? 0 : absolu >= 0.1 ? 2 : Math.min(12, 2 - Math.floor(Math.log10(absolu)))
-  const arrondi = Number(propre.toFixed(decimales))
-  return {
-    texte: formaterNombre(arrondi, decimales),
-    approche: Math.abs(propre - arrondi) > 1e-12 * Math.max(1, absolu),
-  }
-}
+export { formaterDecimal, formaterNombre, grouperChiffres, nombreExact } from './nombres'
 
 // --- Drawing model -------------------------------------------------------------------------------
 
@@ -265,6 +211,8 @@ export type CourbeVue =
       f: (x: number) => number
       couleur: CouleurCourbe
       pointille: boolean
+      /** What the geometry depends on (text, definitions, slider values, angle): see `modeleVue`. */
+      cle?: string
     }
   | {
       id: string
@@ -272,6 +220,7 @@ export type CourbeVue =
       F: (x: number, y: number) => number
       couleur: CouleurCourbe
       pointille: boolean
+      cle?: string
     }
 
 export type TexteVue = {
@@ -485,10 +434,44 @@ export function dessinerCourbe(
  * French (a single "0" at the origin; numbers stuck to the nearest edge when their axis is off
  * screen) and the curves sampled over the whole window.
  */
+/** The geometry of a curve, kept between two views of the same window and size. */
+export type GeometrieCourbe = Pick<CourbeDessinee, 'd' | 'points'>
+
+export type OptionsVue = {
+  /**
+   * Geometry already traced, by curve key: a curve with a `cle` found here for the same window,
+   * size and budget is not traced again (a colour, a stroke or another line changed). Entries
+   * this view does not use are dropped.
+   */
+  cache?: Map<string, GeometrieCourbe>
+  /** Evaluations of F allowed for all the implicit curves of the view together. */
+  budgetImplicite?: number
+}
+
+/** The single "0" of the origin, kept inside the drawing whatever the origin's position. */
+function texteOrigine(o: PointSvg, largeur: number, hauteur: number): TexteVue {
+  const gauche = o.x - ECART - LARGEUR_CHIFFRE >= ECART
+  const dessous = o.y + ECART + HAUTEUR_NOMBRE <= hauteur - ECART
+  return {
+    texte: '0',
+    x: gauche ? o.x - ECART : Math.min(o.x + ECART, largeur - ECART - LARGEUR_CHIFFRE),
+    y: dessous ? o.y + ECART : Math.max(o.y - ECART, HAUTEUR_NOMBRE + ECART),
+    ancre: gauche ? 'end' : 'start',
+    ligne: dessous ? 'hanging' : 'auto',
+  }
+}
+
+/**
+ * The whole drawing of a view: grid, axes with their arrows and names, graduation numbers in
+ * French (exactly one "0" when the origin is on screen; numbers stuck to the nearest edge when
+ * their axis is off screen) and the curves sampled over the whole window. The implicit curves
+ * share one budget of evaluations, so no number of lines can freeze the page.
+ */
 export function modeleVue(
   fenetre: Fenetre,
   taille: TailleVue,
-  courbes: readonly CourbeVue[] = []
+  courbes: readonly CourbeVue[] = [],
+  options: OptionsVue = {}
 ): ModeleVue {
   const largeur = taillePositive(taille) ? taille.largeur : 0
   const hauteur = taillePositive(taille) ? taille.hauteur : 0
@@ -515,21 +498,33 @@ export function modeleVue(
   const o = toSvg(0, 0)
   const xVisible = o.y >= 0 && o.y <= hauteur
   const yVisible = o.x >= 0 && o.x <= largeur
-  const origine: TexteVue | null =
-    xVisible &&
-    yVisible &&
-    o.x - ECART >= MARGE_BORD &&
-    o.y + ECART + HAUTEUR_NOMBRE <= hauteur - ECART
-      ? { texte: '0', x: o.x - ECART, y: o.y + ECART, ancre: 'end', ligne: 'hanging' }
-      : null
+  const origine = xVisible && yVisible ? texteOrigine(o, largeur, hauteur) : null
+
+  const implicites = courbes.filter((c) => c.genre === 'implicite').length
+  const budget = Math.floor((options.budgetImplicite ?? BUDGET_IMPLICITE) / Math.max(1, implicites))
+  const cache = options.cache
+  const utilisees = new Set<string>()
+  const vue = `${fenetre.xMin},${fenetre.xMax},${fenetre.yMin},${fenetre.yMax}|${largeur}x${hauteur}|${budget}`
+  const dessinees = courbes.map((c): CourbeDessinee => {
+    const cle = c.cle === undefined ? null : `${c.genre}|${c.cle}|${vue}`
+    const connue = cle === null ? undefined : cache?.get(cle)
+    const g = connue ?? dessinerCourbe(c, fenetre, t, budget)
+    if (cle !== null && cache) {
+      cache.set(cle, { d: g.d, points: g.points })
+      utilisees.add(cle)
+    }
+    return { id: c.id, couleur: c.couleur, pointille: c.pointille, d: g.d, points: g.points }
+  })
+  if (cache) for (const k of cache.keys()) if (!utilisees.has(k)) cache.delete(k)
+
   return {
     largeur,
     hauteur,
     grille: grille(fenetre, t, toSvg),
-    // A single 0 at the origin; without it, each axis writes its own 0.
+    // With the origin on screen, its single 0; otherwise each axis writes its own.
     axeX: axeX(fenetre, t, toSvg, origine === null),
     axeY: axeY(fenetre, t, toSvg, origine === null),
     origine,
-    courbes: courbes.map((c) => dessinerCourbe(c, fenetre, t)),
+    courbes: dessinees,
   }
 }

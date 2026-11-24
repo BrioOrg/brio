@@ -61,7 +61,7 @@ describe('LigneExpression', () => {
       'placeholder',
       'Écris une expression'
     )
-    expect(screen.getByRole('button', { name: 'Masquer la courbe 3' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Afficher la courbe 3' })).toHaveAttribute(
       'aria-pressed',
       'true'
     )
@@ -166,4 +166,3 @@ describe('LigneExpression', () => {
     expect(screen.getByRole('button', { name: 'Lancer l’animation du curseur a' })).toHaveFocus()
   })
 })
-

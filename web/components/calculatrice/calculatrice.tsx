@@ -5,7 +5,6 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import {
   analyserLignes,
   decimalesDuPas,
-  formatNumber,
   formaterNombre,
   pasGraduation,
   type CourbeVue,
@@ -18,13 +17,13 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { InfobulleProvider } from '@/components/ui/infobulle'
 import {
+  E_MAX,
   LIGNES_MAX,
   adresseAvecEtat,
   encoderEtat,
   type CurseurEtat,
   type EtatCalculatrice,
 } from '@/lib/calculatrice-etat'
-import { duration } from '@/lib/motion-tokens'
 
 import { LigneExpression, type ActionsLigne } from './ligne-expression'
 import {
@@ -33,41 +32,35 @@ import {
   etatDepuisLignes,
   lignesDepuisEtat,
   prochaineCouleur,
+  cleDeCourbe,
   surLaGrille,
+  texteConstante,
   type Ligne,
 } from './lignes'
+import { pauseCss } from './pause'
 import { RepereInteractif } from './repere-interactif'
 
 // The graphing calculator (ADR 0049 §3, spec U4 of #421): the list of expressions and the grid.
 // Every change is read again by the engine (`analyserLignes`, pure and fast) and drawn at once;
 // the state goes to the page's address after a pause, without a history entry per keystroke.
 
-/** `--duration-slow`, read from the CSS (the token is the source); its mirror when unreadable. */
-function pauseCss(): number {
-  if (typeof window === 'undefined') return duration.slow
-  const brut = getComputedStyle(document.documentElement).getPropertyValue('--duration-slow').trim()
-  const m = /^([\d.]+)(ms|s)$/.exec(brut)
-  if (!m) return duration.slow
-  return Number(m[1]) * (m[2] === 's' ? 1000 : 1)
-}
-
 /** Steps of a slider's animation from one end to the other. */
 const PAS_ANIMATION = 240
 
 /** Reads the lines again only when a text or the angle unit changed, not for a colour. */
+/**
+ * Reads the lines again only when a text or the angle unit changed, not for a colour: the memo is
+ * keyed on the texts themselves (V1-S3, gate 5: no ref written during render).
+ */
 function useAnalyse(lignes: readonly Ligne[], angle: ModeAngle): LigneAnalysee[] {
-  const cache = useRef<{ cle: string; resultat: LigneAnalysee[] } | null>(null)
   const cle = JSON.stringify([angle, lignes.map((l) => [l.id, l.texte])])
-  if (cache.current?.cle !== cle) {
-    cache.current = {
-      cle,
-      resultat: analyserLignes(
-        lignes.map((l) => ({ id: l.id, texte: l.texte })),
-        { angle }
-      ),
-    }
-  }
-  return cache.current.resultat
+  return useMemo(() => {
+    const [a, saisies] = JSON.parse(cle) as [ModeAngle, [string, string][]]
+    return analyserLignes(
+      saisies.map(([id, texte]) => ({ id, texte })),
+      { angle: a }
+    )
+  }, [cle])
 }
 
 function descriptionFenetre(f: Fenetre): string {
@@ -119,19 +112,25 @@ export function Calculatrice({
     lignes.forEach((l, i) => {
       const a = analyse[i]
       if (l.masquee || !a) return
-      const commun = { id: l.id, couleur: l.couleur, pointille: l.style === 'pointille' }
+      const commun = {
+        id: l.id,
+        couleur: l.couleur,
+        pointille: l.style === 'pointille',
+        cle: cleDeCourbe(l.texte, lignes, analyse, angle),
+      }
       if (a.genre === 'explicite') liste.push({ ...commun, genre: 'explicite', f: a.f })
       else if (a.genre === 'implicite') liste.push({ ...commun, genre: 'implicite', F: a.F })
     })
     return liste
-  }, [lignes, analyse])
+  }, [lignes, analyse, angle])
 
   const description = useCallback(
     (f: Fenetre) => {
       const parId = new Map(lignes.map((l) => [l.id, l]))
       const elements = courbes.map((c) => {
         const l = parId.get(c.id)
-        return `${l?.texte.trim() ?? ''}, en ${NOMS_COULEURS[c.couleur]}`
+        // « (en bleu) »: no clause comma glued to a decimal (y = 0,5x + 1,5, en bleu).
+        return `${l?.texte.trim() ?? ''} (en ${NOMS_COULEURS[c.couleur]})`
       })
       const fen = descriptionFenetre(f)
       if (elements.length === 0) return `Aucune courbe n’est tracée. ${fen}`
@@ -154,7 +153,8 @@ export function Calculatrice({
       ecrit.current = encode
       return
     }
-    if (encode === ecrit.current) return
+    // Never an address the page could not read back: past E_MAX the previous one is kept.
+    if (encode === ecrit.current || encode.length > E_MAX) return
     const minuterie = setTimeout(() => {
       ecrit.current = encode
       window.history.replaceState(
@@ -263,7 +263,7 @@ export function Calculatrice({
   }
 
   function surValeur(id: string, nom: string, v: number) {
-    modifier(id, (l) => ({ ...l, texte: `${nom} = ${formatNumber(v)}` }))
+    modifier(id, (l) => ({ ...l, texte: texteConstante(nom, v) }))
   }
 
   function animer(id: string, oui: boolean) {
@@ -299,7 +299,7 @@ export function Calculatrice({
             s = s === 1 ? -1 : 1
           }
           sens.current.set(l.id, s)
-          return { ...l, texte: `${a.nom} = ${formatNumber(surLaGrille(v, c))}` }
+          return { ...l, texte: texteConstante(a.nom, surLaGrille(v, c)) }
         })
       )
       cadre = requestAnimationFrame(pas)
@@ -311,7 +311,13 @@ export function Calculatrice({
   return (
     <InfobulleProvider>
       <div
-        className={hauteur === 'parent' ? '@container h-full' : '@container'}
+        className={[
+          '@container',
+          hauteur === 'parent' ? 'h-full' : '',
+          // A focused control never hides under the sticky top bar (h-14) or, on a phone, the
+          // bottom bar (h-16): the browser scrolls it clear (WCAG 2.4.11, U7 at gate 5).
+          '[&_:is(input,button,a)]:scroll-mt-16 [&_:is(input,button,a)]:scroll-mb-20 sm:[&_:is(input,button,a)]:scroll-mb-4',
+        ].join(' ')}
         onKeyDownCapture={(e) => {
           // Any key stops the animations, but Enter or Space on a play button: it toggles.
           const bascule =

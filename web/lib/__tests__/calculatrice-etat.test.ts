@@ -142,3 +142,42 @@ describe('adresseAvecEtat', () => {
     expect(adresse).toBe(`/explorer/calculatrice?e=${encoderEtat(COMPLET)}#haut`)
   })
 })
+
+// Gate 5 round 1 of #421 (V1-S1, V3): the boundaries themselves.
+describe('decoderEtat aux frontières', () => {
+  /** A readable state whose `e` is exactly `n` bytes of JSON once padded with spaces. */
+  function etatDeLongueur(octets: number): string {
+    const json = JSON.stringify({ v: 1, lignes: [{ texte: 'y = x' }] })
+    return base64url(json + ' '.repeat(octets - json.length))
+  }
+
+  it('lit une adresse de E_MAX caractères et refuse la plus courte au-delà', () => {
+    const juste = etatDeLongueur((E_MAX * 3) / 4)
+    expect(juste).toHaveLength(E_MAX)
+    expect(decoderEtat(juste)).toEqual({ v: 1, lignes: [{ texte: 'y = x' }] })
+    // Base64 has no length E_MAX + 1: the next one is E_MAX + 2, refused for its length alone.
+    const trop = etatDeLongueur((E_MAX * 3) / 4 + 1)
+    expect(trop).toHaveLength(E_MAX + 2)
+    expect(decoderEtat(trop)).toEqual(etatVide())
+  })
+
+  const json = (v: unknown) => base64url(JSON.stringify(v))
+  const avecCurseur = (curseur: unknown) => json({ v: 1, lignes: [{ texte: 'a = 1', curseur }] })
+
+  it.each([
+    ['min === max', { min: 1, max: 1, pas: 0.1 }],
+    ['un pas plus grand que l’étendue', { min: 0, max: 1, pas: 2 }],
+    ['une borne au-delà de 10⁶', { min: -2e6, max: 1, pas: 1 }],
+  ])('refuse un curseur avec %s', (_cas, curseur) => {
+    expect(decoderEtat(avecCurseur(curseur))).toEqual(etatVide())
+  })
+
+  it('accepte un pas égal à l’étendue et des bornes à ±10⁶', () => {
+    const c = { min: -1e6, max: 1e6, pas: 2e6 }
+    expect(decoderEtat(avecCurseur(c)).lignes[0].curseur).toEqual(c)
+  })
+
+  it('refuse la couleur 0', () => {
+    expect(decoderEtat(json({ v: 1, lignes: [{ texte: 'x', couleur: 0 }] }))).toEqual(etatVide())
+  })
+})

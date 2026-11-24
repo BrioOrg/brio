@@ -326,6 +326,8 @@ export type {
   TexteVue,
   AxeVue,
   ModeleVue,
+  OptionsVue,
+  GeometrieCourbe,
 } from './grapheur/vue'
 export {
   ETENDUE_MIN,
@@ -347,6 +349,8 @@ export {
   graduations,
   formaterNombre,
   formaterDecimal,
+  grouperChiffres,
+  nombreExact,
   dessinerCourbe,
   modeleVue,
 } from './grapheur/vue'

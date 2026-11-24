@@ -101,9 +101,8 @@ export function LigneExpression({
             type="button"
             onClick={actions.onMasquer}
             aria-pressed={!ligne.masquee}
-            aria-label={
-              ligne.masquee ? `Afficher la courbe ${numero}` : `Masquer la courbe ${numero}`
-            }
+            // A stable name; aria-pressed says whether the curve is shown (U7, gate 5).
+            aria-label={`Afficher la courbe ${numero}`}
             className="grid size-11 cursor-pointer place-items-center rounded-md transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-surface-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-panel"
           >
             <span

@@ -238,6 +238,34 @@ per keystroke). An unreadable address opens an empty calculator without an error
 stored**, neither on the server nor in the browser: no student data at all. A shared link
 reproduces the same expressions, colours and window.
 
+**Gate 5 of #421 (PR #439)** settled the following:
+- **Numbers on screen** (`grapheur/nombres.ts`): French comma, U+2212, digits grouped by three
+  with a narrow no-break space **from five digits on** (1234, 12 345), the same rule for results,
+  graduations, sliders and KaTeX; never an exponent. A decimal result has two decimals, or three
+  significant digits under 0,1. It is written "=" only when what is shown is the value itself:
+  with the exact fraction, rounding is done on the fraction in BigInt, half up in absolute
+  value (0,995 → ≈ 1); without it, a double is "=" only if it is exactly what is written and has
+  fewer than 12 significant digits (the engine rounds decimal calculations to 12). No absolute
+  threshold zeroes a small value: `10^(−13)` is 0,0000000000001.
+- **A slider** writes its line with the shortest decimal that reads back as the same value,
+  with no more decimals than its step and minimum (`a = 0,0000003`, never `3e-7`). Its bounds stay
+  within ±10⁶, with 0 < step ≤ max − min, in the address as in the fields.
+- **Language, calculator mode only**: digits grouped by three with a space (normal, no-break,
+  narrow no-break, thin) are one number (`1 000`, `12 345 678,5`); the ADR 0038 figure language is
+  unchanged. A negative base with a non-integer exponent in a calculation (`(−8)^(1/3)`) says
+  "La puissance d’un nombre négatif n’est définie ici que pour un exposant entier." (curves are
+  simply undefined there).
+- **No freeze**: the implicit curves of a view share one budget of 200 000 evaluations. While
+  the plane is dragged, pinched or wheeled, a trace that took more than 8 ms is not redone: the
+  curves already traced are moved with an SVG transform and traced again once the gesture stops;
+  at most one new window per frame. Each curve's geometry is cached by what it depends on (its
+  text, the angle unit, the definitions and slider values it uses), so a colour, a stroke or
+  another line never retraces it. A pixel that overflows (`exp(exp(x))`) is a gap in the path,
+  never NaN; `sampleCurve` draws every finite point as before.
+- **Identifiers** of the calculator code are French (`fenetre`, `modeleVue`, `ligne`), unlike the
+  rest of the code base: they follow the engine of #418 and the screen's vocabulary. An accepted
+  exception, limited to `grapheur/` and `components/calculatrice/`.
+
 ### 4. Reading, remarkable points, keyboard (#422)
 
 Touching a curve places a point that follows it (`(1,5 ; 2,25)`, `≈` when not exact at the
