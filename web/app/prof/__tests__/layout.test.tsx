@@ -77,7 +77,7 @@ describe('ProfLayout role gate', () => {
         'Mes cours',
         'Mes classes',
         'Devoirs',
-        'Signalements',
+        'Signalements d’entraide',
         'Signalements du salon',
       ])
       expect(within(nav).getByRole('link', { name: 'Mes classes' })).toHaveAttribute(

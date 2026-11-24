@@ -102,6 +102,6 @@ test('mode interactif : quitter une section la marque lue sur le cours, la fin r
   ).toBeVisible()
   await expect(fin.getByText(/chapitre/i)).toHaveCount(0)
   await expect(fin.getByRole('link', { name: /suivant/i })).toHaveCount(0)
-  await fin.getByRole('link', { name: 'Revenir à tes cours' }).click()
+  await fin.getByRole('link', { name: 'Revenir aux cours de ta classe' }).click()
   await expect(page).toHaveURL('/ma-classe/cours', COMPILATION)
 })

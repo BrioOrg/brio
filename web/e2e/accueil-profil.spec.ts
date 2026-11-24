@@ -15,7 +15,7 @@ test.describe('a student with homework and a chapter under way', () => {
   }) => {
     await page.goto('/')
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Salut Renard-Indigo')
-    await expect(page.getByRole('heading', { name: 'Pour ta classe · 5e B' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Devoirs à rendre · 5e B' })).toBeVisible()
     const nav = page.getByRole('navigation', NAV)
     await expect(nav.getByRole('link', { name: 'Accueil' })).toHaveAttribute('aria-current', 'page')
 

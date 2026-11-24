@@ -56,7 +56,7 @@ export async function lireLibelles(cookie: string): Promise<Map<string, string>>
   return new Map((libelles ?? []).map(({ code, intitule }) => [code, intitule]))
 }
 
-/** The homework still to hand in, soonest first: the same "à faire" as Ma classe. */
+/** The homework still to hand in, soonest first: the same « Devoirs à rendre » as Ma classe. */
 export function prochainsDevoirs(devoirs: DevoirEleveVue[], nombre: number): DevoirEleveVue[] {
   return devoirs
     .filter((d) => !d.corrige && d.statutRendu !== 'rendu')

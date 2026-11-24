@@ -74,11 +74,11 @@ describe('ExplorerPage', () => {
     expect(niveaux.map((a) => a.getAttribute('href'))).toEqual(['/6e', '/5e', '/3e'])
   })
 
-  it('propose les annales et ne parle pas des cours du prof', async () => {
+  it('propose les annales et ne parle pas des cours de ta classe', async () => {
     await renderPage(() => Promise.resolve('5e'))
 
     expect(screen.getByRole('link', { name: /annales/i })).toHaveAttribute('href', '/annales')
-    expect(screen.queryByRole('heading', { name: 'Les cours de ta classe' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Cours de ta classe' })).toBeNull()
   })
 
   // critère 8 (#395, spec U5 §2.2) : la carte ne promet plus de « vrais sujets d'examen » tant

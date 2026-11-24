@@ -135,9 +135,9 @@ describe('a teacher course in the interactive mode (ADR 0050 §7)', () => {
     expect(slide.getByText('Ton avancée dans le cours')).toBeTruthy()
     expect(slide.queryByText(/chapitre/i)).toBeNull()
     expect(slide.queryByRole('link', { name: /suivant/i })).toBeNull()
-    expect(slide.getByRole('link', { name: 'Revenir à tes cours' }).getAttribute('href')).toBe(
-      '/ma-classe'
-    )
+    expect(
+      slide.getByRole('link', { name: 'Revenir aux cours de ta classe' }).getAttribute('href')
+    ).toBe('/ma-classe')
     expect(getParcours).not.toHaveBeenCalled()
   })
 

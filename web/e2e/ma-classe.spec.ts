@@ -57,7 +57,7 @@ test.describe('Ma classe — l’espace de la classe', () => {
     await expect(page.getByText('Réviser Pythagore')).toBeVisible()
 
     const onglets = page.getByRole('navigation', { name: 'Espace de la classe' })
-    await onglets.getByRole('link', { name: 'Cours du prof' }).click()
+    await onglets.getByRole('link', { name: 'Cours de ta classe' }).click()
     await expect(page).toHaveURL('/ma-classe/cours')
     await expect(page.getByText('Les fractions, version M. Dubois')).toBeVisible()
 

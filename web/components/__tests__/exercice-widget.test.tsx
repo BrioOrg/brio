@@ -157,7 +157,7 @@ describe('ExerciceWidget — choix multiple', () => {
     expect(within(status).queryByRole('link')).not.toBeInTheDocument()
   })
 
-  it('renvoie vers la partie du cours sur une réponse incorrecte', async () => {
+  it('renvoie vers la partie de la leçon sur une réponse incorrecte', async () => {
     mockSoumettre.mockResolvedValue(INCORRECT_MC)
     render(
       <ExerciceWidget
@@ -171,7 +171,7 @@ describe('ExerciceWidget — choix multiple', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('Regarde cette partie du cours.')
+    expect(status).toHaveTextContent('Regarde cette partie de la leçon.')
     expect(
       within(status).getByRole('link', { name: /Revoir : Énoncé du théorème/ })
     ).toHaveAttribute('href', '#enonce-du-theoreme')

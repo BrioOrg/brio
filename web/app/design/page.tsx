@@ -913,8 +913,8 @@ export default function DesignPage() {
           <Panel>
             <EmptyState
               icon="book-open"
-              title="Aucun cours pour l'instant"
-              description="Les cours de cette matière apparaîtront ici dès qu'ils seront disponibles."
+              title="Aucun chapitre pour l'instant"
+              description="Les chapitres de cette matière apparaîtront ici dès qu'ils seront publiés."
               action={
                 <Button size="sm" variant="secondary">
                   Explorer le catalogue

@@ -10,7 +10,7 @@ import { apiBaseUrl } from '@/lib/api-base-url'
 import { formatEcheance } from '@/lib/echeance'
 import { lienDevoir } from '@/lib/lien-devoir'
 
-// Les devoirs d'une classe côté élève (F4, onglet « À faire » de Ma classe). On sépare « à faire »
+// Les devoirs d'une classe côté élève (F4, onglet « À faire » de Ma classe). On sépare « à rendre »
 // et « terminés » ; un retard n'est jamais puni (aucune sanction affichée). Les statuts viennent du
 // serveur (rendu dérivé des soumissions) — jamais de valeur fabriquée.
 
@@ -20,7 +20,7 @@ const LIEN_CONTENU =
   'mt-2 inline-flex min-h-6 items-center font-display text-sm font-extrabold text-accent-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent'
 
 const STATUT_LABEL: Record<string, string> = {
-  non_commence: 'À faire',
+  non_commence: 'Pas commencé',
   en_cours: 'En cours',
   rendu: 'Rendu',
 }
@@ -32,7 +32,7 @@ export function DevoirsEleve({
 }: {
   classeId: string
   cheminsChapitres: Record<string, string>
-  /** Shown between « À faire » and « Terminés », once the list has settled. */
+  /** Shown between « Devoirs à rendre » and « Terminés », once the list has settled. */
   apresAFaire?: ReactNode
 }) {
   const [devoirs, setDevoirs] = useState<DevoirEleveVue[] | null>(null)
@@ -74,13 +74,13 @@ export function DevoirsEleve({
       {aFaire.length > 0 && (
         <section>
           <h2 className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
-            À faire
+            Devoirs à rendre
           </h2>
           <ul className="flex flex-col gap-3">{aFaire.map((d) => carte(d, true))}</ul>
         </section>
       )}
 
-      {/* Spaced from whatever precedes it (« À faire », or the empty, error or signed-out line);
+      {/* Spaced from whatever precedes it (« Devoirs à rendre », or the empty, error or signed-out line);
           only when every homework is done does it open the tab. */}
       {emplacement && (
         <div className={aFaire.length === 0 && termines.length > 0 ? undefined : 'mt-6'}>

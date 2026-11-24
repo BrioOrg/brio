@@ -133,7 +133,7 @@ export const PROF_SECTIONS: AppSection[] = [
   },
   {
     key: 'signalements',
-    label: 'Signalements',
+    label: 'Signalements d’entraide',
     icon: 'flag',
     href: '/prof/signalements',
     routes: ['/prof/signalements'],

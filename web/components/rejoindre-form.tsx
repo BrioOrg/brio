@@ -26,7 +26,7 @@ function messageForStatus(status: number): string {
     case 410:
       return 'Ce code n’est plus valable (expiré ou déjà trop utilisé). Demande-en un nouveau à ton prof.'
     case 403:
-      return 'Ton établissement n’est pas encore activé sur brio. Préviens ton enseignant.'
+      return 'Ton établissement n’est pas encore activé sur brio. Préviens ton prof.'
     default:
       return 'La demande a échoué. Réessaie dans un instant.'
   }

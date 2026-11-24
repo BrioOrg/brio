@@ -110,7 +110,7 @@ export const BLOCS: {
   description: string
   icone: string
 }[] = [
-  { type: 'heading', label: 'Titre', description: 'Un intertitre dans la section', icone: 'T' },
+  { type: 'heading', label: 'Titre', description: 'Un intertitre dans la partie', icone: 'T' },
   { type: 'objectives', label: 'Objectifs', description: 'Ce que l’élève saura faire', icone: '★' },
   { type: 'prose', label: 'Texte', description: 'Un paragraphe d’explication', icone: '¶' },
   { type: 'formula', label: 'Formule', description: 'Une formule mathématique', icone: '∑' },

@@ -197,7 +197,7 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
             value={(bloc.text as string) ?? ''}
             onChange={(e) => onModifier({ text: e.target.value })}
             onFocus={onFocusBloc}
-            placeholder="Titre de section"
+            placeholder="Intertitre"
             {...champ('text')}
           />
           <select

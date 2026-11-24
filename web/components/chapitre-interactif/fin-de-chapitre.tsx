@@ -46,7 +46,7 @@ const MOTS = {
     termine: 'Cours terminé',
     avancee: 'Ton avancée dans le cours',
     progression: 'Progression du cours',
-    retour: 'Revenir à tes cours',
+    retour: 'Revenir aux cours de ta classe',
   },
 } as const
 

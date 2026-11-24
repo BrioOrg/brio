@@ -15,7 +15,7 @@ import { apiBaseUrl } from '@/lib/api-base-url'
 
 const ONGLETS = [
   { href: '/ma-classe', label: 'À faire' },
-  { href: '/ma-classe/cours', label: 'Cours du prof' },
+  { href: '/ma-classe/cours', label: 'Cours de ta classe' },
   { href: '/ma-classe/salon', label: 'Salon' },
 ]
 
@@ -71,7 +71,7 @@ export function EspaceClasse({ children }: { children: React.ReactNode }) {
           <EmptyState
             icon="chalkboard"
             title="Rejoins ta classe avec un code"
-            description="Ton prof te donne le code. Tu retrouveras ici tes devoirs, ses cours et le salon de la classe."
+            description="Ton prof te donne le code. Tu retrouveras ici tes devoirs, les cours de ta classe et le salon."
             action={
               <Link href="/rejoindre">
                 <Button tabIndex={-1}>Rejoindre ma classe</Button>

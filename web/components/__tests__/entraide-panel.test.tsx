@@ -201,10 +201,10 @@ describe('FilEntraide (through the panel)', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: /Signaler/ }))
     await userEvent.type(screen.getByLabelText(/Pourquoi ce message/), 'moqueur')
-    await userEvent.click(screen.getByRole('button', { name: 'Signaler au professeur' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Signaler à ton prof' }))
 
     expect(api.signaler).toHaveBeenCalledWith(expect.any(String), 'r1', 'moqueur')
-    expect(await screen.findByText(/ton professeur va regarder/)).toBeInTheDocument()
+    expect(await screen.findByText(/ton prof va regarder/)).toBeInTheDocument()
   })
 
   it('posts an answer and reloads the thread', async () => {

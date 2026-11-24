@@ -20,7 +20,7 @@ const BANDEAU = 'Devoir de M. Dubois · à rendre le 19 octobre'
 const COMPILATION = { timeout: 20_000 }
 
 function pourTaClasse(page: Page) {
-  return page.getByRole('region', { name: 'Pour ta classe · 5e B' })
+  return page.getByRole('region', { name: 'Devoirs à rendre · 5e B' })
 }
 
 function indisponible(page: Page) {

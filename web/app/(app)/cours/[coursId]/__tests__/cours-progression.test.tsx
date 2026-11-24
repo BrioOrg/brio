@@ -117,7 +117,7 @@ describe('CoursPage — progression and interactive mode (ADR 0050 §7)', () => 
     const fin = container.querySelector<HTMLElement>('[data-diapo="fin"]')!
     expect(within(fin).getByRole('heading', { name: 'Fin du cours' })).toBeTruthy()
     expect(
-      within(fin).getByRole('link', { name: 'Revenir à tes cours' }).getAttribute('href')
+      within(fin).getByRole('link', { name: 'Revenir aux cours de ta classe' }).getAttribute('href')
     ).toBe('/ma-classe/cours')
     expect(within(fin).queryByRole('link', { name: /suivant/i })).toBeNull()
   })

@@ -95,7 +95,7 @@ describe('EspaceClasse', () => {
     expect(screen.getByText('Inès')).toBeInTheDocument()
     expect(screen.queryByLabelText('Classe')).toBeNull()
     expect(screen.getByRole('link', { name: 'À faire' })).toHaveAttribute('href', '/ma-classe')
-    expect(screen.getByRole('link', { name: 'Cours du prof' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Cours de ta classe' })).toHaveAttribute(
       'aria-current',
       'page'
     )

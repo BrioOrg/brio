@@ -67,7 +67,7 @@ export function FilEntraide({ filId, onRetour }: FilEntraideProps) {
   const [question, ...reponses] = fil?.messages ?? []
 
   return (
-    <section aria-label="Question de la classe" className="flex flex-col gap-3">
+    <section aria-label="Question de l’entraide" className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <Button variant="ghost" size="sm" onClick={onRetour} className="-ml-3">
           <Icon name="arrow-left" size={16} aria-hidden="true" />
@@ -255,7 +255,7 @@ function MessageEntraide({ message, filId, peutRetenir, onChange }: MessageEntra
         )}
         {signalement === 'envoye' && (
           <p role="status" className="font-prose text-xs text-ink-muted">
-            Merci, ton professeur va regarder ce message.
+            Merci, ton prof va regarder ce message.
           </p>
         )}
       </div>
@@ -277,7 +277,7 @@ function MessageEntraide({ message, filId, peutRetenir, onChange }: MessageEntra
               Annuler
             </Button>
             <Button variant="destructive" size="sm" type="submit" loading={occupe}>
-              Signaler au professeur
+              Signaler à ton prof
             </Button>
           </div>
         </form>
@@ -285,4 +285,3 @@ function MessageEntraide({ message, filId, peutRetenir, onChange }: MessageEntra
     </article>
   )
 }
-
