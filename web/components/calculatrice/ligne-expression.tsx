@@ -173,10 +173,20 @@ export function LigneExpression({
             dangerouslySetInnerHTML={{ __html: apercu }}
           />
           {analyse.genre === 'calcul' && (
-            <Resultat key={ligne.texte} valeur={analyse.valeur} exact={analyse.exact} />
+            <Resultat
+              key={ligne.texte}
+              valeur={analyse.valeur}
+              exact={analyse.exact}
+              arrondi={analyse.arrondi}
+            />
           )}
           {analyse.genre === 'constante' && !analyse.curseur && (
-            <Resultat key={ligne.texte} valeur={analyse.valeur} exact={null} />
+            <Resultat
+              key={ligne.texte}
+              valeur={analyse.valeur}
+              exact={null}
+              arrondi={analyse.arrondi ?? true}
+            />
           )}
         </div>
       )}

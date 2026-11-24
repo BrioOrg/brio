@@ -70,8 +70,18 @@ export type LigneAnalysee =
       valeur: number
       /** The value is a number as typed (a = 2, b = −1,5): the screen shows a slider. */
       curseur: boolean
+      /** The value was computed with doubles and rounded: never shown after "=" (V4, #421). */
+      arrondi?: boolean
     }
-  | { id: string; latex: string; genre: 'calcul'; valeur: number; exact: Rationnel | null }
+  | {
+      id: string
+      latex: string
+      genre: 'calcul'
+      valeur: number
+      exact: Rationnel | null
+      /** No exact fraction: `valeur` is a double rounded to 12 digits, never shown after "=". */
+      arrondi?: boolean
+    }
 
 export type OptionsAnalyse = {
   angle?: ModeAngle
@@ -1071,12 +1081,27 @@ export function analyserLignes(
         // The lines that use the constant read its full value; the line shows it rounded.
         valeurs.set(s.nom, interne)
         exacts.set(s.nom, exact)
-        return { id, latex: s.latex, genre: 'constante', nom: s.nom, valeur: affichee, curseur }
+        return {
+          id,
+          latex: s.latex,
+          genre: 'constante',
+          nom: s.nom,
+          valeur: affichee,
+          curseur,
+          arrondi: exact === null,
+        }
       }
       case 'calcul': {
         const c = calculLigne(i, s.corps, corps)
         if ('message' in c) return erreur(c.message, c.position)
-        return { id, latex: s.latex, genre: 'calcul', valeur: c.valeur, exact: c.exact }
+        return {
+          id,
+          latex: s.latex,
+          genre: 'calcul',
+          valeur: c.valeur,
+          exact: c.exact,
+          arrondi: c.exact === null,
+        }
       }
     }
   }
