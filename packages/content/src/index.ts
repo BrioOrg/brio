@@ -354,3 +354,17 @@ export {
   dessinerCourbe,
   modeleVue,
 } from './grapheur/vue'
+// Graphing calculator — remarkable points of an explicit curve (ADR 0049 §4)
+export type {
+  CourbeExplicite,
+  NaturePoint,
+  PointRemarquable,
+  ResultatPoints,
+  OptionsPoints,
+} from './grapheur/points-remarquables'
+export {
+  BUDGET_POINTS,
+  POINTS_MAX,
+  pointsRemarquables,
+  pointsRemarquablesParCourbe,
+} from './grapheur/points-remarquables'
