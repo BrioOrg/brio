@@ -66,9 +66,11 @@ Un nom n'est retenu que si le backend le rend vrai : la colonne « Ce qui le ren
 
 ### 5. Leçon (contenu d'un chapitre)
 
-- **Nom** : **leçon** (« Regarde cette partie de la leçon. »). **Interdit** : « partie du cours » sur un chapitre.
-- **Ce qui le rend vrai** : le renvoi après une erreur vise la section de leçon qui porte l'exercice
-  (`web/components/chapter-view.tsx:162-168`) ; type de diapo « Leçon » (`web/lib/diapos.ts:90`).
+- **Nom** : **leçon** ; type de diapo « Leçon » (`web/lib/diapos.ts:90`). **Interdit** : « partie du cours » sur un chapitre.
+- **Texte commun chapitre / cours** : le renvoi après une erreur dit « Regarde cette partie. » sans
+  nommer l'objet, car `ChapterView` sert aussi au cours d'un prof (`web/app/(app)/cours/[coursId]/page.tsx:145`,
+  `web/components/chapter-view.tsx:162-168`) ; le lien « Revoir : <titre> » qui suit nomme la partie.
+  De même « relis la partie précédente ». Jamais « section » dans un texte visible.
 
 ### 6. Partie (sous-unité d'un cours, éditeur prof)
 

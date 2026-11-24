@@ -115,7 +115,7 @@ function PourTaClasse({
   return (
     <section aria-labelledby="pour-ta-classe-heading">
       <h2 id="pour-ta-classe-heading" className={TITRE_DE_BLOC}>
-        {uneSeule && classe ? `Devoirs à rendre · ${classe}` : 'Devoirs à rendre'}
+        {classe ? `Devoirs à rendre · ${classe}` : 'Devoirs à rendre'}
       </h2>
       <ul className="grid gap-3 sm:grid-cols-3">
         {devoirs.map((d) => (

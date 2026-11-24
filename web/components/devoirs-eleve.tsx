@@ -118,7 +118,7 @@ function CarteDevoir({
     >
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate font-display text-base font-extrabold text-ink">
+          <div className="line-clamp-2 break-words font-display text-base font-extrabold text-ink">
             {devoir.titre}
           </div>
           <div className="mt-0.5 text-xs text-ink-muted">

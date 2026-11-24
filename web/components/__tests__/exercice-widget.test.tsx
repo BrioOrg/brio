@@ -171,7 +171,7 @@ describe('ExerciceWidget — choix multiple', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Vérifier' }))
 
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('Regarde cette partie de la leçon.')
+    expect(status).toHaveTextContent('Regarde cette partie.')
     expect(
       within(status).getByRole('link', { name: /Revoir : Énoncé du théorème/ })
     ).toHaveAttribute('href', '#enonce-du-theoreme')
@@ -310,7 +310,7 @@ describe('ExerciceWidget — réponse courte', () => {
 
     const status = await screen.findByRole('status')
     expect(status).toHaveTextContent('Pas tout à fait')
-    expect(status).toHaveTextContent(/relis la section précédente/i)
+    expect(status).toHaveTextContent(/relis la partie précédente/i)
   })
 
   // T0 (#253): explanations often state the answer, so a wrong answer never shows one —
@@ -324,7 +324,7 @@ describe('ExerciceWidget — réponse courte', () => {
 
     const status = await screen.findByRole('status')
     expect(status).not.toHaveTextContent('Relis la définition du triangle rectangle.')
-    expect(status).toHaveTextContent(/relis la section précédente/i)
+    expect(status).toHaveTextContent(/relis la partie précédente/i)
   })
 
   it("n'expose pas les réponses acceptées dans la réponse incorrecte", async () => {
