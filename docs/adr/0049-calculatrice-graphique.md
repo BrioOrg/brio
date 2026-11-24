@@ -269,15 +269,40 @@ reproduces the same expressions, colours and window.
 
 ### 4. Reading, remarkable points, keyboard (#422)
 
-Touching a curve places a point that follows it (`(1,5 ; 2,25)`, `≈` when not exact at the
-hundredth, `formatReadingValue`); the remarkable points of the selected curve in the window —
-zeros, y-intercept, local extrema, intersections with the other visible explicit curves — are
-computed numerically (`solveFor` of ADR 0038 and minimisation, `grapheur/points-remarquables.ts`)
-and never shown as exact when they are not; poles give no false intersection. The grid is
-focusable: Tab chooses a curve, arrows move the point by a graduation step (Shift: fine step),
-Enter/Space jumps to the next remarkable point, and a polite live region announces the value
-once the point stops (≈ 300 ms). The SVG has a generated title and description. A maths keypad
-(44 px keys) inserts at the caret on phones.
+1. **Remarkable points** (`grapheur/points-remarquables.ts`, pure): for an explicit curve and a
+   window, the y-intercept, the zeros (`solveFor`, ADR 0038), the local extrema (800 samples, a
+   golden-section refinement, then the shortest decimal at which the curve is at least as
+   extreme) and the intersections with the other explicit curves, all inside the window. A pole
+   gives nothing: `solveFor` rejects a sign change where f does not go to 0 (`y = x` and
+   `y = 1/x` meet at (−1 ; −1) and (1 ; 1) only), and an extremum whose refined value runs past
+   what the samples showed, or that f does not close in on from both sides, is dropped (tan, 1/x²).
+   A curve lying on the axis or on another curve (`y = 0`, `y = 2x` and `y = x + x`) has no
+   isolated point there. Points found twice merge (`(0 ; −4)` is the y-intercept and the minimum
+   of `y = x² − 4`). **Exactness** is per coordinate: a zero is exact when f is 0 there to the
+   last bit, an intersection when both curves give the same double, an extremum only when f is
+   symmetric about it to the last bit at three powers of two (x² − 4 at 0; x³ − 3x at 1 is not
+   proved, so it is written with ≈). **Cost**: evaluations are counted, at most 100 000 per
+   curve (a hard cap: past it the functions read NaN and the result says `complet: false`), and
+   at most 60 points.
+2. **Tracing**: a pointer that lands within 10 px (mouse) or 24 px (touch) of an explicit curve
+   puts a point on it and the drag follows the curve, x snapped to a hundredth of a graduation;
+   a drag that starts elsewhere pans, so the two never conflict. A tap away from every curve puts
+   the reading away. The label, in the curve's colour, is « f : (1,5 ; 2,25) » (the line's name
+   when it defines a function, « Courbe n » otherwise), with ≈ from the calculator's formatter
+   (`formaterDecimal`, §3); where the curve has no value: « f : cette courbe n’a pas de valeur
+   pour x = 1. ». The selected curve's remarkable points are grey dots; tapping one reads it
+   (« Ordonnée à l’origine · Minimum : (0 ; −4) »). Implicit curves are not traced (later).
+3. **Keyboard**: the grid is a focusable group (not an application) described by U5's
+   instructions. Tab and Shift+Tab go through the explicit curves, then on out of the grid;
+   ←/→ move the point to the next multiple of the graduation step (Shift: a tenth of it), the
+   view following when the point leaves it; Enter/Space goes to the next remarkable point (or
+   says « Aucun point remarquable dans cette fenêtre. »); Escape puts the reading away;
+   **Alt + arrows pan** by a tenth of the view, the keyboard alternative to dragging (U7-R1;
+   buttons would have crowded the 360 px toolbar, and +/−/default view already give a pointer
+   alternative to the gestures). A polite live region speaks « Courbe 1 : x = 2 ; y = 0 »
+   (preceded at a remarkable point by what it is) only once the point has stayed still for
+   `--duration-slow`.
+4. The maths keypad of the issue is MathLive's virtual keyboard (#446), not built here.
 
 ### 5. Open a course figure in the calculator (#423)
 

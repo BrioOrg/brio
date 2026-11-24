@@ -139,6 +139,15 @@ export function Calculatrice({
     return liste
   }, [lignes, analyse, angle])
 
+  // The name a reading gives each curve: its function's (f), or its line's (« Courbe 2 »).
+  const noms = useMemo(() => {
+    const parId: Record<string, string> = {}
+    analyse.forEach((a, i) => {
+      if (a.genre === 'explicite') parId[a.id] = a.nom ?? `Courbe ${i + 1}`
+    })
+    return parId
+  }, [analyse])
+
   const description = useCallback(
     (f: Fenetre) => {
       const parId = new Map(lignes.map((l) => [l.id, l]))
@@ -470,6 +479,7 @@ export function Calculatrice({
               orthonorme={orthonorme}
               angle={angle}
               courbes={courbes}
+              noms={noms}
               description={description}
               onFenetre={setFenetre}
               onOrthonorme={setOrthonorme}
