@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { addedLines, aiguiller, routeOf } from '../lib/aiguillage.mjs'
+import { addedLines, aiguiller, removedLines, routeOf } from '../lib/aiguillage.mjs'
 
 const TASKS = {
   taches: [
@@ -185,4 +185,105 @@ test('a progress badge wakes V5 even without a keyword', () => {
 
 test('a loading.tsx above a hot route wakes U6', () => {
   assert.ok(ids(run(['web/app/(app)/[niveau]/loading.tsx'])).includes('U6'))
+})
+
+// ── Texte seul et mutation (#456) ─────────────────────────────────────────────────────────
+const runDiff = (files, added, removed) =>
+  aiguiller(
+    files.map((p) => ({ path: p, status: 'M' })),
+    new Map(Object.entries(added)),
+    TASKS,
+    new Map(Object.entries(removed))
+  )
+
+test('a label-only change skips V2, V3, U6, S3, mutation and the full e2e suite', () => {
+  const f = 'web/lib/espace-eleve.ts'
+  const r = runDiff(
+    [f],
+    { [f]: ["  retour: 'Revenir aux cours de ta classe',"] },
+    {
+      [f]: ["  retour: 'Revenir à tes cours',"],
+    }
+  )
+  assert.deepEqual(r.texteSeul, [f])
+  for (const id of ['V2', 'V3', 'U6', 'S3']) assert.ok(!ids(r).includes(id), id)
+  assert.equal(ctl(r, 'mutation-web'), false)
+  assert.match(r.controles.find((c) => c.id === 'e2e').raison, /ciblés/)
+  assert.ok(ids(r).includes('V1'))
+})
+
+test('JSX text and comments reflowed by Prettier stay text only', () => {
+  const f = 'web/components/chapitre-interactif/aide-scene.tsx'
+  const r = runDiff(
+    [f],
+    { [f]: ['// le tuteur et l’entraide', '  <p>', '    Voir les cours de ta classe', '  </p>'] },
+    { [f]: ['// le tuteur et les questions', '  <p>Voir les cours du prof</p>'] }
+  )
+  assert.deepEqual(r.texteSeul, [f])
+})
+
+test('a removed condition is logic, not text (replay of #452 page.tsx)', () => {
+  const f = 'web/app/(app)/page.tsx'
+  const r = runDiff(
+    [f],
+    { [f]: ["{classe ? `Devoirs à rendre · ${classe}` : 'Devoirs à rendre'}"] },
+    {
+      [f]: [
+        "{uneSeule ? (classe ? `Pour ta classe · ${classe}` : 'Pour ta classe') : 'Pour tes classes'}",
+      ],
+    }
+  )
+  assert.deepEqual(r.texteSeul, [])
+})
+
+test('a route, a number, a comparison or a return value is never text', () => {
+  const f = 'web/lib/x.ts'
+  const same = (a, b) => runDiff([f], { [f]: [a] }, { [f]: [b] }).texteSeul.length === 1
+  assert.equal(same("href: '/ma-classe/cours'", "href: '/ma-classe'"), false)
+  assert.equal(same('const max = 3', 'const max = 4'), false)
+  assert.equal(same('if (n > 1 && ok) {', 'if (n > 2 && ok) {'), false)
+  assert.equal(same('return a', 'return b'), false)
+  assert.equal(same('const re = /Pour t(a|es) classe/', 'const re = /Devoirs/'), false)
+})
+
+test('a logic change in web/lib keeps mutation on that file only', () => {
+  const a = 'web/lib/progression.ts'
+  const b = 'web/lib/libelles.ts'
+  const r = runDiff(
+    [a, b],
+    { [a]: ['  return n + 1'], [b]: ["  t: 'Cours de ta classe',"] },
+    {
+      [a]: ['  return n'],
+      [b]: ["  t: 'Cours du prof',"],
+    }
+  )
+  const m = r.controles.find((c) => c.id === 'mutation-web')
+  assert.equal(m.retenu, true)
+  assert.deepEqual(m.fichiers, [a])
+  assert.ok(ids(r).includes('V3'))
+})
+
+test('an added file is never text only (nothing to compare)', () => {
+  const f = 'web/lib/nouveau.ts'
+  const r = aiguiller(
+    [{ path: f, status: 'A' }],
+    new Map([[f, ["export const t = 'Bonjour à toi'"]]]),
+    TASKS
+  )
+  assert.deepEqual(r.texteSeul, [])
+  assert.equal(ctl(r, 'mutation-web'), true)
+})
+
+test('removedLines reads a unified diff without taking the --- header', () => {
+  const m = removedLines(
+    'diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1,2 +1 @@\n-old\n-older\n+new\n'
+  )
+  assert.deepEqual(m.get('x'), ['old', 'older'])
+})
+
+test('a one-word label is text, a lowercase key is not', () => {
+  const f = 'web/lib/app-sections.ts'
+  const same = (a, b) => runDiff([f], { [f]: [a] }, { [f]: [b] }).texteSeul.length === 1
+  assert.equal(same("    label: 'Signalements d’entraide',", "    label: 'Signalements',"), true)
+  assert.equal(same("    id: 'entraide',", "    id: 'signalements',"), false)
 })
