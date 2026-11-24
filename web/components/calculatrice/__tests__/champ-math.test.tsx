@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ChampMathLive, OptionsChamp } from '@/components/calculatrice/mathlive'
 
 // A stand-in for MathLive: an element whose `value` is LaTeX, as the real field gives it.
-const champs: Array<{ options: OptionsChamp; el: HTMLElement; valeur: string; clavier: number }> =
-  []
+const champs: Array<{ options: OptionsChamp; el: HTMLElement; valeur: string }> = []
+const basculerClavier = vi.fn()
 
 vi.mock('@/components/calculatrice/mathlive', () => ({
   chargerMathLive: () =>
@@ -14,7 +14,8 @@ vi.mock('@/components/calculatrice/mathlive', () => ({
       const el = document.createElement('div')
       el.tabIndex = 0
       el.setAttribute('role', 'textbox')
-      const c = { options, el, valeur: options.latex, clavier: 0 }
+      options.hote.appendChild(el)
+      const c = { options, el, valeur: options.latex }
       champs.push(c)
       el.addEventListener('focus', options.surFocus)
       el.addEventListener('blur', options.surBlur)
@@ -25,14 +26,13 @@ vi.mock('@/components/calculatrice/mathlive', () => ({
         },
         placeholder: () => undefined,
         aLeFocus: () => document.activeElement === el,
-        basculerClavier: () => {
-          c.clavier++
-        },
       }
     }),
+  basculerClavier: (el: HTMLElement) => basculerClavier(el),
 }))
 
 const { ChampMath } = await import('@/components/calculatrice/champ-math')
+const { Calculatrice } = await import('@/components/calculatrice/calculatrice')
 
 function props(over: Partial<Parameters<typeof ChampMath>[0]> = {}) {
   return {
@@ -109,12 +109,17 @@ describe('ChampMath', () => {
     expect(p.onEffacerVide).toHaveBeenCalled()
   })
 
-  it('ouvre le clavier de maths par un bouton « Clavier »', async () => {
-    render(<ChampMath {...props()} />)
-    await pret()
-    await userEvent
-      .setup()
-      .click(screen.getByRole('button', { name: 'Clavier pour l’expression 2' }))
-    expect(champs[0].clavier).toBe(1)
+  it('ouvre le clavier de maths du dernier champ par le bouton « Clavier »', async () => {
+    render(
+      <Calculatrice
+        etatInitial={{ v: 1, lignes: [{ texte: 'y = x' }, { texte: 'y = 2x' }] }}
+        synchroniserAdresse={false}
+      />
+    )
+    await waitFor(() => expect(document.querySelector('input')).toBeNull())
+    const deuxieme = screen.getByRole('textbox', { name: 'Expression 2' })
+    act(() => deuxieme.focus())
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Clavier mathématique' }))
+    expect(basculerClavier).toHaveBeenCalledWith(deuxieme)
   })
 })

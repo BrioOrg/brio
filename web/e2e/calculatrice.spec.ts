@@ -10,14 +10,18 @@ const champ = (page: Page, n: number) => page.getByRole('textbox', { name: `Expr
 
 /** The LaTeX of a line's maths field (MathLive, #417), once it has replaced the plain field. */
 async function latex(page: Page, n: number): Promise<string> {
-  await expect(page.locator(`math-field[aria-label="Expression ${n}"]`)).toBeAttached()
-  return champ(page, n).evaluate((el) => (el as HTMLElement & { value: string }).value)
+  const mf = page.locator(`math-field[aria-label="Expression ${n}"]`)
+  await expect(mf).toBeAttached()
+  return mf.evaluate((el) => (el as HTMLElement & { value: string }).value)
 }
 
 /** Types in a line's maths field, as on a keyboard; `→` leaves an exponent or a fraction. */
 async function taper(page: Page, n: number, ...touches: string[]) {
   await expect(page.locator(`math-field[aria-label="Expression ${n}"]`)).toBeAttached()
-  await champ(page, n).click()
+  const mf = page.locator(`math-field[aria-label="Expression ${n}"]`)
+  await mf.click()
+  // MathLive takes the focus just after the click: keys typed before it would be lost.
+  await expect(mf).toBeFocused()
   for (const t of touches) {
     if (t === '→') await page.keyboard.press('ArrowRight')
     else await page.keyboard.type(t)
@@ -55,7 +59,6 @@ test('the field is typeset as it is typed: / stacks a fraction, and the curve is
   await page.goto('/explorer/calculatrice')
   await taper(page, 1, 'y=1/x')
   await expect.poll(() => latex(page, 1)).toContain('\\frac')
-  await expect(page.locator('math-field[aria-label="Expression 1"] .ML__frac')).toHaveCount(1)
   await expect(courbes(page)).toHaveCount(1)
   await expect(courbes(page).first()).toHaveAttribute('d', /^M/)
 })

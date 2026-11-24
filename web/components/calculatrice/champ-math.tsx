@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { latexVersTexte } from '@brio/content'
 
-import { CHAMP, CHAMP_INVALIDE, CHAMP_MATH, CHAMP_MATH_INVALIDE, FOCUS } from './classes'
+import { CHAMP, CHAMP_INVALIDE, CHAMP_MATH, CHAMP_MATH_INVALIDE } from './classes'
 import { chargerMathLive, type ChampMathLive } from './mathlive'
 
 // The field of a line (#417): a MathLive maths field, edited in typeset form — `/` stacks a
@@ -54,7 +54,10 @@ export function ChampMath(props: Props) {
         const hote = hoteRef.current
         if (annule || !hote) return
         const p = derniers.current
+        // The plain field may have had the focus: the maths field takes it over.
+        const avaitFocus = hote.parentElement?.contains(document.activeElement) ?? false
         mf = creer({
+          hote,
           latex: latexDe(p.texte, p.latex),
           className: `${CHAMP_MATH} border-line`,
           surTexte: (l) => {
@@ -62,14 +65,15 @@ export function ChampMath(props: Props) {
             emis.current = t
             derniers.current.onTexte(t)
           },
-          surFocus: () => derniers.current.onFocus(),
+          surFocus: () => {
+            // Clear of the sticky bars (their scroll margins): the focus goes to a hidden part.
+            mf?.element.scrollIntoView?.({ block: 'nearest' })
+            derniers.current.onFocus()
+          },
           surBlur: () => derniers.current.onBlur(),
           surEntree: () => derniers.current.onEntree(),
           surEffacerVide: () => derniers.current.onEffacerVide(),
         })
-        // The plain field may have had the focus: the maths field takes it over.
-        const avaitFocus = hote.parentElement?.contains(document.activeElement) ?? false
-        hote.appendChild(mf.element)
         champ.current = mf
         emis.current = p.texte
         setPret(true)
@@ -112,7 +116,7 @@ export function ChampMath(props: Props) {
   }, [pret, champRef])
 
   return (
-    <div className="flex min-w-0 items-start gap-1">
+    <div className="min-w-0">
       {!pret && (
         <input
           ref={champRef}
@@ -150,19 +154,7 @@ export function ChampMath(props: Props) {
           ].join(' ')}
         />
       )}
-      <div ref={hoteRef} className={pret ? 'min-w-0 flex-1' : 'hidden'} />
-      {pret && (
-        // The virtual keyboard: its own toggle on a touch screen, this button with a mouse.
-        <button
-          type="button"
-          onPointerDown={(e) => e.preventDefault()}
-          onClick={() => champ.current?.basculerClavier()}
-          aria-label={`Clavier pour l’expression ${numero}`}
-          className={`hidden min-h-11 shrink-0 cursor-pointer rounded-md px-2 font-display text-xs font-bold text-ink-muted transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)] hover:bg-surface-raised hover:text-ink pointer-fine:inline-flex pointer-fine:items-center ${FOCUS}`}
-        >
-          Clavier
-        </button>
-      )}
+      <div ref={hoteRef} className={pret ? 'min-w-0' : 'hidden'} />
     </div>
   )
 }

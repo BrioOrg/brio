@@ -5,4 +5,5 @@ import '@testing-library/jest-dom/vitest'
 // text field the line shows until MathLive loads. champ-math.test.tsx brings its own fake.
 vi.mock('@/components/calculatrice/mathlive', () => ({
   chargerMathLive: () => new Promise(() => undefined),
+  basculerClavier: () => undefined,
 }))

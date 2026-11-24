@@ -20,6 +20,8 @@ const RACCOURCIS: Readonly<Record<string, string>> = {
 }
 
 export type OptionsChamp = {
+  /** Where the field goes: MathLive takes its options once it is in the page. */
+  hote: HTMLElement
   latex: string
   className: string
   surTexte: (latex: string) => void
@@ -34,7 +36,6 @@ export type ChampMathLive = {
   charger: (latex: string) => void
   placeholder: (texte: string) => void
   aLeFocus: () => boolean
-  basculerClavier: () => void
 }
 
 type Creer = (options: OptionsChamp) => ChampMathLive
@@ -44,6 +45,20 @@ let chargement: Promise<Creer> | null = null
 /** The placeholder, as LaTeX text: MathLive writes it in the field when it is empty. */
 function texteLatex(texte: string): string {
   return `\\text{${texte.replace(/[\\{}]/g, '')}}`
+}
+
+/**
+ * Shows or hides MathLive's virtual keyboard for a field (the « Clavier » button, with a mouse);
+ * nothing before MathLive is loaded.
+ */
+export function basculerClavier(champ: HTMLElement): void {
+  champ.focus()
+  const clavier = (
+    window as { mathVirtualKeyboard?: { visible: boolean; show(): void; hide(): void } }
+  ).mathVirtualKeyboard
+  if (!clavier) return
+  if (clavier.visible) clavier.hide()
+  else clavier.show()
 }
 
 export function chargerMathLive(): Promise<Creer> {
@@ -59,6 +74,7 @@ export function chargerMathLive(): Promise<Creer> {
     return (o: OptionsChamp): ChampMathLive => {
       const mf = new MathfieldElement()
       mf.className = o.className
+      o.hote.appendChild(mf)
       mf.menuItems = []
       // 10^12: the exponent is all the digits typed, not the first one only.
       mf.smartSuperscript = false
@@ -94,12 +110,6 @@ export function chargerMathLive(): Promise<Creer> {
           mf.placeholder = texteLatex(texte)
         },
         aLeFocus: () => mf.hasFocus(),
-        basculerClavier: () => {
-          mf.focus()
-          const clavier = window.mathVirtualKeyboard
-          if (clavier.visible) clavier.hide()
-          else clavier.show()
-        },
       }
     }
   })
