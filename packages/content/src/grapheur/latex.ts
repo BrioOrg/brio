@@ -22,6 +22,8 @@ const FUNCTION_LATEX: Readonly<Record<Exclude<ExpressionFunction, 'sqrt' | 'abs'
 }
 
 function level(node: ExpressionNode): number {
+  // d/dx(…) is written \frac{d}{dx}\left(…\right): a block of its own.
+  if (node.ddx) return ATOM
   switch (node.type) {
     case 'number':
       return node.value < 0 ? SIGNED : ATOM
@@ -101,6 +103,7 @@ function joinProduct(left: string, right: string): string {
 }
 
 function render(node: ExpressionNode): string {
+  if (node.ddx) return `\\frac{d}{dx}${brackets(render(node.ddx))}`
   switch (node.type) {
     case 'number':
       return node.text !== undefined ? latexTyped(node.text) : latexNumber(node.value)

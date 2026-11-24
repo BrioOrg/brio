@@ -311,6 +311,7 @@ export {
   NOEUDS_MAX,
 } from './grapheur/langage'
 export { latexOf } from './grapheur/latex'
+export { latexVersTexte } from './grapheur/latex-vers-texte'
 export { deriver, simplifier, DeriveeTropLongue, type BudgetDerivee } from './grapheur/derivee'
 export { compilerX, compilerXY, type FonctionXY } from './grapheur/compilation'
 export { rationnelDepuisDecimal, rationnelDepuisNombre, valeurDe } from './grapheur/rationnel'

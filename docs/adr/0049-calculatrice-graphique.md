@@ -31,14 +31,14 @@ A calculator is a **list of lines**, each one expression, read together by
 `analyserLignes(lignes, { angle, valeurs })` (`grapheur/langage.ts`), which returns one result per
 line, in the same order and with the same ids:
 
-| Line | Kind (`genre`) |
-|---|---|
-| `y = 2x + 1`, `2x + 1` alone, `f(x) = x² − 3` (`nom: 'f'`), `f'(x)` | `explicite`: `f(x)` |
-| `x² + y² = 4`, `xy = 1`, `x = 3`, `x = y²` — any other equality in x and/or y | `implicite`: `F(x, y)` = left − right |
-| `a = 2`, `b = −1,5`, `k = 2π` | `constante`; `curseur: true` when the value is a number as typed |
-| `2/3 + 1/6`, `f(3)`, `√2`, `sin(π/6)` — no x, no y | `calcul`: `valeur`, and `exact` (a fraction) or null |
-| a blank line | `vide` |
-| anything else | `erreur`: a French sentence, the position of the faulty character, the LaTeX if the line parsed |
+| Line                                                                          | Kind (`genre`)                                                                                  |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `y = 2x + 1`, `2x + 1` alone, `f(x) = x² − 3` (`nom: 'f'`), `f'(x)`           | `explicite`: `f(x)`                                                                             |
+| `x² + y² = 4`, `xy = 1`, `x = 3`, `x = y²` — any other equality in x and/or y | `implicite`: `F(x, y)` = left − right                                                           |
+| `a = 2`, `b = −1,5`, `k = 2π`                                                 | `constante`; `curseur: true` when the value is a number as typed                                |
+| `2/3 + 1/6`, `f(3)`, `√2`, `sin(π/6)` — no x, no y                            | `calcul`: `valeur`, and `exact` (a fraction) or null                                            |
+| a blank line                                                                  | `vide`                                                                                          |
+| anything else                                                                 | `erreur`: a French sentence, the position of the faulty character, the LaTeX if the line parsed |
 
 1. **Parser.** The ADR 0038 parser gains one option, `calculator` (`expression.ts`). Without
    it nothing changes: figures read exactly what they read before, and the existing tests pass
@@ -239,6 +239,7 @@ stored**, neither on the server nor in the browser: no student data at all. A sh
 reproduces the same expressions, colours and window.
 
 **Gate 5 of #421 (PR #439)** settled the following:
+
 - **Numbers on screen** (`grapheur/nombres.ts`): French comma, U+2212, digits grouped by three
   with a narrow no-break space **from five digits on** (1234, 12 345), the same rule for results,
   graduations, sliders and KaTeX; never an exponent. A decimal result has two decimals, or three
@@ -306,6 +307,34 @@ PR: 1–4 are the maths tones of ADR 0037 (a course curve keeps its colour in th
 and 6 are new primitives for both themes; every stroke ≥ 3 : 1 and every coloured text ≥ 4,5 : 1
 against `surface-page`, `surface-panel` and `surface-raised`, pairwise ΔE ≥ 20, checked by a test
 that reads `tokens.css`. Colour is never the only cue: the swatch and the name stay with the curve.
+
+### 8. Typeset input, d/dx, instant slider suggestion (#417)
+
+- **MathLive field.** A line is edited in typeset form in a MathLive `<math-field>` (npm
+  `mathlive`, MIT): `/` stacks a fraction, `^` raises an exponent, `sqrt` draws a root; the KaTeX
+  preview under the field is gone. No in-house WYSIWYG maths editor exists, and writing one is far
+  beyond this need. MathLive is imported dynamically in an effect (a custom element cannot be
+  rendered on the server), so it loads only on the calculator's routes; until it is loaded, or if
+  it fails, the line is the plain text field. Its sounds and menu are off, inline shortcuts are
+  limited to the engine's words (`pi`, `sqrt`, `sin`…, `<=`), `smartSuperscript` is off (10^12),
+  the decimal separator is the comma, the locale French; its fonts are KaTeX's, already on the
+  page. Its look comes from the tokens through its CSS custom properties and `::part()`; its
+  virtual keyboard stands for the maths keypad: its own toggle on a touch screen, a « Clavier »
+  button with a mouse.
+- **LaTeX → text.** `latexVersTexte` (`grapheur/latex-vers-texte.ts`, pure) writes the field's
+  LaTeX in the engine's text. The state and the address keep the **text**, so earlier links still
+  open; a line is loaded into the field from the engine's LaTeX of it, or its raw text when it
+  does not read. `\sqrt[n]` becomes `∛`, which the engine refuses with its message; an unknown
+  command becomes `?`, never a silent change.
+- **d/dx.** `d/dx(EXPR)` (in the field `\frac{d}{dx}\left(EXPR\right)`) is the symbolic derivative
+  of any expression with respect to x, nested or not, next to the `f'` notation. The parser
+  (calculator mode) recognises only that exact prefix — `d` stays an ordinary letter (`d = 2`,
+  `dx` is d·x) — and replaces the node by `deriver(EXPR)` at once; the root keeps the operand
+  (`ddx`) for the preview, which writes `\frac{d}{dx}\left(…\right)`. Other letters are constants,
+  a call `f(u)` becomes `f'(u)·u'`, resolved as before.
+- **Instant suggestion.** A line whose only error is an undefined letter shows « La lettre a n'est
+  pas définie. » and « Ajouter un curseur a » while it is being typed; other errors still wait for
+  the pause or the field to be left.
 
 ## Consequences
 

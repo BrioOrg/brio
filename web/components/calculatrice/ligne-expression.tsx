@@ -1,7 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import type { LigneAnalysee } from '@brio/content'
 
 import { Button } from '@/components/ui/button'
@@ -9,17 +7,18 @@ import { Icon } from '@/components/ui/icon'
 import { Infobulle } from '@/components/ui/infobulle'
 import type { CurseurEtat } from '@/lib/calculatrice-etat'
 import { CURVE_BG, type CurveColour } from '@/lib/curve-colours'
-import { renderKatex } from '@/lib/katex'
 
-import { BOUTON_ICONE, CHAMP, CHAMP_INVALIDE, CURVE_BORDER } from './classes'
+import { ChampMath } from './champ-math'
+import { BOUTON_ICONE, CURVE_BORDER } from './classes'
 import { CurseurConstante } from './curseur-constante'
 import { curseurPour, type Ligne } from './lignes'
 import { MenuStyle } from './menu-style'
 import { Resultat } from './resultat'
 
 // One line of the calculator (spec U4 §3): the pastille that hides or shows its curve, the
-// compact field, the KaTeX preview, a calculation's result, the colour and stroke menu, delete;
-// under it, the engine's message, a slider, or the offer to add the slider of an unknown letter.
+// maths field, typeset as it is typed (#417), a calculation's result, the colour and stroke menu,
+// delete; under it, the engine's message, a slider, or the offer to add the slider of an unknown
+// letter.
 
 export type ActionsLigne = {
   onTexte: (texte: string) => void
@@ -41,14 +40,17 @@ type Props = {
   ligne: Ligne
   numero: number
   analyse: LigneAnalysee
-  /** The engine's message is shown after a pause or once the field is left (spec U4 §6). */
+  /**
+   * The engine's message is shown after a pause or once the field is left (spec U4 §6); a letter
+   * that is not defined is said at once, with its slider to add (#417).
+   */
   erreurVisible: boolean
   premiere: boolean
   peutAjouter: boolean
   /** The id of "12 expressions au maximum", when the limit is reached. */
   limiteId?: string
   anime: boolean
-  champRef: (el: HTMLInputElement | null) => void
+  champRef: (el: HTMLElement | null) => void
   curseurRef: (el: HTMLInputElement | null) => void
   actions: ActionsLigne
 }
@@ -86,10 +88,13 @@ export function LigneExpression({
 }: Props) {
   const messageId = `ligne-${ligne.id}-message`
   const tracable = analyse.genre !== 'calcul' && analyse.genre !== 'constante'
-  const erreur = analyse.genre === 'erreur' && erreurVisible ? analyse.erreur : null
+  const erreur =
+    analyse.genre === 'erreur' && (erreurVisible || analyse.erreur.curseurPropose !== undefined)
+      ? analyse.erreur
+      : null
   const lettre = erreur?.curseurPropose
   const latex = analyse.genre !== 'vide' && analyse.genre !== 'erreur' ? analyse.latex : null
-  const apercu = useMemo(() => (latex ? renderKatex(latex, false) : null), [latex])
+  const resultat = analyse.genre === 'calcul' || (analyse.genre === 'constante' && !analyse.curseur)
   const invalide = erreur !== null && lettre === undefined
 
   return (
@@ -128,50 +133,24 @@ export function LigneExpression({
       )}
 
       {/* 2. The field. */}
-      <input
-        ref={champRef}
-        type="text"
-        value={ligne.texte}
-        onChange={(e) => actions.onTexte(e.target.value)}
-        onFocus={(e) => {
-          e.currentTarget.scrollIntoView?.({ block: 'nearest' })
-          actions.onFocus()
-        }}
-        onBlur={actions.onBlur}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            actions.onEntree()
-          } else if (e.key === 'Backspace' && ligne.texte === '') {
-            e.preventDefault()
-            actions.onEffacerVide()
-          }
-        }}
+      <ChampMath
+        texte={ligne.texte}
+        latex={latex}
+        numero={numero}
         placeholder={premiere ? 'Par exemple : y = 2x + 1' : 'Écris une expression'}
-        aria-label={`Expression ${numero}`}
-        aria-invalid={invalide || undefined}
-        aria-describedby={erreur ? messageId : undefined}
-        inputMode="text"
-        autoCapitalize="off"
-        autoComplete="off"
-        autoCorrect="off"
-        spellCheck={false}
-        maxLength={200}
-        className={[
-          CHAMP,
-          invalide ? CHAMP_INVALIDE : 'border-line',
-          'min-h-11 w-full min-w-0 px-3 py-2 font-prose text-base tabular-nums',
-        ].join(' ')}
+        invalide={invalide}
+        describedBy={erreur ? messageId : undefined}
+        champRef={champRef}
+        onTexte={actions.onTexte}
+        onFocus={actions.onFocus}
+        onBlur={actions.onBlur}
+        onEntree={actions.onEntree}
+        onEffacerVide={actions.onEffacerVide}
       />
 
-      {/* 3 and 4. The preview, and a calculation's result on the same row. */}
-      {apercu && (
+      {/* 3. A calculation's result, under the field. */}
+      {resultat && (
         <div className="col-span-2 col-start-2 flex min-h-6 min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-          <span
-            aria-hidden="true"
-            className="min-w-0 text-base text-ink"
-            dangerouslySetInnerHTML={{ __html: apercu }}
-          />
           {analyse.genre === 'calcul' && (
             <Resultat
               key={ligne.texte}

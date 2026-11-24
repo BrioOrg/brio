@@ -6,6 +6,27 @@ import { expect, test, type Page } from '@playwright/test'
 
 const repere = (page: Page) => page.getByRole('img', { name: /^Repère/ })
 const courbes = (page: Page) => repere(page).locator('[data-courbe] path')
+const champ = (page: Page, n: number) => page.getByRole('textbox', { name: `Expression ${n}` })
+
+/** The LaTeX of a line's maths field (MathLive, #417), once it has replaced the plain field. */
+async function latex(page: Page, n: number): Promise<string> {
+  const mf = page.locator(`math-field[aria-label="Expression ${n}"]`)
+  await expect(mf).toBeAttached()
+  return mf.evaluate((el) => (el as HTMLElement & { value: string }).value)
+}
+
+/** Types in a line's maths field, as on a keyboard; `→` leaves an exponent or a fraction. */
+async function taper(page: Page, n: number, ...touches: string[]) {
+  await expect(page.locator(`math-field[aria-label="Expression ${n}"]`)).toBeAttached()
+  const mf = page.locator(`math-field[aria-label="Expression ${n}"]`)
+  await mf.click()
+  // MathLive takes the focus just after the click: keys typed before it would be lost.
+  await expect(mf).toBeFocused()
+  for (const t of touches) {
+    if (t === '→') await page.keyboard.press('ArrowRight')
+    else await page.keyboard.type(t)
+  }
+}
 
 async function ouvrirDepuisExplorer(page: Page) {
   await page.goto('/explorer')
@@ -24,12 +45,21 @@ test('Explorer opens the calculator, and a typed expression is drawn in the firs
   page,
 }) => {
   await ouvrirDepuisExplorer(page)
-  const champ = page.getByRole('textbox', { name: 'Expression 1' })
-  await expect(champ).toHaveAttribute('placeholder', 'Par exemple : y = 2x + 1')
+  expect(await latex(page, 1)).toBe('')
 
-  await champ.fill('y = x^2')
+  await taper(page, 1, 'y=x^2')
   await expect(courbes(page)).toHaveCount(1)
   await expect(courbes(page).first()).toHaveClass(/stroke-courbe-1/)
+  await expect(courbes(page).first()).toHaveAttribute('d', /^M/)
+})
+
+test('the field is typeset as it is typed: / stacks a fraction, and the curve is drawn', async ({
+  page,
+}) => {
+  await page.goto('/explorer/calculatrice')
+  await taper(page, 1, 'y=1/x')
+  await expect.poll(() => latex(page, 1)).toContain('\\frac')
+  await expect(courbes(page)).toHaveCount(1)
   await expect(courbes(page).first()).toHaveAttribute('d', /^M/)
 })
 
@@ -37,15 +67,15 @@ test('a slider for an unknown letter moves the line, and the address keeps the w
   page,
 }) => {
   await ouvrirDepuisExplorer(page)
-  await page.getByRole('textbox', { name: 'Expression 1' }).fill('y = ax + 1')
+  await taper(page, 1, 'y=ax+1')
 
-  // The letter is not defined: no curve, and the offer to add its slider, once typing pauses.
+  // The letter is not defined: no curve, and the offer to add its slider, at once (#417).
   await expect(courbes(page)).toHaveCount(0)
   await page.getByRole('button', { name: 'Ajouter un curseur a' }).click()
 
   const curseur = page.getByRole('slider', { name: 'Curseur a' })
   await expect(curseur).toBeFocused()
-  await expect(page.getByRole('textbox', { name: 'Expression 2' })).toHaveValue('a = 1')
+  await expect.poll(() => latex(page, 2)).toBe('a=1')
   await expect(courbes(page)).toHaveCount(1)
   const avant = await courbes(page).first().getAttribute('d')
   // Measured before the slider moves: its five steps must not add history entries (V3, gate 5).
@@ -53,7 +83,7 @@ test('a slider for an unknown letter moves the line, and the address keeps the w
 
   for (let i = 0; i < 5; i++) await curseur.press('ArrowRight')
   await expect(curseur).toHaveAttribute('aria-valuetext', 'a = 1,5')
-  await expect(page.getByRole('textbox', { name: 'Expression 2' })).toHaveValue('a = 1,5')
+  await expect.poll(() => latex(page, 2)).toBe('a=1{,}5')
   await expect(courbes(page).first()).not.toHaveAttribute('d', avant ?? '')
   const apres = await courbes(page).first().getAttribute('d')
 
@@ -70,8 +100,8 @@ test('a slider for an unknown letter moves the line, and the address keeps the w
   expect(longueurHistorique).toBe(longueurAvant)
 
   await page.reload()
-  await expect(page.getByRole('textbox', { name: 'Expression 1' })).toHaveValue('y = ax + 1')
-  await expect(page.getByRole('textbox', { name: 'Expression 2' })).toHaveValue('a = 1,5')
+  await expect.poll(() => latex(page, 1)).toBe('y=ax+1')
+  await expect.poll(() => latex(page, 2)).toBe('a=1{,}5')
   await expect(courbes(page)).toHaveCount(1)
   await expect(courbes(page).first()).toHaveAttribute('d', apres ?? '')
   expect(await page.evaluate(() => history.length)).toBe(longueurHistorique)
@@ -79,15 +109,15 @@ test('a slider for an unknown letter moves the line, and the address keeps the w
 
 test('an unreadable address opens an empty calculator, without an error', async ({ page }) => {
   await page.goto('/explorer/calculatrice?e=%%%pas-du-base64')
-  await expect(page.getByRole('textbox', { name: 'Expression 1' })).toHaveValue('')
-  await expect(page.getByRole('textbox', { name: 'Expression 2' })).toHaveCount(0)
+  expect(await latex(page, 1)).toBe('')
+  await expect(champ(page, 2)).toHaveCount(0)
   await expect(page.locator('[aria-invalid="true"]')).toHaveCount(0)
   await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0)
 })
 
 test('the page never scrolls sideways', async ({ page }) => {
   await page.goto('/explorer/calculatrice')
-  await page.getByRole('textbox', { name: 'Expression 1' }).fill('y = x^2 + 2x - 3')
+  await taper(page, 1, 'y=x^2', '→', '+2x-3')
   await expect(courbes(page)).toHaveCount(1)
   const deborde = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth
@@ -113,8 +143,8 @@ function etatLong(): string {
 
 async function focusJamaisCache(page: Page) {
   await page.goto(`/explorer/calculatrice?e=${etatLong()}`)
-  await expect(page.getByRole('textbox', { name: 'Expression 8' })).toHaveValue('b = 2')
-  await page.getByRole('textbox', { name: 'Expression 1' }).focus()
+  await expect.poll(() => latex(page, 8)).toBe('b=2')
+  await champ(page, 1).focus()
   // Forwards, then back up with Shift+Tab: going up is where the top bar hides things.
   for (let i = 0; i < 90; i++) {
     await page.keyboard.press(i < 45 ? 'Tab' : 'Shift+Tab')
