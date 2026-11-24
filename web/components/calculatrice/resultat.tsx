@@ -24,11 +24,20 @@ function lectureFraction(r: Rationnel): string {
   return r.den === 1n ? `${signe}${num}` : `${signe}${num} sur ${r.den.toString()}`
 }
 
-export function Resultat({ valeur, exact }: { valeur: number; exact: Rationnel | null }) {
+export function Resultat({
+  valeur,
+  exact,
+  arrondi = false,
+}: {
+  valeur: number
+  exact: Rationnel | null
+  /** The engine rounded the value (no exact fraction): it is never shown after "=". */
+  arrondi?: boolean
+}) {
   const [enDecimal, setEnDecimal] = useState(false)
   // A whole number is the same in both writings: no switch.
   const fraction = exact !== null && exact.den !== 1n
-  const decimal = formaterDecimal(valeur, exact)
+  const decimal = formaterDecimal(valeur, exact, { arrondi })
 
   let visuel: React.ReactNode
   let lecture: string

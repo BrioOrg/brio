@@ -120,13 +120,17 @@ function decimalExact(r: Rationnel): { texte: string; approche: boolean } {
  */
 export function formaterDecimal(
   v: number,
-  exact?: Rationnel | null
+  exact?: Rationnel | null,
+  options: { arrondi?: boolean } = {}
 ): { texte: string; approche: boolean } | null {
   if (exact) return decimalExact(exact)
   if (!Number.isFinite(v)) return null
-  if (v === 0) return { texte: '0', approche: false }
+  // A value the engine computed with doubles and rounded (`arrondi`): never "=", even when it
+  // lands on an integer (π·10¹², e³⁰, √1,0000000000001).
+  const arrondi = options.arrondi === true
+  if (v === 0) return { texte: '0', approche: arrondi }
   const a = Math.abs(v)
-  if (Number.isSafeInteger(a)) return { texte: ecrire(v < 0, a.toString(), ''), approche: false }
+  if (Number.isSafeInteger(a)) return { texte: ecrire(v < 0, a.toString(), ''), approche: arrondi }
   if (a >= 1e15) {
     const [e, d] = chiffres(Number(a.toPrecision(10)))
     return { texte: ecrire(v < 0, e, d), approche: true }
@@ -136,5 +140,8 @@ export function formaterDecimal(
   // The engine rounds a decimal calculation to CHIFFRES_SIGNIFICATIFS digits: a value that uses
   // them all may have been rounded there (√2·10¹⁰ reads 14 142 135 623,7), so it is never "=".
   const arrondiParLeMoteur = significatifs(a) >= CHIFFRES_SIGNIFICATIFS
-  return { texte: ecrire(v < 0, e, d), approche: arrondiParLeMoteur || Number(s) !== a }
+  return {
+    texte: ecrire(v < 0, e, d),
+    approche: arrondi || arrondiParLeMoteur || Number(s) !== a,
+  }
 }
