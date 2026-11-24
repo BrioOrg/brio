@@ -64,9 +64,9 @@ test('the root layout serves every hot route', () => {
   assert.ok(!ids(run(['web/app/prof/cours/page.tsx'])).includes('U6'))
 })
 
-test('docs only: no guardian, only the mesh safeguards', () => {
+test('docs only: a light V1 read and the mesh safeguards, nothing heavy', () => {
   const r = run(['docs/mesh/JOURNAL.md', 'docs/adr/0051-x.md'])
-  assert.deepEqual(ids(r), [])
+  assert.deepEqual(ids(r), ['V1'])
   assert.deepEqual(
     r.controles.filter((c) => c.retenu).map((c) => c.id),
     ['garde-fous']
@@ -79,10 +79,11 @@ test('an unclassified file is read by V1 out of caution', () => {
   assert.deepEqual(r.nonClasses, ['deploy/Caddyfile'])
 })
 
-test('chapters wake the pedagogy guardian and the content check', () => {
+test('chapters wake pedagogy, the content check and e2e (the fake backend serves them)', () => {
   const r = run(['content/chapitres/5e/maths/proportionnalite.md'])
-  assert.deepEqual(ids(r), ['V4'])
+  assert.deepEqual(ids(r), ['V1', 'V4'])
   assert.equal(ctl(r, 'contenu'), true)
+  assert.equal(ctl(r, 'e2e'), true)
 })
 
 test('the fake backend wakes contracts and the full e2e suite', () => {
@@ -122,18 +123,9 @@ test('a test-only change under web/components wakes V1 and V3, not the UI guardi
   assert.deepEqual(ids(r), ['V1', 'V3'])
 })
 
-test('web/lib wakes V2 only when the added lines call or validate the API', () => {
-  const lib = 'web/lib/diapos.ts'
-  assert.equal(
-    run([lib], { [lib]: ['const n = items.length'] }).agents.find((a) => a.id === 'V2').retenu,
-    false
-  )
-  assert.equal(
-    run([lib], { [lib]: ['  const res = await fetch(`${apiBaseUrl()}/api/x`)'] }).agents.find(
-      (a) => a.id === 'V2'
-    ).retenu,
-    true
-  )
+test('any web/lib change wakes V2, even a removed schema field (review #449)', () => {
+  const r = run([{ path: 'web/lib/api.ts', status: 'M' }])
+  assert.equal(r.agents.find((a) => a.id === 'V2').retenu, true)
 })
 
 test('tasks.json wakes U6 only when a hot task line changes', () => {
@@ -146,4 +138,51 @@ test('the mesh tooling never wakes V5 on its own regexes', () => {
   const f = 'scripts/mesh/lib/aiguillage.mjs'
   const r = run([f], { [f]: ["[/\\bxp\\b/i, 'affiche de l’XP'],"] })
   assert.equal(r.agents.find((a) => a.id === 'V5').retenu, false)
+})
+
+test('changing the AI model in application.properties wakes V5 (review #449)', () => {
+  const f = 'backend/src/main/resources/application.properties'
+  const r = run([f], { [f]: ['brio.ia.model=claude-x'] })
+  assert.equal(r.agents.find((a) => a.id === 'V5').retenu, true)
+  assert.equal(ctl(r, 'backend'), true)
+})
+
+test('the eval harness under src/test/.../ia wakes V5', () => {
+  const r = run(['backend/src/test/java/fr/brio/ia/eval/TuteurEvalRunnerTest.java'])
+  assert.ok(ids(r).includes('V5'))
+})
+
+test('the class chat room wakes V5 and the saboteur (replay of 0743174)', () => {
+  const r = run(['web/components/messagerie/salon-de-classe.tsx'])
+  for (const id of ['V5', 'S3']) assert.ok(ids(r).includes(id), id)
+})
+
+test('the middleware wakes V5, S3, V3 and S2', () => {
+  const r = run(['web/middleware.ts'])
+  for (const id of ['V5', 'S3', 'V3', 'S2']) assert.ok(ids(r).includes(id), id)
+})
+
+test('test support and build config wake V3', () => {
+  assert.ok(
+    ids(run(['backend/src/test/java/fr/brio/TestcontainersConfiguration.java'])).includes('V3')
+  )
+  assert.ok(ids(run(['backend/pom.xml'])).includes('V3'))
+  assert.ok(ids(run(['web/next.config.ts'])).includes('V3'))
+})
+
+test('a lockfile change runs web, packages and the full e2e suite', () => {
+  const r = run(['pnpm-lock.yaml'])
+  for (const id of ['web', 'packages', 'e2e']) assert.equal(ctl(r, id), true, id)
+  assert.ok(ids(r).includes('V1'))
+})
+
+test('a progress badge wakes V5 even without a keyword', () => {
+  const r = run(['web/components/streak-badge.tsx'], {
+    'web/components/streak-badge.tsx': ['<span>{n} j</span>'],
+  })
+  assert.ok(ids(r).includes('V5'))
+})
+
+test('a loading.tsx above a hot route wakes U6', () => {
+  assert.ok(ids(run(['web/app/(app)/[niveau]/loading.tsx'])).includes('U6'))
 })

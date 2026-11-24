@@ -17,9 +17,9 @@ const JAVA = 'backend/src/main/java/fr/brio/'
 
 /** Fichiers de code (V1 relit tout code ; docs, contenu rédactionnel et JSON de données à part). */
 const CODE =
-  /\.(java|kt|ts|tsx|js|mjs|cjs|sql|sh|ya?ml|css)$|(^|\/)(Dockerfile|commit-msg|pre-push)$/
+  /\.(java|kt|ts|tsx|js|mjs|cjs|sql|sh|ya?ml|css|properties)$|(^|\/)(Dockerfile|commit-msg|pre-push|pom\.xml)$/
 const TEST_FILE =
-  /(Test[s]?|IT)\.java$|\.test\.(ts|tsx|mjs|js)$|\.spec\.ts$|(vitest|playwright)\.config\.ts$|^web\/vitest\.setup\.ts$/
+  /Test[^/]*\.java$|IT\.java$|^backend\/src\/test\/|\.test\.(ts|tsx|mjs|js)$|^web\/e2e\/(?!fake-backend\.mjs$)|(vitest|playwright)\.config\.ts$|^web\/vitest\.setup\.ts$/
 const WEB_UI = /^web\/(app|components)\//
 const STYLE = /\.css$/
 
@@ -32,11 +32,7 @@ const CLASSES_SANS_GARDIEN = [
   /^\.claude\//,
   /^evals\//,
   /\.md$/,
-  /^pnpm-lock\.yaml$/,
-  /^(package|turbo|tsconfig)\.json$/,
-  /^web\/(package|tsconfig)\.json$/,
   /^web\/public\//,
-  /^packages\/[^/]+\/package\.json$/,
 ]
 
 /** Signaux de contenu (lignes ajoutées) : ce que les chemins seuls ne voient pas. */
@@ -48,6 +44,7 @@ const SIGNAUX = {
     [/\bs[ée]ries?\b|\bstreak/i, 'affiche une série'],
     [/pourcent|percentage|\bpct\b/i, 'affiche un pourcentage'],
     [/verrou|locked|d[ée]bloqu/i, 'verrou de chapitre'],
+    [/brio\.ia\./, 'réglage du modèle IA (eval obligatoire)'],
     [
       /analytics|\btracking\b(?!-)|\btrack\(|matomo|plausible|umami|posthog|gtag/i,
       'suivi / analytics',
@@ -66,6 +63,7 @@ const SIGNAUX = {
   // S3 : « PR touchant un formulaire, une session, un exercice ou la Communauté ».
   saboteur: [
     [/<form\b|onSubmit|useActionState|formAction|type=["']submit/, 'formulaire'],
+    [/JSESSIONID|PUBLIC_PREFIXES|cookies\(\)/, 'session'],
     [/@(Post|Put|Patch|Delete)Mapping/, 'écriture côté API'],
   ],
 }
@@ -142,6 +140,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
 
   // V1 — relecteur : tout code.
   if (code.length) want('V1', `code modifié : ${list(code)}`)
+  else if (files.length) want('V1', `PR sans code : relecture légère (${list(files)})`)
 
   // V2 — contrats.
   const contrats = hasSrc(
@@ -150,10 +149,9 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
       `^${JAVA}[^/]+/(web|api)/|^docs/api/openapi\\.json$|^packages/api-client/|^web/e2e/fake-backend\\.mjs$`
     )
   )
-  // web/lib : seulement les fichiers qui appellent l'API ou en valident la réponse (fiche V2).
-  const API_CALL = /\/api\b|apiBaseUrl|fetch\(|createApiClient|z\.object|Schema\b/
-  for (const f of hasSrc(files, /^web\/lib\//))
-    if ((added.get(f.path) ?? []).some((l) => API_CALL.test(l))) contrats.push(f)
+  // web/lib : tout (fiche V2) — un schéma Zod modifié ou un champ retiré ne se voit pas
+  // forcément dans les lignes ajoutées (relecture #449).
+  contrats.push(...hasSrc(files, /^web\/lib\//))
   if (contrats.length) want('V2', `contrat d'API ou appel /api : ${list(contrats)}`)
 
   // V3 — tests : un test touché (affaiblissement ?) ou du code source (verdict mutation).
@@ -162,7 +160,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
   else if (tests.length) want('V3', `test modifié : ${list(tests)}`)
   const src = has(
     files,
-    /^backend\/src\/main\/|^web\/(app|components|lib)\/|^packages\/[^/]+\/src\//
+    /^backend\/src\/main\/|^backend\/pom\.xml$|^web\/(app|components|lib)\/|^web\/[^/]+\.(ts|mjs)$|^packages\/[^/]+\/src\//
   ).filter((f) => !TEST_FILE.test(f.path))
   if (src.length) want('V3', `code source sous mutation : ${list(src)}`)
 
@@ -170,7 +168,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
   const pedago = hasSrc(
     files,
     new RegExp(
-      `^content/(chapitres|annales|referentiel)/|^${JAVA}exercices/|^packages/content/src/`
+      `^content/(chapitres|annales|referentiel)/|^${JAVA}exercices/|^packages/content/src/|^web/components/(exercice|chapitre-interactif|quiz)`
     )
   )
   if (pedago.length) want('V4', `contenu ou évaluateur pédagogique : ${list(pedago)}`)
@@ -179,10 +177,14 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
   const sensibles = hasSrc(
     files,
     new RegExp(
-      `^${JAVA}(ia|identite|social)/|^backend/src/main/resources/ia/|^evals/tuteur/|` +
-        `^backend/src/main/resources/db/migration/|consentement|/classes?/|ma-classe|rejoindre|communaute|moderation`
+      `^backend/src/(main|test)/java/fr/brio/(ia|identite|social|progression)/|^backend/src/main/resources/ia/|^evals/tuteur/|` +
+        `application[^/]*\\.properties$|^backend/src/main/resources/db/migration/|^web/middleware\\.ts$|` +
+        `consentement|/classes?/|ma-classe|rejoindre|communaute|moderation|messagerie|entraide|salon|signalement|` +
+        `/[^/]*(xp|streak|serie|progress|niveau)[^/]*\\.(tsx?|java)$`
     )
   )
+  // Le harnais d'eval du tuteur vit sous src/test mais relève de V5 (fiche : backend/**/ia/**).
+  sensibles.push(...has(files, /^backend\/src\/test\/java\/fr\/brio\/ia\//))
   if (sensibles.length)
     want('V5', `périmètre sensible (comptes, IA, social, données) : ${list(sensibles)}`)
   // Signaux lus dans le code de l'app seulement (pas l'outillage, pas les tests).
@@ -217,19 +219,20 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
       return (added.get(f.path) ?? []).some((l) => /"chaude":\s*true/.test(l))
     if (/^web\/(middleware\.ts|next\.config\.ts)$/.test(f.path)) return true
     const r = routeOf(f.path)
-    return r !== null && touchesHot(r, /\/(layout|template)\.tsx$/.test(f.path), hot)
+    return r !== null && touchesHot(r, /\/(layout|template|loading|error)\.tsx$/.test(f.path), hot)
   })
   if (hotFiles.length) want('U6', `route chaude ou son layout : ${list(hotFiles)}`)
 
   // S2 — personas : la tâche touchée, pas tout le catalogue.
   const routes = [...new Set(files.map((f) => routeOf(f.path)).filter(Boolean))]
   const taches = tasksTouched(routes, tasksDef)
-  if (ui.length) {
+  const visible = [...ui, ...hasSrc(files, /^web\/(lib\/|middleware\.ts$)/)]
+  if (visible.length) {
     want(
       'S2',
       taches.length
         ? `tâches touchées : ${taches.map((t) => t.id).join(', ')}`
-        : `écran modifié hors tâches clés : un seul persona sur l'écran touché (${list(ui)})`
+        : `écran modifié hors tâches clés : un seul persona sur l'écran touché (${list(visible)})`
     )
   }
 
@@ -237,7 +240,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
   const cibles = has(
     files,
     new RegExp(
-      `^${JAVA}(identite|exercices|social)/|form|session|exercice|communaute|connexion|mot-de-passe`,
+      `^${JAVA}(identite|exercices|social)/|^web/middleware\\.ts$|form|session|exercice|communaute|connexion|mot-de-passe|messagerie|entraide|salon|signalement|chapitre-interactif`,
       'i'
     )
   ).filter((f) => !TEST_FILE.test(f.path) && !/\.md$/.test(f.path))
@@ -272,7 +275,7 @@ export const ORDRE = ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'U1', 'U6', 'U7', 'S2'
 
 /** Pourquoi un gardien est écarté : rien du diff dans son périmètre (rappel du périmètre). */
 const PERIMETRE = {
-  V1: 'aucun fichier de code',
+  V1: 'diff vide',
   V2: 'aucun DTO, openapi.json, api-client, faux backend ni web/lib',
   V3: 'aucun test ni code source sous mutation',
   V4: 'aucun contenu pédagogique ni évaluateur',
@@ -306,12 +309,26 @@ export function controles(files, routes = []) {
     retenu: backend,
     raison: backend ? 'backend modifié' : 'aucun fichier backend',
   })
-  const web = any(/^web\/|^packages\//)
+  // Dépendances et config racine : tout le JS peut casser (relecture #449).
+  const deps = any(/^(pnpm-lock\.yaml|package\.json|turbo\.json|tsconfig[^/]*\.json)$/)
+  const web = deps || any(/^web\/|^packages\//)
   out.push({
     id: 'web',
     cmd: 'pnpm --filter web test && pnpm --filter web lint',
     retenu: web,
-    raison: web ? 'web ou packages modifiés' : 'aucun fichier web ni packages',
+    raison: deps
+      ? 'dépendances ou config racine modifiées'
+      : web
+        ? 'web ou packages modifiés'
+        : 'aucun fichier web ni packages',
+  })
+  // `pnpm --filter web test` ne lance pas les tests des paquets (racine vitest = web/).
+  const pkgs = deps || any(/^packages\//)
+  out.push({
+    id: 'packages',
+    cmd: 'pnpm --filter "./packages/*" test',
+    retenu: pkgs,
+    raison: pkgs ? 'packages ou dépendances modifiés' : 'aucun paquet',
   })
   const content = any(/^content\/|^packages\/content\/|^scripts\/check-content\.mjs$/)
   out.push({
@@ -327,10 +344,14 @@ export function controles(files, routes = []) {
     retenu: contrats,
     raison: contrats ? 'contrat d’API modifié' : 'aucun contrat d’API',
   })
-  const e2eAll = any(
-    /^web\/e2e\/fake-backend\.mjs$|^web\/playwright\.config\.ts$|^packages\/|^web\/(lib|middleware)/
-  )
+  // Le faux backend sert content/chapitres ; next.config porte la réécriture /api des e2e.
+  const e2eAll =
+    deps ||
+    any(
+      /^web\/e2e\/(?![^/]+\.spec\.ts$)[^/]+\.(ts|mjs)$|^web\/(playwright|next)\.config\.ts$|^packages\/|^web\/(lib|middleware)|^content\/chapitres\//
+    )
   const specs = files.filter((f) => /^web\/e2e\/.*\.spec\.ts$/.test(f.path)).map((f) => f.path)
+  // (un helper e2e non-spec déclenche déjà la suite complète)
   const e2e = e2eAll || specs.length > 0 || routes.length > 0 || any(/^web\/components\//)
   out.push({
     id: 'e2e',
@@ -339,7 +360,7 @@ export function controles(files, routes = []) {
       : 'pnpm --filter web exec playwright test <specs qui visitent les routes touchées>',
     retenu: e2e,
     raison: e2eAll
-      ? 'faux backend, config ou code partagé modifié : suite complète'
+      ? 'faux backend, config, contenu servi, dépendances ou code partagé modifié : suite complète'
       : e2e
         ? `ciblés : specs modifiées${specs.length ? ` (${specs.join(', ')})` : ''} + celles qui visitent ${routes.join(', ') || 'les écrans touchés'}`
         : 'aucun écran ni code web',

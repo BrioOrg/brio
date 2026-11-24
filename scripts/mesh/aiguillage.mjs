@@ -30,7 +30,7 @@ const opt = (name) => {
 }
 const pr = opt('--pr')
 const since = opt('--since')
-const base = opt('--base') ?? (pr || since ? null : 'origin/develop')
+const base = opt('--base') ?? (pr ? null : 'origin/develop')
 
 let files
 let patch
@@ -43,19 +43,31 @@ if (pr) {
   }))
   patch = run('gh', 'pr', 'diff', pr, '--repo', repo)
 } else {
-  const mb = since ?? run('git', 'merge-base', base, 'HEAD').trim()
-  files = run('git', 'diff', '--name-status', '--no-renames', mb)
-    .split('\n')
-    .filter(Boolean)
-    .map((l) => {
-      const [status, path] = l.split('\t')
-      return { path, status }
-    })
+  const nameStatus = (from) =>
+    run('git', 'diff', '--name-status', '--no-renames', from)
+      .split('\n')
+      .filter(Boolean)
+      .map((l) => {
+        const [status, path] = l.split('\t')
+        return { path, status }
+      })
+  const mb = run('git', 'merge-base', base ?? 'origin/develop', 'HEAD').trim()
+  files = nameStatus(mb)
+  if (since) {
+    // Tours 2-3 : la correction seulement. Un `git merge origin/develop` entre deux tours
+    // amène des fichiers de develop dans `diff <since>` : on ne garde que ceux que la branche
+    // change encore par rapport à develop (relecture #449, rejeu du merge a2229cc).
+    const ofBranch = new Set(files.map((f) => f.path))
+    files = nameStatus(since).filter((f) => ofBranch.has(f.path))
+  }
+  const from = since ?? mb
   const untracked = run('git', 'ls-files', '--others', '--exclude-standard')
     .split('\n')
     .filter(Boolean)
   for (const path of untracked) files.push({ path, status: 'A' })
-  patch = run('git', 'diff', '-U0', '--no-renames', mb)
+  patch = files.length
+    ? run('git', 'diff', '-U0', '--no-renames', from, '--', ...files.map((f) => f.path))
+    : ''
   for (const path of untracked) {
     try {
       patch += `\n+++ b/${path}\n` + readFileSync(resolve(root, path), 'utf8').replace(/^/gm, '+')
