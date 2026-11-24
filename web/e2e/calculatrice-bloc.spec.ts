@@ -31,7 +31,9 @@ async function taper(page: Page, n: number, texte: string) {
   await mf.click()
   // MathLive takes the focus just after the click: keys typed before it would be lost.
   await expect(mf).toBeFocused()
-  await mf.evaluate((el) => (el as HTMLElement & { executeCommand(c: string): void }).executeCommand('selectAll'))
+  await mf.evaluate((el) =>
+    (el as HTMLElement & { executeCommand(c: string): void }).executeCommand('selectAll')
+  )
   await page.keyboard.type(texte)
 }
 
