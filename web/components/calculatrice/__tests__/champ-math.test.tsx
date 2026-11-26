@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -51,9 +51,9 @@ function props(over: Partial<Parameters<typeof ChampMath>[0]> = {}) {
   }
 }
 
-/** Once MathLive (here, its stand-in) has replaced the plain field. */
+/** Flush the mock loader and the resulting React update together. */
 async function pret() {
-  await waitFor(() => expect(document.querySelector('input')).toBeNull())
+  await act(() => Promise.resolve())
   return screen.getByRole('textbox', { name: 'Expression 2' })
 }
 
@@ -86,6 +86,7 @@ describe('ChampMath', () => {
     rerender(<ChampMath {...p} texte="a = 1,5" latex="a=1{,}5" />)
     expect(champs[0].valeur).toBe('a=1{,}5')
     act(() => champs[0].options.surTexte('a=2'))
+    expect(p.onTexte).toHaveBeenLastCalledWith('a = 2')
     rerender(<ChampMath {...p} texte="a = 2" latex="a=2" />)
     expect(champs[0].valeur).toBe('a=1{,}5')
   })
@@ -116,8 +117,8 @@ describe('ChampMath', () => {
         synchroniserAdresse={false}
       />
     )
-    await waitFor(() => expect(document.querySelector('input')).toBeNull())
-    const deuxieme = screen.getByRole('textbox', { name: 'Expression 2' })
+    const deuxieme = await pret()
+    expect(document.querySelector('input')).toBeNull()
     act(() => deuxieme.focus())
     await userEvent.setup().click(screen.getByRole('button', { name: 'Clavier mathématique' }))
     expect(basculerClavier).toHaveBeenCalledWith(deuxieme)
