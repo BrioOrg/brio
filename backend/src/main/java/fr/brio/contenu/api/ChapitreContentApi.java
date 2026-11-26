@@ -17,6 +17,9 @@ public interface ChapitreContentApi {
 
     Optional<ChapitreDocument> findByTriplet(String niveau, String matiere, String slug);
 
+    /** Whether the lesson is available in the catalogue, without loading its contents. */
+    boolean estPublie(String niveau, String matiere, String slug);
+
     /**
      * The typed document of the course's currently published version, or empty when the
      * course does not exist or has no published version. Does <b>not</b> enforce portée

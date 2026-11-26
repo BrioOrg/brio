@@ -14,11 +14,18 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.brio.contenu.infrastructure.ChapitreIngestor;
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.CompteService;
 import fr.brio.identite.api.ClasseInfo;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,12 +55,15 @@ class CoursParcoursEleveIntegrationTest {
     @Autowired WebApplicationContext webApplicationContext;
     @Autowired ClasseService classeService;
     @Autowired CompteService compteService;
+    @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired ObjectMapper objectMapper;
 
     MockMvc mockMvc;
 
     private RequestPostProcessor teacher;
     private RequestPostProcessor student;
+    private RequestPostProcessor autreEleve;
+    private RequestPostProcessor autreProf;
     private ClasseInfo classe;
 
     @BeforeEach
@@ -72,7 +82,96 @@ class CoursParcoursEleveIntegrationTest {
 
         var code = classeService.genererCode(classe.id(), teacherId, 14, 40);
         UUID studentId = classeService.rejoindreParCode(code.code(), "motdepasse123", "Alice").id();
-        student = user(studentId.toString());
+        student = user(studentId.toString()).roles("ELEVE");
+
+        UUID autreProfId = compteService.creerEnseignant(
+                "motdepasse123", "Autre professeur", "autre-" + suffix + "@example.fr", etab.id()).id();
+        autreProf = user(autreProfId.toString()).roles("ENSEIGNANT");
+        var autreClasse = classeService.creerClasse(etab.id(), "3e", "3e B", "2025-2026", null);
+        classeService.assignerEnseignantPrincipal(autreClasse.id(), autreProfId);
+        var autreCode = classeService.genererCode(autreClasse.id(), autreProfId, 14, 40);
+        autreEleve = user(classeService.rejoindreParCode(autreCode.code(), "motdepasse123", "Bob").id().toString())
+                .roles("ELEVE");
+    }
+
+    @Test
+    void redigePublieSaCopieUneSeuleFoisEtMasqueLeCorrigeAvantRemise() throws Exception {
+        UUID coursId = creerEtPublier(content(fillBlank("[\"côté\", \"droit\"]")));
+        ObjectNode definition = exerciceRedige(coursId).put("corrige", "");
+        String id = creerRedige(definition);
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/prof/exercices-rediges/{id}/publier", id).with(teacher).with(csrf()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("CORRIGE_INCOMPLET"));
+        definition.put("corrige", "La dérivée est $2x + 2$.");
+        mockMvc.perform(put("/api/prof/exercices-rediges/{id}", id).with(teacher).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(definition.toString()))
+                .andExpect(status().isOk());
+        publierRedige(id);
+
+        mockMvc.perform(get("/api/exercices-rediges").param("coursId", coursId.toString()).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].id").value(id));
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(autreEleve))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(teacher))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reponseAttendue").doesNotExist())
+                .andExpect(jsonPath("$.corrige").doesNotExist());
+        remettreRedige(id, "(x").andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("FORMULE_ILLISIBLE"));
+        remettreRedige(id, "sin(x)").andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("FORMULE_HORS_DOMAINE"));
+
+        try (var threads = Executors.newFixedThreadPool(2)) {
+            var first = threads.submit(() -> resultatRedige(id, "2(x+1)"));
+            var second = threads.submit(() -> resultatRedige(id, "2x+2"));
+            var remise = first.get(10, TimeUnit.SECONDS);
+            assertThat(remise.path("soumission").path("correct").asBoolean()).isTrue();
+            assertThat(second.get(10, TimeUnit.SECONDS).path("soumission")).isEqualTo(remise.path("soumission"));
+            var relu = objectMapper.readTree(mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+            assertThat(relu.path("soumission")).isEqualTo(remise.path("soumission"));
+            assertThat(relu.path("corrige").asText()).isEqualTo("La dérivée est $2x + 2$.");
+        }
+    }
+
+    @Test
+    void seulLeProfesseurAuteurPeutOuvrirLeCorrigeEnCloturant() throws Exception {
+        UUID coursId = creerEtPublier(content(fillBlank("[\"côté\", \"droit\"]")));
+        String id = creerRedige(exerciceRedige(coursId).put("echeance", Instant.now().plus(1, ChronoUnit.DAYS).toString()));
+        publierRedige(id);
+        mockMvc.perform(post("/api/prof/exercices-rediges/{id}/cloturer", id).with(autreProf).with(csrf()))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.corrige").doesNotExist());
+        mockMvc.perform(post("/api/prof/exercices-rediges/{id}/cloturer", id).with(teacher).with(csrf()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.cloture").value(true));
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.corrige").exists())
+                .andExpect(jsonPath("$.soumission").doesNotExist());
+        remettreRedige(id, "2x+2").andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("EXERCICE_CLOS"));
+    }
+
+    @Test
+    void unExerciceDuCatalogueNeReveleLeCorrigeQuApresLaRemise() throws Exception {
+        var file = Path.of("../content/chapitres/5e/mathematiques/developper-reduire.json");
+        var chapter = objectMapper.readTree(Files.readString(file));
+        chapitreIngestor.ingestDocument(chapter, "5e", "mathematiques", 0);
+        var list = objectMapper.readTree(mockMvc.perform(get("/api/exercices-rediges")
+                        .param("niveau", "5e").param("matiere", "mathematiques")
+                        .param("slug", "developper-reduire").with(student))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+        String id = list.get(0).path("id").asText();
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.echeance").doesNotExist())
+                .andExpect(jsonPath("$.corrige").doesNotExist());
+        remettreRedige(id, "2(2x+3)").andExpect(status().isOk())
+                .andExpect(jsonPath("$.soumission.correct").value(true))
+                .andExpect(jsonPath("$.corrige").exists());
     }
 
     @Test
@@ -115,6 +214,35 @@ class CoursParcoursEleveIntegrationTest {
     }
 
     // --- HTTP steps --------------------------------------------------------------
+
+    private ObjectNode exerciceRedige(UUID coursId) {
+        return objectMapper.createObjectNode().put("coursId", coursId.toString())
+                .put("titre", "Dériver un polynôme").put("enonce", "Calcule la dérivée de x² + 2x.")
+                .put("reponseAttendue", "2x+2").put("corrige", "La dérivée est $2x + 2$.");
+    }
+
+    private String creerRedige(ObjectNode definition) throws Exception {
+        var body = mockMvc.perform(post("/api/prof/exercices-rediges").with(teacher).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(definition.toString()))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(body).path("id").asText();
+    }
+
+    private void publierRedige(String id) throws Exception {
+        mockMvc.perform(post("/api/prof/exercices-rediges/{id}/publier", id).with(teacher).with(csrf()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.publie").value(true));
+    }
+
+    private ResultActions remettreRedige(String id, String reponse) throws Exception {
+        var body = objectMapper.createObjectNode().put("version", 1).put("reponse", reponse);
+        return mockMvc.perform(post("/api/exercices-rediges/{id}/soumission", id).with(student).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content(body.toString()));
+    }
+
+    private JsonNode resultatRedige(String id, String reponse) throws Exception {
+        return objectMapper.readTree(remettreRedige(id, reponse).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+    }
 
     private UUID creerEtPublier(JsonNode content) throws Exception {
         UUID coursId = creerCours();

@@ -25,6 +25,12 @@ public interface CoursAccesApi {
      */
     AccesCours accesPourEleve(UUID eleveId, UUID coursId);
 
+    /** Whether the authenticated teacher owns the lesson, including an unpublished draft. */
+    boolean estAuteur(UUID coursId, UUID auteurId);
+
+    /** Whether this course currently has a published version. */
+    boolean estPublie(UUID coursId);
+
     /**
      * Among {@code coursIds}, those the student can open right now, each with the title of its
      * published version (the title the course page shows). contenu resolves the student's classes

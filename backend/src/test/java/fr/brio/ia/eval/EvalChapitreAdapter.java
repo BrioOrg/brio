@@ -62,6 +62,11 @@ class EvalChapitreAdapter implements ChapitreContentApi {
     }
 
     @Override
+    public boolean estPublie(String niveau, String matiere, String slug) {
+        return findByTriplet(niveau, matiere, slug).isPresent();
+    }
+
+    @Override
     public Optional<ChapitreDocument> findCoursVersionPubliee(UUID coursId) {
         // The eval harness reads catalogue chapters from git only — never teacher courses.
         return Optional.empty();

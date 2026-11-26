@@ -44,6 +44,11 @@ class ChapitreContentApiImpl implements ChapitreContentApi {
     }
 
     @Override
+    public boolean estPublie(String niveau, String matiere, String slug) {
+        return chapitreRepository.existsByNiveauCodeAndMatiereCodeAndIdAndStatut(niveau, matiere, slug, "published");
+    }
+
+    @Override
     public Optional<ChapitreDocument> findCoursVersionPubliee(UUID coursId) {
         return coursRepository.findById(coursId)
                 .filter(c -> Cours.STATUT_PUBLIE.equals(c.getStatut()) && c.getVersionPubliee() != null)

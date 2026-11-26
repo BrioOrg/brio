@@ -179,6 +179,24 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>copy-exercices-rediges</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/exercices-rediges</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../content/exercices-rediges</directory>
+									<includes>
+										<include>catalogue.json</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
 						<!-- Canonical content schema (ADR 0008): consumed here rather than
 						     kept as a hand-maintained backend copy, which had drifted (#119).
 						     Loaded at runtime by ContentSchemaValidator via the classpath

@@ -13,6 +13,7 @@ COPY backend/mvnw backend/pom.xml ./
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -B -q dependency:go-offline
 
 COPY content/referentiel /src/content/referentiel
+COPY content/exercices-rediges /src/content/exercices-rediges
 COPY docs/schema /src/docs/schema
 COPY backend/src src
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -B -q package -DskipTests \
