@@ -16,6 +16,7 @@ import { getCoursPublie } from '@/lib/api'
 import { lireDevoirs } from '@/lib/espace-eleve'
 import { SiteHeader } from '@/components/site-header'
 import { ChapterRail } from '@/components/chapter-rail'
+import { LessonWrittenExercises } from '@/components/exercices-rediges/lesson-written-exercises'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
 import { ChapterInteractionProvider } from '@/components/chapter-interaction-context'
 import { ChapterProgress } from '@/components/chapter-progress'
@@ -138,6 +139,7 @@ export default async function CoursPage({
                 />
               )}
               <BasculeInteractif />
+              {devoirId === undefined && <LessonWrittenExercises lesson={{ coursId }} />}
               {/* Reading mode only: the end slide draws its own completion (#240). */}
               <SeulementEnLecture>
                 <ChapterProgress coursId={coursId} />

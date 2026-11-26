@@ -38,16 +38,24 @@ type Props = {
   onInserer: (insertion: InsertionMaths) => void
   /** Libellé du groupe de touches pour les lecteurs d'écran. */
   ariaLabel?: string
+  keyboard?: 'full' | 'polynomial'
 }
 
-export function ClavierMaths({ onInserer, ariaLabel = 'Clavier mathématique' }: Props) {
+const polynomialKeys = TOUCHES.filter(({ symbole }) => ['×', 'x²', 'xⁿ', 'a/b'].includes(symbole))
+
+export function ClavierMaths({
+  onInserer,
+  ariaLabel = 'Clavier mathématique',
+  keyboard = 'full',
+}: Props) {
+  const keys = keyboard === 'polynomial' ? polynomialKeys : TOUCHES
   return (
     <div
       role="group"
       aria-label={ariaLabel}
       className="flex flex-wrap gap-1 rounded-lg border border-line bg-surface-panel p-1.5 shadow-sm"
     >
-      {TOUCHES.map((touche) => (
+      {keys.map((touche) => (
         <button
           key={touche.symbole}
           type="button"

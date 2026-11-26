@@ -12,6 +12,7 @@ import { getCatalogue, getChapitreByTriplet } from '@/lib/api'
 import { SiteHeader, type Crumb } from '@/components/site-header'
 import { ChapterSidebar, ChapterSidebarMobile } from '@/components/chapter-sidebar'
 import { ChapterRail } from '@/components/chapter-rail'
+import { LessonWrittenExercises } from '@/components/exercices-rediges/lesson-written-exercises'
 import { ChapterToolsSheet } from '@/components/chapter-tools-sheet'
 import { ChapterInteractionProvider } from '@/components/chapter-interaction-context'
 import { BandeauDevoir } from '@/components/bandeau-devoir'
@@ -185,6 +186,9 @@ export default async function ChapterPage({
               {/* Opened from a homework (#322), in either mode. */}
               {typeof devoir === 'string' && <BandeauDevoir devoirId={devoir} slug={slug} />}
               <BasculeInteractif />
+              {typeof devoir !== 'string' && (
+                <LessonWrittenExercises lesson={{ niveau, matiere, slug }} />
+              )}
               {/* Reading mode only: the interactive mode has the deck's position bar, and the end
                   slide draws its own completion, so the gauge would double it here (#240). */}
               <SeulementEnLecture>

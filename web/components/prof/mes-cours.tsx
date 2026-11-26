@@ -107,6 +107,12 @@ export function MesCours() {
             <h1 className="font-display text-2xl font-black tracking-tight text-ink">Mes cours</h1>
           </div>
           {/* The other sections are in the teacher navigation (sidebar / bottom bar, #286). */}
+          <Link
+            href="/prof/exercices-rediges"
+            className="inline-flex min-h-11 items-center rounded-md border border-line px-3 font-display text-sm font-extrabold text-accent-ink hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            Exercices rédigés
+          </Link>
           <button
             type="button"
             onClick={() => {

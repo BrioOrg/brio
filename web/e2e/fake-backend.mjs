@@ -106,6 +106,9 @@ import { fileURLToPath } from 'node:url'
 
 const CONTENT_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../content/chapitres')
 const PORT = Number(process.env.FAKE_BACKEND_PORT ?? 8099)
+const writtenCatalogue = JSON.parse(
+  await readFile(new URL('../../content/exercices-rediges/catalogue.json', import.meta.url), 'utf8')
+)
 
 // Mirrors ContenuService.SENSITIVE_EVAL_FIELDS.
 const SENSITIVE_EVAL_FIELDS = [
@@ -1463,6 +1466,142 @@ function send(res, status, body) {
   res.end(body === undefined ? '' : JSON.stringify(body))
 }
 
+const writtenDrafts = new Map()
+const writtenSubmissions = new Map()
+
+const firstEquivalentAnswers = new Map([
+  ['4x+6', ['2(2x+3)']],
+  ['2x+2', ['2(x+1)']],
+])
+
+function writtenExerciseClosed(exercise) {
+  return !!exercise.echeance && Date.parse(exercise.echeance) <= Date.now()
+}
+
+function writtenStudentView(exercise, submission) {
+  const { id, version, titre, enonce, coursId, niveau, matiere, slug, echeance, corrige } = exercise
+  const cloture = writtenExerciseClosed(exercise)
+  return {
+    id,
+    version,
+    titre,
+    enonce,
+    coursId,
+    niveau,
+    matiere,
+    slug,
+    echeance,
+    cloture,
+    corrige: submission || cloture ? corrige : undefined,
+    soumission: submission,
+  }
+}
+
+function writtenTeacherView({ owner: _owner, ...exercise }) {
+  return { ...exercise, cloture: writtenExerciseClosed(exercise) }
+}
+
+async function writtenExercises(req, res, pathname, searchParams) {
+  const teacher = pathname.startsWith('/api/prof/')
+  const owner = sessionEnseignant(req)
+  if (!connecte(req)) return send(res, 401)
+  if (teacher ? !owner : owner || adminBrio(req)) return send(res, 403)
+  res.setHeader('cache-control', 'no-store')
+
+  if (teacher) {
+    if (pathname === '/api/prof/exercices-rediges') {
+      if (req.method === 'GET') {
+        return send(
+          res,
+          200,
+          [...writtenDrafts.values()]
+            .filter((draft) => draft.owner === owner)
+            .map(writtenTeacherView)
+        )
+      }
+      if (req.method === 'POST') {
+        const input = await corps(req)
+        if (!COURS.some(({ id }) => id === input?.coursId)) return send(res, 403)
+        const draft = { ...input, id: randomUUID(), owner, version: 1, publie: false }
+        writtenDrafts.set(draft.id, draft)
+        return send(res, 201, writtenTeacherView(draft))
+      }
+    }
+    const match = pathname.match(
+      /^\/api\/prof\/exercices-rediges\/([^/]+)(?:\/(publier|cloturer))?$/
+    )
+    if (!match) return send(res, 404)
+    const [, id, action] = match
+    const draft = writtenDrafts.get(id)
+    if (!draft || draft.owner !== owner) return send(res, 404)
+    if (req.method === 'PUT' && !action) {
+      if (draft.publie) return send(res, 409)
+      const input = await corps(req)
+      if (!COURS.some(({ id }) => id === input?.coursId)) return send(res, 403)
+      Object.assign(draft, input, { id, owner, version: 1, publie: false })
+    } else if (req.method === 'POST' && action === 'publier') {
+      if (
+        ![draft.titre, draft.enonce, draft.reponseAttendue, draft.corrige].every((v) => v?.trim())
+      ) {
+        return send(res, 422)
+      }
+      if (writtenExerciseClosed(draft)) return send(res, 422)
+      draft.publie = true
+    } else if (req.method === 'POST' && action === 'cloturer') {
+      if (!draft.publie || !draft.echeance) return send(res, 409)
+      if (!writtenExerciseClosed(draft)) draft.echeance = new Date().toISOString()
+    } else {
+      return send(res, 404)
+    }
+    return send(res, 200, writtenTeacherView(draft))
+  }
+
+  const teacherExercises = [...writtenDrafts.values()].filter(({ publie }) => publie)
+  if (req.method === 'GET' && pathname === '/api/exercices-rediges') {
+    const coursId = searchParams.get('coursId')
+    if (coursId && sansClasse(req)) return send(res, 403)
+    const matching = coursId
+      ? teacherExercises.filter((exercise) => exercise.coursId === coursId)
+      : writtenCatalogue.filter((exercise) =>
+          ['niveau', 'matiere', 'slug'].every((key) => exercise[key] === searchParams.get(key))
+        )
+    return send(
+      res,
+      200,
+      matching.map(({ id, titre }) => ({ id, titre }))
+    )
+  }
+  const match = pathname.match(/^\/api\/exercices-rediges\/([^/]+)(\/soumission)?$/)
+  if (!match) return send(res, 404)
+  const [, id, action] = match
+  const exercise = [...writtenCatalogue, ...teacherExercises].find((item) => item.id === id)
+  if (!exercise) return send(res, 404)
+  if (exercise.coursId && sansClasse(req)) return send(res, 403)
+  const session = cookies(req).find((cookie) => cookie.startsWith('JSESSIONID='))
+  const key = `${session}/${id}/${exercise.version}`
+  if (req.method === 'GET' && !action) {
+    return send(res, 200, writtenStudentView(exercise, writtenSubmissions.get(key)))
+  }
+  if (req.method !== 'POST' || !action) return send(res, 404)
+  const input = await corps(req)
+  if (input?.version !== exercise.version) return send(res, 409)
+  const previous = writtenSubmissions.get(key)
+  if (previous) return send(res, 200, writtenStudentView(exercise, previous))
+  if (writtenExerciseClosed(exercise)) return send(res, 409)
+  const answer = input?.reponse?.replace(/\s+/g, '')
+  if (!answer || answer === '(x') return send(res, 422, { code: 'FORMULE_ILLISIBLE' })
+  if (answer === 'sin(x)') return send(res, 422, { code: 'FORMULE_HORS_DOMAINE' })
+  const rc = exercise.reponseAttendue.replace(/\s+/g, '')
+  // This fake only recognises the equivalent spellings used in the browser fixtures.
+  const submission = {
+    reponse: input.reponse,
+    correct: rc === answer || !!firstEquivalentAnswers.get(rc)?.includes(answer),
+    remisAt: new Date().toISOString(),
+  }
+  writtenSubmissions.set(key, submission)
+  return send(res, 200, writtenStudentView(exercise, submission))
+}
+
 const server = createServer(async (req, res) => {
   const { pathname, searchParams } = new URL(req.url ?? '/', 'http://localhost')
 
@@ -1524,7 +1663,27 @@ const server = createServer(async (req, res) => {
   // PL-7 (#399): the 3e C salon and its students. null when the request is none of them.
   if ((await salonDe3eC(req, res, pathname)) !== null) return
 
+  if (/^\/api\/(prof\/)?exercices-rediges(?:\/|$)/.test(pathname)) {
+    return writtenExercises(req, res, pathname, searchParams)
+  }
+
   if (req.method === 'GET') {
+    if (pathname === '/api/prof/cours') {
+      if (!connecte(req)) return send(res, 401)
+      if (!enseignant(req)) return send(res, 403)
+      const { id, titre, niveauCode, matiereCode, publieAt } = COURS[0]
+      return send(res, 200, [
+        {
+          id,
+          titre,
+          niveauCode,
+          matiereCode,
+          statut: 'publie',
+          versionPubliee: 1,
+          updatedAt: publieAt,
+        },
+      ])
+    }
     if (pathname === '/api/reglages/communaute') return send(res, 200, { active: true })
     const chapitre = pathname.match(/^\/api\/chapitres\/([^/]+)\/([^/]+)\/([^/]+)$/)
     if (chapitre) {

@@ -57,6 +57,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 2 | `/[niveau]` |
 | 2 | `/communaute/[questionId]` |
 | 2 | `/communaute/nouvelle` |
+| 2 | `/exercices-rediges/[id]` |
 | 2 | `/explorer/probabilites` |
 | 2 | `/ma-classe/cours` |
 | 2 | `/ma-classe/salon` |
@@ -71,6 +72,7 @@ Un **clic** = un lien suivi ; une page qui ne fait que rediriger coûte 0. `Clic
 | 1 | `/prof/classes` |
 | 1 | `/prof/cours/[coursId]` |
 | 1 | `/prof/devoirs` |
+| 1 | `/prof/exercices-rediges` |
 | 1 | `/prof/signalements` |
 | 1 | `/prof/signalements-salon` |
 | 2 | `/prof/classes/[id]` |
