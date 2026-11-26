@@ -21,6 +21,8 @@ type Props = {
   inputClassName?: string
   /** Libellé accessible de l'input. */
   ariaLabel?: string
+  keyboard?: 'full' | 'polynomial'
+  maxLength?: number
   /** Attributs de validation posés sur l'input (repère de champ, état d'erreur). */
   champ?: { 'data-champ'?: string; 'aria-invalid'?: true; 'aria-describedby'?: string }
 }
@@ -33,6 +35,8 @@ export function ChampFormule({
   displayMode = true,
   inputClassName = '',
   ariaLabel = 'Formule LaTeX',
+  keyboard,
+  maxLength,
   champ,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -85,8 +89,11 @@ export function ChampFormule({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        maxLength={maxLength}
       />
-      {actif && <ClavierMaths onInserer={inserer} />}
+      {(actif || keyboard === 'polynomial') && (
+        <ClavierMaths onInserer={inserer} keyboard={keyboard} />
+      )}
       {montrerApercu && <ApercuKatex latex={value} displayMode={displayMode} />}
     </div>
   )

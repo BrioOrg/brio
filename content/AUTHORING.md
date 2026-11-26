@@ -5,13 +5,18 @@ Update this file when a new chapter reveals a better rule or breaks an existing 
 
 ---
 
-## Exercices rédigés de leçon — chantier proposé
+## Exercices rédigés de leçon
 
 L’[ADR 0051](../docs/adr/0051-exercices-rediges.md) prévoit des exercices de leçon avec énoncé
-complet, remise et référence de correction. Leur format de publication reste à implémenter.
-Les types de réponse rapide ci-dessous restent ceux du format actuel. En attendant
-le nouveau parcours, une réponse rédigée ne doit pas être publiée sous forme de `short-answer`
-pour contourner l’absence de correcteur adapté.
+complet, remise et référence de correction. Le premier parcours du catalogue utilise
+[`exercices-rediges/catalogue.json`](exercices-rediges/catalogue.json). Chaque entrée indique
+la leçon publiée (`niveau`, `matiere`, `slug`), un identifiant stable, une version, un titre,
+un énoncé, une réponse polynomiale attendue et un corrigé expliqué. Augmenter la version si
+l’énoncé ou la correction change. Le corrigé commun est accessible dans l’app après remise.
+
+Le correcteur compare exactement les polynômes en `x` dans son domaine pris en charge.
+Choisir un énoncé adapté au niveau de la leçon et préciser quand la réponse doit être saisie
+sans unité. Les types de réponse rapide ci-dessous restent utilisés pour les blocs du cours.
 
 ## Three rules that apply to every chapter
 
@@ -85,7 +90,7 @@ définit le terme.
 **Frontières du type `short-answer`** — ne jamais l'utiliser pour :
 - Une réponse numérique (→ `numeric`) : `answer` + `tolerance` offrent une vérification exacte.
 - Une phrase complète ou une réponse ouverte : la normalisation ne s'applique pas à des
-  formulations longues. Le futur parcours d’exercice rédigé couvre ce besoin.
+  formulations longues. Les parcours de revue des copies font l’objet de l’ADR 0051.
 `short-answer` convient pour un nom, un rang, un terme technique, une écriture courte avec un
 ensemble fini de formulations acceptables.
 

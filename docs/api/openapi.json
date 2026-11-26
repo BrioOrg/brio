@@ -18,6 +18,9 @@
     "name" : "Communauté",
     "description" : "Questions et réponses entre élèves, sous pseudonyme"
   }, {
+    "name" : "Exercices rédigés enseignant",
+    "description" : "Édition, publication et clôture des exercices rédigés"
+  }, {
     "name" : "Messagerie",
     "description" : "Salons de classe"
   }, {
@@ -32,6 +35,9 @@
   }, {
     "name" : "Devoirs",
     "description" : "Les devoirs de l'élève connecté (F4)"
+  }, {
+    "name" : "Exercices rédigés",
+    "description" : "Lecture, remise et corrigé des exercices rédigés"
   }, {
     "name" : "Système",
     "description" : "Endpoints techniques exposés par le produit"
@@ -64,6 +70,44 @@
     "description" : "Tuteur IA par chapitre"
   } ],
   "paths" : {
+    "/api/prof/exercices-rediges/{id}" : {
+      "put" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Met à jour un brouillon d’exercice rédigé",
+        "operationId" : "modifierExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EcritureExerciceRedige"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExerciceRedigeProf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/cours/{coursId}" : {
       "get" : {
         "tags" : [ "Édition de cours" ],
@@ -580,6 +624,111 @@
         "responses" : {
           "200" : {
             "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/prof/exercices-rediges" : {
+      "get" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Liste les exercices rédigés de l’enseignant connecté",
+        "operationId" : "listerExercicesRedigesProf",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ExerciceRedigeProf"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Crée un brouillon d’exercice rédigé",
+        "operationId" : "creerExerciceRedige",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EcritureExerciceRedige"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExerciceRedigeProf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/exercices-rediges/{id}/publier" : {
+      "post" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Vérifie et publie un exercice rédigé",
+        "operationId" : "publierExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExerciceRedigeProf"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/exercices-rediges/{id}/cloturer" : {
+      "post" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Clôture plus tôt un exercice rédigé qui possède une échéance",
+        "operationId" : "cloturerExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExerciceRedigeProf"
+                }
+              }
+            }
           }
         }
       }
@@ -1260,6 +1409,44 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/SoumissionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exercices-rediges/{id}/soumission" : {
+      "post" : {
+        "tags" : [ "Exercices rédigés" ],
+        "summary" : "Remet la première copie valide de l’exercice rédigé",
+        "operationId" : "soumettreExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RemiseExerciceRedige"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExerciceRedigeEleve"
                 }
               }
             }
@@ -3144,6 +3331,86 @@
         }
       }
     },
+    "/api/exercices-rediges" : {
+      "get" : {
+        "tags" : [ "Exercices rédigés" ],
+        "summary" : "Liste les exercices rédigés publiés d’une leçon accessible",
+        "operationId" : "listerExercicesRediges",
+        "parameters" : [ {
+          "name" : "coursId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "niveau",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "matiere",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "slug",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ExerciceRedigeResume"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exercices-rediges/{id}" : {
+      "get" : {
+        "tags" : [ "Exercices rédigés" ],
+        "summary" : "Ouvre un exercice rédigé et la copie de l’élève",
+        "operationId" : "lireExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExerciceRedigeEleve"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/entraide/{filId}" : {
       "get" : {
         "tags" : [ "Entraide" ],
@@ -3752,6 +4019,79 @@
   },
   "components" : {
     "schemas" : {
+      "EcritureExerciceRedige" : {
+        "type" : "object",
+        "properties" : {
+          "coursId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
+            "type" : "string",
+            "maxLength" : 160,
+            "minLength" : 0
+          },
+          "enonce" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          },
+          "reponseAttendue" : {
+            "type" : "string",
+            "maxLength" : 512,
+            "minLength" : 0
+          },
+          "corrige" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          },
+          "echeance" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "corrige", "coursId", "enonce", "reponseAttendue", "titre" ]
+      },
+      "ExerciceRedigeProf" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "coursId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "enonce" : {
+            "type" : "string"
+          },
+          "reponseAttendue" : {
+            "type" : "string"
+          },
+          "corrige" : {
+            "type" : "string"
+          },
+          "echeance" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "publie" : {
+            "type" : "boolean"
+          },
+          "cloture" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "JsonNode" : { },
       "ModifierCoursRequest" : {
         "type" : "object",
@@ -4134,6 +4474,79 @@
           },
           "explanation" : {
             "type" : "string"
+          }
+        }
+      },
+      "RemiseExerciceRedige" : {
+        "type" : "object",
+        "properties" : {
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "reponse" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "reponse" ]
+      },
+      "CopieExerciceRedige" : {
+        "type" : "object",
+        "properties" : {
+          "reponse" : {
+            "type" : "string"
+          },
+          "correct" : {
+            "type" : "boolean"
+          },
+          "remisAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "ExerciceRedigeEleve" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "titre" : {
+            "type" : "string"
+          },
+          "enonce" : {
+            "type" : "string"
+          },
+          "coursId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "niveau" : {
+            "type" : "string"
+          },
+          "matiere" : {
+            "type" : "string"
+          },
+          "slug" : {
+            "type" : "string"
+          },
+          "echeance" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "cloture" : {
+            "type" : "boolean"
+          },
+          "corrige" : {
+            "type" : "string"
+          },
+          "soumission" : {
+            "$ref" : "#/components/schemas/CopieExerciceRedige"
           }
         }
       },
@@ -5190,6 +5603,18 @@
             "format" : "uuid"
           },
           "nomAffiche" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ExerciceRedigeResume" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "titre" : {
             "type" : "string"
           }
         }

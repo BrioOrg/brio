@@ -1,0 +1,13 @@
+[
+  {
+    "id": "c04b7811-a470-464e-876d-b1b44d78d002",
+    "version": 1,
+    "niveau": "5e",
+    "matiere": "mathematiques",
+    "slug": "developper-reduire",
+    "titre": "Le périmètre du jardin",
+    "enonce": "Un jardin rectangulaire a une largeur de $x$ mètres et une longueur de $x + 3$ mètres. Écris une expression de son périmètre en fonction de $x$. Donne l’expression en mètres, sans écrire l’unité dans le champ de réponse.",
+    "reponseAttendue": "4x+6",
+    "corrige": "Le périmètre est le double de la somme de la longueur et de la largeur. On obtient $2(x + x + 3) = 2(2x + 3) = 4x + 6$ mètres. Les expressions $2(2x + 3)$ et $4x + 6$ donnent le même résultat."
+  }
+]

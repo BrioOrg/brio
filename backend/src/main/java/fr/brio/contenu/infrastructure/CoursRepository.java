@@ -10,6 +10,10 @@ public interface CoursRepository extends JpaRepository<Cours, UUID> {
     /** A teacher's own courses, most recently touched first (the "Mes cours" listing). */
     List<Cours> findByAuteurIdOrderByUpdatedAtDesc(UUID auteurId);
 
+    boolean existsByIdAndAuteurId(UUID id, UUID auteurId);
+
+    boolean existsByIdAndStatutAndVersionPublieeIsNotNull(UUID id, String statut);
+
     /** Courses in a given status — the published ones, re-announced to progression at startup. */
     List<Cours> findByStatut(String statut);
 }

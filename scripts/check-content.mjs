@@ -1079,6 +1079,34 @@ function isChapterFile(file) {
   )
 }
 
+const writtenExerciseCatalogue = join(repoRoot, 'content/exercices-rediges/catalogue.json')
+
+function checkWrittenExerciseCatalogue(exercises, file) {
+  if (!Array.isArray(exercises)) {
+    fail(file, '', 'expected an array of written exercises')
+    return
+  }
+  const ids = new Set()
+  for (const [index, exercise] of exercises.entries()) {
+    const path = `[${index}]`
+    const { id, niveau, matiere, slug, enonce, corrige } = exercise ?? {}
+    if (typeof id !== 'string' || ids.has(id)) fail(file, path, 'missing or repeated exercise id')
+    ids.add(id)
+    if (![niveau, matiere, slug].every((segment) => typeof segment === 'string' && /^[a-z0-9-]+$/.test(segment))) {
+      fail(file, path, 'expected a chapter level, subject and slug')
+    } else {
+      const chapterFile = join(repoRoot, 'content/chapitres', niveau, matiere, `${slug}.json`)
+      try {
+        const chapter = JSON.parse(readFileSync(chapterFile, 'utf8'))
+        if (chapter.status !== 'published') fail(file, path, 'the chapter must be published')
+      } catch {
+        fail(file, path, `chapter not found or invalid: ${niveau}/${matiere}/${slug}`)
+      }
+    }
+    walkStrings({ enonce, corrige }, file, path)
+  }
+}
+
 const filesById = new Map()
 
 let fileCount = 0
@@ -1091,6 +1119,11 @@ for (const file of contentFiles) {
     continue
   }
   try {
+    if (file === writtenExerciseCatalogue) {
+      checkWrittenExerciseCatalogue(doc, file)
+      fileCount++
+      continue
+    }
     walkStrings(doc, file, '')
     checkFigures(doc, file)
     checkScratchExercises(doc, file)
