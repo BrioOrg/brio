@@ -27,6 +27,10 @@ Le bloc **« Aiguillage »** en tête du commentaire consolidé (contrat 6), sor
 - **tours 2-3** : `--since <commit revu au tour précédent>` (seulement la correction) ;
   sont relancés les gardiens que la correction réveille **et** ceux qui avaient un constat
   bloquant ou important au tour précédent. Chaque gardien relancé ne relit que ce diff.
+- **texte seul** (#456) : un fichier web où seuls des libellés ou des commentaires changent
+  n'est montré qu'à V1, V4, V5, V6, U1, U7 et S2 ; V2, V3, U6, S3 et la mutation l'écartent ;
+- **mutation web** : la CI (`mesh-mutation.yml`) ne mute que les fichiers du contrôle
+  `mutation-web` ; jobs plafonnés à 30 min.
 Les déclencheurs appliqués sont ceux des sections « Se réveille » des fiches V1–V6, U1, U6,
 U7, S2, S3 ; le script les code dans `scripts/mesh/lib/aiguillage.mjs`.
 

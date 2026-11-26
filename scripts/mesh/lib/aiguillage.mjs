@@ -72,6 +72,40 @@ const has = (files, re) => files.filter((f) => re.test(f.path))
 /** Règles de périmètre : un test ne réveille que V1 et V3 (le reste juge le code testé). */
 const hasSrc = (files, re) => has(files, re).filter((f) => !TEST_FILE.test(f.path))
 
+/**
+ * « Texte seul » (#456) : dans un fichier web, seuls des textes ont changé (libellés, phrases,
+ * commentaires). On efface de chaque ligne retirée et ajoutée les chaînes qui ressemblent à du
+ * texte (une espace ou une lettre accentuée), le texte JSX entre balises et les commentaires,
+ * puis on compare le reste, espaces compris retirés : identique = rien d'autre n'a bougé.
+ * Prudence : chemins, classes CSS sans espace, regex, nombres et conditions restent comparés.
+ */
+const TEXTE_SEUL_FICHIER = /^web\/(app|components|lib)\/.*\.tsx?$/
+const TEXTUEL = /\s|[À-ÿ’]/
+// Un seul mot affiché (« 'Signalements' ») : une majuscule puis des minuscules.
+const MOT_AFFICHE = /^['"][A-ZÀ-Ý][a-zà-ÿ]+['"]$/
+// Ligne de texte JSX nue (« Voir les cours de ta classe ») : des mots, pas une instruction.
+const TEXTE_JSX = /[A-Za-zÀ-ÿ]{2}.*\s|[À-ÿ’]/
+const MOT_CLE =
+  /^(return|export|import|const|let|var|await|throw|if|else|case|default|new|typeof|yield|async|function|class|interface|type|break|continue)\b/
+function squelette(line) {
+  const t = line.trim()
+  if (/^(\/\/|\/\*|\*)/.test(t)) return ''
+  return t
+    .replace(/`([^`\\]|\\.)*`/g, (m) =>
+      TEXTUEL.test(m) ? '`' + (m.match(/\$\{[^}]*\}/g) ?? []).join('') + '`' : m
+    )
+    .replace(/'([^'\\\n]|\\.)*'|"([^"\\\n]|\\.)*"/g, (m) =>
+      TEXTUEL.test(m) || MOT_AFFICHE.test(m) ? "''" : m
+    )
+    .replace(/>([^<>{}()=;&|[\]`'"]*)</g, (m, txt) => (TEXTUEL.test(txt) ? '><' : m))
+    .replace(/^[^<>{}()=;&|[\]`'"]*$/, (m) => (TEXTE_JSX.test(m) && !MOT_CLE.test(m) ? '' : m))
+    .replace(/\s+/g, '')
+}
+export function texteSeul(path, added = [], removed = []) {
+  if (!TEXTE_SEUL_FICHIER.test(path) || !added.length || !removed.length) return false
+  return added.map(squelette).join('') === removed.map(squelette).join('')
+}
+
 /** Route Next.js d'un fichier `web/app/**` (« /[niveau]/[matiere] »), groupes retirés. */
 export function routeOf(path) {
   const m = /^web\/app\/(.*)$/.exec(path)
@@ -115,8 +149,9 @@ export function tasksTouched(routes, def) {
  * @param {{ path: string, status?: string }[]} files  fichiers du diff (status git : A, M, D, R…)
  * @param {Map<string, string[]>} added                lignes ajoutées, par fichier
  * @param {object} tasksDef                            contenu de mesh/routes/tasks.json
+ * @param {Map<string, string[]>} removed              lignes retirées, par fichier (texte seul)
  */
-export function aiguiller(files, added = new Map(), tasksDef = {}) {
+export function aiguiller(files, added = new Map(), tasksDef = {}, removed = new Map()) {
   const agents = new Map()
   const want = (id, raison) => {
     const a = agents.get(id) ?? []
@@ -133,8 +168,17 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
   const linesOf = (fs) =>
     fs.flatMap((f) => (added.get(f.path) ?? []).map((l) => ({ path: f.path, l })))
 
+  // Fichiers où seuls des textes changent : ils n'ont rien à apprendre à V2, V3, U6, S3 ni à
+  // la mutation (#456). V1, V4, V5 (signaux sur le texte ajouté), V6, U7, U1 et S2 restent.
+  const texte = new Set(
+    files
+      .filter((f) => f.status === 'M' && texteSeul(f.path, added.get(f.path), removed.get(f.path)))
+      .map((f) => f.path)
+  )
+  const logique = files.filter((f) => !texte.has(f.path))
+
   const code = has(files, CODE)
-  const tests = has(files, TEST_FILE)
+  const tests = has(logique, TEST_FILE)
   const ui = hasSrc(files, WEB_UI)
   const styles = has(files, STYLE)
 
@@ -144,14 +188,14 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
 
   // V2 — contrats.
   const contrats = hasSrc(
-    files,
+    logique,
     new RegExp(
       `^${JAVA}[^/]+/(web|api)/|^docs/api/openapi\\.json$|^packages/api-client/|^web/e2e/fake-backend\\.mjs$`
     )
   )
   // web/lib : tout (fiche V2) — un schéma Zod modifié ou un champ retiré ne se voit pas
   // forcément dans les lignes ajoutées (relecture #449).
-  contrats.push(...hasSrc(files, /^web\/lib\//))
+  contrats.push(...hasSrc(logique, /^web\/lib\//))
   if (contrats.length) want('V2', `contrat d'API ou appel /api : ${list(contrats)}`)
 
   // V3 — tests : un test touché (affaiblissement ?) ou du code source (verdict mutation).
@@ -159,7 +203,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
   if (deleted.length) want('V3', `test supprimé : ${list(deleted)}`)
   else if (tests.length) want('V3', `test modifié : ${list(tests)}`)
   const src = has(
-    files,
+    logique,
     /^backend\/src\/main\/|^backend\/pom\.xml$|^web\/(app|components|lib)\/|^web\/[^/]+\.(ts|mjs)$|^packages\/[^/]+\/src\//
   ).filter((f) => !TEST_FILE.test(f.path))
   if (src.length) want('V3', `code source sous mutation : ${list(src)}`)
@@ -212,7 +256,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
 
   // U6 — fluidité : route chaude touchée, ou ce qui les sert toutes.
   const hot = hotRoutes(tasksDef)
-  const hotFiles = files.filter((f) => {
+  const hotFiles = logique.filter((f) => {
     if (TEST_FILE.test(f.path)) return false
     // tasks.json : seulement si une ligne de tâche chaude a changé (le reste relève de U1).
     if (/^mesh\/routes\/tasks\.json$/.test(f.path))
@@ -238,7 +282,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
 
   // S3 — saboteur.
   const cibles = has(
-    files,
+    logique,
     new RegExp(
       `^${JAVA}(identite|exercices|social)/|^web/middleware\\.ts$|form|session|exercice|communaute|connexion|mot-de-passe|messagerie|entraide|salon|signalement|chapitre-interactif`,
       'i'
@@ -246,7 +290,7 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
   ).filter((f) => !TEST_FILE.test(f.path) && !/\.md$/.test(f.path))
   if (cibles.length) want('S3', `formulaire, session, exercice ou Communauté : ${list(cibles)}`)
   for (const [re, label] of SIGNAUX.saboteur) {
-    const hit = codeLines.find(({ l }) => re.test(l))
+    const hit = codeLines.find(({ path, l }) => !texte.has(path) && re.test(l))
     if (hit) want('S3', `${label} (${hit.path})`)
   }
 
@@ -265,9 +309,10 @@ export function aiguiller(files, added = new Map(), tasksDef = {}) {
       retenu: agents.has(id),
       raisons: agents.get(id) ?? [PERIMETRE[id]],
     })),
-    controles: controles(files, routes),
+    controles: controles(files, routes, texte),
     taches: taches.map((t) => t.id),
     nonClasses: nonClasses.map((f) => f.path),
+    texteSeul: [...texte],
   }
 }
 
@@ -292,8 +337,9 @@ const PERIMETRE = {
  * Contrôles locaux de la porte 4. Les garde-fous du mesh (quelques secondes) tournent
  * toujours ; les contrôles lourds seulement si leur périmètre bouge.
  */
-export function controles(files, routes = []) {
+export function controles(files, routes = [], texte = new Set()) {
   const any = (re) => files.some((f) => re.test(f.path))
+  const anyLogique = (re) => files.some((f) => !texte.has(f.path) && re.test(f.path))
   const out = [
     {
       id: 'garde-fous',
@@ -348,11 +394,15 @@ export function controles(files, routes = []) {
   const e2eAll =
     deps ||
     any(
-      /^web\/e2e\/(?![^/]+\.spec\.ts$)[^/]+\.(ts|mjs)$|^web\/(playwright|next)\.config\.ts$|^packages\/|^web\/(lib|middleware)|^content\/chapitres\//
-    )
+      /^web\/e2e\/(?![^/]+\.spec\.ts$)[^/]+\.(ts|mjs)$|^web\/(playwright|next)\.config\.ts$|^packages\/|^web\/middleware|^content\/chapitres\//
+    ) ||
+    anyLogique(/^web\/lib\//)
   const specs = files.filter((f) => /^web\/e2e\/.*\.spec\.ts$/.test(f.path)).map((f) => f.path)
   // (un helper e2e non-spec déclenche déjà la suite complète)
-  const e2e = e2eAll || specs.length > 0 || routes.length > 0 || any(/^web\/components\//)
+  // Un libellé changé dans web/lib peut casser une spec qui le cherche par son nom.
+  const libelles = [...texte].some((p) => /^web\/lib\//.test(p))
+  const e2e =
+    e2eAll || specs.length > 0 || routes.length > 0 || any(/^web\/components\//) || libelles
   out.push({
     id: 'e2e',
     cmd: e2eAll
@@ -362,10 +412,49 @@ export function controles(files, routes = []) {
     raison: e2eAll
       ? 'faux backend, config, contenu servi, dépendances ou code partagé modifié : suite complète'
       : e2e
-        ? `ciblés : specs modifiées${specs.length ? ` (${specs.join(', ')})` : ''} + celles qui visitent ${routes.join(', ') || 'les écrans touchés'}`
+        ? `ciblés : specs modifiées${specs.length ? ` (${specs.join(', ')})` : ''} + celles qui visitent ${routes.join(', ') || 'les écrans touchés'}${libelles ? ' + celles qui citent les libellés modifiés (grep dans web/e2e)' : ''}`
         : 'aucun écran ni code web',
   })
+  // Mutation web (Stryker, CI) : logique pure de web/lib et api-client, hors tests et hors
+  // fichiers « texte seul » (muter un libellé n'apprend rien et coûte des heures, #456).
+  const aMuter = files
+    .filter(
+      (f) =>
+        !f.status?.startsWith('D') &&
+        !texte.has(f.path) &&
+        /^(web\/lib|packages\/api-client\/src)\/.*\.ts$/.test(f.path) &&
+        !/(__tests__\/|\.test\.ts$|\/generated\/)/.test(f.path)
+    )
+    .map((f) => f.path)
+  out.push({
+    id: 'mutation-web',
+    cmd: `web/node_modules/.bin/stryker run mesh/mutation/stryker.web.config.mjs --mutate "${aMuter.join(',')}"`,
+    retenu: aMuter.length > 0,
+    raison: aMuter.length
+      ? `logique web modifiée : ${aMuter.join(', ')}`
+      : texte.size
+        ? 'seuls des textes changent dans web/lib : rien à muter'
+        : 'aucune logique web/lib ni api-client',
+    fichiers: aMuter,
+  })
   return out
+}
+
+/** Lignes retirées par fichier, depuis un diff unifié (fichier = chemin « +++ b/ »). */
+export function removedLines(patch) {
+  const map = new Map()
+  let cur = null
+  for (const line of patch.split('\n')) {
+    const h = /^\+\+\+ (?:b\/)?(.+)$/.exec(line)
+    if (h) {
+      cur = h[1] === '/dev/null' ? null : h[1]
+      if (cur && !map.has(cur)) map.set(cur, [])
+      continue
+    }
+    if (line.startsWith('--- ') || line.startsWith('diff --git')) continue
+    if (cur && line.startsWith('-')) map.get(cur).push(line.slice(1))
+  }
+  return map
 }
 
 /** Lignes ajoutées par fichier, depuis un diff unifié. */
@@ -397,6 +486,8 @@ export function render(result) {
     out.push(
       `- ${c.retenu ? '✅' : '⏭️'} ${c.id} — ${c.raison}${c.retenu ? `\n  \`${c.cmd}\`` : ''}`
     )
+  if (result.texteSeul?.length)
+    out.push('', `✏️ Texte seul (libellés, commentaires) : ${result.texteSeul.join(', ')}`)
   if (result.nonClasses.length)
     out.push('', `⚠️ Non classés (relus par V1) : ${result.nonClasses.join(', ')}`)
   return out.join('\n')

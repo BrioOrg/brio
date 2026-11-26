@@ -27,6 +27,8 @@ permissions:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Plafond (#456) : sans lui, un job bloqué attend les 6 h par défaut de GitHub.
+    timeout-minutes: 30
     outputs:
       ran: ${{ steps.scope.outputs.ran }}
     steps:
@@ -63,18 +65,21 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       ran: ${{ steps.scope.outputs.ran }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: "Fichiers web modifiés (logique pure, web/lib et api-client)"
+      # L'aiguilleur P4 (#456) choisit les fichiers à muter : logique de web/lib et api-client,
+      # sans les fichiers où seuls des libellés changent (muter un texte n'apprend rien).
+      - name: "Fichiers web à muter (aiguilleur)"
         id: scope
         run: |
-          files="$(git diff --name-only --diff-filter=AM "origin/${{ inputs.base_ref }}...HEAD" -- 'web/lib/*.ts' 'web/lib/**/*.ts' 'packages/api-client/src/*.ts' \
-            | grep -v -E '(__tests__/|\.test\.ts$|/generated/)' \
-            | paste -sd, - || true)"
+          node scripts/mesh/aiguillage.mjs --base "origin/${{ inputs.base_ref }}" --json > aiguillage.json
+          files="$(node -e 'const c=JSON.parse(require("fs").readFileSync("aiguillage.json","utf8")).controles.find((x)=>x.id==="mutation-web");console.log(c.retenu?c.fichiers.join(","):"");console.error(c.raison)')"
+          rm aiguillage.json
           echo "files=$files" >> "$GITHUB_OUTPUT"
           if [ -n "$files" ]; then echo "ran=true" >> "$GITHUB_OUTPUT"; else echo "ran=false" >> "$GITHUB_OUTPUT"; fi
       - uses: pnpm/action-setup@v4

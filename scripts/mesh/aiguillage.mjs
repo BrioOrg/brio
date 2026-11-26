@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { addedLines, aiguiller, render } from './lib/aiguillage.mjs'
+import { addedLines, aiguiller, removedLines, render } from './lib/aiguillage.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const run = (cmd, ...args) =>
@@ -78,5 +78,5 @@ if (pr) {
 }
 
 const tasks = JSON.parse(readFileSync(resolve(root, 'mesh/routes/tasks.json'), 'utf8'))
-const result = aiguiller(files, addedLines(patch), tasks)
+const result = aiguiller(files, addedLines(patch), tasks, removedLines(patch))
 console.log(args.includes('--json') ? JSON.stringify(result, null, 2) : render(result))
