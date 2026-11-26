@@ -4,6 +4,10 @@
 - **Date**: 2026-09-29
 - **Deciders**: Gabrielle Clamaran
 
+> L’[ADR 0051](0051-exercices-rediges.md) porte sur les exercices rédigés d’une leçon.
+> Une future intégration pourra permettre à un devoir de référencer ces exercices. Leur premier lot
+> laisse le comportement des devoirs décrit ici en place.
+
 ## Context
 
 F4 introduces homework ("devoirs"): a teacher assigns work to a class with dates
