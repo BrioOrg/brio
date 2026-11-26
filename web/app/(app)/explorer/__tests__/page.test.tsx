@@ -98,7 +98,9 @@ describe('ExplorerPage', () => {
 
     const outils = screen.getByRole('region', { name: 'Les outils' })
     expect(outils).toHaveTextContent('Des outils pour essayer, tracer et vérifier par toi-même.')
-    const carte = within(outils).getByRole('link', { name: /Calculatrice graphique/ })
+    expect(within(outils).getByRole('heading', { level: 3, name: 'Mathématiques' })).toBeVisible()
+    const maths = within(outils).getByRole('list', { name: 'Mathématiques' })
+    const carte = within(maths).getByRole('link', { name: /Calculatrice graphique/ })
     expect(carte).toHaveAttribute('href', '/explorer/calculatrice')
     expect(carte).toHaveTextContent(
       'Trace des courbes et bouge des curseurs pour voir ce qui change.'
