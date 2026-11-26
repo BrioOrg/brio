@@ -134,24 +134,49 @@ export default async function ExplorerPage() {
           <p className="-mt-2 mb-4 font-prose text-sm text-ink-muted">
             Des outils pour essayer, tracer et vérifier par toi-même.
           </p>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {/* Full width on a phone: its sentence is long for half a screen (V6, gate 5). */}
-            <li className="col-span-2 sm:col-span-1">
-              <CarteLien href="/explorer/calculatrice">
-                <span className="font-display text-lg font-extrabold tracking-tight text-ink">
-                  Calculatrice graphique
-                </span>
-                <span className="flex items-center justify-between gap-2 font-prose text-sm text-ink-muted">
-                  Trace des courbes et bouge des curseurs pour voir ce qui change.
-                  <span className="shrink-0">
-                    <Fleche />
-                  </span>
-                </span>
-              </CarteLien>
-            </li>
-          </ul>
+          <ToolGroup subject="Mathématiques">
+            <ToolCard href="/explorer/calculatrice" title="Calculatrice graphique">
+              Trace des courbes et bouge des curseurs pour voir ce qui change.
+            </ToolCard>
+          </ToolGroup>
         </section>
       </main>
     </div>
+  )
+}
+
+function ToolGroup({ subject, children }: { subject: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="mb-2 font-display text-lg font-extrabold text-ink">{subject}</h3>
+      <ul aria-label={subject} className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {children}
+      </ul>
+    </div>
+  )
+}
+
+function ToolCard({
+  href,
+  title,
+  children,
+}: {
+  href: string
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    // Long descriptions need the full width of the card on a phone.
+    <li className="col-span-2 sm:col-span-1">
+      <CarteLien href={href}>
+        <span className="font-display text-lg font-extrabold tracking-tight text-ink">{title}</span>
+        <span className="flex items-center justify-between gap-2 font-prose text-sm text-ink-muted">
+          {children}
+          <span className="shrink-0">
+            <Fleche />
+          </span>
+        </span>
+      </CarteLien>
+    </li>
   )
 }
