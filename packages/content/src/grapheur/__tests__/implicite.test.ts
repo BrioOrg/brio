@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict'
+
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -70,14 +72,15 @@ function distanceToTrace(p: PointSvg, lines: PointSvg[][]): number {
 
 /** Every polyline has at least two finite points inside the drawing. */
 function expectValid(t: TraceImplicite, width: number, height: number) {
+  // Native assertions keep the per-point checks cheap on dense curves.
   for (const line of t.chemins) {
-    expect(line.length).toBeGreaterThanOrEqual(2)
-    for (const p of line) {
-      expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true)
-      expect(p.x).toBeGreaterThanOrEqual(-1e-9)
-      expect(p.x).toBeLessThanOrEqual(width + 1e-9)
-      expect(p.y).toBeGreaterThanOrEqual(-1e-9)
-      expect(p.y).toBeLessThanOrEqual(height + 1e-9)
+    assert(line.length >= 2, 'A polyline must contain at least two points')
+    for (const { x, y } of line) {
+      assert(Number.isFinite(x) && Number.isFinite(y), 'Point coordinates must be finite')
+      assert(x >= -1e-9, 'Point is left of the drawing')
+      assert(x <= width + 1e-9, 'Point is right of the drawing')
+      assert(y >= -1e-9, 'Point is above the drawing')
+      assert(y <= height + 1e-9, 'Point is below the drawing')
     }
   }
 }
