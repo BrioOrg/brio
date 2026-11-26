@@ -133,6 +133,38 @@ describe('ExerciceWidget — choix multiple', () => {
     expect(screen.getByText(/L'hypoténuse est \[RT\]/)).toBeInTheDocument()
   })
 
+  it('rend le balisage dans la question, les choix et la correction', async () => {
+    mockSoumettre.mockResolvedValue({
+      ...SUCCESS_MC,
+      explanation: 'On obtient **le carré** $x^2$.',
+    })
+    render(
+      <ExerciceWidget
+        {...MC_PROPS}
+        prompt={'**Quelle expression** représente $x^2$ ? Indices : \\*, \\$'}
+        choices={[MC_PROPS.choices[0], { id: 'choice-rt', text: '**Réponse** $x^2$' }]}
+      />
+    )
+
+    const prompt = screen.getByText('Quelle expression', { selector: 'strong' }).parentElement
+    expect(prompt?.querySelector('math msup')?.textContent).toBe('x2')
+    expect(prompt).toHaveTextContent('Indices : *, $')
+    expect(prompt).not.toHaveTextContent(/\\[\*$]/)
+
+    const choiceLabel = screen.getByText('Réponse', { selector: 'strong' })
+    const choice = choiceLabel.closest('button')
+    expect(choice).toBeInTheDocument()
+    expect(choice).not.toHaveTextContent(/\$|\*\*/)
+    expect(choice?.querySelector('math msup')?.textContent).toBe('x2')
+    fireEvent.click(choiceLabel)
+    fireEvent.click(screen.getByText('Vérifier'))
+
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent('Bien vu')
+    expect(within(status).getByText('le carré', { selector: 'strong' })).toBeInTheDocument()
+    expect(status.querySelector('math msup')?.textContent).toBe('x2')
+  })
+
   it('affiche le résultat incorrect avec feedback par choix', async () => {
     mockSoumettre.mockResolvedValue(INCORRECT_MC)
     render(<ExerciceWidget {...MC_PROPS} />)

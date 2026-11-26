@@ -4,8 +4,9 @@ import {
   type DrawingText,
   type FigureSpec,
 } from '@brio/content'
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 
+import { RichTextRenderer } from '@/components/blocs/rich-text'
 import { FunctionPlotStrokes, FunctionPlotTexts } from '@/components/function-plot-layer'
 import { HALO_CLASS } from '@/components/figure/halo'
 import { OuvrirCalculatrice } from '@/components/ouvrir-calculatrice'
@@ -46,6 +47,7 @@ export function FigureRenderer({
   /** No « Ouvrir dans la calculatrice » link (the teacher's preview must not leave the editor). */
   sansLienCalculatrice?: boolean
 }) {
+  const captionId = useId()
   const model = buildDrawingModel(spec, { parameterValues })
   const hrefCalc = sansLienCalculatrice ? null : hrefCalculatrice(spec, parameterValues)
 
@@ -55,12 +57,11 @@ export function FigureRenderer({
         <svg
           viewBox={model.viewBox}
           role="img"
-          aria-labelledby={caption ? undefined : undefined}
+          aria-describedby={caption ? captionId : undefined}
           className="mx-auto block max-w-full"
           style={{ maxWidth: 320 }}
         >
           <title>{alt}</title>
-          {caption && <desc>{caption}</desc>}
 
           {/* Repère grid: behind everything, in the muted line colour */}
           {model.axes?.grid.map((g, i) => (
@@ -312,8 +313,8 @@ export function FigureRenderer({
       {controls}
 
       {caption && (
-        <figcaption className="mt-1.5 text-center font-prose text-xs text-ink-muted">
-          {caption}
+        <figcaption id={captionId} className="mt-1.5 text-center font-prose text-xs text-ink-muted">
+          <RichTextRenderer text={caption} />
         </figcaption>
       )}
 

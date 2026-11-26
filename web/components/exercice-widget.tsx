@@ -7,6 +7,7 @@ import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { useProgression } from '@/components/progression-context'
 import { EntraideExercice } from '@/components/entraide/entraide-exercice'
 import { useEntraideActive } from '@/components/entraide/entraide-context'
+import { RichTextRenderer } from '@/components/blocs/rich-text'
 import { OptionRow, type OptionState } from '@/components/ui/option-row'
 import { TextInput } from '@/components/ui/text-input'
 import { Button } from '@/components/ui/button'
@@ -76,10 +77,12 @@ export function PaperExercise({ id, prompt, statement, solution }: PaperExercise
         Exercice sur feuille
       </p>
       <p className="mb-3 font-prose text-base leading-relaxed text-ink group-data-[chapitre-mode=interactif]/mode:font-display group-data-[chapitre-mode=interactif]/mode:text-2xl group-data-[chapitre-mode=interactif]/mode:font-extrabold group-data-[chapitre-mode=interactif]/mode:leading-snug">
-        {prompt}
+        <RichTextRenderer text={prompt} />
       </p>
       {statement && (
-        <p className="mb-3 font-prose text-sm leading-relaxed text-ink-muted">{statement}</p>
+        <p className="mb-3 font-prose text-sm leading-relaxed text-ink-muted">
+          <RichTextRenderer text={statement} />
+        </p>
       )}
 
       <p className="mb-4 flex items-start gap-2 rounded-md border border-line bg-surface-raised px-3 py-2.5 font-prose text-sm text-ink-muted">
@@ -98,7 +101,7 @@ export function PaperExercise({ id, prompt, statement, solution }: PaperExercise
               Correction
             </p>
             <p className="whitespace-pre-line font-prose text-sm leading-relaxed text-ink">
-              {solution}
+              <RichTextRenderer text={solution} />
             </p>
           </div>
 
@@ -389,7 +392,7 @@ export function ExerciceWidget({
         tabIndex={-1}
         className="mb-4 font-prose text-base leading-relaxed text-ink focus:outline-none group-data-[chapitre-mode=interactif]/mode:mb-6 group-data-[chapitre-mode=interactif]/mode:font-display group-data-[chapitre-mode=interactif]/mode:text-2xl group-data-[chapitre-mode=interactif]/mode:font-extrabold group-data-[chapitre-mode=interactif]/mode:leading-snug"
       >
-        {prompt}
+        <RichTextRenderer text={prompt} />
       </p>
 
       <form id={formId} ref={formRef} onSubmit={handleSubmit} noValidate>
@@ -400,7 +403,7 @@ export function ExerciceWidget({
               {choices.map((choice, i) => (
                 <OptionRow
                   key={choice.id}
-                  label={choice.text}
+                  label={<RichTextRenderer text={choice.text} />}
                   marker={MARKERS[i] ?? String(i + 1)}
                   state={choiceState(choice.id)}
                   onClick={() => toggleChoice(choice.id)}
@@ -700,7 +703,9 @@ function ResultPanel({
             {isCorrect && <GainXp xpGain={xpGain} />}
           </div>
           {explanation && (
-            <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{explanation}</p>
+            <p className="mt-1 font-prose text-sm leading-relaxed text-ink">
+              <RichTextRenderer text={explanation} />
+            </p>
           )}
           {nudge && <p className="mt-1 font-prose text-sm leading-relaxed text-ink">{nudge}</p>}
           {!isCorrect && courseSection && <LienRevoir courseSection={courseSection} />}
@@ -774,7 +779,9 @@ function FeuilleResultat({
             {isCorrect && <GainXp xpGain={xpGain} interactif />}
           </div>
           {(explanation ?? nudge) && (
-            <p className="font-prose text-sm leading-relaxed text-ink">{explanation ?? nudge}</p>
+            <p className="font-prose text-sm leading-relaxed text-ink">
+              {explanation ? <RichTextRenderer text={explanation} /> : nudge}
+            </p>
           )}
           {!isCorrect && courseSection && <LienRevoir courseSection={courseSection} />}
         </>

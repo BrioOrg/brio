@@ -391,13 +391,17 @@ function ExerciseBlock({
       <p className="mb-2 font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
         Exercice
       </p>
-      <p className="font-prose text-base text-ink">{prompt}</p>
+      <p className="font-prose text-base text-ink">
+        {prompt && <RichTextRenderer text={prompt} />}
+      </p>
       {explanation && (
         <details className="mt-3">
           <summary className="cursor-pointer select-none font-prose text-sm text-accent-ink">
             Voir l&rsquo;explication
           </summary>
-          <p className="mt-2 font-prose text-sm text-ink-muted">{explanation}</p>
+          <p className="mt-2 font-prose text-sm text-ink-muted">
+            <RichTextRenderer text={explanation} />
+          </p>
         </details>
       )}
     </div>

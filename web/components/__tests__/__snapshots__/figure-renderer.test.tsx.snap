@@ -16,9 +16,6 @@ exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
       <title>
         Triangle rectangle ABC, l'angle droit est en A et l'hypoténuse est le côté BC.
       </title>
-      <desc>
-        Le triangle rectangle ABC, rectangle en A.
-      </desc>
       <polygon
         fill="none"
         points="61.54,233.85 258.46,233.85 61.54,86.15"
@@ -87,10 +84,5 @@ exports[`FigureRenderer > snapshot: Pythagore triangle SVG is stable 1`] = `
       </text>
     </svg>
   </div>
-  <figcaption
-    class="mt-1.5 text-center font-prose text-xs text-ink-muted"
-  >
-    Le triangle rectangle ABC, rectangle en A.
-  </figcaption>
 </figure>
 `;
