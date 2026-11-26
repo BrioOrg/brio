@@ -86,6 +86,7 @@ describe('ChampMath', () => {
     rerender(<ChampMath {...p} texte="a = 1,5" latex="a=1{,}5" />)
     expect(champs[0].valeur).toBe('a=1{,}5')
     act(() => champs[0].options.surTexte('a=2'))
+    expect(p.onTexte).toHaveBeenLastCalledWith('a = 2')
     rerender(<ChampMath {...p} texte="a = 2" latex="a=2" />)
     expect(champs[0].valeur).toBe('a=1{,}5')
   })
