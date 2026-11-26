@@ -555,6 +555,21 @@ périmètre, ancrage, garde-fous mineurs, coût, éval).
 
 ---
 
+## 8.10 Exercices rédigés attachés à une leçon
+
+L’[ADR 0051](adr/0051-exercices-rediges.md) distingue les vérifications rapides dans le cours
+des exercices rédigés et introduit un constructeur dédié pour les enseignants. Le périmètre
+initial couvre la leçon, la remise dans Brio et la comparaison avec le corrigé. Une photo est
+possible pour la revue par l’enseignant. Les devoirs et les annales relèvent de leurs chantiers
+respectifs.
+
+Commencer par le [parcours automatique de maths](https://github.com/BrioOrg/brio/issues/470),
+puis livrer la [revue enseignant](https://github.com/BrioOrg/brio/issues/471) et intégrer la
+[comparaison copie et corrigé](https://github.com/BrioOrg/brio/issues/472) aux deux parcours.
+Le [retour IA à critères vérifiables](https://github.com/BrioOrg/brio/issues/473) vient ensuite.
+
+---
+
 ## 9. F4 — Devoirs, échéances et rendus
 
 **Estimation : 8–12 j.** Dépend de : F3.

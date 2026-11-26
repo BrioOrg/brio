@@ -4,6 +4,10 @@
 - **Date**: 2026-09-29
 - **Deciders**: Gabrielle Clamaran
 
+> L’[ADR 0051](0051-exercices-rediges.md) réutilise les principes de dépôt privé pour
+> les photos de copies d’exercices de leçon revus par l’enseignant. Le nouveau parcours reste
+> indépendant des devoirs et exclut l’analyse automatique des photos.
+
 ## Context
 
 F5 : le travail sur papier entre dans le produit. Marche v1 (feuille de route §10) :

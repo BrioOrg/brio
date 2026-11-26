@@ -4,6 +4,9 @@
 - **Date**: 2026-09-22
 - **Deciders**: Pierce (architecture), Gabrielle (direction produit/design)
 
+> L’[ADR 0051](0051-exercices-rediges.md) propose un constructeur dédié aux exercices
+> rédigés rattachés à une leçon. Les activités rapides, dont les QCM, restent dans l’éditeur par blocs.
+
 ## Context
 
 F3 (éditeur de cours enseignant) est le différenciateur produit : un enseignant

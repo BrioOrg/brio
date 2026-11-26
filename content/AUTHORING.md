@@ -5,6 +5,14 @@ Update this file when a new chapter reveals a better rule or breaks an existing 
 
 ---
 
+## Exercices rédigés de leçon — chantier proposé
+
+L’[ADR 0051](../docs/adr/0051-exercices-rediges.md) prévoit des exercices de leçon avec énoncé
+complet, remise et référence de correction. Leur format de publication reste à implémenter.
+Les types de réponse rapide ci-dessous restent ceux du format actuel. En attendant
+le nouveau parcours, une réponse rédigée ne doit pas être publiée sous forme de `short-answer`
+pour contourner l’absence de correcteur adapté.
+
 ## Three rules that apply to every chapter
 
 ### 1. Compétences : les exercices, jamais la prose
@@ -76,8 +84,8 @@ définit le terme.
 
 **Frontières du type `short-answer`** — ne jamais l'utiliser pour :
 - Une réponse numérique (→ `numeric`) : `answer` + `tolerance` offrent une vérification exacte.
-- Une phrase complète ou une réponse ouverte (→ `free-text`, auto-évalué) : la normalisation
-  ne s'applique pas à des formulations longues.
+- Une phrase complète ou une réponse ouverte : la normalisation ne s'applique pas à des
+  formulations longues. Le futur parcours d’exercice rédigé couvre ce besoin.
 `short-answer` convient pour un nom, un rang, un terme technique, une écriture courte avec un
 ensemble fini de formulations acceptables.
 
