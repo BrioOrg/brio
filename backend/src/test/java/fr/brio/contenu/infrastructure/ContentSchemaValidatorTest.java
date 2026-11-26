@@ -629,6 +629,30 @@ class ContentSchemaValidatorTest {
     }
 
     @Test
+    void shouldAcceptProbabilityExperimentsWithAndWithoutInstructions() {
+        for (String block : List.of(
+                "{\"id\":\"s\",\"type\":\"simulateur-probabilites\",\"experiment\":\"coin\"}",
+                "{\"id\":\"s\",\"type\":\"simulateur-probabilites\",\"experiment\":\"die\"}",
+                """
+                { "id": "s", "type": "simulateur-probabilites", "experiment": "urn",
+                  "consigne": "Compare les **fréquences** après $100$ tirages." }
+                """)) {
+            assertThatCode(() -> validator.validate(chapterWith(block))).doesNotThrowAnyException();
+        }
+    }
+
+    @Test
+    void shouldRejectAnUnknownOrMissingProbabilityExperimentAndAnEmptyInstruction() {
+        for (String block : List.of(
+                "{\"id\":\"s\",\"type\":\"simulateur-probabilites\",\"experiment\":\"cards\"}",
+                "{\"id\":\"s\",\"type\":\"simulateur-probabilites\"}",
+                "{\"id\":\"s\",\"type\":\"simulateur-probabilites\",\"experiment\":\"urn\",\"consigne\":\"\"}")) {
+            assertThatThrownBy(() -> validator.validate(chapterWith(block)))
+                    .isInstanceOf(InvalidContentException.class);
+        }
+    }
+
+    @Test
     void shouldAcceptATreeOfPossiblesAndAWeightedTree() {
         String possibles =
                 """
