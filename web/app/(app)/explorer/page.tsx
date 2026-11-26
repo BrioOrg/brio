@@ -138,6 +138,9 @@ export default async function ExplorerPage() {
             <ToolCard href="/explorer/calculatrice" title="Calculatrice graphique">
               Trace des courbes et bouge des curseurs pour voir ce qui change.
             </ToolCard>
+            <ToolCard href="/explorer/probabilites" title="Simulateur de probabilités">
+              Répète une expérience et compare tes résultats aux probabilités attendues.
+            </ToolCard>
           </ToolGroup>
         </section>
       </main>

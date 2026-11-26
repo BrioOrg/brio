@@ -493,6 +493,19 @@ niveau par niveau ; le renderer place les nœuds, les probabilités et les issue
 - Horizontal par défaut ; `orientation: "vertical"` pour un petit arbre. Sur téléphone, tout
   arbre est dessiné horizontalement.
 
+### Simulateur de probabilités
+
+Le bloc `simulateur-probabilites` permet à l’élève de répéter une expérience et de comparer
+les fréquences observées aux probabilités théoriques. Choisis l’expérience de départ avec
+`experiment` (`coin` pour une pièce équilibrée, `die` pour un dé à six faces, `urn` pour une
+urne de trois boules rouges et deux bleues avec remise). La `consigne` peut contenir du texte
+enrichi. Les résultats restent dans le simulateur ouvert par l’élève.
+
+```json
+{ "id": "frequences-urne", "type": "simulateur-probabilites", "experiment": "urn",
+  "consigne": "Compare les fréquences après **100**, puis **1 000** tirages." }
+```
+
 ### Solides à faire tourner
 
 Un solide que l'élève fait tourner (glisser, flèches du clavier) est un bloc `solid`, pas une

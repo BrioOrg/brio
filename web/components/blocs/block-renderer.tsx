@@ -10,6 +10,7 @@ import {
 import { ExerciceWidget, PaperExercise, type CourseSection } from '@/components/exercice-widget'
 import { CalculRenderer } from '@/components/calcul-renderer'
 import { CalculatriceBloc } from '@/components/calculatrice/calculatrice-bloc'
+import { ProbabilitySimulator } from '@/components/probabilites/probability-simulator'
 import { ChartRenderer } from '@/components/chart-renderer'
 import { FigureRenderer } from '@/components/figure-renderer'
 import { SolidRenderer } from '@/components/solid-renderer'
@@ -22,6 +23,7 @@ import { RichTextRenderer } from '@/components/blocs/rich-text'
 import { SharedBlock } from '@/components/blocs/shared-block'
 import { lireBlocCalculatrice } from '@/lib/calculatrice-bloc'
 import { renderKatex } from '@/lib/katex'
+import { ProbabilityBlockSchema } from '@/lib/probability-block'
 
 type Choice = { id: string; text: string }
 
@@ -149,6 +151,24 @@ export function BlockRenderer({
       // A compact graphing calculator (ADR 0049 §6), the only client part of the block.
       const bloc = lireBlocCalculatrice(block)
       return bloc ? <CalculatriceBloc bloc={bloc} /> : null
+    }
+
+    case 'simulateur-probabilites': {
+      const result = ProbabilityBlockSchema.safeParse(block)
+      if (!result.success) return null
+      const { consigne, experiment } = result.data
+      return (
+        <div id={block.id} className="my-1 flex flex-col gap-3">
+          {consigne?.trim() && (
+            <p className="font-prose text-base leading-relaxed text-ink">
+              <RichTextRenderer text={consigne} />
+            </p>
+          )}
+          <div className="print:hidden">
+            <ProbabilitySimulator initialExperiment={experiment} />
+          </div>
+        </div>
+      )
     }
 
     case 'objectives':

@@ -29,6 +29,7 @@ import {
   type Choix,
   type Etape,
 } from '@/lib/cours-editeur'
+import { PROBABILITY_EXPERIMENT_IDS, PROBABILITY_EXPERIMENTS } from '@/lib/probability-simulator'
 
 // Édition « dans la page » (piste A) : chaque bloc s'écrit là où il s'affichera, sans fiche ni
 // étiquette. On tape comme dans un document ; les zones grandissent avec le texte.
@@ -371,6 +372,11 @@ export function BlocEditeur({ bloc, onModifier, onFocusBloc, competences }: Prop
     case 'calculatrice':
       return <CalculatriceEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
 
+    case 'simulateur-probabilites':
+      return (
+        <ProbabilityBlockEditor bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
+      )
+
     case 'table':
       return <TableEditeur bloc={bloc} onModifier={onModifier} onFocusBloc={onFocusBloc} />
 
@@ -556,6 +562,45 @@ function TableEditeur({ bloc, onModifier, onFocusBloc }: Props) {
 type Cible = { level?: string; subject?: string; slug?: string; anchor?: string }
 
 const champRef = `w-full rounded-md border border-line bg-surface-page px-2 py-1 font-prose text-sm text-ink focus:border-accent focus:outline-none ${marqueChamp}`
+
+function ProbabilityBlockEditor({ bloc, onModifier, onFocusBloc }: Props) {
+  const { champ } = useChamp()
+  const experiment = PROBABILITY_EXPERIMENT_IDS.find((id) => id === bloc.experiment) ?? ''
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface-panel p-4">
+      <label className="flex flex-col gap-1">
+        <span className="font-display text-sm font-bold text-ink">Expérience de départ</span>
+        <select
+          className={champRef}
+          value={experiment}
+          onChange={(event) => onModifier({ experiment: event.target.value })}
+          onFocus={onFocusBloc}
+          {...champ('experiment')}
+        >
+          <option value="" disabled>
+            Choisis une expérience
+          </option>
+          {PROBABILITY_EXPERIMENT_IDS.map((id) => (
+            <option key={id} value={id}>
+              {PROBABILITY_EXPERIMENTS[id].label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="font-display text-sm font-bold text-ink">Consigne (facultative)</span>
+        <textarea
+          className={champRef}
+          value={typeof bloc.consigne === 'string' ? bloc.consigne : ''}
+          onChange={(event) => onModifier({ consigne: event.target.value })}
+          onFocus={onFocusBloc}
+          {...champ('consigne')}
+        />
+      </label>
+    </div>
+  )
+}
 
 function ReferenceEditeur({ bloc, onModifier, onFocusBloc }: Props) {
   const { champ } = useChamp()

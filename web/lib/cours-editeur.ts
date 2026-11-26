@@ -32,6 +32,7 @@ import {
 
 import type { ChapitreResponse } from '@/components/chapter-view'
 import { problemesGeometrieFigure } from '@/lib/figure-geometrie'
+import { ProbabilityExperimentSchema } from '@/lib/probability-block'
 
 // Les types de blocs que l'afficheur élève sait rendre AUJOURD'HUI (chapter-view.tsx). On s'y
 // limite volontairement : inutile de laisser écrire des blocs qui n'apparaîtraient pas.
@@ -44,6 +45,7 @@ export type BlocType =
   | 'steps'
   | 'calcul'
   | 'calculatrice'
+  | 'simulateur-probabilites'
   | 'table'
   | 'reference'
   | 'figure'
@@ -127,6 +129,12 @@ export const BLOCS: {
     label: 'Calculatrice',
     description: 'Une calculatrice graphique préréglée, que l’élève manipule',
     icone: '⌗',
+  },
+  {
+    type: 'simulateur-probabilites',
+    label: 'Simulateur de probabilités',
+    description: 'Une expérience aléatoire à répéter pour observer les fréquences',
+    icone: '⚄',
   },
   {
     type: 'table',
@@ -224,6 +232,7 @@ export const BLOC_LABELS: Record<BlocType, string> = {
   steps: 'Étapes',
   calcul: 'Calcul',
   calculatrice: 'Calculatrice',
+  'simulateur-probabilites': 'Simulateur de probabilités',
   table: 'Tableau',
   reference: 'Référence',
   figure: 'Figure',
@@ -323,6 +332,8 @@ export function nouveauBloc(
       // Une calculatrice graphique (ADR 0049 §6) : une première expression à écrire, sans
       // consigne ni fenêtre (la vue par défaut de la calculatrice) tant que le prof n'en donne pas.
       return { id: genId(), type, consigne: '', expressions: [''] }
+    case 'simulateur-probabilites':
+      return { id: genId(), type, experiment: 'die' }
     case 'table':
       // Une grille 2×1 prête à remplir : une ligne d'en-têtes (facultative dans le schéma, mais
       // proposée par défaut) et une première ligne de corps. Le schéma exige au moins une ligne
@@ -541,6 +552,9 @@ function blocServi(bloc: Bloc): Bloc {
       if (vide(b.consigne)) delete b.consigne
       if (b.fenetre === undefined) delete b.fenetre
       return b
+    case 'simulateur-probabilites':
+      if (vide(b.consigne)) delete b.consigne
+      return b
     case 'chart':
       // Un circulaire n'a pas d'axes : le schéma refuse leurs champs. Ils restent dans l'éditeur
       // (repasser en barres les retrouve) mais ne partent pas. `showValues: false` est la valeur
@@ -595,6 +609,7 @@ const REFERENCE_NON_VERIFIEE = 'REFERENCE_UNVERIFIED'
 const SCRATCH_INVALIDE = 'SCRATCH_INVALID'
 
 const LIBELLES_CHAMPS: Record<string, string> = {
+  experiment: 'l’expérience de départ',
   title: 'le titre',
   text: 'le texte',
   latex: 'la formule',
@@ -798,6 +813,11 @@ function problemesDuBlocServi(b: Bloc): ProblemeBrut[] {
       // expression est celui de la calculatrice elle-même.
       for (const i of checkCalculatrice(b)) {
         p.push({ code: 'CALCULATRICE', champ: i.path, message: i.message })
+      }
+      break
+    case 'simulateur-probabilites':
+      if (!ProbabilityExperimentSchema.safeParse(b.experiment).success) {
+        p.push({ code: 'INVALID_FORMAT', champ: 'experiment' })
       }
       break
     case 'tree':

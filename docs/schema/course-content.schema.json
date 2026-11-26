@@ -127,6 +127,7 @@
         { "$ref": "#/$defs/stepsBlock" },
         { "$ref": "#/$defs/calculBlock" },
         { "$ref": "#/$defs/calculatriceBlock" },
+        { "$ref": "#/$defs/probabilitySimulatorBlock" },
         { "$ref": "#/$defs/objectivesBlock" },
         { "$ref": "#/$defs/listBlock" },
         { "$ref": "#/$defs/unknownBlock" }
@@ -1433,6 +1434,19 @@
       "items": { "type": "number" }
     },
 
+    "probabilitySimulatorBlock": {
+      "description": "An interactive probability experiment with an optional instruction. Its results are local to the open simulator.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "experiment"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nodeId" },
+        "type": { "const": "simulateur-probabilites" },
+        "experiment": { "enum": ["coin", "die", "urn"] },
+        "consigne": { "$ref": "#/$defs/richText" }
+      }
+    },
+
     "objectivesBlock": {
       "description": "Chapter objectives. Two independent facets: 'items' are the free-text objective sentences a teacher writes ('what you'll be able to do'); 'competencies' are coded references into the controlled referential (ADR 0009), a separate machine-readable facet. Either may be empty, but a block with neither carries no information.",
       "type": "object",
@@ -1493,6 +1507,7 @@
               "steps",
               "calcul",
               "calculatrice",
+              "simulateur-probabilites",
               "objectives",
               "list"
             ]
