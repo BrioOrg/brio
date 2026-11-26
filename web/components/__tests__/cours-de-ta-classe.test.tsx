@@ -11,7 +11,11 @@ const catalogue = [
   {
     niveauCode: '5e',
     niveauLibelle: '5e',
-    matieres: [{ matiereCode: 'mathematiques', matiereLibelle: 'Mathématiques', chapitres: [] }],
+    matieres: [
+      { matiereCode: 'mathematiques', matiereLibelle: 'Mathématiques', chapitres: [] },
+      { matiereCode: 'francais', matiereLibelle: 'Français', chapitres: [] },
+      { matiereCode: 'histoire', matiereLibelle: 'Histoire', chapitres: [] },
+    ],
   },
 ] satisfies Catalogue
 
@@ -58,4 +62,36 @@ describe('CoursDeTaClasse avec plafond', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(5)
     expect(screen.queryByRole('link', { name: /Voir tous les cours du prof/ })).toBeNull()
   })
+})
+
+it('regroupe les cours visibles par matière et garde accessibles ceux sans libellé', () => {
+  render(
+    <CoursDeTaClasse
+      cours={[
+        cours(1),
+        { ...cours(2), matiereCode: 'francais' },
+        { ...cours(3), matiereCode: 'inconnue' },
+        cours(4),
+      ]}
+      catalogue={catalogue}
+    />
+  )
+
+  expect(
+    screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
+  ).toEqual(['Français', 'Mathématiques', 'Autres cours'])
+  const [francais, maths, autres] = screen.getAllByRole('list')
+  expect(within(francais).getByRole('link', { name: /Cours numéro 2/ })).toHaveAttribute(
+    'href',
+    `/cours/${cours(2).id}`
+  )
+  expect(
+    within(maths)
+      .getAllByRole('link')
+      .map((link) => link.getAttribute('href'))
+  ).toEqual([`/cours/${cours(1).id}`, `/cours/${cours(4).id}`])
+  expect(within(autres).getByRole('link', { name: /Cours numéro 3/ })).toHaveAttribute(
+    'href',
+    `/cours/${cours(3).id}`
+  )
 })

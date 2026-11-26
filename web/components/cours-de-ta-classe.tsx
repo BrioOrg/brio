@@ -24,9 +24,8 @@ function libelleMatiere(catalogue: Catalogue, cours: CoursVisible): string | nul
 }
 
 /**
- * The teacher courses published to the student's classes (#160), on Ma classe. The
- * caller renders it only when there is at least one course: no empty state, and every line
- * shows only what the backend returned (a missing subject label or author is omitted).
+ * The courses published to the selected class. The full tab groups them by subject,
+ * while the capped preview keeps the latest courses in publication order.
  */
 export function CoursDeTaClasse({
   cours,
@@ -38,7 +37,6 @@ export function CoursDeTaClasse({
   /** Keep only the first `plafond` courses and link to the full list when there are more. */
   plafond?: number
 }) {
-  const affiches = plafond === undefined ? cours : cours.slice(0, plafond)
   const voirTous = plafond !== undefined && cours.length > plafond
   return (
     <section
@@ -48,39 +46,11 @@ export function CoursDeTaClasse({
       <h2 id="cours-classe-heading" className={plafond === undefined ? TITRE_LISTE : TITRE_BLOC}>
         Les cours de ta classe
       </h2>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {affiches.map((c) => {
-          const matiere = libelleMatiere(catalogue, c)
-          const details = [matiere, c.enseignant ? `par ${c.enseignant}` : null].filter(Boolean)
-          return (
-            <li key={c.id}>
-              <Link
-                href={`/cours/${c.id}`}
-                className="group flex h-full flex-col justify-between gap-4 rounded-lg border border-line bg-surface-panel p-5 transition-[transform,border-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent hover:[box-shadow:0_5px_0_var(--color-accent-edge)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page"
-              >
-                <span>
-                  <span className="block font-display text-lg font-extrabold tracking-tight text-ink">
-                    {c.titre}
-                  </span>
-                  {details.length > 0 && (
-                    <span className="mt-1 block font-prose text-sm text-ink-muted">
-                      {details.join(' · ')}
-                    </span>
-                  )}
-                </span>
-                <span className="flex items-center justify-between font-prose text-sm text-ink-muted">
-                  Publié le {DATE_PUBLICATION.format(new Date(c.publieAt))}
-                  <Icon
-                    name="arrow-right"
-                    size={18}
-                    className="text-ink-muted transition-transform duration-[var(--duration-base)] group-hover:translate-x-1 group-hover:text-accent"
-                  />
-                </span>
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
+      {plafond === undefined ? (
+        <CoursesBySubject cours={cours} catalogue={catalogue} />
+      ) : (
+        <CourseGrid cours={cours.slice(0, plafond)} catalogue={catalogue} />
+      )}
       {voirTous && (
         <Link
           href="/ma-classe/cours"
@@ -91,5 +61,82 @@ export function CoursDeTaClasse({
         </Link>
       )}
     </section>
+  )
+}
+
+function CoursesBySubject({ cours, catalogue }: { cours: CoursVisible[]; catalogue: Catalogue }) {
+  const subjectLabels = new Map(
+    catalogue.flatMap(({ matieres }) =>
+      matieres.map(({ matiereCode, matiereLibelle }) => [matiereCode, matiereLibelle] as const)
+    )
+  )
+  const groups = new Map<string, { label: string; courses: CoursVisible[] }>()
+  const otherCourses: CoursVisible[] = []
+  for (const c of cours) {
+    const label = subjectLabels.get(c.matiereCode)
+    if (!label) {
+      otherCourses.push(c)
+      continue
+    }
+
+    const group = groups.get(c.matiereCode)
+    if (group) group.courses.push(c)
+    else groups.set(c.matiereCode, { label, courses: [c] })
+  }
+
+  const sections = [...groups].sort(([, a], [, b]) => a.label.localeCompare(b.label, 'fr'))
+  return (
+    <div className="space-y-6">
+      {sections.map(([code, group]) => (
+        <div key={code}>
+          <h3 className="mb-2 font-display text-lg font-extrabold text-ink">{group.label}</h3>
+          <CourseGrid cours={group.courses} />
+        </div>
+      ))}
+      {otherCourses.length > 0 && (
+        <div>
+          <h3 className="mb-2 font-display text-lg font-extrabold text-ink">Autres cours</h3>
+          <CourseGrid cours={otherCourses} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CourseGrid({ cours, catalogue }: { cours: CoursVisible[]; catalogue?: Catalogue }) {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {cours.map((c) => {
+        const matiere = catalogue && libelleMatiere(catalogue, c)
+        const details = [matiere, c.enseignant ? `par ${c.enseignant}` : null].filter(Boolean)
+        return (
+          <li key={c.id}>
+            <Link
+              href={`/cours/${c.id}`}
+              className="group flex h-full flex-col justify-between gap-4 rounded-lg border border-line bg-surface-panel p-5 transition-[transform,border-color,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-accent hover:[box-shadow:0_5px_0_var(--color-accent-edge)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page"
+            >
+              <span>
+                <span className="block font-display text-lg font-extrabold tracking-tight text-ink">
+                  {c.titre}
+                </span>
+                {details.length > 0 && (
+                  <span className="mt-1 block font-prose text-sm text-ink-muted">
+                    {details.join(' · ')}
+                  </span>
+                )}
+              </span>
+              <span className="flex items-center justify-between font-prose text-sm text-ink-muted">
+                Publié le {DATE_PUBLICATION.format(new Date(c.publieAt))}
+                <Icon
+                  name="arrow-right"
+                  size={18}
+                  className="text-ink-muted transition-transform duration-[var(--duration-base)] group-hover:translate-x-1 group-hover:text-accent"
+                />
+              </span>
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
   )
 }

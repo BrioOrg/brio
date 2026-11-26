@@ -102,25 +102,41 @@ describe('EspaceClasse', () => {
     expect(screen.getByRole('link', { name: 'Salon' })).toHaveAttribute('href', '/ma-classe/salon')
   })
 
-  it('changing class changes the courses of the open tab', async () => {
+  it('changing class changes the subjects and courses of the open tab', async () => {
     const user = userEvent.setup()
     api.mesClasses.mockResolvedValue([classe4eB, classe3eA])
     render(
       <EspaceClasse>
         <OngletCours
-          catalogue={[]}
-          cours={[cours('a', 'Cours de 4e', ['c1']), cours('b', 'Cours de 3e', ['c2'])]}
+          catalogue={[
+            {
+              niveauCode: '4e',
+              niveauLibelle: 'Quatrième',
+              matieres: [
+                { matiereCode: 'mathematiques', matiereLibelle: 'Mathématiques', chapitres: [] },
+                { matiereCode: 'francais', matiereLibelle: 'Français', chapitres: [] },
+              ],
+            },
+          ]}
+          cours={[
+            cours('a', 'Cours de 4e', ['c1']),
+            { ...cours('b', 'Cours de 3e', ['c2']), matiereCode: 'francais' },
+          ]}
         />
       </EspaceClasse>
     )
 
     expect(await screen.findByText('Cours de 4e')).toBeInTheDocument()
     expect(screen.queryByText('Cours de 3e')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Mathématiques' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Français' })).toBeNull()
 
     await user.selectOptions(screen.getByLabelText('Classe'), 'c2')
 
     expect(await screen.findByText('Cours de 3e')).toBeInTheDocument()
     expect(screen.queryByText('Cours de 4e')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Français' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Mathématiques' })).toBeNull()
     expect(screen.getByText('Inès M.')).toBeInTheDocument()
   })
 
