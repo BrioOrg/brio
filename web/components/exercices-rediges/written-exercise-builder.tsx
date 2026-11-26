@@ -90,7 +90,10 @@ export function WrittenExerciseBuilder() {
     setForm(
       exercise
         ? formFromExercise(exercise)
-        : { ...blankForm, coursId: catalogue?.courses.length === 1 ? catalogue.courses[0].id : '' }
+        : {
+            ...blankForm,
+            coursId: catalogue?.courses.length === 1 ? (catalogue.courses[0].id ?? '') : '',
+          }
     )
     setPreview(false)
     setConfirmClose(false)

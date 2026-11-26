@@ -26,6 +26,7 @@ test('opens the catalogue exercise and keeps the submitted copy and solution on 
   await page.goto(CHAPTER)
   await page.getByRole('link', { name: CATALOGUE_TITLE }).click()
 
+  await expect(page).toHaveURL(/\/exercices-rediges\//, { timeout: 20_000 })
   await expect(page.getByRole('heading', { level: 1, name: CATALOGUE_TITLE })).toBeVisible()
   await expect(page.getByRole('heading', { name: RESULT, exact: true })).toHaveCount(0)
   const answer = page.getByRole('textbox', { name: 'Ta réponse' })
