@@ -51,7 +51,6 @@ test('a teacher publishes a written derivative exercise and a student submits an
   const title = `Dérivée de polynôme (${testInfo.project.name})`
   await useSession(context, baseURL, `e2e-enseignant-${randomUUID()}`)
   await page.goto('/prof')
-  await page.getByRole('link', { name: 'Mes cours' }).click()
   await page.getByRole('link', { name: 'Exercices rédigés' }).click()
   await page.getByRole('button', { name: 'Nouvel exercice' }).click()
 
