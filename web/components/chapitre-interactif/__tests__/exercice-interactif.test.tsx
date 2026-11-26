@@ -209,8 +209,8 @@ describe('interactive mode — a full-screen exercise', () => {
     expect(screen.getByText('Pas tout à fait…')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Revoir : Énoncé/ })).toBeInTheDocument()
     // Only the student's pick is marked; the right option is never highlighted.
-    expect(option('A').getAttribute('aria-label')).toMatch(/wrong$/)
-    expect(option('B').getAttribute('aria-label')).toMatch(/muted$/)
+    expect(option('A')).toHaveAccessibleName(/wrong$/)
+    expect(option('B')).toHaveAccessibleName(/muted$/)
     expect(screen.queryByText(/angle droit\.$/)).not.toBeInTheDocument()
     // Moving on stays possible.
     expect(screen.getByRole('button', { name: 'Continuer' })).toBeInTheDocument()
@@ -247,7 +247,7 @@ describe('interactive mode — a full-screen exercise', () => {
     touche('ArrowLeft')
 
     expect(screen.queryByText('Pas tout à fait…')).not.toBeInTheDocument()
-    expect(option('A').getAttribute('aria-label')).toMatch(/wrong$/)
+    expect(option('A')).toHaveAccessibleName(/wrong$/)
     expect(await screen.findByRole('button', { name: 'Réessayer' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Suivant/ })).toBeInTheDocument()
   })

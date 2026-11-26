@@ -1,11 +1,13 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 import { Icon } from './icon'
 
 export type OptionState = 'idle' | 'selected' | 'correct' | 'wrong' | 'muted'
 
 type OptionRowProps = {
-  label: string
+  label: ReactNode
   marker: string
   state?: OptionState
   onClick?: () => void
@@ -51,7 +53,6 @@ export function OptionRow({ label, marker, state = 'idle', onClick }: OptionRowP
       onClick={interactive ? onClick : undefined}
       disabled={!interactive}
       aria-pressed={state === 'selected' ? true : undefined}
-      aria-label={`Option ${marker}: ${label}${state !== 'idle' ? `, ${state}` : ''}`}
       className={[
         'flex w-full items-center gap-3 rounded-md border-2 p-4 text-left font-prose text-base text-ink transition-[transform,box-shadow,border-color,background-color] duration-[var(--duration-base)] ease-[var(--ease-out)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page disabled:cursor-default',
         ROW[state],
@@ -70,7 +71,11 @@ export function OptionRow({ label, marker, state = 'idle', onClick }: OptionRowP
         {marker}
       </span>
 
-      <span className="flex-1 font-semibold">{label}</span>
+      <span className="flex-1 font-semibold">
+        <span className="sr-only">Option {marker}: </span>
+        {label}
+        {state !== 'idle' && <span className="sr-only">, {state}</span>}
+      </span>
 
       <TrailingIcon state={state} />
     </button>

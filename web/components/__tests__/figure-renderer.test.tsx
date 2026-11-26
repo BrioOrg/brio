@@ -37,21 +37,35 @@ describe('FigureRenderer', () => {
     expect(title?.textContent).toBe("Triangle rectangle ABC, l'angle droit est en A.")
   })
 
-  it('renders a <desc> when a caption is provided', () => {
-    const { container } = render(
+  it('uses the rendered caption as the accessible description', () => {
+    const { getByRole } = render(
       <FigureRenderer
         spec={pythagoreanSpec}
         alt="Triangle ABC"
         caption="Le triangle rectangle ABC, rectangle en A."
       />
     )
-    const desc = container.querySelector('svg desc')
-    expect(desc?.textContent).toBe('Le triangle rectangle ABC, rectangle en A.')
+    expect(getByRole('img')).toHaveAccessibleDescription(
+      'Le triangle rectangle ABC, rectangle en A.'
+    )
   })
 
-  it('renders no <desc> when caption is absent', () => {
-    const { container } = render(<FigureRenderer spec={pythagoreanSpec} alt="Triangle ABC" />)
-    expect(container.querySelector('svg desc')).toBeNull()
+  it('has no description when the caption is absent', () => {
+    const { getByRole } = render(<FigureRenderer spec={pythagoreanSpec} alt="Triangle ABC" />)
+    expect(getByRole('img')).not.toHaveAccessibleDescription()
+  })
+
+  it('renders inline maths in the figure caption', () => {
+    const { container } = render(
+      <FigureRenderer
+        spec={pythagoreanSpec}
+        alt="Triangle ABC"
+        caption={'L’angle $\\widehat{BAC}$ est droit.'}
+      />
+    )
+    const caption = container.querySelector('figcaption')
+    expect(caption?.querySelector('math annotation')?.textContent).toBe('\\widehat{BAC}')
+    expect(caption).not.toHaveTextContent('$')
   })
 
   it('snapshot: Pythagore triangle SVG is stable', () => {
@@ -59,7 +73,6 @@ describe('FigureRenderer', () => {
       <FigureRenderer
         spec={pythagoreanSpec}
         alt="Triangle rectangle ABC, l'angle droit est en A et l'hypoténuse est le côté BC."
-        caption="Le triangle rectangle ABC, rectangle en A."
       />
     )
     expect(container.firstChild).toMatchSnapshot()
