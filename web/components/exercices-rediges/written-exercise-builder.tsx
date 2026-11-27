@@ -18,7 +18,9 @@ import {
   writtenExerciseErrorMessage,
   type TeacherWrittenExercise,
   type WrittenExerciseDraft,
+  type WrittenCorrectionKey,
 } from '@/lib/exercices-rediges'
+import { CorrectionKeyFields, emptyCorrectionKey } from './correction-key-fields'
 import { WrittenExerciseReader } from './written-exercise-reader'
 import { WrittenExerciseReviews } from './written-exercise-reviews'
 
@@ -27,10 +29,16 @@ const fieldStyle =
 
 type BuilderForm = Omit<
   WrittenExerciseDraft,
-  'echeance' | 'modeCorrection' | 'photoAutorisee' | 'reponseAttendue' | 'copieModele'
+  | 'echeance'
+  | 'modeCorrection'
+  | 'photoAutorisee'
+  | 'reponseAttendue'
+  | 'copieModele'
+  | 'cleCorrection'
 > & {
   deadlineLocal: string
-  modeCorrection: 'automatique' | 'enseignant'
+  modeCorrection: NonNullable<WrittenExerciseDraft['modeCorrection']>
+  cleCorrection: WrittenCorrectionKey
   photoAutorisee: boolean
   reponseAttendue: string
   copieModele: string
@@ -43,6 +51,7 @@ const blankForm: BuilderForm = {
   reponseAttendue: '',
   corrige: '',
   modeCorrection: 'automatique',
+  cleCorrection: emptyCorrectionKey,
   photoAutorisee: false,
   copieModele: '',
   deadlineLocal: '',
@@ -61,6 +70,7 @@ function formFromExercise(exercise: TeacherWrittenExercise): BuilderForm {
     reponseAttendue: exercise.reponseAttendue ?? '',
     corrige: exercise.corrige,
     modeCorrection: exercise.modeCorrection ?? 'automatique',
+    cleCorrection: exercise.cleCorrection ?? emptyCorrectionKey,
     photoAutorisee: exercise.photoAutorisee ?? false,
     copieModele: exercise.copieModele ?? '',
     deadlineLocal: local?.toISOString().slice(0, 16) ?? '',
@@ -101,6 +111,7 @@ export function WrittenExerciseBuilder() {
   const selected = catalogue?.exercises.find((exercise) => exercise.id === selectedId)
   const published = selected?.publie === true
   const reviewedByTeacher = form?.modeCorrection === 'enseignant'
+  const criterionFeedback = form?.modeCorrection === 'ia'
 
   function selectExercise(exercise?: TeacherWrittenExercise) {
     setSelectedId(exercise?.id)
@@ -119,7 +130,17 @@ export function WrittenExerciseBuilder() {
   }
 
   function change(patch: Partial<BuilderForm>) {
-    setForm((current) => (current && { ...current, ...patch }) || current)
+    setForm((current) => {
+      if (!current) return current
+      if ('enonce' in patch || 'corrige' in patch || 'coursId' in patch) {
+        return {
+          ...current,
+          ...patch,
+          cleCorrection: { ...current.cleCorrection, confirmee: false },
+        }
+      }
+      return { ...current, ...patch }
+    })
     setError('')
     setNotice('')
   }
@@ -148,7 +169,17 @@ export function WrittenExerciseBuilder() {
         {
           ...fields,
           echeance,
-          reponseAttendue: reviewedByTeacher ? '' : fields.reponseAttendue,
+          reponseAttendue: fields.modeCorrection === 'automatique' ? fields.reponseAttendue : '',
+          cleCorrection: criterionFeedback
+            ? {
+                ...fields.cleCorrection,
+                extraitLecon: fields.cleCorrection.extraitLecon?.trim() || null,
+                criteres: fields.cleCorrection.criteres.map(({ attendu, variantes }) => ({
+                  attendu: attendu.trim(),
+                  variantes: variantes.map((variant) => variant.trim()).filter(Boolean),
+                })),
+              }
+            : null,
           copieModele: reviewedByTeacher ? fields.copieModele.trim() || null : null,
           photoAutorisee: reviewedByTeacher && fields.photoAutorisee,
         },
@@ -302,7 +333,7 @@ export function WrittenExerciseBuilder() {
                 <span className="block text-sm font-semibold">Énoncé</span>
                 <textarea
                   className={fieldStyle}
-                  maxLength={8000}
+                  maxLength={criterionFeedback ? 1500 : 8000}
                   rows={4}
                   value={form.enonce}
                   onChange={(event) => change({ enonce: event.target.value })}
@@ -315,16 +346,16 @@ export function WrittenExerciseBuilder() {
                   value={form.modeCorrection}
                   onChange={(event) =>
                     change({
-                      modeCorrection:
-                        event.target.value === 'enseignant' ? 'enseignant' : 'automatique',
+                      modeCorrection: event.target.value as BuilderForm['modeCorrection'],
                     })
                   }
                 >
                   <option value="automatique">Automatique</option>
                   <option value="enseignant">Par l’enseignant</option>
+                  <option value="ia">Retour IA par critères (pilote)</option>
                 </select>
               </label>
-              {!reviewedByTeacher && (
+              {form.modeCorrection === 'automatique' && (
                 <div className="space-y-1">
                   <p className="text-sm font-semibold">Réponse attendue</p>
                   <ChampFormule
@@ -357,6 +388,12 @@ export function WrittenExerciseBuilder() {
                   }
                 />
               </label>
+              {criterionFeedback && (
+                <CorrectionKeyFields
+                  value={form.cleCorrection}
+                  onChange={(cleCorrection) => change({ cleCorrection })}
+                />
+              )}
               {reviewedByTeacher && (
                 <>
                   <label className="block space-y-1">

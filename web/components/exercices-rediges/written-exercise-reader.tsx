@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import { RichTextRenderer } from '@/components/blocs/rich-text'
 import { ChampFormule } from '@/components/maths/champ-formule'
@@ -11,6 +11,7 @@ import {
   formatExerciseDeadline,
   getWrittenExercise,
   submitWrittenExercise,
+  CRITERION_ANSWER_LIMIT,
   WRITTEN_PHOTO_MAX_BYTES,
   WrittenExerciseApiError,
   writtenExerciseErrorMessage,
@@ -42,8 +43,37 @@ export function WrittenExerciseReader({
   const photoHelpId = useId()
   const photoErrorId = useId()
   const reviewedByTeacher = exercise.modeCorrection === 'enseignant'
+  const criterionFeedback = exercise.modeCorrection === 'ia'
   const acceptsPhoto = reviewedByTeacher && exercise.photoAutorisee
   const readyToSubmit = !photoError && (answer.trim() || (acceptsPhoto && photo))
+
+  useEffect(() => {
+    if (exercise.soumission?.retourIa?.etat !== 'en_attente') return
+    const controller = new AbortController()
+    let timer: ReturnType<typeof setTimeout>
+    let attempts = 0
+
+    async function refreshFeedback() {
+      try {
+        const current = await getWrittenExercise(exercise.id, undefined, controller.signal)
+        if (controller.signal.aborted) return
+        if (current.soumission?.retourIa?.etat !== 'en_attente') {
+          setExercise(current)
+          return
+        }
+      } catch {
+        if (controller.signal.aborted) return
+      }
+      attempts += 1
+      if (attempts < 32) timer = setTimeout(refreshFeedback, 2000)
+    }
+
+    timer = setTimeout(refreshFeedback, 1000)
+    return () => {
+      controller.abort()
+      clearTimeout(timer)
+    }
+  }, [exercise.id, exercise.soumission?.retourIa?.etat])
 
   function changePhoto(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -125,10 +155,13 @@ export function WrittenExerciseReader({
         <Panel>
           <form className="space-y-3" onSubmit={submit}>
             <h2 className="font-display text-lg font-extrabold text-ink">Ta réponse</h2>
-            {reviewedByTeacher ? (
+            {reviewedByTeacher || criterionFeedback ? (
               <textarea
                 aria-label="Ta réponse"
-                aria-describedby={error ? errorId : undefined}
+                aria-describedby={
+                  [criterionFeedback && helpId, error && errorId].filter(Boolean).join(' ') ||
+                  undefined
+                }
                 value={answer}
                 onChange={(event) => {
                   setAnswer(event.target.value)
@@ -136,7 +169,7 @@ export function WrittenExerciseReader({
                 }}
                 className={fileStyle}
                 rows={8}
-                maxLength={12000}
+                maxLength={criterionFeedback ? CRITERION_ANSWER_LIMIT : 12000}
                 disabled={busy}
               />
             ) : (
@@ -159,6 +192,12 @@ export function WrittenExerciseReader({
                   champ={{ 'aria-describedby': error ? `${helpId} ${errorId}` : helpId }}
                 />
               </>
+            )}
+            {criterionFeedback && (
+              <p id={helpId} className="font-prose text-sm text-ink-muted">
+                Écris ta réponse en 1 200 caractères maximum. Évite d’y mettre des informations
+                personnelles.
+              </p>
             )}
             {acceptsPhoto && (
               <div className="space-y-2">

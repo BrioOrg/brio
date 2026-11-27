@@ -9,7 +9,25 @@ export type WrittenExerciseLesson =
 const identifier = z.string().uuid()
 const optionalDate = z.string().datetime({ offset: true }).nullish()
 const summarySchema = z.object({ id: identifier, titre: z.string() })
-const modeCorrection = z.enum(['automatique', 'enseignant'])
+const modeCorrection = z.enum(['automatique', 'enseignant', 'ia'])
+const correctionKeySchema = z.object({
+  type: z.enum(['traduction', 'liste']),
+  minimum: z.number().int().positive(),
+  criteres: z.array(z.object({ attendu: z.string(), variantes: z.array(z.string()) })),
+  extraitLecon: z.string().nullish(),
+  confirmee: z.boolean(),
+})
+const criterionFeedbackSchema = z.object({
+  etat: z.enum(['en_attente', 'disponible', 'indisponible']),
+  minimum: z.number().int().nonnegative(),
+  criteres: z.array(
+    z.object({
+      attendu: z.string(),
+      etat: z.enum(['present', 'manquant', 'incertain']),
+      extrait: z.string().nullish(),
+    })
+  ),
+})
 const feedbackSchema = z.object({
   commentaire: z.string(),
   publieAt: z.string().datetime({ offset: true }),
@@ -38,7 +56,9 @@ const exerciseSchema = summarySchema.extend({
   copieModele: z.string().nullish(),
   modeCorrection: modeCorrection.optional(),
   photoAutorisee: z.boolean().optional(),
-  soumission: copySchema.extend({ correct: z.boolean().nullish() }).nullish(),
+  soumission: copySchema
+    .extend({ correct: z.boolean().nullish(), retourIa: criterionFeedbackSchema.nullish() })
+    .nullish(),
 })
 
 const teacherExerciseSchema = summarySchema.extend({
@@ -47,6 +67,7 @@ const teacherExerciseSchema = summarySchema.extend({
   enonce: z.string(),
   reponseAttendue: z.string().nullish(),
   corrige: z.string(),
+  cleCorrection: correctionKeySchema.nullish(),
   copieModele: z.string().nullish(),
   modeCorrection: modeCorrection.optional(),
   photoAutorisee: z.boolean().optional(),
@@ -54,6 +75,10 @@ const teacherExerciseSchema = summarySchema.extend({
   publie: z.boolean(),
   cloture: z.boolean(),
 })
+
+export type WrittenCorrectionKey = z.infer<typeof correctionKeySchema>
+export type WrittenCriterionFeedback = z.infer<typeof criterionFeedbackSchema>
+export const CRITERION_ANSWER_LIMIT = 1200
 
 export type WrittenExerciseSummary = z.infer<typeof summarySchema>
 export type WrittenExercise = z.infer<typeof exerciseSchema>
@@ -134,8 +159,11 @@ export function listLessonWrittenExercises(lesson: WrittenExerciseLesson, signal
   return requestExercise(`${studentPath}?${query}`, z.array(summarySchema), { signal })
 }
 
-export function getWrittenExercise(id: string, cookie?: string) {
-  return requestExercise(`${studentPath}/${encodeURIComponent(id)}`, exerciseSchema, { cookie })
+export function getWrittenExercise(id: string, cookie?: string, signal?: AbortSignal) {
+  return requestExercise(`${studentPath}/${encodeURIComponent(id)}`, exerciseSchema, {
+    cookie,
+    signal,
+  })
 }
 
 export function submitWrittenExercise(id: string, version: number, reponse: string, photo?: File) {
@@ -214,6 +242,10 @@ export function teacherWrittenPhotoHref(id: string, studentId: string) {
 
 export function writtenExerciseErrorMessage(error: unknown, fallback: string) {
   if (!(error instanceof WrittenExerciseApiError)) return fallback
+  if (error.code === 'RETOUR_IA_DESACTIVE') return 'Le retour par critères n’est pas disponible.'
+  if (error.code === 'CLE_IA_INVALIDE')
+    return 'Vérifie les critères, le minimum attendu et la longueur des champs.'
+  if (error.code === 'REPONSE_IA_TROP_LONGUE') return 'La réponse dépasse 1 200 caractères.'
   if (error.code === 'FORMULE_ILLISIBLE') {
     return 'La formule est incomplète ou illisible. Vérifie la saisie et les parenthèses.'
   }

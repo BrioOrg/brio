@@ -1509,8 +1509,8 @@ function writtenTeacherView({ owner: _owner, ...exercise }) {
   }
 }
 
-function writtenCopyView({ reponse, correct, remisAt, piece, retour }) {
-  return { reponse, correct, remisAt, photo: !!piece, retour }
+function writtenCopyView({ reponse, correct, remisAt, piece, retour, retourIa }) {
+  return { reponse, correct, remisAt, photo: !!piece, retour, retourIa }
 }
 
 function writtenPhoto(res, copy) {
@@ -1604,7 +1604,15 @@ async function writtenExercises(req, res, pathname, searchParams) {
       Object.assign(draft, input, { id, owner, version: 1, publie: false })
     } else if (req.method === 'POST' && action === 'publier') {
       const required = [draft.titre, draft.enonce, draft.corrige]
-      if (draft.modeCorrection !== 'enseignant') required.push(draft.reponseAttendue)
+      if (!draft.modeCorrection || draft.modeCorrection === 'automatique') {
+        required.push(draft.reponseAttendue)
+      }
+      if (draft.modeCorrection === 'ia') {
+        const key = draft.cleCorrection
+        if (!key?.confirmee || !key.minimum || key.minimum > key.criteres.length) {
+          return send(res, 422, { code: 'CLE_IA_INVALIDE' })
+        }
+      }
       if (!required.every((v) => v?.trim())) {
         return send(res, 422)
       }
@@ -1678,6 +1686,24 @@ async function writtenExercises(req, res, pathname, searchParams) {
     reponse: input.reponse,
     remisAt: new Date().toISOString(),
     piece,
+  }
+  if (exercise.modeCorrection === 'ia') {
+    if (!input?.reponse?.trim()) return send(res, 422, { code: 'REPONSE_VIDE' })
+    if (input.reponse.length > 1200) return send(res, 422, { code: 'REPONSE_IA_TROP_LONGUE' })
+    submission.retourIa = { etat: 'en_attente', minimum: 0, criteres: [] }
+    writtenSubmissions.set(key, submission)
+    // Fixture only. The real API calls the provider, validates the result, and saves it once.
+    setTimeout(() => {
+      submission.retourIa = {
+        etat: 'disponible',
+        minimum: exercise.cleCorrection.minimum,
+        criteres: exercise.cleCorrection.criteres.map(({ attendu, variantes }) => {
+          const extrait = [attendu, ...variantes].find((phrase) => input.reponse.includes(phrase))
+          return { attendu, etat: extrait ? 'present' : 'manquant', extrait }
+        }),
+      }
+    }, 750)
+    return send(res, 200, writtenStudentView(exercise, submission))
   }
   if (exercise.modeCorrection === 'enseignant') {
     if (!piece && !input?.reponse?.trim()) return send(res, 422, { code: 'COPIE_VIDE' })

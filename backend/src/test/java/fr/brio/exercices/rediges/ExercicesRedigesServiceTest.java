@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import fr.brio.contenu.api.ChapitreContentApi;
 import fr.brio.contenu.api.CoursAccesApi;
+import org.springframework.context.ApplicationEventPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -33,7 +34,7 @@ class ExercicesRedigesServiceTest {
         when(courses.estAuteur(courseId, authorId)).thenReturn(true);
         when(repository.verrouiller(id)).thenReturn(Optional.of(new ExerciceRedige(id, 1, courseId, authorId,
                 null, null, null, "Dérivée", "Calcule la dérivée.", "2x", "La dérivée vaut $2x$.",
-                ExerciceRedige.ModeCorrection.automatique, false, null, deadline, now.minusSeconds(60), null)));
+                ExerciceRedige.ModeCorrection.automatique, false, null, deadline, now.minusSeconds(60), null, null)));
         doAnswer(invocation -> {
             Instant written = invocation.getArgument(1);
             persistedClosure.set(written.plusNanos(500).truncatedTo(ChronoUnit.MICROS));
@@ -42,9 +43,10 @@ class ExercicesRedigesServiceTest {
         when(repository.trouver(id)).thenAnswer(invocation -> Optional.of(new ExerciceRedige(id, 1, courseId, authorId,
                 null, null, null, "Dérivée", "Calcule la dérivée.", "2x", "La dérivée vaut $2x$.",
                 ExerciceRedige.ModeCorrection.automatique, false, null, deadline, now.minusSeconds(60),
-                persistedClosure.get())));
+                persistedClosure.get(), null)));
         var service = new ExercicesRedigesService(courses, mock(ChapitreContentApi.class),
-                mock(CatalogueExercicesRediges.class), repository, Clock.fixed(now, ZoneOffset.UTC));
+                mock(CatalogueExercicesRediges.class), repository, Clock.fixed(now, ZoneOffset.UTC),
+                mock(RetourExerciceApi.class), mock(ApplicationEventPublisher.class));
 
         var result = service.cloturer(id, authorId);
 

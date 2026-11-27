@@ -4234,6 +4234,57 @@
   },
   "components" : {
     "schemas" : {
+      "CleCorrection" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "enum" : [ "traduction", "liste" ]
+          },
+          "minimum" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "criteres" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CritereCorrection"
+            },
+            "maxItems" : 6,
+            "minItems" : 1
+          },
+          "extraitLecon" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "confirmee" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "criteres", "type" ]
+      },
+      "CritereCorrection" : {
+        "type" : "object",
+        "properties" : {
+          "attendu" : {
+            "type" : "string",
+            "maxLength" : 180,
+            "minLength" : 0
+          },
+          "variantes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "maxLength" : 100,
+              "minLength" : 0
+            },
+            "maxItems" : 4,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "attendu", "variantes" ]
+      },
       "EcritureExerciceRedige" : {
         "type" : "object",
         "properties" : {
@@ -4267,7 +4318,7 @@
           },
           "modeCorrection" : {
             "type" : "string",
-            "enum" : [ "automatique", "enseignant" ]
+            "enum" : [ "automatique", "enseignant", "ia" ]
           },
           "photoAutorisee" : {
             "type" : "boolean"
@@ -4276,6 +4327,9 @@
             "type" : "string",
             "maxLength" : 12000,
             "minLength" : 0
+          },
+          "cleCorrection" : {
+            "$ref" : "#/components/schemas/CleCorrection"
           }
         },
         "required" : [ "corrige", "coursId", "enonce", "titre" ]
@@ -4309,13 +4363,16 @@
           },
           "modeCorrection" : {
             "type" : "string",
-            "enum" : [ "automatique", "enseignant" ]
+            "enum" : [ "automatique", "enseignant", "ia" ]
           },
           "photoAutorisee" : {
             "type" : "boolean"
           },
           "copieModele" : {
             "type" : "string"
+          },
+          "cleCorrection" : {
+            "$ref" : "#/components/schemas/CleCorrection"
           },
           "echeance" : {
             "type" : "string",
@@ -4795,6 +4852,24 @@
           },
           "retour" : {
             "$ref" : "#/components/schemas/RetourCopie"
+          },
+          "retourIa" : {
+            "$ref" : "#/components/schemas/RetourIa"
+          }
+        }
+      },
+      "CritereEvalue" : {
+        "type" : "object",
+        "properties" : {
+          "attendu" : {
+            "type" : "string"
+          },
+          "etat" : {
+            "type" : "string",
+            "enum" : [ "present", "manquant", "incertain" ]
+          },
+          "extrait" : {
+            "type" : "string"
           }
         }
       },
@@ -4840,7 +4915,7 @@
           },
           "modeCorrection" : {
             "type" : "string",
-            "enum" : [ "automatique", "enseignant" ]
+            "enum" : [ "automatique", "enseignant", "ia" ]
           },
           "photoAutorisee" : {
             "type" : "boolean"
@@ -4850,6 +4925,25 @@
           },
           "soumission" : {
             "$ref" : "#/components/schemas/CopieExerciceRedige"
+          }
+        }
+      },
+      "RetourIa" : {
+        "type" : "object",
+        "properties" : {
+          "etat" : {
+            "type" : "string",
+            "enum" : [ "en_attente", "disponible", "indisponible" ]
+          },
+          "minimum" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "criteres" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CritereEvalue"
+            }
           }
         }
       },

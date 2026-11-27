@@ -8,16 +8,20 @@ import fr.brio.exercices.rediges.ExerciceRedige.ModeCorrection;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.CopieExerciceRedige;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.CopiePourRevue;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.EcritureExerciceRedige;
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.EtatRetourIa;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.ExerciceRedigeEleve;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.ExerciceRedigeProf;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.ExerciceRedigeResume;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.RemiseExerciceRedige;
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.RetourIa;
 import fr.brio.exercices.rediges.ExercicesRedigesRepository.Copie;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,14 +34,19 @@ class ExercicesRedigesService {
     private final CatalogueExercicesRediges catalogue;
     private final ExercicesRedigesRepository repository;
     private final Clock clock;
+    private final RetourExerciceApi retourIa;
+    private final ApplicationEventPublisher events;
 
     ExercicesRedigesService(CoursAccesApi cours, ChapitreContentApi chapitres,
-            CatalogueExercicesRediges catalogue, ExercicesRedigesRepository repository, Clock clock) {
+            CatalogueExercicesRediges catalogue, ExercicesRedigesRepository repository, Clock clock,
+            RetourExerciceApi retourIa, ApplicationEventPublisher events) {
         this.cours = cours;
         this.chapitres = chapitres;
         this.catalogue = catalogue;
         this.repository = repository;
         this.clock = clock;
+        this.retourIa = retourIa;
+        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +118,16 @@ class ExercicesRedigesService {
                 photo = PhotoCopie.nettoyer(fichier);
             }
         }
-        repository.soumettre(definition, eleveId, reponse, correct, now, photo);
+        boolean ia = definition.modeCorrection() == ModeCorrection.ia;
+        if (ia && reponse.length() > RetourExerciceApi.MAX_REPONSE) {
+            throw invalide("REPONSE_IA_TROP_LONGUE", "La réponse dépasse 1 200 caractères.");
+        }
+        boolean evaluer = ia && retourIa.actif();
+        var feedback = evaluer ? RetourIa.enAttente() : ia ? RetourIa.indisponible() : null;
+        boolean inseree = repository.soumettre(definition, eleveId, reponse, correct, now, photo, feedback);
+        if (inseree && evaluer) {
+            events.publishEvent(new EvaluerCopie(id, version, eleveId));
+        }
         return vueEleve(definition, repository.copie(id, eleveId).orElseThrow(), now);
     }
 
@@ -231,8 +249,25 @@ class ExercicesRedigesService {
         if (automatique) {
             formule(definition.reponseAttendue());
         }
+        if (definition.modeCorrection() == ModeCorrection.ia) {
+            verifierPublicationIa(definition);
+        }
         repository.publier(id, now);
         return vueProf(repository.trouver(id).orElseThrow(), now);
+    }
+
+    private void verifierPublicationIa(ExerciceRedige definition) {
+        var cle = definition.cleCorrection();
+        if (!cle.confirmee() || cle.minimum() > cle.criteres().size()
+                || definition.enonce().length() > RetourExerciceApi.MAX_ENONCE
+                || cle.criteres().stream().anyMatch(critere -> critere.attendu().isBlank())
+                || cle.criteres().stream().map(critere -> critere.attendu().strip().toLowerCase(Locale.ROOT))
+                        .distinct().count() != cle.criteres().size()) {
+            throw invalide("CLE_IA_INVALIDE", "Vérifiez les critères distincts, le minimum et l’énoncé (1 500 caractères).");
+        }
+        if (!retourIa.actif()) {
+            throw conflit("RETOUR_IA_DESACTIVE", "Le retour par critères n’est pas disponible.");
+        }
     }
 
     @Transactional
@@ -307,24 +342,32 @@ class ExercicesRedigesService {
         boolean automatique = mode == ModeCorrection.automatique;
         String attendu = automatique && entree.reponseAttendue() != null ? entree.reponseAttendue() : "";
         String copieModele = entree.copieModele() == null || entree.copieModele().isBlank() ? null : entree.copieModele();
-        if (automatique && (entree.photoAutorisee() || copieModele != null)) {
+        if (mode != ModeCorrection.enseignant && (entree.photoAutorisee() || copieModele != null)) {
             throw invalide("OPTIONS_REVUE_RESERVEES", "La photo et la copie modèle sont réservées à la revue par l’enseignant.");
+        }
+        if ((mode == ModeCorrection.ia) != (entree.cleCorrection() != null)) {
+            throw invalide("CLE_IA_INVALIDE", "Renseignez la clé pour le retour par critères.");
         }
         return new ExerciceRedige(id, version, entree.coursId(), auteurId, null, null, null,
                 entree.titre().strip(), entree.enonce(), attendu, entree.corrige(), mode, entree.photoAutorisee(), copieModele,
-                entree.echeance(), null, null);
+                entree.echeance(), null, null, entree.cleCorrection());
     }
 
     private static ExerciceRedigeProf vueProf(ExerciceRedige e, Instant now) {
         return new ExerciceRedigeProf(e.id(), e.coursId(), e.version(), e.titre(), e.enonce(), e.reponseAttendue(),
                 e.corrige(), e.modeCorrection(), e.photoAutorisee(), e.copieModele(),
-                e.echeanceEffective(), e.publie(), e.publie() && e.closA(now));
+                e.cleCorrection(), e.echeanceEffective(), e.publie(), e.publie() && e.closA(now));
     }
 
     private static ExerciceRedigeEleve vueEleve(ExerciceRedige e, Copie copie, Instant now) {
         if (copie != null) {
+            var feedback = copie.retourIa();
+            if (feedback != null && feedback.etat() == EtatRetourIa.en_attente
+                    && RetourIaExercices.attenteExpiree(copie, now)) {
+                feedback = RetourIa.indisponible();
+            }
             var soumission = new CopieExerciceRedige(copie.reponse(), copie.correct(), copie.remisAt(),
-                    copie.photo(), copie.retour());
+                    copie.photo(), copie.retour(), feedback);
             return new ExerciceRedigeEleve(e.id(), copie.version(), copie.titre(), copie.enonce(), e.coursId(),
                     e.niveau(), e.matiere(), e.slug(), e.echeanceEffective(), e.closA(now), copie.corrige(),
                     e.modeCorrection(), e.photoAutorisee(), copie.copieModele(), soumission);
