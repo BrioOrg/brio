@@ -1492,13 +1492,65 @@ function writtenStudentView(exercise, submission) {
     slug,
     echeance,
     cloture,
+    modeCorrection: exercise.modeCorrection ?? 'automatique',
+    photoAutorisee: exercise.photoAutorisee ?? false,
     corrige: submission || cloture ? corrige : undefined,
-    soumission: submission,
+    copieModele: submission || cloture ? exercise.copieModele : undefined,
+    soumission: submission && writtenCopyView(submission),
   }
 }
 
 function writtenTeacherView({ owner: _owner, ...exercise }) {
-  return { ...exercise, cloture: writtenExerciseClosed(exercise) }
+  return {
+    ...exercise,
+    modeCorrection: exercise.modeCorrection ?? 'automatique',
+    photoAutorisee: exercise.photoAutorisee ?? false,
+    cloture: writtenExerciseClosed(exercise),
+  }
+}
+
+function writtenCopyView({ reponse, correct, remisAt, piece, retour }) {
+  return { reponse, correct, remisAt, photo: !!piece, retour }
+}
+
+function writtenPhoto(res, copy) {
+  if (!copy?.piece) return send(res, 404)
+  res.writeHead(200, {
+    'content-type': copy.piece.type,
+    'x-content-type-options': 'nosniff',
+  })
+  res.end(copy.piece.bytes)
+}
+
+async function writtenMultipart(req) {
+  const chunks = []
+  for await (const chunk of req) chunks.push(chunk)
+  return new Request('http://localhost', {
+    method: 'POST',
+    headers: { 'content-type': req.headers['content-type'] ?? '' },
+    body: Buffer.concat(chunks),
+  }).formData()
+}
+
+async function reviewWrittenCopy(req, res, id, eleveId, action, draft) {
+  if (!draft.publie || draft.modeCorrection !== 'enseignant') return send(res, 404)
+  const copies = [...writtenSubmissions.values()].filter(({ exerciceId }) => exerciceId === id)
+  const teacherCopy = (copy) => ({
+    ...writtenCopyView(copy),
+    eleveId: copy.eleveId,
+    nomAffiche: 'Inès',
+  })
+  if (req.method === 'GET' && !eleveId) return send(res, 200, copies.map(teacherCopy))
+  const copy = copies.find((item) => item.eleveId === eleveId)
+  if (!copy) return send(res, 404)
+  if (req.method === 'GET' && action === 'photo') return writtenPhoto(res, copy)
+  if (req.method === 'PUT' && action === 'retour') {
+    const { commentaire } = (await corps(req)) ?? {}
+    if (!commentaire?.trim()) return send(res, 422)
+    copy.retour = { commentaire, publieAt: new Date().toISOString() }
+    return send(res, 200, teacherCopy(copy))
+  }
+  return send(res, 404)
 }
 
 async function writtenExercises(req, res, pathname, searchParams) {
@@ -1527,22 +1579,33 @@ async function writtenExercises(req, res, pathname, searchParams) {
         return send(res, 201, writtenTeacherView(draft))
       }
     }
+    const review = pathname.match(
+      /^\/api\/prof\/exercices-rediges\/([^/]+)\/copies(?:\/([^/]+)\/(retour|photo))?$/
+    )
+    if (review) {
+      const [, id, eleveId, action] = review
+      const draft = writtenDrafts.get(id)
+      if (!draft) return send(res, 404)
+      if (draft.owner !== owner) return send(res, 403)
+      return reviewWrittenCopy(req, res, id, eleveId, action, draft)
+    }
     const match = pathname.match(
       /^\/api\/prof\/exercices-rediges\/([^/]+)(?:\/(publier|cloturer))?$/
     )
     if (!match) return send(res, 404)
     const [, id, action] = match
     const draft = writtenDrafts.get(id)
-    if (!draft || draft.owner !== owner) return send(res, 404)
+    if (!draft) return send(res, 404)
+    if (draft.owner !== owner) return send(res, 403)
     if (req.method === 'PUT' && !action) {
       if (draft.publie) return send(res, 409)
       const input = await corps(req)
       if (!COURS.some(({ id }) => id === input?.coursId)) return send(res, 403)
       Object.assign(draft, input, { id, owner, version: 1, publie: false })
     } else if (req.method === 'POST' && action === 'publier') {
-      if (
-        ![draft.titre, draft.enonce, draft.reponseAttendue, draft.corrige].every((v) => v?.trim())
-      ) {
+      const required = [draft.titre, draft.enonce, draft.corrige]
+      if (draft.modeCorrection !== 'enseignant') required.push(draft.reponseAttendue)
+      if (!required.every((v) => v?.trim())) {
         return send(res, 422)
       }
       if (writtenExerciseClosed(draft)) return send(res, 422)
@@ -1571,7 +1634,9 @@ async function writtenExercises(req, res, pathname, searchParams) {
       matching.map(({ id, titre }) => ({ id, titre }))
     )
   }
-  const match = pathname.match(/^\/api\/exercices-rediges\/([^/]+)(\/soumission)?$/)
+  const match = pathname.match(
+    /^\/api\/exercices-rediges\/([^/]+)(?:\/(soumission|soumission-photo|photo))?$/
+  )
   if (!match) return send(res, 404)
   const [, id, action] = match
   const exercise = [...writtenCatalogue, ...teacherExercises].find((item) => item.id === id)
@@ -1579,25 +1644,52 @@ async function writtenExercises(req, res, pathname, searchParams) {
   if (exercise.coursId && sansClasse(req)) return send(res, 403)
   const session = cookies(req).find((cookie) => cookie.startsWith('JSESSIONID='))
   const key = `${session}/${id}/${exercise.version}`
+  if (req.method === 'GET' && action === 'photo') {
+    return writtenPhoto(res, writtenSubmissions.get(key))
+  }
   if (req.method === 'GET' && !action) {
     return send(res, 200, writtenStudentView(exercise, writtenSubmissions.get(key)))
   }
-  if (req.method !== 'POST' || !action) return send(res, 404)
-  const input = await corps(req)
+  if (req.method !== 'POST' || !['soumission', 'soumission-photo'].includes(action))
+    return send(res, 404)
+  let input
+  let piece
+  if (action === 'soumission-photo') {
+    if (exercise.modeCorrection !== 'enseignant' || !exercise.photoAutorisee) {
+      return send(res, 422, { code: 'PHOTO_NON_AUTORISEE' })
+    }
+    const form = await writtenMultipart(req)
+    const file = form.get('photo')
+    if (!(file instanceof File) || !['image/png', 'image/jpeg'].includes(file.type) || !file.size) {
+      return send(res, 422, { code: 'PHOTO_INVALIDE' })
+    }
+    piece = { bytes: Buffer.from(await file.arrayBuffer()), type: file.type }
+    input = { version: Number(form.get('version')), reponse: form.get('reponse') ?? '' }
+  } else {
+    input = await corps(req)
+  }
   if (input?.version !== exercise.version) return send(res, 409)
   const previous = writtenSubmissions.get(key)
   if (previous) return send(res, 200, writtenStudentView(exercise, previous))
   if (writtenExerciseClosed(exercise)) return send(res, 409)
+  const submission = {
+    exerciceId: id,
+    eleveId: ELEVE.id,
+    reponse: input.reponse,
+    remisAt: new Date().toISOString(),
+    piece,
+  }
+  if (exercise.modeCorrection === 'enseignant') {
+    if (!piece && !input?.reponse?.trim()) return send(res, 422, { code: 'COPIE_VIDE' })
+    writtenSubmissions.set(key, submission)
+    return send(res, 200, writtenStudentView(exercise, submission))
+  }
   const answer = input?.reponse?.replace(/\s+/g, '')
   if (!answer || answer === '(x') return send(res, 422, { code: 'FORMULE_ILLISIBLE' })
   if (answer === 'sin(x)') return send(res, 422, { code: 'FORMULE_HORS_DOMAINE' })
   const rc = exercise.reponseAttendue.replace(/\s+/g, '')
   // This fake only recognises the equivalent spellings used in the browser fixtures.
-  const submission = {
-    reponse: input.reponse,
-    correct: rc === answer || !!firstEquivalentAnswers.get(rc)?.includes(answer),
-    remisAt: new Date().toISOString(),
-  }
+  submission.correct = rc === answer || !!firstEquivalentAnswers.get(rc)?.includes(answer)
   writtenSubmissions.set(key, submission)
   return send(res, 200, writtenStudentView(exercise, submission))
 }

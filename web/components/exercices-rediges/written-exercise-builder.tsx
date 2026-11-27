@@ -20,11 +20,21 @@ import {
   type WrittenExerciseDraft,
 } from '@/lib/exercices-rediges'
 import { WrittenExerciseReader } from './written-exercise-reader'
+import { WrittenExerciseReviews } from './written-exercise-reviews'
 
 const fieldStyle =
   'w-full rounded-md border border-line bg-surface-raised px-3 py-2 font-prose text-base text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:bg-surface-panel'
 
-type BuilderForm = Omit<WrittenExerciseDraft, 'echeance'> & { deadlineLocal: string }
+type BuilderForm = Omit<
+  WrittenExerciseDraft,
+  'echeance' | 'modeCorrection' | 'photoAutorisee' | 'reponseAttendue' | 'copieModele'
+> & {
+  deadlineLocal: string
+  modeCorrection: 'automatique' | 'enseignant'
+  photoAutorisee: boolean
+  reponseAttendue: string
+  copieModele: string
+}
 
 const blankForm: BuilderForm = {
   coursId: '',
@@ -32,6 +42,9 @@ const blankForm: BuilderForm = {
   enonce: '',
   reponseAttendue: '',
   corrige: '',
+  modeCorrection: 'automatique',
+  photoAutorisee: false,
+  copieModele: '',
   deadlineLocal: '',
 }
 
@@ -45,8 +58,11 @@ function formFromExercise(exercise: TeacherWrittenExercise): BuilderForm {
     coursId: exercise.coursId,
     titre: exercise.titre,
     enonce: exercise.enonce,
-    reponseAttendue: exercise.reponseAttendue,
+    reponseAttendue: exercise.reponseAttendue ?? '',
     corrige: exercise.corrige,
+    modeCorrection: exercise.modeCorrection ?? 'automatique',
+    photoAutorisee: exercise.photoAutorisee ?? false,
+    copieModele: exercise.copieModele ?? '',
     deadlineLocal: local?.toISOString().slice(0, 16) ?? '',
   }
 }
@@ -84,6 +100,7 @@ export function WrittenExerciseBuilder() {
 
   const selected = catalogue?.exercises.find((exercise) => exercise.id === selectedId)
   const published = selected?.publie === true
+  const reviewedByTeacher = form?.modeCorrection === 'enseignant'
 
   function selectExercise(exercise?: TeacherWrittenExercise) {
     setSelectedId(exercise?.id)
@@ -127,7 +144,16 @@ export function WrittenExerciseBuilder() {
     try {
       const { deadlineLocal, ...fields } = form
       const echeance = deadlineLocal ? new Date(deadlineLocal).toISOString() : null
-      const saved = await saveWrittenExercise({ ...fields, echeance }, selectedId)
+      const saved = await saveWrittenExercise(
+        {
+          ...fields,
+          echeance,
+          reponseAttendue: reviewedByTeacher ? '' : fields.reponseAttendue,
+          copieModele: reviewedByTeacher ? fields.copieModele.trim() || null : null,
+          photoAutorisee: reviewedByTeacher && fields.photoAutorisee,
+        },
+        selectedId
+      )
       applyExercise(saved)
       if (publish) {
         const exercise = await publishWrittenExercise(saved.id)
@@ -282,30 +308,78 @@ export function WrittenExerciseBuilder() {
                   onChange={(event) => change({ enonce: event.target.value })}
                 />
               </label>
-              <div className="space-y-1">
-                <p className="text-sm font-semibold">Réponse attendue</p>
-                <ChampFormule
-                  ariaLabel="Réponse attendue"
-                  keyboard="polynomial"
-                  maxLength={512}
-                  value={form.reponseAttendue}
-                  onChange={(value) => change({ reponseAttendue: value })}
-                  inputClassName={fieldStyle}
-                />
-                <p className="text-sm text-ink-muted">
-                  Le correcteur accepte les expressions polynomiales équivalentes en x.
-                </p>
-              </div>
               <label className="block space-y-1">
-                <span className="block text-sm font-semibold">Corrigé</span>
+                <span className="block text-sm font-semibold">Mode de correction</span>
+                <select
+                  className={fieldStyle}
+                  value={form.modeCorrection}
+                  onChange={(event) =>
+                    change({
+                      modeCorrection:
+                        event.target.value === 'enseignant' ? 'enseignant' : 'automatique',
+                    })
+                  }
+                >
+                  <option value="automatique">Automatique</option>
+                  <option value="enseignant">Par l’enseignant</option>
+                </select>
+              </label>
+              {!reviewedByTeacher && (
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold">Réponse attendue</p>
+                  <ChampFormule
+                    ariaLabel="Réponse attendue"
+                    keyboard="polynomial"
+                    maxLength={512}
+                    value={form.reponseAttendue}
+                    onChange={(value) => change({ reponseAttendue: value })}
+                    inputClassName={fieldStyle}
+                  />
+                  <p className="text-sm text-ink-muted">
+                    Le correcteur accepte les expressions polynomiales équivalentes en x.
+                  </p>
+                </div>
+              )}
+              <label className="block space-y-1">
+                <span className="block text-sm font-semibold">
+                  {reviewedByTeacher ? 'Grille de correction' : 'Corrigé'}
+                </span>
                 <textarea
                   className={fieldStyle}
                   maxLength={8000}
                   rows={4}
                   value={form.corrige}
                   onChange={(event) => change({ corrige: event.target.value })}
+                  placeholder={
+                    reviewedByTeacher
+                      ? 'Indiquez les critères attendus et des exemples.'
+                      : undefined
+                  }
                 />
               </label>
+              {reviewedByTeacher && (
+                <>
+                  <label className="block space-y-1">
+                    <span className="block text-sm font-semibold">Copie modèle (facultatif)</span>
+                    <textarea
+                      className={fieldStyle}
+                      maxLength={12000}
+                      rows={4}
+                      value={form.copieModele}
+                      onChange={(event) => change({ copieModele: event.target.value })}
+                    />
+                  </label>
+                  <label className="flex min-h-11 items-center gap-2 text-sm font-semibold">
+                    <input
+                      type="checkbox"
+                      className="accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      checked={form.photoAutorisee}
+                      onChange={(event) => change({ photoAutorisee: event.target.checked })}
+                    />
+                    Autoriser une photo
+                  </label>
+                </>
+              )}
               <TextInput
                 type="datetime-local"
                 label="Échéance"
@@ -391,12 +465,16 @@ export function WrittenExerciseBuilder() {
         </Panel>
       )}
 
+      {published && selected.modeCorrection === 'enseignant' && (
+        <WrittenExerciseReviews key={selected.id} exerciseId={selected.id} />
+      )}
+
       {preview && form && (
         <section aria-label="Aperçu élève" className="space-y-3">
           <h2 className="font-display text-lg font-extrabold">Aperçu élève</h2>
           {form.titre && <p className="font-display text-xl font-extrabold">{form.titre}</p>}
           <WrittenExerciseReader
-            key={`${selectedId ?? 'draft'}:${form.enonce}`}
+            key={`${selectedId ?? 'draft'}:${form.enonce}:${form.modeCorrection}:${form.photoAutorisee}`}
             preview
             initialExercise={{
               id: selectedId ?? 'preview',
@@ -404,6 +482,8 @@ export function WrittenExerciseBuilder() {
               titre: form.titre,
               enonce: form.enonce,
               cloture: false,
+              modeCorrection: form.modeCorrection,
+              photoAutorisee: reviewedByTeacher && form.photoAutorisee,
             }}
           />
         </section>
