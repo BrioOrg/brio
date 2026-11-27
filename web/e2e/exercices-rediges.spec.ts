@@ -138,6 +138,22 @@ test('a teacher reviews a written copy with a private photo and publishes person
   ).toBeVisible()
   await expect(page.getByText('En attente du retour de ton enseignant.')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ouvrir la photo de ta copie' })).toBeVisible()
+  const comparison = page.getByRole('region', { name: 'Ta réponse et le corrigé' })
+  const image = comparison.getByRole('img', { name: 'Photo de ta copie' })
+  await expect
+    .poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth))
+    .toBeGreaterThan(0)
+  const answerPanel = await comparison
+    .getByRole('region', { name: 'Ta réponse', exact: true })
+    .boundingBox()
+  const solutionPanel = await comparison
+    .getByRole('region', { name: 'Corrigé', exact: true })
+    .boundingBox()
+  if (testInfo.project.name === 'mobile') {
+    expect(solutionPanel!.y).toBeGreaterThan(answerPanel!.y)
+  } else {
+    expect(solutionPanel!.x).toBeGreaterThan(answerPanel!.x)
+  }
   if (testInfo.project.name !== 'mobile') await expect(page.getByText(answer)).toBeVisible()
 
   await useSession(context, baseURL, teacher)

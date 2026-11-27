@@ -57,11 +57,77 @@ describe('written exercise reviews', () => {
     expect(await screen.findByRole('heading', { name: 'Grille de correction' })).toBeInTheDocument()
     expect(api.submitWrittenExercise).toHaveBeenCalledWith(exercise.id, 1, '', photo)
     expect(screen.getByRole('heading', { name: 'Copie modèle' })).toBeInTheDocument()
+    const sideBySide = screen.getByRole('region', { name: 'Ta réponse et le corrigé' })
+    const panels = within(sideBySide).getAllByRole('region')
+    expect(panels.map((panel) => panel.getAttribute('aria-labelledby'))).toEqual([
+      within(panels[0]).getByRole('heading', { name: 'Ta réponse' }).id,
+      within(panels[1]).getByRole('heading', { name: 'Corrigé', exact: true }).id,
+    ])
+    expect(within(panels[0]).getByRole('img', { name: 'Photo de ta copie' })).toHaveAttribute(
+      'src',
+      `/api/exercices-rediges/${exercise.id}/photo`
+    )
     expect(screen.getByRole('status')).toHaveTextContent('En attente du retour de ton enseignant.')
     expect(screen.getByRole('link', { name: 'Ouvrir la photo de ta copie' })).toHaveAttribute(
       'href',
       `/api/exercices-rediges/${exercise.id}/photo`
     )
+    expect(screen.queryByText('Réponse incorrecte')).not.toBeInTheDocument()
+  })
+
+  it.each([true, false])('uses the server verdict for a formula (correct=%s)', (correct) => {
+    render(
+      <WrittenExerciseReader
+        initialExercise={{
+          ...exercise,
+          modeCorrection: 'automatique',
+          corrige: 'La forme développée est $2x + 2$.',
+          soumission: { reponse: '2(x+1)', correct, remisAt: copy.remisAt },
+        }}
+      />
+    )
+    const solution = screen.getByRole('region', { name: 'Corrigé', exact: true })
+    expect(within(solution).getByText(/La forme développée/)).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      correct ? 'Réponse correcte' : 'Réponse incorrecte'
+    )
+    expect(Boolean(within(solution).queryByText('Ton résultat diffère du résultat attendu.'))).toBe(
+      !correct
+    )
+  })
+
+  it('shows only the correction after closure without a submission', () => {
+    render(
+      <WrittenExerciseReader
+        initialExercise={{ ...exercise, cloture: true, corrige: 'Décrire deux détails.' }}
+      />
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('Tu n’as pas remis de réponse.')
+    expect(screen.getByRole('region', { name: 'Corrigé', exact: true })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Ta réponse' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Remettre ma réponse' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the submitted text intact alongside the published feedback', () => {
+    render(
+      <WrittenExerciseReader
+        initialExercise={{
+          ...exercise,
+          corrige: 'Décrire deux détails.',
+          soumission: {
+            reponse: 'Le pré est vert.\nIl y a un arbre.',
+            remisAt: copy.remisAt,
+            retour: { commentaire: 'Précise où se trouve l’arbre.', publieAt: copy.remisAt },
+          },
+        }}
+      />
+    )
+    const answer = screen.getByRole('region', { name: 'Ta réponse', exact: true })
+    expect(answer.textContent).toContain('Le pré est vert.\nIl y a un arbre.')
+    expect(screen.getByRole('region', { name: 'Corrigé', exact: true })).toHaveTextContent(
+      'Précise où se trouve l’arbre.'
+    )
+    expect(screen.queryByText('En attente du retour de ton enseignant.')).not.toBeInTheDocument()
     expect(screen.queryByText('Réponse incorrecte')).not.toBeInTheDocument()
   })
 

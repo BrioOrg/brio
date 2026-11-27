@@ -3,14 +3,13 @@
 import { useId, useRef, useState } from 'react'
 
 import { RichTextRenderer } from '@/components/blocs/rich-text'
-import { ApercuKatex } from '@/components/maths/apercu-katex'
 import { ChampFormule } from '@/components/maths/champ-formule'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
+import { WrittenExerciseComparison } from './written-exercise-comparison'
 import {
   formatExerciseDeadline,
   getWrittenExercise,
-  studentWrittenPhotoHref,
   submitWrittenExercise,
   WRITTEN_PHOTO_MAX_BYTES,
   WrittenExerciseApiError,
@@ -205,82 +204,7 @@ export function WrittenExerciseReader({
         </Panel>
       )}
 
-      {exercise.soumission && (
-        <Panel className="space-y-3">
-          <h2 className="font-display text-lg font-extrabold text-ink">Ta réponse</h2>
-          {reviewedByTeacher ? (
-            <>
-              {exercise.soumission.reponse && (
-                <p className="whitespace-pre-wrap break-words font-prose text-base text-ink">
-                  {exercise.soumission.reponse}
-                </p>
-              )}
-              {exercise.soumission.photo && (
-                <a
-                  href={studentWrittenPhotoHref(exercise.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-prose text-sm font-semibold text-accent-ink underline"
-                >
-                  Ouvrir la photo de ta copie
-                </a>
-              )}
-            </>
-          ) : (
-            <>
-              {typeof exercise.soumission.correct === 'boolean' && (
-                <p role="status" className="font-prose text-sm font-semibold text-ink">
-                  {exercise.soumission.correct ? 'Réponse correcte' : 'Réponse incorrecte'}
-                </p>
-              )}
-              <ApercuKatex latex={exercise.soumission.reponse} />
-              <p className="break-words font-mono text-sm text-ink-muted">
-                {exercise.soumission.reponse}
-              </p>
-            </>
-          )}
-        </Panel>
-      )}
-
-      {exercise.cloture && !exercise.soumission && (
-        <p role="status" className="font-prose text-sm text-ink-muted">
-          Tu n’as pas remis de réponse.
-        </p>
-      )}
-
-      {exercise.corrige && (
-        <Panel className="space-y-3">
-          <h2 className="font-display text-lg font-extrabold text-ink">
-            {reviewedByTeacher ? 'Grille de correction' : 'Corrigé'}
-          </h2>
-          <p className="whitespace-pre-wrap break-words font-prose text-base leading-relaxed text-ink">
-            <RichTextRenderer text={exercise.corrige} />
-          </p>
-          {reviewedByTeacher && exercise.copieModele && (
-            <>
-              <h3 className="font-display text-base font-extrabold text-ink">Copie modèle</h3>
-              <p className="whitespace-pre-wrap break-words font-prose text-base leading-relaxed text-ink">
-                <RichTextRenderer text={exercise.copieModele} />
-              </p>
-            </>
-          )}
-        </Panel>
-      )}
-
-      {reviewedByTeacher && exercise.soumission && (
-        <Panel className="space-y-3">
-          <h2 className="font-display text-lg font-extrabold text-ink">Retour de l’enseignant</h2>
-          {exercise.soumission.retour ? (
-            <p className="whitespace-pre-wrap break-words font-prose text-base text-ink">
-              {exercise.soumission.retour.commentaire}
-            </p>
-          ) : (
-            <p role="status" className="font-prose text-sm text-ink-muted">
-              En attente du retour de ton enseignant.
-            </p>
-          )}
-        </Panel>
-      )}
+      <WrittenExerciseComparison exercise={exercise} />
     </div>
   )
 }
