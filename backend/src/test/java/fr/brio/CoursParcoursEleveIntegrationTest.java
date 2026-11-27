@@ -1,6 +1,7 @@
 package fr.brio;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -17,6 +18,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.brio.contenu.infrastructure.ChapitreIngestor;
+import fr.brio.ia.domain.TuteurIndisponibleException;
+import fr.brio.ia.domain.TuteurService;
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.CompteService;
 import fr.brio.identite.api.ClasseInfo;
@@ -38,10 +41,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.web.context.WebApplicationContext;
@@ -64,6 +69,7 @@ class CoursParcoursEleveIntegrationTest {
     @Autowired CompteService compteService;
     @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired ObjectMapper objectMapper;
+    @MockitoBean TuteurService tutor;
 
     MockMvc mockMvc;
 
@@ -104,6 +110,28 @@ class CoursParcoursEleveIntegrationTest {
         var autreCode = classeService.genererCode(autreClasse.id(), autreProfId, 14, 40);
         autreEleve = user(classeService.rejoindreParCode(autreCode.code(), "motdepasse123", "Bob").id().toString())
                 .roles("ELEVE");
+    }
+
+    @Test
+    void leTuteurIndisponibleRenvoie503PourLesDeuxOrigines() throws Exception {
+        UUID course = creerEtPublier(content(fillBlank("[\"côté\", \"droit\"]")));
+        String question = "Comment commencer ?";
+        String json = objectMapper.createObjectNode().put("question", question).toString();
+        when(tutor.ask("3e", "mathematiques", "theoreme-de-pythagore", question, null))
+                .thenThrow(new TuteurIndisponibleException());
+        when(tutor.askCours(course, question, null)).thenThrow(new TuteurIndisponibleException());
+        mockMvc.perform(post("/api/chapitres/3e/mathematiques/theoreme-de-pythagore/tuteur")
+                        .with(student).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.detail").value("Le tuteur est temporairement indisponible. Réessaie dans un moment."));
+        mockMvc.perform(post("/api/cours/{id}/tuteur", course)
+                        .with(student).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isServiceUnavailable());
+        mockMvc.perform(post("/api/cours/{id}/tuteur", course)
+                        .with(csrf()).contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

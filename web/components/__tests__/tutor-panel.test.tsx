@@ -2,7 +2,10 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/lib/api', () => ({ askTuteurForTarget: vi.fn() }))
+vi.mock('@/lib/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/api')>()),
+  askTuteurForTarget: vi.fn(),
+}))
 vi.mock('@brio/api-client', () => ({
   createApiClient: vi.fn(),
   controleActif: vi.fn().mockResolvedValue({ enControle: false, titre: null, echeanceAt: null }),
@@ -13,7 +16,7 @@ vi.mock('@brio/api-client', () => ({
 
 import { TuteurPanel } from '../tutor-panel'
 import { ChapterInteractionProvider } from '../chapter-interaction-context'
-import { askTuteurForTarget, type TutorTarget } from '@/lib/api'
+import { askTuteurForTarget, TutorUnavailableError, type TutorTarget } from '@/lib/api'
 
 const TARGET: TutorTarget = {
   kind: 'chapitre',
@@ -173,6 +176,20 @@ describe('TuteurPanel — session cap', () => {
     await user.type(screen.getByLabelText('Ta question au tuteur'), 'Pourquoi ?')
     await user.click(screen.getByRole('button', { name: /envoyer/i }))
     await waitFor(() => expect(askTuteurForTarget).toHaveBeenCalledWith(TARGET, 'Pourquoi ?', null))
+  })
+
+  it('reports temporary unavailability and keeps the question ready to send again', async () => {
+    vi.mocked(askTuteurForTarget).mockRejectedValueOnce(new TutorUnavailableError())
+    const user = userEvent.setup()
+    renderPanel()
+    const field = screen.getByLabelText('Ta question au tuteur')
+    await user.type(field, 'Comment trouver l’hypoténuse ?')
+    await user.click(screen.getByRole('button', { name: /envoyer/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Le tuteur est temporairement indisponible.'
+    )
+    expect(field).toHaveValue('Comment trouver l’hypoténuse ?')
+    expect(screen.getByRole('button', { name: /envoyer/i })).toBeEnabled()
   })
 
   it('hands a citation to onCitation instead of scrolling', async () => {

@@ -2,13 +2,19 @@ package fr.brio.ia.infrastructure;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.brio.ia.domain.TuteurIndisponibleException;
 import fr.brio.ia.domain.TuteurModelResponse;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 /**
  * Thin HTTP wrapper around the Anthropic Messages API.
@@ -18,6 +24,7 @@ import org.springframework.web.client.RestClient;
 @Component
 public class AnthropicClient {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnthropicClient.class);
     private static final String MESSAGES_PATH = "/v1/messages";
     private static final int MAX_TOKENS = 1024;
 
@@ -38,13 +45,21 @@ public class AnthropicClient {
 
     public TuteurModelResponse ask(String systemPrompt, String chapterContext, String userContent) {
         MessagesRequest request = buildRequest(systemPrompt, chapterContext, userContent);
-        String responseBody = restClient.post()
-                .uri(MESSAGES_PATH)
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .body(request)
-                .retrieve()
-                .body(String.class);
-        return parseResponse(responseBody);
+        try {
+            String responseBody = restClient.post()
+                    .uri(MESSAGES_PATH)
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .retrieve()
+                    .body(String.class);
+            return parseResponse(responseBody);
+        } catch (RestClientResponseException ex) {
+            LOGGER.warn("Tutor provider returned HTTP {}", ex.getStatusCode().value());
+            throw new TuteurIndisponibleException();
+        } catch (RestClientException ex) {
+            LOGGER.warn("Tutor provider request failed ({})", ex.getClass().getSimpleName());
+            throw new TuteurIndisponibleException();
+        }
     }
 
     private MessagesRequest buildRequest(String systemPrompt, String chapterContext, String userContent) {
@@ -69,14 +84,17 @@ public class AnthropicClient {
             JsonNode root = objectMapper.readTree(responseBody);
             for (JsonNode part : root.path("content")) {
                 if ("tool_use".equals(part.path("type").asText())
-                        && "repondre".equals(part.path("name").asText())) {
+                        && "repondre".equals(part.path("name").asText())
+                        && part.path("input").isObject()) {
                     return objectMapper.treeToValue(part.path("input"), TuteurModelResponse.class);
                 }
             }
-            throw new IllegalStateException("Anthropic response contained no repondre tool_use block");
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to parse Anthropic response: " + e.getMessage(), e);
+        } catch (JsonProcessingException | IllegalArgumentException ex) {
+            LOGGER.warn("Tutor provider returned an unreadable response");
+            throw new TuteurIndisponibleException();
         }
+        LOGGER.warn("Tutor provider response omitted the answer tool");
+        throw new TuteurIndisponibleException();
     }
 
     private ToolDefinition buildRepondreTool() {
