@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { controleActif, examenActif } from '@brio/api-client'
-import { askTuteurForTarget, type TutorTarget } from '@/lib/api'
+import { askTuteurForTarget, TutorUnavailableError, type TutorTarget } from '@/lib/api'
 import { apiBaseUrl } from '@/lib/api-base-url'
 import { useChapterInteraction } from '@/components/chapter-interaction-context'
 import { Button } from '@/components/ui/button'
@@ -72,8 +72,12 @@ export function TuteurPanel({ target, exerciceId, contexte, onCitation }: Tuteur
       )
       ajouterEchangeTuteur({ question, response })
       setQuestion('')
-    } catch {
-      setError('Erreur réseau. Réessaie dans un moment.')
+    } catch (cause) {
+      setError(
+        cause instanceof TutorUnavailableError
+          ? 'Le tuteur est temporairement indisponible. Réessaie dans un moment.'
+          : 'Erreur réseau. Réessaie dans un moment.'
+      )
     } finally {
       setLoading(false)
     }

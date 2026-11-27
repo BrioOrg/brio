@@ -1923,6 +1923,16 @@
                 }
               }
             }
+          },
+          "503" : {
+            "description" : "Tuteur temporairement indisponible",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            }
           }
         }
       }
@@ -2605,6 +2615,16 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/TuteurResponse"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Tuteur temporairement indisponible",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
                 }
               }
             }
@@ -5077,6 +5097,33 @@
           }
         },
         "required" : [ "question" ]
+      },
+      "ProblemDetail" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "title" : {
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "detail" : {
+            "type" : [ "string", "null" ]
+          },
+          "instance" : {
+            "type" : [ "string", "null" ],
+            "format" : "uri"
+          },
+          "properties" : {
+            "type" : [ "object", "null" ],
+            "additionalProperties" : { }
+          }
+        }
       },
       "TuteurResponse" : {
         "type" : "object",

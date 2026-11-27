@@ -179,6 +179,8 @@ const TuteurResponseSchema = z.object({
 
 export type TuteurReponse = z.infer<typeof TuteurResponseSchema>
 
+export class TutorUnavailableError extends Error {}
+
 export async function askTuteur(
   niveau: string,
   matiere: string,
@@ -241,6 +243,7 @@ async function postTuteur(
     body: JSON.stringify(body),
   })
   if (res.status === 401) throw sessionExpiree()
+  if (res.status === 503) throw new TutorUnavailableError()
   if (!res.ok) throw new Error('Erreur du tuteur')
   return TuteurResponseSchema.parse(await res.json())
 }

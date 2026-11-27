@@ -7,6 +7,8 @@ import fr.brio.ia.domain.TuteurResult;
 import fr.brio.ia.domain.TuteurService;
 import fr.brio.identite.api.InscriptionsQuery;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -77,6 +80,9 @@ class TuteurController {
     @ApiResponse(responseCode = "400", description = "Requête invalide")
     @ApiResponse(responseCode = "401", description = "Authentification requise")
     @ApiResponse(responseCode = "404", description = "Chapitre introuvable")
+    @ApiResponse(responseCode = "503", description = "Tuteur temporairement indisponible",
+            content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemDetail.class)))
     ResponseEntity<TuteurResponse> ask(
             @PathVariable String niveau,
             @PathVariable String matiere,
@@ -105,6 +111,9 @@ class TuteurController {
     @ApiResponse(responseCode = "401", description = "Authentification requise")
     @ApiResponse(responseCode = "403", description = "Cours non accessible à l'élève (hors portée)")
     @ApiResponse(responseCode = "404", description = "Cours introuvable ou non publié")
+    @ApiResponse(responseCode = "503", description = "Tuteur temporairement indisponible",
+            content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
+                    schema = @Schema(implementation = ProblemDetail.class)))
     ResponseEntity<TuteurResponse> askCours(
             @PathVariable UUID coursId,
             @RequestBody @Valid TuteurRequest request,
