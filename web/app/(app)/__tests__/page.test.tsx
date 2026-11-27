@@ -172,7 +172,7 @@ describe('AccueilPage', () => {
         devoir('3', '2026-11-03T16:00:00Z'),
       ],
     })
-    expect(screen.getByRole('heading', { name: 'Pour ta classe · 5e B' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Devoirs à rendre · 5e B' })).toBeVisible()
     const liens = screen.getAllByRole('link', { name: /Devoir/ })
     expect(liens.map((l) => l.textContent)).toEqual([
       expect.stringContaining('Devoir 1'),
@@ -321,7 +321,7 @@ describe('AccueilPage', () => {
   })
 
   // critère 6
-  it('ne rend pas « Pour ta classe » quand tous les devoirs sont rendus ou corrigés', async () => {
+  it('ne rend pas « Devoirs à rendre » quand tous les devoirs sont rendus ou corrigés', async () => {
     await rendre({
       devoirs: [
         { ...devoirCours('rendu', '2026-11-01T16:00:00Z'), statutRendu: 'rendu' },
@@ -329,7 +329,7 @@ describe('AccueilPage', () => {
       ],
       reprendre: REPRENDRE,
     })
-    expect(screen.queryByRole('heading', { name: /Pour t(a|es) classe/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Devoirs à rendre/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Devoir/ })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Continuer' })).toHaveAttribute(
       'href',
@@ -342,7 +342,7 @@ describe('AccueilPage', () => {
       classes: [CLASSE_B, { id: 'latin', libelle: 'Latin 5e', niveauCode: '5e' }],
       devoirs: [devoir('1', '2026-11-01T16:00:00Z'), devoir('2', '2026-11-02T16:00:00Z', 'latin')],
     })
-    expect(screen.getByRole('heading', { name: 'Pour tes classes' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Devoirs à rendre' })).toBeVisible()
     expect(screen.getByRole('link', { name: /Devoir 2/ })).toHaveTextContent('Latin 5e')
   })
 
@@ -357,7 +357,7 @@ describe('AccueilPage', () => {
     expect(screen.queryByText('Choisis par où commencer')).not.toBeInTheDocument()
   })
 
-  it('propose de continuer un cours du prof, qui renvoie vers la page du cours', async () => {
+  it('propose de continuer un cours de ta classe, qui renvoie vers la page du cours', async () => {
     await rendre({
       reprendre: {
         type: 'cours',
@@ -408,7 +408,7 @@ describe('AccueilPage', () => {
 
   it('n’affiche que les blocs qui ont du contenu', async () => {
     await rendre({ reprendre: REPRENDRE })
-    expect(screen.queryByRole('heading', { name: /Pour ta classe/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Devoirs à rendre/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'À revoir' })).not.toBeInTheDocument()
     const { lireLecon } = await import('@/lib/revoir')
     expect(lireLecon).not.toHaveBeenCalled()
@@ -420,7 +420,7 @@ describe('AccueilPage', () => {
       maitrises: [MAITRISE_A_REVOIR],
       libelles: new Map([['c4.x', 'Calculer avec des fractions']]),
     })
-    expect(screen.getByRole('heading', { name: 'Pour ta classe · 5e B' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Devoirs à rendre · 5e B' })).toBeVisible()
     expect(screen.getByRole('link', { name: /Devoir ch/ })).toHaveAttribute(
       'href',
       '/5e/mathematiques/a?devoir=ch'

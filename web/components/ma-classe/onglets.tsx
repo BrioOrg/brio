@@ -9,7 +9,7 @@ import type { Catalogue, CoursVisible } from '@/lib/api'
 
 // The three tabs of Ma classe, each one scoped to the class picked in the header.
 
-// The latest courses shown under the homework to do; the tab « Cours du prof » lists them all.
+// The latest courses shown under the homework to do; the tab « Cours de ta classe » lists them all.
 const PLAFOND_COURS_A_FAIRE = 3
 
 const coursDeLaClasse = (cours: CoursVisible[], classeId: string) =>
@@ -50,8 +50,8 @@ export function OngletCours({ cours, catalogue }: { cours: CoursVisible[]; catal
     return (
       <EmptyState
         icon="book-open"
-        title="Pas encore de cours ici"
-        description="Les cours de ton prof pour cette classe apparaîtront ici dès qu’ils seront publiés."
+        title="Pas encore de cours dans ta classe"
+        description="Les cours publiés pour ta classe apparaîtront ici."
       />
     )
   }

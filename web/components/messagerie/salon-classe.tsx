@@ -57,7 +57,7 @@ export function SalonClasse({ classeId }: { classeId: string }) {
   if (!salon) {
     return (
       <p className="rounded-lg border border-line bg-surface-raised p-4 font-prose text-sm text-ink-muted">
-        Ton professeur n’a pas encore ouvert le salon de la classe. Reviens un peu plus tard.
+        Ton prof n’a pas encore ouvert le salon de la classe. Reviens un peu plus tard.
       </p>
     )
   }
@@ -200,7 +200,7 @@ function Composer({ salonId, onEnvoye }: { salonId: string; onEnvoye: () => Prom
       )}
       <div className="flex items-center justify-between gap-2">
         <p className="font-prose text-xs text-ink-muted">
-          Pas de lien, pas d’information personnelle. Ton professeur peut modérer.
+          Pas de lien, pas d’information personnelle. Ton prof peut modérer.
         </p>
         <Button type="submit" size="sm" loading={envoi} disabled={vide}>
           Envoyer
@@ -255,7 +255,7 @@ function Signaler({ messageId }: { messageId: string }) {
             Signaler ce message
           </Dialog.Title>
           <Dialog.Description className="mt-1 text-sm text-ink-muted">
-            Ton professeur le verra et pourra le masquer. Dis-lui ce qui ne va pas (facultatif).
+            Ton prof le verra et pourra le masquer. Dis-lui ce qui ne va pas (facultatif).
           </Dialog.Description>
           <form onSubmit={signaler} className="mt-4 flex flex-col gap-4">
             <TextInput

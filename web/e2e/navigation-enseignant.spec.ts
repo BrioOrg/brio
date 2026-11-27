@@ -56,7 +56,7 @@ test('the teacher sections are in a bottom bar on mobile', async ({ page }, test
     'aria-current',
     'page'
   )
-  await expect(nav.getByRole('link', { name: 'Signalements', exact: true })).not.toHaveAttribute(
-    'aria-current'
-  )
+  await expect(
+    nav.getByRole('link', { name: 'Signalements d’entraide', exact: true })
+  ).not.toHaveAttribute('aria-current')
 })

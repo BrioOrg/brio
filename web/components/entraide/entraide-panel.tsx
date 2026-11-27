@@ -90,7 +90,7 @@ export function EntraidePanel({ portee, porteeRef }: EntraidePanelProps) {
     <section aria-label="Entraide de la classe" className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <p className="font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted">
-          Questions de la classe
+          Entraide de la classe
         </p>
         {classeId && (
           <Button variant="ghost" size="sm" onClick={() => void chargerFils()}>
@@ -263,8 +263,7 @@ function NouvelleQuestion({
           className="w-full resize-none rounded-md border border-line bg-surface-page px-3 py-2 font-prose text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         <p className="font-prose text-xs text-ink-muted">
-          Ta classe et ton professeur verront ta question. Pas de lien, pas d’information
-          personnelle.
+          Ta classe et ton prof verront ta question. Pas de lien, pas d’information personnelle.
         </p>
       </div>
       {erreur && (

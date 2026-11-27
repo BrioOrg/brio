@@ -411,7 +411,7 @@ describe('ClasseDetail', () => {
       expect(salon).toHaveTextContent(/tu le liras ici/i)
       expect(salon).toHaveTextContent(/tu pourras masquer les messages de tes élèves/i)
       expect(salon).not.toHaveTextContent(/message signalé/i)
-      expect(salon).not.toHaveTextContent(/ton professeur/i)
+      expect(salon).not.toHaveTextContent(/ton prof(esseur)?\b/i)
       const a = await api()
       expect(a.messagesDuSalon).not.toHaveBeenCalled()
     })
@@ -484,7 +484,7 @@ describe('ClasseDetail', () => {
       expect(
         within(section()).getByRole('link', { name: /Signalements du salon/ })
       ).toHaveAttribute('href', '/prof/signalements-salon')
-      expect(document.body).not.toHaveTextContent(/ton professeur/i)
+      expect(document.body).not.toHaveTextContent(/ton prof(esseur)?\b/i)
       expect(screen.queryByRole('button', { name: /signaler/i })).toBeNull()
 
       // Salon first, then the class code (spec UI: visible without scrolling at 360 px).

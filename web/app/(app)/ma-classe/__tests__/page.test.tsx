@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// PL-6a (#398): /ma-classe lit les cours du prof côté serveur, avec la session relayée, en
+// PL-6a (#398): /ma-classe lit les cours de ta classe côté serveur, avec la session relayée, en
 // parallèle du catalogue ; un échec n'invente rien et ne casse pas la page.
 
 const propsOnglet = vi.hoisted(() => [] as Record<string, unknown>[])

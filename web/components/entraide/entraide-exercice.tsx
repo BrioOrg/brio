@@ -15,7 +15,7 @@ export function EntraideExercice({ exerciceId }: { exerciceId: string }) {
       <Dialog.Trigger asChild>
         <Button variant="ghost" size="sm" className="-ml-3 mt-3">
           <Icon name="chat-circle" size={16} aria-hidden="true" />
-          Questions de la classe
+          Entraide
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>

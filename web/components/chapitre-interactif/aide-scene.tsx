@@ -86,7 +86,7 @@ function TiroirAide({
           </div>
           <Dialog.Description className="sr-only">
             {target.kind === 'chapitre'
-              ? 'Le tuteur et les questions de ta classe, sans quitter la diapo.'
+              ? 'Le tuteur et l’entraide de ta classe, sans quitter la diapo.'
               : 'Le tuteur, sans quitter la diapo.'}
           </Dialog.Description>
           {target.kind === 'chapitre' ? (

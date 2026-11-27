@@ -171,8 +171,8 @@ describe('SalonClasseProf', () => {
     render(<SalonClasseProf salon={SALON} />)
     await screen.findByText('Bonjour monsieur !')
 
-    expect(screen.queryByText(/ton professeur/i)).toBeNull()
-    expect(document.body).not.toHaveTextContent(/ton professeur/i)
+    expect(screen.queryByText(/ton prof(esseur)?\b/i)).toBeNull()
+    expect(document.body).not.toHaveTextContent(/ton prof(esseur)?\b/i)
     expect(document.body).not.toHaveTextContent(/ton prof\b/i)
     // The help under the field says exactly what the salon refuses (ModerationPreventive: http(s)://
     // and www. links, French phone numbers, issue 403).

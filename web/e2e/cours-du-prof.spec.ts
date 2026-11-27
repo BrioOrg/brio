@@ -17,7 +17,7 @@ const TITRE_C005 = 'Les priorités opératoires, version M. Dubois'
 const COMPILATION = { timeout: 20_000 }
 
 const blocCours = (page: import('@playwright/test').Page) =>
-  page.getByRole('region', { name: 'Les cours de ta classe' })
+  page.getByRole('region', { name: 'Cours de ta classe' })
 const filDAriane = (page: import('@playwright/test').Page) =>
   page.getByRole('navigation', { name: "Fil d'ariane" })
 
@@ -65,7 +65,7 @@ test('C13 : un cours récent sans devoir s’atteint en deux clics depuis l’Ac
   await expect(blocCours(page)).toBeVisible()
 })
 
-test('plafond : 3 cours, du plus récent au plus ancien, puis « Voir tous les cours du prof »', async ({
+test('plafond : 3 cours, du plus récent au plus ancien, puis « Voir tous les cours de ta classe »', async ({
   page,
 }) => {
   await page.goto('/ma-classe')
@@ -79,7 +79,7 @@ test('plafond : 3 cours, du plus récent au plus ancien, puis « Voir tous les c
   await expect(cartes.nth(2)).toContainText(TITRE_C001)
   await expect(page.getByText(TITRE_C005)).toHaveCount(0)
 
-  await bloc.getByRole('link', { name: /Voir tous les cours du prof/ }).click()
+  await bloc.getByRole('link', { name: /Voir tous les cours de ta classe/ }).click()
 
   await expect(page).toHaveURL('/ma-classe/cours', COMPILATION)
   for (const titre of [TITRE_C003, TITRE_C004, TITRE_C001, TITRE_C005]) {
@@ -87,8 +87,8 @@ test('plafond : 3 cours, du plus récent au plus ancien, puis « Voir tous les c
   }
 })
 
-// C1 : fil « Ma classe › Cours du prof › titre », deux entrées liées (desktop).
-test('C1 : le fil d’un cours a « Ma classe » et « Cours du prof », liés', async ({
+// C1 : fil « Ma classe › Cours de ta classe › titre », deux entrées liées (desktop).
+test('C1 : le fil d’un cours a « Ma classe » et « Cours de ta classe », liés', async ({
   page,
   context,
   baseURL,
@@ -106,13 +106,13 @@ test('C1 : le fil d’un cours a « Ma classe » et « Cours du prof », liés',
     '/ma-classe',
     COMPILATION
   )
-  await expect(fil.getByRole('link', { name: 'Cours du prof' })).toHaveAttribute(
+  await expect(fil.getByRole('link', { name: 'Cours de ta classe' })).toHaveAttribute(
     'href',
     '/ma-classe/cours'
   )
   await expect(fil.getByText(TITRE_C003)).toHaveAttribute('aria-current', 'page')
 
-  await fil.getByRole('link', { name: 'Cours du prof' }).click()
+  await fil.getByRole('link', { name: 'Cours de ta classe' }).click()
   await expect(page).toHaveURL('/ma-classe/cours', COMPILATION)
   await expect(page.getByText(TITRE_C003)).toBeVisible()
 })
@@ -128,7 +128,7 @@ test('C1 (mobile) : le fil se replie sur le titre, « Ma classe » reste la page
 
   const fil = filDAriane(page)
   await expect(fil.getByText(TITRE_C003)).toBeVisible(COMPILATION)
-  await expect(fil.getByRole('link', { name: 'Cours du prof' })).toBeHidden()
+  await expect(fil.getByRole('link', { name: 'Cours de ta classe' })).toBeHidden()
   await expect(
     page
       .getByRole('navigation', { name: 'Navigation principale' })
@@ -141,7 +141,7 @@ for (const [nom, id] of [
   ['hors de portée (403)', COURS_HORS_PORTEE],
   ['inconnu (404)', COURS_INCONNU],
 ] as const) {
-  test(`C2 : un cours ${nom} ouvert directement offre « Voir les cours du prof »`, async ({
+  test(`C2 : un cours ${nom} ouvert directement offre « Voir les cours de ta classe »`, async ({
     page,
   }) => {
     await page.goto(`/cours/${id}`)
@@ -151,20 +151,20 @@ for (const [nom, id] of [
     )
     await expect(page.getByRole('link', { name: 'Retour à mes devoirs' })).toHaveCount(0)
 
-    await page.getByRole('link', { name: /Voir les cours du prof/ }).click()
+    await page.getByRole('link', { name: /Voir les cours de ta classe/ }).click()
 
     await expect(page).toHaveURL('/ma-classe/cours', COMPILATION)
     await expect(page.getByText(TITRE_C001)).toBeVisible()
   })
 }
 
-test('C2 : le fil d’un cours indisponible garde le lien « Cours du prof » (desktop)', async ({
+test('C2 : le fil d’un cours indisponible garde le lien « Cours de ta classe » (desktop)', async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === 'mobile', 'le fil se replie sur mobile')
   await page.goto(`/cours/${COURS_INCONNU}`)
 
-  await expect(filDAriane(page).getByRole('link', { name: 'Cours du prof' })).toHaveAttribute(
+  await expect(filDAriane(page).getByRole('link', { name: 'Cours de ta classe' })).toHaveAttribute(
     'href',
     '/ma-classe/cours',
     COMPILATION

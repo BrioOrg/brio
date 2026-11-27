@@ -46,7 +46,7 @@ export function FileSignalements() {
     <div className="min-h-screen bg-surface-page font-prose text-ink">
       <header className="flex flex-wrap items-center gap-3 border-b border-line bg-surface-panel px-4 py-3">
         <h1 className="min-w-0 flex-1 font-display text-lg font-extrabold text-ink">
-          Signalements
+          Signalements d’entraide
         </h1>
         <Button variant="ghost" size="sm" onClick={() => void charger()}>
           Actualiser
@@ -203,7 +203,8 @@ function DialogueSanction({ compteId, classeId, nom, onApplique }: DialogueSanct
         type,
         motif: motif.trim() || undefined,
         // The chosen day is included: the sanction ends at its last second, local time.
-        fin: type === 'lecture_seule' && fin ? new Date(`${fin}T23:59:59`).toISOString() : undefined,
+        fin:
+          type === 'lecture_seule' && fin ? new Date(`${fin}T23:59:59`).toISOString() : undefined,
       })
       setOuvert(false)
       onApplique()
@@ -223,9 +224,7 @@ function DialogueSanction({ compteId, classeId, nom, onApplique }: DialogueSanct
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-        <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface-panel p-5 font-prose text-ink focus-visible:outline-none"
-        >
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-line bg-surface-panel p-5 font-prose text-ink focus-visible:outline-none">
           <Dialog.Title className="font-display text-lg font-extrabold text-ink">
             Sanctionner {nom}
           </Dialog.Title>
@@ -264,13 +263,13 @@ function DialogueSanction({ compteId, classeId, nom, onApplique }: DialogueSanct
               maxLength={500}
             />
             {type === 'lecture_seule' && (
-<TextInput
-              label="Jusqu’au (facultatif)"
-              type="date"
-              value={fin}
-              onChange={(e) => setFin(e.target.value)}
-            />
-)}
+              <TextInput
+                label="Jusqu’au (facultatif)"
+                type="date"
+                value={fin}
+                onChange={(e) => setFin(e.target.value)}
+              />
+            )}
 
             {erreur && (
               <p role="alert" className="text-sm text-danger">

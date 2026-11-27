@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 
 const CAP_MESSAGE =
-  'Tu as atteint la limite de questions pour cette session. Demande à ton professeur si tu as besoin d’aide supplémentaire.'
+  'Tu as atteint la limite de questions pour cette session. Demande à ton prof si tu as besoin d’aide supplémentaire.'
 
 export type TuteurPanelProps = {
   target: TutorTarget

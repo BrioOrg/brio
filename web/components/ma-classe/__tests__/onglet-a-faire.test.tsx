@@ -2,8 +2,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// PL-6a (#398), C13 et décision humaine : « Les cours de ta classe » dans l'onglet « À faire »,
-// entre « À faire » et « Terminés », plafonné à 3 avec « Voir tous les cours du prof ».
+// PL-6a (#398), C13 et décision humaine : « Cours de ta classe » dans l'onglet « À faire »,
+// entre « Devoirs à rendre » et « Terminés », plafonné à 3 avec « Voir tous les cours de ta classe ».
 
 const api = vi.hoisted(() => ({
   mesClasses: vi.fn(),
@@ -75,16 +75,16 @@ function afficher(coursDeLaClasse: ReturnType<typeof cours>[]) {
   )
 }
 
-const region = () => screen.queryByRole('region', { name: 'Les cours de ta classe' })
+const region = () => screen.queryByRole('region', { name: 'Cours de ta classe' })
 
 beforeEach(() => {
   Object.values(api).forEach((f) => f.mockReset())
   api.mesClasses.mockResolvedValue([classe4eB])
 })
 
-describe('OngletAFaire — Les cours de ta classe', () => {
+describe('OngletAFaire — Cours de ta classe', () => {
   // C13
-  it('C13 : le bloc vient après « À faire » et avant « Terminés », ses cartes ouvrent /cours/{id}', async () => {
+  it('C13 : le bloc vient après « Devoirs à rendre » et avant « Terminés », ses cartes ouvrent /cours/{id}', async () => {
     api.listerMesDevoirs.mockResolvedValue([
       devoir('d1', 'DM à faire'),
       devoir('d2', 'DM fini', { statutRendu: 'rendu' }),
@@ -92,8 +92,8 @@ describe('OngletAFaire — Les cours de ta classe', () => {
     afficher([cours('k1', 'Les angles', ['c1']), cours('k2', 'Le cercle', ['c1'])])
 
     expect(await screen.findByText('DM à faire')).toBeInTheDocument()
-    const bloc = (await screen.findByRole('region', { name: 'Les cours de ta classe' }))!
-    const aFaire = screen.getByRole('heading', { name: 'À faire' })
+    const bloc = (await screen.findByRole('region', { name: 'Cours de ta classe' }))!
+    const aFaire = screen.getByRole('heading', { name: 'Devoirs à rendre' })
     const termines = screen.getByRole('heading', { name: 'Terminés' })
     expect(aFaire.compareDocumentPosition(bloc) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(bloc.compareDocumentPosition(termines) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -120,7 +120,7 @@ describe('OngletAFaire — Les cours de ta classe', () => {
   })
 
   // décision humaine : plafond 3 + lien
-  it('4 cours pour la classe : 3 cartes (les premiers reçus) et « Voir tous les cours du prof »', async () => {
+  it('4 cours pour la classe : 3 cartes (les premiers reçus) et « Voir tous les cours de ta classe »', async () => {
     api.listerMesDevoirs.mockResolvedValue([])
     afficher([
       cours('k1', 'Premier', ['c1']),
@@ -129,21 +129,20 @@ describe('OngletAFaire — Les cours de ta classe', () => {
       cours('k4', 'Quatrième', ['c1']),
     ])
 
-    const bloc = await screen.findByRole('region', { name: 'Les cours de ta classe' })
+    const bloc = await screen.findByRole('region', { name: 'Cours de ta classe' })
     expect(within(bloc).getAllByRole('listitem')).toHaveLength(3)
     expect(screen.queryByText('Quatrième')).toBeNull()
-    expect(within(bloc).getByRole('link', { name: /Voir tous les cours du prof/ })).toHaveAttribute(
-      'href',
-      '/ma-classe/cours'
-    )
+    expect(
+      within(bloc).getByRole('link', { name: /Voir tous les cours de ta classe/ })
+    ).toHaveAttribute('href', '/ma-classe/cours')
   })
 
-  it('3 cours exactement : pas de « Voir tous les cours du prof »', async () => {
+  it('3 cours exactement : pas de « Voir tous les cours de ta classe »', async () => {
     api.listerMesDevoirs.mockResolvedValue([])
     afficher([cours('k1', 'A', ['c1']), cours('k2', 'B', ['c1']), cours('k3', 'C', ['c1'])])
 
-    await screen.findByRole('region', { name: 'Les cours de ta classe' })
-    expect(screen.queryByRole('link', { name: /Voir tous les cours du prof/ })).toBeNull()
+    await screen.findByRole('region', { name: 'Cours de ta classe' })
+    expect(screen.queryByRole('link', { name: /Voir tous les cours de ta classe/ })).toBeNull()
   })
 
   // État : le bloc n'apparaît qu'une fois la liste des devoirs réglée (pas de saut de page).
@@ -161,7 +160,7 @@ describe('OngletAFaire — Les cours de ta classe', () => {
 
     livrer([devoir('d1', 'DM à faire')])
 
-    expect(await screen.findByRole('region', { name: 'Les cours de ta classe' })).toBeVisible()
+    expect(await screen.findByRole('region', { name: 'Cours de ta classe' })).toBeVisible()
     expect(screen.queryByText('Chargement…')).toBeNull()
   })
 
@@ -175,7 +174,7 @@ describe('OngletAFaire — Les cours de ta classe', () => {
       p()
       afficher([cours('k1', 'Les angles', ['c1'])])
 
-      expect(await screen.findByRole('region', { name: 'Les cours de ta classe' })).toBeVisible()
+      expect(await screen.findByRole('region', { name: 'Cours de ta classe' })).toBeVisible()
       expect(screen.getByText('Les angles')).toBeInTheDocument()
     }
   )
@@ -183,7 +182,7 @@ describe('OngletAFaire — Les cours de ta classe', () => {
   // V1 (tour 2) : le bloc garde son espace sous ce qui le précède, et n'en a pas en tête d'onglet.
   it.each([
     [
-      'sous « À faire »',
+      'sous « Devoirs à rendre »',
       () => api.listerMesDevoirs.mockResolvedValue([devoir('d1', 'DM')]),
       'mt-6',
     ],
@@ -208,7 +207,7 @@ describe('OngletAFaire — Les cours de ta classe', () => {
     p()
     afficher([cours('k1', 'Les angles', ['c1'])])
 
-    const bloc = await screen.findByRole('region', { name: 'Les cours de ta classe' })
+    const bloc = await screen.findByRole('region', { name: 'Cours de ta classe' })
     expect(bloc.parentElement?.className ?? '').toBe(attendu)
   })
 

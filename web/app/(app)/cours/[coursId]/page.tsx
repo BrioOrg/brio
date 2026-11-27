@@ -33,12 +33,12 @@ import { MODE_COOKIE, indexDiapo, modeInitial } from '@/lib/diapos'
 import { tutorRequestCap } from '@/lib/tutor-config'
 
 // A teacher course lives outside the public catalogue tree, so it has no niveau/matiere
-// breadcrumb or sibling-chapter sidebar: its trail is « Ma classe › Cours du prof › title » (#398).
+// breadcrumb or sibling-chapter sidebar: its trail is « Ma classe › Cours de ta classe › title » (#398).
 // Same reader, same <ChapterView/> — the content is indistinguishable from a catalogue chapter
 // (ADR 0019 §1); only the surrounding nav differs.
 const FIL = [
   { label: 'Ma classe', href: '/ma-classe' },
-  { label: 'Cours du prof', href: '/ma-classe/cours' },
+  { label: 'Cours de ta classe', href: '/ma-classe/cours' },
 ] as const
 
 export default async function CoursPage({
@@ -88,7 +88,7 @@ export default async function CoursPage({
             <Link href={devoirEleve ? '/ma-classe' : '/ma-classe/cours'}>
               <Button variant="secondary" size="sm" tabIndex={-1}>
                 <Icon name="arrow-left" size={16} aria-hidden="true" />
-                {devoirEleve ? 'Retour à mes devoirs' : 'Voir les cours du prof'}
+                {devoirEleve ? 'Retour à mes devoirs' : 'Voir les cours de ta classe'}
               </Button>
             </Link>
           </div>

@@ -76,7 +76,7 @@ const devoir = (sourceRef: string) => ({
 
 const FIL = [
   { label: 'Ma classe', href: '/ma-classe' },
-  { label: 'Cours du prof', href: '/ma-classe/cours' },
+  { label: 'Cours de ta classe', href: '/ma-classe/cours' },
 ]
 
 async function renderPage({
@@ -94,7 +94,7 @@ async function renderPage({
   return render(page)
 }
 
-const lienCoursDuProf = () => screen.queryAllByRole('link', { name: /Voir les cours du prof/ })
+const lienCoursDuProf = () => screen.queryAllByRole('link', { name: /Voir les cours de ta classe/ })
 const lienRetour = () => screen.queryAllByRole('link', { name: /Retour à mes devoirs/ })
 
 beforeEach(() => {
@@ -108,7 +108,7 @@ afterEach(async () => {
   await act(async () => {})
 })
 
-describe('Cours du prof — fil et sortie (PL-6a)', () => {
+describe('Cours de ta classe — fil et sortie (PL-6a)', () => {
   describe('un cours lisible', () => {
     // C1
     it('C1 : le fil a deux entrées liées avant le titre, le titre est la page courante', async () => {
@@ -125,7 +125,7 @@ describe('Cours du prof — fil et sortie (PL-6a)', () => {
       expect(screen.getByText('Devoir de M. Dubois · à rendre le 3 octobre')).toBeInTheDocument()
     })
 
-    it('un cours lisible ne montre pas de bouton « Voir les cours du prof » dans le corps', async () => {
+    it('un cours lisible ne montre pas de bouton « Voir les cours de ta classe » dans le corps', async () => {
       await renderPage()
 
       expect(lienCoursDuProf()).toHaveLength(0)
@@ -168,7 +168,7 @@ describe('Cours du prof — fil et sortie (PL-6a)', () => {
         async () => renderPage({ disponible: false, devoir: 'd1' }),
         () => lireDevoirs.mockResolvedValue([]),
       ],
-    ])('C2 : un seul lien « Voir les cours du prof » %s', async (_nom, rendre, preparer) => {
+    ])('C2 : un seul lien « Voir les cours de ta classe » %s', async (_nom, rendre, preparer) => {
       preparer()
       await rendre()
 
@@ -187,7 +187,7 @@ describe('Cours du prof — fil et sortie (PL-6a)', () => {
     })
 
     // C6 — the homework way back is not replaced by the teacher's courses.
-    it('C6 : un devoir de l’élève garde « Retour à mes devoirs », sans « Voir les cours du prof »', async () => {
+    it('C6 : un devoir de l’élève garde « Retour à mes devoirs », sans « Voir les cours de ta classe »', async () => {
       lireDevoirs.mockResolvedValue([devoir(AUTRE_COURS_ID)])
       await renderPage({ disponible: false, devoir: 'd1' })
 

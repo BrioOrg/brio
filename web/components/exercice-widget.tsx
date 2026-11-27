@@ -632,9 +632,9 @@ function retour(
   const nudge = isCorrect
     ? null
     : courseSection
-      ? 'Regarde cette partie du cours.'
+      ? 'Regarde cette partie.'
       : exerciseType === 'short-answer'
-        ? 'On regarde ensemble : relis la section précédente.'
+        ? 'On regarde ensemble : relis la partie précédente.'
         : 'On regarde ensemble : reprends le raisonnement pas à pas.'
   return { isCorrect, explanation, nudge }
 }

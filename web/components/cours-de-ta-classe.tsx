@@ -10,8 +10,8 @@ const DATE_PUBLICATION = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'Europe/Paris',
 })
 
-// The title of the full list (« Cours du prof » tab) and of the capped block (« À faire » tab), whose
-// spacing follows its neighbours « À faire » and « Terminés ».
+// The title of the full list (« Cours de ta classe » tab) and of the capped block (« À faire » tab), whose
+// spacing follows its neighbours « Devoirs à rendre » and « Terminés ».
 const TITRE = 'font-display text-xs font-extrabold uppercase tracking-widest text-ink-muted'
 const TITRE_LISTE = `mb-4 ${TITRE}`
 const TITRE_BLOC = `mb-2 ${TITRE}`
@@ -44,7 +44,7 @@ export function CoursDeTaClasse({
       aria-labelledby="cours-classe-heading"
     >
       <h2 id="cours-classe-heading" className={plafond === undefined ? TITRE_LISTE : TITRE_BLOC}>
-        Les cours de ta classe
+        Cours de ta classe
       </h2>
       {plafond === undefined ? (
         <CoursesBySubject cours={cours} catalogue={catalogue} />
@@ -56,7 +56,7 @@ export function CoursDeTaClasse({
           href="/ma-classe/cours"
           className="mt-3 inline-flex min-h-11 items-center gap-1 font-display text-sm font-extrabold text-accent-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          Voir tous les cours du prof
+          Voir tous les cours de ta classe
           <Icon name="arrow-right" size={16} aria-hidden="true" />
         </Link>
       )}
