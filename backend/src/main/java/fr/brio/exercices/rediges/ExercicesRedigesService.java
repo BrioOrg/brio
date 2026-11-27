@@ -13,6 +13,7 @@ import fr.brio.exercices.rediges.ExercicesRedigesContrats.RemiseExerciceRedige;
 import fr.brio.exercices.rediges.ExercicesRedigesRepository.Copie;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -141,7 +142,8 @@ class ExercicesRedigesService {
         if (definition.closA(now)) {
             return vueProf(definition, now);
         }
-        repository.cloturer(id, now);
+        // PostgreSQL stores microseconds. Round down so the saved cutoff is never after now.
+        repository.cloturer(id, now.truncatedTo(ChronoUnit.MICROS));
         return vueProf(repository.trouver(id).orElseThrow(), now);
     }
 
