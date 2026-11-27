@@ -1,7 +1,11 @@
 package fr.brio.exercices.rediges;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.brio.exercices.rediges.ExerciceRedige.ModeCorrection;
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.CleCorrection;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.RetourCopie;
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.RetourIa;
 import java.time.OffsetDateTime;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -17,10 +21,10 @@ import org.springframework.stereotype.Repository;
 class ExercicesRedigesRepository {
     private static final String DEFINITIONS = """
             SELECT id, version, cours_id, auteur_id, titre, enonce, reponse_attendue, corrige,
-                   mode_correction, photo_autorisee, copie_modele, echeance, publie_at, cloture_at
+                   mode_correction, photo_autorisee, copie_modele, echeance, publie_at, cloture_at, cle_correction
             FROM exercices.rediges_definitions
             """;
-    private static final RowMapper<ExerciceRedige> DEFINITION = (rs, row) -> new ExerciceRedige(
+    private final RowMapper<ExerciceRedige> definition = (rs, row) -> new ExerciceRedige(
             rs.getObject("id", UUID.class), rs.getInt("version"), rs.getObject("cours_id", UUID.class),
             rs.getObject("auteur_id", UUID.class), null, null, null, rs.getString("titre"),
             rs.getString("enonce"), rs.getString("reponse_attendue"), rs.getString("corrige"),
@@ -28,57 +32,62 @@ class ExercicesRedigesRepository {
             rs.getString("copie_modele"),
             instant(rs.getObject("echeance", OffsetDateTime.class)),
             instant(rs.getObject("publie_at", OffsetDateTime.class)),
-            instant(rs.getObject("cloture_at", OffsetDateTime.class)));
+            instant(rs.getObject("cloture_at", OffsetDateTime.class)),
+            lireJson(rs.getString("cle_correction"), CleCorrection.class));
 
     private static final String COPIES = """
             SELECT s.version, s.eleve_id, s.titre, s.enonce, s.corrige, s.copie_modele,
-                   s.reponse, s.correct, s.remis_at, s.retour_commentaire, s.retour_publie_at,
+                   s.reponse, s.correct, s.remis_at, s.retour_commentaire, s.retour_publie_at, s.retour_ia,
                    EXISTS (SELECT 1 FROM exercices.rediges_photos p
                            WHERE (p.exercice_id, p.version, p.eleve_id) =
                                  (s.exercice_id, s.version, s.eleve_id)) AS photo
             FROM exercices.rediges_soumissions s
             """;
-    private static final RowMapper<Copie> COPIE = (rs, row) -> {
+    private final RowMapper<Copie> copie = (rs, row) -> {
         Instant retourPublie = instant(rs.getObject("retour_publie_at", OffsetDateTime.class));
         RetourCopie retour = retourPublie == null ? null : new RetourCopie(rs.getString("retour_commentaire"), retourPublie);
         return new Copie(rs.getInt("version"), rs.getObject("eleve_id", UUID.class),
                 rs.getString("titre"), rs.getString("enonce"), rs.getString("corrige"), rs.getString("copie_modele"),
                 rs.getString("reponse"), rs.getObject("correct", Boolean.class),
-                instant(rs.getObject("remis_at", OffsetDateTime.class)), rs.getBoolean("photo"), retour);
+                instant(rs.getObject("remis_at", OffsetDateTime.class)), rs.getBoolean("photo"), retour,
+                lireJson(rs.getString("retour_ia"), RetourIa.class));
     };
 
     private final JdbcClient jdbc;
 
-    ExercicesRedigesRepository(JdbcClient jdbc) {
+    private final ObjectMapper json;
+
+    ExercicesRedigesRepository(JdbcClient jdbc, ObjectMapper json) {
         this.jdbc = jdbc;
+        this.json = json;
     }
 
     Optional<ExerciceRedige> trouver(UUID id) {
-        return jdbc.sql(DEFINITIONS + "WHERE id = :id").param("id", id).query(DEFINITION).optional();
+        return jdbc.sql(DEFINITIONS + "WHERE id = :id").param("id", id).query(definition).optional();
     }
 
     Optional<ExerciceRedige> verrouiller(UUID id) {
         return jdbc.sql(DEFINITIONS + "WHERE id = :id FOR UPDATE")
-                .param("id", id).query(DEFINITION).optional();
+                .param("id", id).query(definition).optional();
     }
 
     List<ExerciceRedige> pourCours(UUID coursId) {
         return jdbc.sql(DEFINITIONS + "WHERE cours_id = :cours AND publie_at IS NOT NULL ORDER BY publie_at, id")
-                .param("cours", coursId).query(DEFINITION).list();
+                .param("cours", coursId).query(definition).list();
     }
 
     List<ExerciceRedige> pourAuteur(UUID auteurId) {
         return jdbc.sql(DEFINITIONS + "WHERE auteur_id = :auteur ORDER BY modifie_at DESC, id")
-                .param("auteur", auteurId).query(DEFINITION).list();
+                .param("auteur", auteurId).query(definition).list();
     }
 
     void creer(ExerciceRedige e, Instant instant) {
         champs(jdbc.sql("""
                 INSERT INTO exercices.rediges_definitions
                     (id, cours_id, auteur_id, version, titre, enonce, reponse_attendue, corrige,
-                     mode_correction, photo_autorisee, copie_modele, echeance, modifie_at)
+                     mode_correction, photo_autorisee, copie_modele, cle_correction, echeance, modifie_at)
                 VALUES (:id, :cours, :auteur, :version, :titre, :enonce, :attendue, :corrige,
-                        :mode, :photoAutorisee, :copieModele, :echeance, :instant)
+                        :mode, :photoAutorisee, :copieModele, CAST(:cleCorrection AS jsonb), :echeance, :instant)
                 """), e, instant).param("auteur", e.auteurId()).param("version", e.version()).update();
     }
 
@@ -88,7 +97,7 @@ class ExercicesRedigesRepository {
                 SET cours_id = :cours, titre = :titre, enonce = :enonce,
                     reponse_attendue = :attendue, corrige = :corrige, mode_correction = :mode,
                     photo_autorisee = :photoAutorisee, copie_modele = :copieModele,
-                    echeance = :echeance, modifie_at = :instant
+                    cle_correction = CAST(:cleCorrection AS jsonb), echeance = :echeance, modifie_at = :instant
                 WHERE id = :id
                 """), e, instant).update();
     }
@@ -105,18 +114,18 @@ class ExercicesRedigesRepository {
                 """).param("instant", date(instant)).param("id", id).update();
     }
 
-    private static JdbcClient.StatementSpec champs(JdbcClient.StatementSpec statement, ExerciceRedige e, Instant instant) {
+    private JdbcClient.StatementSpec champs(JdbcClient.StatementSpec statement, ExerciceRedige e, Instant instant) {
         return statement.param("id", e.id()).param("cours", e.coursId()).param("titre", e.titre())
                 .param("enonce", e.enonce()).param("attendue", e.reponseAttendue()).param("corrige", e.corrige())
                 .param("mode", e.modeCorrection().name()).param("photoAutorisee", e.photoAutorisee())
-                .param("copieModele", e.copieModele())
+                .param("copieModele", e.copieModele()).param("cleCorrection", ecrireJson(e.cleCorrection()))
                 .param("echeance", date(e.echeance())).param("instant", date(instant));
     }
 
     Optional<Copie> copie(UUID exerciceId, UUID eleveId) {
         return jdbc.sql(COPIES + """
                 WHERE s.exercice_id = :exercice AND s.eleve_id = :eleve ORDER BY s.version DESC LIMIT 1
-                """).param("exercice", exerciceId).param("eleve", eleveId).query(COPIE)
+                """).param("exercice", exerciceId).param("eleve", eleveId).query(copie)
                 .optional();
     }
 
@@ -128,21 +137,22 @@ class ExercicesRedigesRepository {
                 WHERE s.exercice_id = :exercice AND s.version = :version AND s.eleve_id IN (:eleves)
                 ORDER BY s.remis_at DESC, s.eleve_id
                 """).param("exercice", exerciceId).param("version", version).param("eleves", eleves)
-                .query(COPIE).list();
+                .query(copie).list();
     }
 
-    void soumettre(ExerciceRedige e, UUID eleveId, String reponse, Boolean correct, Instant remisAt, PhotoCopie photo) {
+    boolean soumettre(ExerciceRedige e, UUID eleveId, String reponse, Boolean correct, Instant remisAt, PhotoCopie photo, RetourIa retourIa) {
         // A catalogue definition has no database row to lock. Its unique key makes a racing second
         // submit a no-op, then the following read returns the winner in either case.
         int inserees = jdbc.sql("""
                 INSERT INTO exercices.rediges_soumissions
-                    (exercice_id, version, eleve_id, titre, enonce, corrige, copie_modele, reponse, correct, remis_at)
-                VALUES (:exercice, :version, :eleve, :titre, :enonce, :corrige, :copieModele, :reponse, :correct, :remis)
+                    (exercice_id, version, eleve_id, titre, enonce, corrige, copie_modele, reponse, correct, remis_at, retour_ia)
+                VALUES (:exercice, :version, :eleve, :titre, :enonce, :corrige, :copieModele, :reponse, :correct, :remis, CAST(:retourIa AS jsonb))
                 ON CONFLICT (exercice_id, version, eleve_id) DO NOTHING
                 """).param("exercice", e.id()).param("version", e.version()).param("eleve", eleveId)
                 .param("titre", e.titre()).param("enonce", e.enonce()).param("corrige", e.corrige())
                 .param("copieModele", e.copieModele())
-                .param("reponse", reponse).param("correct", correct).param("remis", date(remisAt)).update();
+                .param("reponse", reponse).param("correct", correct).param("remis", date(remisAt))
+                .param("retourIa", ecrireJson(retourIa)).update();
         if (inserees == 1 && photo != null) {
             jdbc.sql("""
                     INSERT INTO exercices.rediges_photos (exercice_id, version, eleve_id, content_type, contenu)
@@ -150,6 +160,7 @@ class ExercicesRedigesRepository {
                     """).param("exercice", e.id()).param("version", e.version()).param("eleve", eleveId)
                     .param("contentType", photo.contentType()).param("contenu", photo.contenu()).update();
         }
+        return inserees == 1;
     }
 
     Optional<PhotoCopie> photo(UUID exerciceId, int version, UUID eleveId) {
@@ -168,6 +179,30 @@ class ExercicesRedigesRepository {
                 .param("commentaire", commentaire).param("instant", date(instant)).update();
     }
 
+    void conserverRetourIa(UUID exerciceId, int version, UUID eleveId, RetourIa retour) {
+        jdbc.sql("""
+                UPDATE exercices.rediges_soumissions SET retour_ia = CAST(:retour AS jsonb)
+                WHERE exercice_id = :exercice AND version = :version AND eleve_id = :eleve
+                """).param("exercice", exerciceId).param("version", version).param("eleve", eleveId)
+                .param("retour", ecrireJson(retour)).update();
+    }
+
+    private <T> T lireJson(String value, Class<T> type) {
+        try {
+            return value == null ? null : json.readValue(value, type);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Invalid stored written exercise data", exception);
+        }
+    }
+
+    private String ecrireJson(Object value) {
+        try {
+            return value == null ? null : json.writeValueAsString(value);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Cannot serialize written exercise data", exception);
+        }
+    }
+
     private static Instant instant(OffsetDateTime date) {
         return date == null ? null : date.toInstant();
     }
@@ -177,5 +212,5 @@ class ExercicesRedigesRepository {
     }
 
     record Copie(int version, UUID eleveId, String titre, String enonce, String corrige, String copieModele,
-                 String reponse, Boolean correct, Instant remisAt, boolean photo, RetourCopie retour) {}
+                 String reponse, Boolean correct, Instant remisAt, boolean photo, RetourCopie retour, RetourIa retourIa) {}
 }

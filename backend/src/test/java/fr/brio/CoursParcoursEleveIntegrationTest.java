@@ -1,6 +1,9 @@
 package fr.brio;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -23,14 +26,23 @@ import fr.brio.ia.domain.TuteurService;
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.CompteService;
 import fr.brio.identite.api.ClasseInfo;
+import fr.brio.exercices.rediges.RetourExerciceApi;
+import fr.brio.exercices.rediges.RetourExerciceApi.Critere;
+import fr.brio.exercices.rediges.RetourExerciceApi.Demande;
+import fr.brio.exercices.rediges.RetourExerciceApi.Etat;
+import fr.brio.exercices.rediges.RetourExerciceApi.Evaluation;
+import fr.brio.exercices.rediges.RetourExerciceApi.Verdict;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -70,6 +82,7 @@ class CoursParcoursEleveIntegrationTest {
     @Autowired ChapitreIngestor chapitreIngestor;
     @Autowired ObjectMapper objectMapper;
     @MockitoBean TuteurService tutor;
+    @MockitoBean RetourExerciceApi retourIa;
 
     MockMvc mockMvc;
 
@@ -329,6 +342,72 @@ class CoursParcoursEleveIntegrationTest {
     }
 
     // --- HTTP steps --------------------------------------------------------------
+
+    @Test
+    void leRetourParCriteresEstFacultatifEtConserveAvecLaCopie() throws Exception {
+        UUID coursId = creerEtPublier(content(fillBlank("[\"côté\", \"droit\"]")));
+        String statement = "Nomme deux conditions de la concurrence pure et parfaite.";
+        String correction = "Par exemple, la libre entrée et l’homogénéité du produit.";
+        var draft = exerciceRedige(coursId).put("enonce", statement).put("corrige", correction)
+                .put("modeCorrection", "ia");
+        draft.remove("reponseAttendue");
+        var key = draft.putObject("cleCorrection").put("type", "liste")
+                .put("minimum", 2).put("confirmee", false);
+        var criteria = key.putArray("criteres");
+        criteria.addObject().put("attendu", "Libre entrée et sortie").putArray("variantes")
+                .add("Entrer et sortir librement");
+        criteria.addObject().put("attendu", "Homogénéité du produit").putArray("variantes")
+                .add("Produits identiques");
+
+        String unconfirmed = creerRedige(draft);
+        mockMvc.perform(post("/api/prof/exercices-rediges/{id}/publier", unconfirmed).with(teacher).with(csrf()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("CLE_IA_INVALIDE"));
+
+        key.put("confirmee", true);
+        String id = creerRedige(draft);
+        mockMvc.perform(post("/api/prof/exercices-rediges/{id}/publier", id).with(teacher).with(csrf()))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("RETOUR_IA_DESACTIVE"));
+
+        when(retourIa.actif()).thenReturn(true);
+        publierRedige(id);
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.corrige").doesNotExist())
+                .andExpect(jsonPath("$.cleCorrection").doesNotExist());
+        remettrePhoto(id, null).andExpect(status().isUnprocessableEntity());
+
+        String answer = "Les entreprises peuvent entrer et sortir librement.";
+        when(retourIa.evaluer(any())).thenReturn(Optional.of(new Evaluation(List.of(
+                new Verdict(1, Etat.present, "entrer et sortir librement"),
+                new Verdict(2, Etat.manquant, "")), 100, 50)));
+        String feedback = "$.soumission.retourIa";
+        remettreRedige(id, answer).andExpect(status().isOk())
+                .andExpect(jsonPath("$.corrige").value(correction))
+                .andExpect(jsonPath("$.soumission.correct").doesNotExist())
+                .andExpect(jsonPath(feedback + ".etat").value("en_attente"));
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath(feedback + ".criteres[0].extrait").value("entrer et sortir librement"))
+                        .andExpect(jsonPath(feedback + ".criteres[1].etat").value("manquant")));
+        remettreRedige(id, "Un deuxième envoi").andExpect(status().isOk())
+                .andExpect(jsonPath("$.soumission.reponse").value(answer));
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath(feedback + ".etat").value("disponible"));
+        verify(retourIa).evaluer(new Demande(statement, 2, List.of(
+                new Critere("Libre entrée et sortie", List.of("Entrer et sortir librement")),
+                new Critere("Homogénéité du produit", List.of("Produits identiques"))), null, answer));
+
+        when(retourIa.evaluer(any())).thenReturn(Optional.empty());
+        var otherAnswer = objectMapper.createObjectNode().put("version", 1).put("reponse", "Je ne sais pas.");
+        mockMvc.perform(post("/api/exercices-rediges/{id}/soumission", id).with(camarade).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(otherAnswer.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.corrige").value(correction));
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(camarade))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath(feedback + ".etat").value("indisponible")));
+    }
 
     private ObjectNode exerciceRedige(UUID coursId) {
         return objectMapper.createObjectNode().put("coursId", coursId.toString())

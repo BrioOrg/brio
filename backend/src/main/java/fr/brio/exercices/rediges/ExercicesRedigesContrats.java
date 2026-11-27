@@ -2,11 +2,14 @@ package fr.brio.exercices.rediges;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import fr.brio.exercices.rediges.ExerciceRedige.ModeCorrection;
+import fr.brio.exercices.rediges.RetourExerciceApi.Etat;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 final class ExercicesRedigesContrats {
@@ -25,7 +28,36 @@ final class ExercicesRedigesContrats {
             Instant echeance,
             ModeCorrection modeCorrection,
             boolean photoAutorisee,
-            @Size(max = MAX_REPONSE_TEXTE) String copieModele) {}
+            @Size(max = MAX_REPONSE_TEXTE) String copieModele,
+            @Valid CleCorrection cleCorrection) {}
+
+    enum TypeCle { traduction, liste }
+
+    record CritereCorrection(
+            @NotNull @Size(max = 180) String attendu,
+            @NotNull @Size(max = 4) List<@NotBlank @Size(max = 100) String> variantes) {}
+
+    record CleCorrection(
+            @NotNull TypeCle type,
+            @Positive int minimum,
+            @NotNull @Size(min = 1, max = 6) List<@NotNull @Valid CritereCorrection> criteres,
+            @Size(max = 500) String extraitLecon,
+            boolean confirmee) {}
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    record CritereEvalue(String attendu, Etat etat, String extrait) {}
+
+    enum EtatRetourIa { en_attente, disponible, indisponible }
+
+    record RetourIa(EtatRetourIa etat, int minimum, List<CritereEvalue> criteres) {
+        static RetourIa enAttente() {
+            return new RetourIa(EtatRetourIa.en_attente, 0, List.of());
+        }
+
+        static RetourIa indisponible() {
+            return new RetourIa(EtatRetourIa.indisponible, 0, List.of());
+        }
+    }
 
     record RemiseExerciceRedige(@Positive int version, @NotNull @Size(max = MAX_REPONSE_TEXTE) String reponse) {}
 
@@ -35,7 +67,7 @@ final class ExercicesRedigesContrats {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record CopieExerciceRedige(
-            String reponse, Boolean correct, Instant remisAt, boolean photo, RetourCopie retour) {}
+            String reponse, Boolean correct, Instant remisAt, boolean photo, RetourCopie retour, RetourIa retourIa) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record CopiePourRevue(
@@ -71,6 +103,7 @@ final class ExercicesRedigesContrats {
             ModeCorrection modeCorrection,
             boolean photoAutorisee,
             String copieModele,
+            CleCorrection cleCorrection,
             Instant echeance,
             boolean publie,
             boolean cloture) {}
