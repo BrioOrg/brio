@@ -9,6 +9,21 @@ export type WrittenExerciseLesson =
 const identifier = z.string().uuid()
 const optionalDate = z.string().datetime({ offset: true }).nullish()
 const summarySchema = z.object({ id: identifier, titre: z.string() })
+const modeCorrection = z.enum(['automatique', 'enseignant'])
+const feedbackSchema = z.object({
+  commentaire: z.string(),
+  publieAt: z.string().datetime({ offset: true }),
+})
+const copySchema = z.object({
+  reponse: z.string(),
+  remisAt: z.string().datetime({ offset: true }),
+  photo: z.boolean().optional(),
+  retour: feedbackSchema.nullish(),
+})
+const teacherCopySchema = copySchema.extend({
+  eleveId: identifier,
+  nomAffiche: z.string(),
+})
 
 const exerciseSchema = summarySchema.extend({
   version: z.number().int().positive(),
@@ -20,21 +35,21 @@ const exerciseSchema = summarySchema.extend({
   echeance: optionalDate,
   cloture: z.boolean(),
   corrige: z.string().nullish(),
-  soumission: z
-    .object({
-      reponse: z.string(),
-      correct: z.boolean(),
-      remisAt: z.string().datetime({ offset: true }),
-    })
-    .nullish(),
+  copieModele: z.string().nullish(),
+  modeCorrection: modeCorrection.optional(),
+  photoAutorisee: z.boolean().optional(),
+  soumission: copySchema.extend({ correct: z.boolean().nullish() }).nullish(),
 })
 
 const teacherExerciseSchema = summarySchema.extend({
   version: z.number().int().positive(),
   coursId: identifier,
   enonce: z.string(),
-  reponseAttendue: z.string(),
+  reponseAttendue: z.string().nullish(),
   corrige: z.string(),
+  copieModele: z.string().nullish(),
+  modeCorrection: modeCorrection.optional(),
+  photoAutorisee: z.boolean().optional(),
   echeance: optionalDate,
   publie: z.boolean(),
   cloture: z.boolean(),
@@ -43,10 +58,13 @@ const teacherExerciseSchema = summarySchema.extend({
 export type WrittenExerciseSummary = z.infer<typeof summarySchema>
 export type WrittenExercise = z.infer<typeof exerciseSchema>
 export type TeacherWrittenExercise = z.infer<typeof teacherExerciseSchema>
+export type TeacherWrittenCopy = z.infer<typeof teacherCopySchema>
 export type WrittenExerciseDraft = Omit<
   TeacherWrittenExercise,
   'id' | 'version' | 'publie' | 'cloture'
 >
+
+export const WRITTEN_PHOTO_MAX_BYTES = 5 * 1024 * 1024
 
 export class WrittenExerciseApiError extends Error {
   constructor(
@@ -79,9 +97,15 @@ async function requestExercise<T>(
     body,
     cookie,
     signal,
-  }: { method?: 'GET' | 'POST' | 'PUT'; body?: object; cookie?: string; signal?: AbortSignal } = {}
+  }: {
+    method?: 'GET' | 'POST' | 'PUT'
+    body?: object | FormData
+    cookie?: string
+    signal?: AbortSignal
+  } = {}
 ): Promise<T> {
   const base = apiBaseUrl()
+  const multipart = body instanceof FormData
   const response = await fetch(`${base}${path}`, {
     method,
     credentials: 'include',
@@ -90,9 +114,9 @@ async function requestExercise<T>(
     headers: {
       ...(cookie ? { cookie } : {}),
       ...(method !== 'GET' ? csrfHeaders(await ensureCsrfToken(base)) : {}),
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      ...(body && !multipart ? { 'Content-Type': 'application/json' } : {}),
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: multipart ? body : body ? JSON.stringify(body) : undefined,
   })
   if (!response.ok) {
     if (response.status === 401) signalerSessionExpiree()
@@ -114,7 +138,18 @@ export function getWrittenExercise(id: string, cookie?: string) {
   return requestExercise(`${studentPath}/${encodeURIComponent(id)}`, exerciseSchema, { cookie })
 }
 
-export function submitWrittenExercise(id: string, version: number, reponse: string) {
+export function submitWrittenExercise(id: string, version: number, reponse: string, photo?: File) {
+  if (photo) {
+    const body = new FormData()
+    body.set('version', String(version))
+    body.set('reponse', reponse)
+    body.set('photo', photo)
+    return requestExercise(
+      `${studentPath}/${encodeURIComponent(id)}/soumission-photo`,
+      exerciseSchema,
+      { method: 'POST', body }
+    )
+  }
   return requestExercise(`${studentPath}/${encodeURIComponent(id)}/soumission`, exerciseSchema, {
     method: 'POST',
     body: { version, reponse },
@@ -153,6 +188,30 @@ export function closeWrittenExercise(id: string) {
   )
 }
 
+function teacherCopiesPath(id: string) {
+  return `${teacherPath}/${encodeURIComponent(id)}/copies`
+}
+
+export function listTeacherWrittenCopies(id: string, signal?: AbortSignal) {
+  return requestExercise(teacherCopiesPath(id), z.array(teacherCopySchema), { signal })
+}
+
+export function publishWrittenFeedback(id: string, studentId: string, commentaire: string) {
+  return requestExercise(
+    `${teacherCopiesPath(id)}/${encodeURIComponent(studentId)}/retour`,
+    teacherCopySchema,
+    { method: 'PUT', body: { commentaire } }
+  )
+}
+
+export function studentWrittenPhotoHref(id: string) {
+  return `${studentPath}/${encodeURIComponent(id)}/photo`
+}
+
+export function teacherWrittenPhotoHref(id: string, studentId: string) {
+  return `${teacherCopiesPath(id)}/${encodeURIComponent(studentId)}/photo`
+}
+
 export function writtenExerciseErrorMessage(error: unknown, fallback: string) {
   if (!(error instanceof WrittenExerciseApiError)) return fallback
   if (error.code === 'FORMULE_ILLISIBLE') {
@@ -162,7 +221,13 @@ export function writtenExerciseErrorMessage(error: unknown, fallback: string) {
     return 'Cette formule sort du format attendu. Utilise une expression polynomiale en x.'
   }
   if (error.code === 'CORRIGE_INCOMPLET') {
-    return 'Complète le titre, l’énoncé, la réponse attendue et le corrigé avant de publier.'
+    return 'Complète l’énoncé et les champs de correction avant de publier.'
+  }
+  if (error.code === 'PHOTO_INVALIDE' || error.status === 413) {
+    return 'Choisis une photo JPEG ou PNG de 5 Mo maximum.'
+  }
+  if (error.code === 'PHOTO_NON_AUTORISEE') {
+    return 'Cet exercice n’accepte pas de photo.'
   }
   if (error.code === 'ECHEANCE_PASSEE')
     return 'Choisis une échéance dans le futur ou laisse-la vide.'

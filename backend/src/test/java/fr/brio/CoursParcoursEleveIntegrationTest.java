@@ -5,9 +5,11 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
@@ -18,6 +20,9 @@ import fr.brio.contenu.infrastructure.ChapitreIngestor;
 import fr.brio.identite.ClasseService;
 import fr.brio.identite.CompteService;
 import fr.brio.identite.api.ClasseInfo;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -26,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +40,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -64,6 +71,9 @@ class CoursParcoursEleveIntegrationTest {
     private RequestPostProcessor student;
     private RequestPostProcessor autreEleve;
     private RequestPostProcessor autreProf;
+    private RequestPostProcessor camarade;
+    private UUID studentId;
+    private UUID autreProfId;
     private ClasseInfo classe;
 
     @BeforeEach
@@ -81,10 +91,12 @@ class CoursParcoursEleveIntegrationTest {
         teacher = user(teacherId.toString()).roles("ENSEIGNANT");
 
         var code = classeService.genererCode(classe.id(), teacherId, 14, 40);
-        UUID studentId = classeService.rejoindreParCode(code.code(), "motdepasse123", "Alice").id();
+        studentId = classeService.rejoindreParCode(code.code(), "motdepasse123", "Alice").id();
         student = user(studentId.toString()).roles("ELEVE");
+        camarade = user(classeService.rejoindreParCode(code.code(), "motdepasse123", "Camille").id().toString())
+                .roles("ELEVE");
 
-        UUID autreProfId = compteService.creerEnseignant(
+        autreProfId = compteService.creerEnseignant(
                 "motdepasse123", "Autre professeur", "autre-" + suffix + "@example.fr", etab.id()).id();
         autreProf = user(autreProfId.toString()).roles("ENSEIGNANT");
         var autreClasse = classeService.creerClasse(etab.id(), "3e", "3e B", "2025-2026", null);
@@ -92,6 +104,81 @@ class CoursParcoursEleveIntegrationTest {
         var autreCode = classeService.genererCode(autreClasse.id(), autreProfId, 14, 40);
         autreEleve = user(classeService.rejoindreParCode(autreCode.code(), "motdepasse123", "Bob").id().toString())
                 .roles("ELEVE");
+    }
+
+    @Test
+    void unePhotoEstUneCopiePriveeEtLeRetourEstPubliePourSonAuteur() throws Exception {
+        UUID coursId = creerEtPublier(content(fillBlank("[\"côté\", \"droit\"]")));
+        String id = creerRedige(exerciceRedigePourRevue(coursId, true));
+        publierRedige(id);
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.modeCorrection").value("enseignant"))
+                .andExpect(jsonPath("$.corrige").doesNotExist()).andExpect(jsonPath("$.copieModele").doesNotExist());
+
+        remettrePhoto(id, null).andExpect(status().isOk())
+                .andExpect(jsonPath("$.soumission.photo").value(true))
+                .andExpect(jsonPath("$.soumission.correct").doesNotExist())
+                .andExpect(jsonPath("$.soumission.retour").doesNotExist())
+                .andExpect(jsonPath("$.corrige").value("Justifier chaque étape avec une propriété."))
+                .andExpect(jsonPath("$.copieModele").value("On énonce puis on applique la propriété."));
+
+        byte[] cleaned = mockMvc.perform(get("/api/exercices-rediges/{id}/photo", id).with(student))
+                .andExpect(status().isOk()).andExpect(header().string("Content-Type", "image/png"))
+                .andExpect(header().string("Cache-Control", "no-store, private"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertThat(ImageIO.read(new ByteArrayInputStream(cleaned)).getWidth()).isEqualTo(3);
+        mockMvc.perform(get("/api/exercices-rediges/{id}/photo", id).with(camarade))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/exercices-rediges/{id}/photo", id).with(autreEleve))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/exercices-rediges/{id}/photo", id))
+                .andExpect(status().isUnauthorized());
+
+        String review = "/api/prof/exercices-rediges/{id}/copies";
+        mockMvc.perform(get(review, id).with(teacher))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].eleveId").value(studentId.toString()))
+                .andExpect(jsonPath("$[0].nomAffiche").value("Alice"));
+        mockMvc.perform(get(review + "/{eleveId}/photo", id, studentId).with(autreProf))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get(review + "/{eleveId}/photo", id, studentId).with(teacher))
+                .andExpect(status().isOk()).andExpect(header().string("X-Content-Type-Options", "nosniff"));
+
+        String feedback = "Pense à préciser la propriété appliquée.";
+        String json = objectMapper.createObjectNode().put("commentaire", feedback).toString();
+        mockMvc.perform(put(review + "/{eleveId}/retour", id, studentId).with(autreProf).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(put(review + "/{eleveId}/retour", id, studentId).with(teacher).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.retour.commentaire").value(feedback));
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(student))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.soumission.retour.commentaire").value(feedback));
+        mockMvc.perform(get("/api/exercices-rediges/{id}", id).with(camarade))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.soumission").doesNotExist())
+                .andExpect(jsonPath("$.corrige").doesNotExist());
+
+        classeService.assignerEnseignantPrincipal(classe.id(), autreProfId);
+        mockMvc.perform(get(review + "/{eleveId}/photo", id, studentId).with(teacher))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void laPhotoEstRefuseeHorsDesExercicesQuiLAutorisent() throws Exception {
+        UUID coursId = creerEtPublier(content(fillBlank("[\"côté\", \"droit\"]")));
+        String automatic = creerRedige(exerciceRedige(coursId));
+        publierRedige(automatic);
+        remettrePhoto(automatic, "2x+2").andExpect(status().isUnprocessableEntity());
+
+        ObjectNode definition = exerciceRedigePourRevue(coursId, false);
+        definition.remove("copieModele");
+        String review = creerRedige(definition);
+        publierRedige(review);
+        remettrePhoto(review, "Le raisonnement.").andExpect(status().isUnprocessableEntity());
+        remettreRedige(review, "On cite et applique la propriété.").andExpect(status().isOk())
+                .andExpect(jsonPath("$.soumission.reponse").value("On cite et applique la propriété."))
+                .andExpect(jsonPath("$.copieModele").doesNotExist())
+                .andExpect(jsonPath("$.soumission.photo").value(false))
+                .andExpect(jsonPath("$.soumission.correct").doesNotExist());
     }
 
     @Test
@@ -219,6 +306,26 @@ class CoursParcoursEleveIntegrationTest {
         return objectMapper.createObjectNode().put("coursId", coursId.toString())
                 .put("titre", "Dériver un polynôme").put("enonce", "Calcule la dérivée de x² + 2x.")
                 .put("reponseAttendue", "2x+2").put("corrige", "La dérivée est $2x + 2$.");
+    }
+
+    private ObjectNode exerciceRedigePourRevue(UUID coursId, boolean photoAutorisee) {
+        return objectMapper.createObjectNode().put("coursId", coursId.toString())
+                .put("titre", "Rédiger une justification").put("enonce", "Rédige une justification.")
+                .put("modeCorrection", "enseignant").put("photoAutorisee", photoAutorisee)
+                .put("corrige", "Justifier chaque étape avec une propriété.")
+                .put("copieModele", "On énonce puis on applique la propriété.");
+    }
+
+    private ResultActions remettrePhoto(String id, String reponse) throws Exception {
+        var bytes = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(3, 4, BufferedImage.TYPE_INT_RGB), "png", bytes);
+        var request = multipart("/api/exercices-rediges/{id}/soumission-photo", id)
+                .file(new MockMultipartFile("photo", "copie.png", "image/png", bytes.toByteArray()))
+                .param("version", "1");
+        if (reponse != null) {
+            request.param("reponse", reponse);
+        }
+        return mockMvc.perform(request.with(student).with(csrf()));
     }
 
     private String creerRedige(ObjectNode definition) throws Exception {

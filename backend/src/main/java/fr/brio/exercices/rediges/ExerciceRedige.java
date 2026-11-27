@@ -15,9 +15,17 @@ record ExerciceRedige(
         String enonce,
         String reponseAttendue,
         String corrige,
+        ModeCorrection modeCorrection,
+        boolean photoAutorisee,
+        String copieModele,
         Instant echeance,
         Instant publieAt,
         Instant clotureAt) {
+
+    enum ModeCorrection {
+        automatique,
+        enseignant
+    }
 
     boolean publie() {
         return coursId == null || publieAt != null;

@@ -32,6 +32,12 @@ public interface CoursAccesApi {
     boolean estPublie(UUID coursId);
 
     /**
+     * Current students of the author's taught classes to which the published course is scoped.
+     * Values are class display names. Returns no students if the course is not the teacher's.
+     */
+    Map<UUID, String> elevesDuCoursPourRevue(UUID coursId, UUID auteurId);
+
+    /**
      * Among {@code coursIds}, those the student can open right now, each with the title of its
      * published version (the title the course page shows). contenu resolves the student's classes
      * itself. Read-only; used by progression's web layer to filter « Reprendre » (ADR 0050 §2).
