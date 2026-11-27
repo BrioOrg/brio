@@ -81,11 +81,16 @@ et à la version de l’exercice. Le serveur refuse les pièces pour les autres 
 lecture automatique, aucun OCR et aucun envoi de photo à un modèle ne sont prévus. Garder la
 possibilité d’étudier d’autres usages des photos plus tard.
 
-Réutiliser les contrôles pertinents d’[ADR 0028](0028-import-copie.md), dont les limites du dépôt,
-le retrait des métadonnées d’image et l’accès privé. Le plan technique devra décider quel stockage
-partager et comment appliquer la rétention aux nouvelles copies. Seuls l’élève auteur et les
-enseignants habilités pour la classe peuvent lire une copie, ses pièces et le retour personnel.
-La dissociation des modules et les références par identifiant suivent
+Le premier lot avec photo reprend les contrôles d’[ADR 0028](0028-import-copie.md), dont la
+validation du fichier, le retrait des métadonnées d’image et l’accès privé. Il accepte une
+image JPEG ou PNG par remise, de 5 Mo au plus, avec des dimensions bornées avant décodage.
+Les octets nettoyés sont stockés dans une table séparée. La photo et la remise sont confirmées
+dans la même transaction sans dépendre du stockage des devoirs. Les règles de rétention des
+nouvelles copies doivent être précisées pour l’exploitation.
+
+Le retour et la photo sont consultables par l’élève auteur. Pour la revue, l’auteur de
+l’exercice doit encore enseigner à l’élève dans l’une des classes auxquelles la leçon est
+publiée. La dissociation des modules et les références par identifiant suivent
 [l’ADR 0007](0007-one-database-schema-per-module.md).
 
 ### 4. Quand le corrigé devient visible

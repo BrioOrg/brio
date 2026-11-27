@@ -108,6 +108,52 @@
         }
       }
     },
+    "/api/prof/exercices-rediges/{id}/copies/{eleveId}/retour" : {
+      "put" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Publie le retour personnel de l’enseignant sur une copie",
+        "operationId" : "publierRetourExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "eleveId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PublierRetour"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CopiePourRevue"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/cours/{coursId}" : {
       "get" : {
         "tags" : [ "Édition de cours" ],
@@ -1439,6 +1485,66 @@
             }
           },
           "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExerciceRedigeEleve"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exercices-rediges/{id}/soumission-photo" : {
+      "post" : {
+        "tags" : [ "Exercices rédigés" ],
+        "summary" : "Remet la première copie avec une photo, si l’exercice l’autorise",
+        "operationId" : "soumettreExerciceRedigeAvecPhoto",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "version",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "reponse",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : ""
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "photo" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "photo" ]
+              }
+            }
+          }
         },
         "responses" : {
           "200" : {
@@ -3141,6 +3247,80 @@
         }
       }
     },
+    "/api/prof/exercices-rediges/{id}/copies" : {
+      "get" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Liste les copies des classes que l’enseignant est autorisé à relire",
+        "operationId" : "listerCopiesExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CopiePourRevue"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prof/exercices-rediges/{id}/copies/{eleveId}/photo" : {
+      "get" : {
+        "tags" : [ "Exercices rédigés enseignant" ],
+        "summary" : "Charge la photo d’une copie que l’enseignant est autorisé à relire",
+        "operationId" : "lirePhotoExerciceRedigePourRevue",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "name" : "eleveId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "image/jpeg" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              },
+              "image/png" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/prof/entraide/signalements" : {
       "get" : {
         "tags" : [ "Entraide — modération" ],
@@ -3404,6 +3584,41 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ExerciceRedigeEleve"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exercices-rediges/{id}/photo" : {
+      "get" : {
+        "tags" : [ "Exercices rédigés" ],
+        "summary" : "Charge la photo de la copie de l’élève connecté",
+        "operationId" : "lirePhotoExerciceRedige",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "image/jpeg" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              },
+              "image/png" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
                 }
               }
             }
@@ -4049,9 +4264,21 @@
           "echeance" : {
             "type" : "string",
             "format" : "date-time"
+          },
+          "modeCorrection" : {
+            "type" : "string",
+            "enum" : [ "automatique", "enseignant" ]
+          },
+          "photoAutorisee" : {
+            "type" : "boolean"
+          },
+          "copieModele" : {
+            "type" : "string",
+            "maxLength" : 12000,
+            "minLength" : 0
           }
         },
-        "required" : [ "corrige", "coursId", "enonce", "reponseAttendue", "titre" ]
+        "required" : [ "corrige", "coursId", "enonce", "titre" ]
       },
       "ExerciceRedigeProf" : {
         "type" : "object",
@@ -4080,6 +4307,16 @@
           "corrige" : {
             "type" : "string"
           },
+          "modeCorrection" : {
+            "type" : "string",
+            "enum" : [ "automatique", "enseignant" ]
+          },
+          "photoAutorisee" : {
+            "type" : "boolean"
+          },
+          "copieModele" : {
+            "type" : "string"
+          },
           "echeance" : {
             "type" : "string",
             "format" : "date-time"
@@ -4089,6 +4326,54 @@
           },
           "cloture" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "PublierRetour" : {
+        "type" : "object",
+        "properties" : {
+          "commentaire" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "commentaire" ]
+      },
+      "CopiePourRevue" : {
+        "type" : "object",
+        "properties" : {
+          "eleveId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "nomAffiche" : {
+            "type" : "string"
+          },
+          "reponse" : {
+            "type" : "string"
+          },
+          "remisAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "photo" : {
+            "type" : "boolean"
+          },
+          "retour" : {
+            "$ref" : "#/components/schemas/RetourCopie"
+          }
+        }
+      },
+      "RetourCopie" : {
+        "type" : "object",
+        "properties" : {
+          "commentaire" : {
+            "type" : "string"
+          },
+          "publieAt" : {
+            "type" : "string",
+            "format" : "date-time"
           }
         }
       },
@@ -4485,7 +4770,9 @@
             "format" : "int32"
           },
           "reponse" : {
-            "type" : "string"
+            "type" : "string",
+            "maxLength" : 12000,
+            "minLength" : 0
           }
         },
         "required" : [ "reponse" ]
@@ -4502,6 +4789,12 @@
           "remisAt" : {
             "type" : "string",
             "format" : "date-time"
+          },
+          "photo" : {
+            "type" : "boolean"
+          },
+          "retour" : {
+            "$ref" : "#/components/schemas/RetourCopie"
           }
         }
       },
@@ -4543,6 +4836,16 @@
             "type" : "boolean"
           },
           "corrige" : {
+            "type" : "string"
+          },
+          "modeCorrection" : {
+            "type" : "string",
+            "enum" : [ "automatique", "enseignant" ]
+          },
+          "photoAutorisee" : {
+            "type" : "boolean"
+          },
+          "copieModele" : {
             "type" : "string"
           },
           "soumission" : {

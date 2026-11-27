@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(value = "/api/exercices-rediges", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -55,6 +57,31 @@ class ExercicesRedigesController {
     ResponseEntity<ExerciceRedigeEleve> soumettreExerciceRedige(@PathVariable UUID id,
             @Valid @RequestBody RemiseExerciceRedige remise, @AuthenticationPrincipal UserDetails principal) {
         return prive(service.soumettre(id, eleve(principal), remise));
+    }
+
+    @PostMapping(value = "/{id}/soumission-photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Remet la première copie avec une photo, si l’exercice l’autorise")
+    ResponseEntity<ExerciceRedigeEleve> soumettreExerciceRedigeAvecPhoto(
+            @PathVariable UUID id,
+            @RequestParam("version") int version,
+            @RequestParam(value = "reponse", defaultValue = "") String reponse,
+            @RequestPart("photo") MultipartFile photo,
+            @AuthenticationPrincipal UserDetails principal) {
+        return prive(service.soumettreAvecPhoto(id, eleve(principal), version, reponse, photo));
+    }
+
+    @GetMapping(value = "/{id}/photo", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    @Operation(summary = "Charge la photo de la copie de l’élève connecté")
+    ResponseEntity<byte[]> lirePhotoExerciceRedige(
+            @PathVariable UUID id, @AuthenticationPrincipal UserDetails principal) {
+        return servirPhoto(service.photoDeLEleve(id, eleve(principal)));
+    }
+
+    static ResponseEntity<byte[]> servirPhoto(PhotoCopie photo) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore().cachePrivate())
+                .header("X-Content-Type-Options", "nosniff")
+                .contentType(MediaType.parseMediaType(photo.contentType()))
+                .body(photo.contenu());
     }
 
     private static UUID eleve(UserDetails principal) {

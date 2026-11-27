@@ -4,7 +4,9 @@ import fr.brio.contenu.api.ChapitreContentApi;
 import fr.brio.contenu.api.CoursAccesApi;
 import fr.brio.exercices.domain.PolynomialFormula;
 import fr.brio.exercices.domain.PolynomialFormula.FormulaException;
+import fr.brio.exercices.rediges.ExerciceRedige.ModeCorrection;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.CopieExerciceRedige;
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.CopiePourRevue;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.EcritureExerciceRedige;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.ExerciceRedigeEleve;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.ExerciceRedigeProf;
@@ -14,11 +16,11 @@ import fr.brio.exercices.rediges.ExercicesRedigesRepository.Copie;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 class ExercicesRedigesService {
@@ -60,23 +62,119 @@ class ExercicesRedigesService {
 
     @Transactional
     public ExerciceRedigeEleve soumettre(UUID id, UUID eleveId, RemiseExerciceRedige remise) {
+        return soumettre(id, eleveId, remise.version(), remise.reponse(), null);
+    }
+
+    @Transactional
+    public ExerciceRedigeEleve soumettreAvecPhoto(
+            UUID id, UUID eleveId, int version, String reponse, MultipartFile photo) {
+        return soumettre(id, eleveId, version, reponse, photo);
+    }
+
+    private ExerciceRedigeEleve soumettre(
+            UUID id, UUID eleveId, int version, String reponse, MultipartFile fichier) {
         // For teacher definitions both clock acceptance and the write happen under the same lock
         // as early closure, so a submission and a closure cannot be observed out of order.
         var definition = verifierAcces(definition(id, true), eleveId);
+        if (fichier != null && !definition.photoAutorisee()) {
+            throw invalide("PHOTO_NON_AUTORISEE", "Une photo n’est pas autorisée pour cet exercice.");
+        }
         Instant now = clock.instant();
-        Optional<Copie> saved = repository.copie(id, eleveId);
+        var saved = repository.copie(id, eleveId);
         if (saved.isPresent()) {
             return vueEleve(definition, saved.get(), now);
         }
-        if (remise.version() != definition.version()) {
+        if (version != definition.version()) {
             throw conflit("VERSION_OBSOLETE", "L’exercice a changé. Recharge la page.");
         }
         if (definition.closA(now)) {
             throw conflit("EXERCICE_CLOS", "L’exercice est clos.");
         }
-        boolean correct = formule(remise.reponse()).equals(formule(definition.reponseAttendue()));
-        repository.soumettre(definition, eleveId, remise.reponse(), correct, now);
+        Boolean correct = null;
+        PhotoCopie photo = null;
+        if (definition.modeCorrection() == ModeCorrection.automatique) {
+            correct = formule(reponse).equals(formule(definition.reponseAttendue()));
+        } else {
+            if (reponse.length() > ExercicesRedigesContrats.MAX_REPONSE_TEXTE) {
+                throw invalide("REPONSE_TROP_LONGUE", "La réponse dépasse 12 000 caractères.");
+            }
+            if (reponse.isBlank()) {
+                if (fichier == null) {
+                    throw invalide("REPONSE_VIDE", "Écris une réponse ou joins une photo si elle est autorisée.");
+                }
+                reponse = "";
+            }
+            if (fichier != null) {
+                photo = PhotoCopie.nettoyer(fichier);
+            }
+        }
+        repository.soumettre(definition, eleveId, reponse, correct, now, photo);
         return vueEleve(definition, repository.copie(id, eleveId).orElseThrow(), now);
+    }
+
+    @Transactional(readOnly = true)
+    public PhotoCopie photoDeLEleve(UUID id, UUID eleveId) {
+        verifierAcces(definition(id, false), eleveId);
+        var copie = repository.copie(id, eleveId).orElseThrow(ExercicesRedigesService::introuvable);
+        return chargerPhoto(id, copie);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CopiePourRevue> listerCopies(UUID id, UUID auteurId) {
+        var definition = verifierPourRevue(id, auteurId, false);
+        var eleves = cours.elevesDuCoursPourRevue(definition.coursId(), auteurId);
+        return repository.copiesPourRevue(id, definition.version(), eleves.keySet()).stream()
+                .map(copie -> vueRevue(copie, eleves.get(copie.eleveId()))).toList();
+    }
+
+    @Transactional
+    public CopiePourRevue publierRetour(UUID id, UUID auteurId, UUID eleveId, String commentaire) {
+        var definition = verifierPourRevue(id, auteurId, true);
+        String nomAffiche = nomPourRevue(definition, auteurId, eleveId);
+        var copie = copiePourRevue(definition, eleveId);
+        if (copie.retour() == null || !commentaire.equals(copie.retour().commentaire())) {
+            repository.publierRetour(id, copie.version(), eleveId, commentaire, clock.instant());
+            copie = copiePourRevue(definition, eleveId);
+        }
+        return vueRevue(copie, nomAffiche);
+    }
+
+    @Transactional(readOnly = true)
+    public PhotoCopie photoPourRevue(UUID id, UUID auteurId, UUID eleveId) {
+        var definition = verifierPourRevue(id, auteurId, false);
+        nomPourRevue(definition, auteurId, eleveId);
+        return chargerPhoto(id, copiePourRevue(definition, eleveId));
+    }
+
+    private static CopiePourRevue vueRevue(Copie copie, String nomAffiche) {
+        return new CopiePourRevue(copie.eleveId(), nomAffiche, copie.reponse(), copie.remisAt(),
+                copie.photo(), copie.retour());
+    }
+
+    private PhotoCopie chargerPhoto(UUID id, Copie copie) {
+        return repository.photo(id, copie.version(), copie.eleveId()).orElseThrow(ExercicesRedigesService::introuvable);
+    }
+
+    private Copie copiePourRevue(ExerciceRedige definition, UUID eleveId) {
+        return repository.copie(definition.id(), eleveId)
+                .filter(copie -> copie.version() == definition.version())
+                .orElseThrow(ExercicesRedigesService::introuvable);
+    }
+
+    private String nomPourRevue(ExerciceRedige definition, UUID auteurId, UUID eleveId) {
+        String nom = cours.elevesDuCoursPourRevue(definition.coursId(), auteurId).get(eleveId);
+        if (nom == null) {
+            throw interdit();
+        }
+        return nom;
+    }
+
+    private ExerciceRedige verifierPourRevue(UUID id, UUID auteurId, boolean lock) {
+        var definition = verifierExerciceDeLAuteur(id, auteurId, lock);
+        if (!definition.publie() || definition.modeCorrection() != ModeCorrection.enseignant) {
+            throw introuvable();
+        }
+        return definition;
     }
 
     @Transactional(readOnly = true)
@@ -98,7 +196,7 @@ class ExercicesRedigesService {
 
     @Transactional
     public ExerciceRedigeProf enregistrer(UUID id, UUID auteurId, EcritureExerciceRedige entree) {
-        var actuelle = verrouillerPourAuteur(id, auteurId);
+        var actuelle = verifierExerciceDeLAuteur(id, auteurId, true);
         if (actuelle.publie()) {
             throw conflit("EXERCICE_PUBLIE", "Cet exercice est déjà publié.");
         }
@@ -111,7 +209,7 @@ class ExercicesRedigesService {
 
     @Transactional
     public ExerciceRedigeProf publier(UUID id, UUID auteurId) {
-        var definition = verrouillerPourAuteur(id, auteurId);
+        var definition = verifierExerciceDeLAuteur(id, auteurId, true);
         Instant now = clock.instant();
         if (definition.publie()) {
             return vueProf(definition, now);
@@ -119,21 +217,26 @@ class ExercicesRedigesService {
         if (!cours.estPublie(definition.coursId())) {
             throw conflit("COURS_NON_PUBLIE", "Publiez d’abord la leçon.");
         }
-        if (definition.titre().isBlank() || definition.enonce().isBlank()
-                || definition.reponseAttendue().isBlank() || definition.corrige().isBlank()) {
-            throw invalide("CORRIGE_INCOMPLET", "Renseignez le titre, l’énoncé, la réponse attendue et le corrigé.");
+        boolean automatique = definition.modeCorrection() == ModeCorrection.automatique;
+        if (definition.titre().isBlank() || definition.enonce().isBlank() || definition.corrige().isBlank()
+                || (automatique && definition.reponseAttendue().isBlank())) {
+            throw invalide("CORRIGE_INCOMPLET", automatique
+                    ? "Renseignez le titre, l’énoncé, la réponse attendue et le corrigé."
+                    : "Renseignez le titre, l’énoncé et une grille ou une solution.");
         }
         if (definition.closA(now)) {
             throw invalide("ECHEANCE_PASSEE", "Choisissez une échéance future.");
         }
-        formule(definition.reponseAttendue());
+        if (automatique) {
+            formule(definition.reponseAttendue());
+        }
         repository.publier(id, now);
         return vueProf(repository.trouver(id).orElseThrow(), now);
     }
 
     @Transactional
     public ExerciceRedigeProf cloturer(UUID id, UUID auteurId) {
-        var definition = verrouillerPourAuteur(id, auteurId);
+        var definition = verifierExerciceDeLAuteur(id, auteurId, true);
         Instant now = clock.instant();
         if (!definition.publie() || definition.echeance() == null) {
             throw conflit("CLOTURE_IMPOSSIBLE", "Seul un exercice publié avec une échéance peut être clos.");
@@ -187,8 +290,9 @@ class ExercicesRedigesService {
         }
     }
 
-    private ExerciceRedige verrouillerPourAuteur(UUID id, UUID auteurId) {
-        var definition = repository.verrouiller(id).orElseThrow(ExercicesRedigesService::introuvable);
+    private ExerciceRedige verifierExerciceDeLAuteur(UUID id, UUID auteurId, boolean lock) {
+        var definition = (lock ? repository.verrouiller(id) : repository.trouver(id))
+                .orElseThrow(ExercicesRedigesService::introuvable);
         if (!auteurId.equals(definition.auteurId())) {
             throw interdit();
         }
@@ -197,25 +301,36 @@ class ExercicesRedigesService {
     }
 
     private static ExerciceRedige brouillon(UUID id, int version, UUID auteurId, EcritureExerciceRedige entree) {
+        var mode = entree.modeCorrection() == null ? ModeCorrection.automatique : entree.modeCorrection();
+        boolean automatique = mode == ModeCorrection.automatique;
+        String attendu = automatique && entree.reponseAttendue() != null ? entree.reponseAttendue() : "";
+        String copieModele = entree.copieModele() == null || entree.copieModele().isBlank() ? null : entree.copieModele();
+        if (automatique && (entree.photoAutorisee() || copieModele != null)) {
+            throw invalide("OPTIONS_REVUE_RESERVEES", "La photo et la copie modèle sont réservées à la revue par l’enseignant.");
+        }
         return new ExerciceRedige(id, version, entree.coursId(), auteurId, null, null, null,
-                entree.titre().strip(), entree.enonce(), entree.reponseAttendue(), entree.corrige(),
+                entree.titre().strip(), entree.enonce(), attendu, entree.corrige(), mode, entree.photoAutorisee(), copieModele,
                 entree.echeance(), null, null);
     }
 
     private static ExerciceRedigeProf vueProf(ExerciceRedige e, Instant now) {
         return new ExerciceRedigeProf(e.id(), e.coursId(), e.version(), e.titre(), e.enonce(), e.reponseAttendue(),
-                e.corrige(), e.echeanceEffective(), e.publie(), e.publie() && e.closA(now));
+                e.corrige(), e.modeCorrection(), e.photoAutorisee(), e.copieModele(),
+                e.echeanceEffective(), e.publie(), e.publie() && e.closA(now));
     }
 
     private static ExerciceRedigeEleve vueEleve(ExerciceRedige e, Copie copie, Instant now) {
         if (copie != null) {
-            var soumission = new CopieExerciceRedige(copie.reponse(), copie.correct(), copie.remisAt());
+            var soumission = new CopieExerciceRedige(copie.reponse(), copie.correct(), copie.remisAt(),
+                    copie.photo(), copie.retour());
             return new ExerciceRedigeEleve(e.id(), copie.version(), copie.titre(), copie.enonce(), e.coursId(),
-                    e.niveau(), e.matiere(), e.slug(), e.echeanceEffective(), e.closA(now), copie.corrige(), soumission);
+                    e.niveau(), e.matiere(), e.slug(), e.echeanceEffective(), e.closA(now), copie.corrige(),
+                    e.modeCorrection(), e.photoAutorisee(), copie.copieModele(), soumission);
         }
         boolean cloture = e.closA(now);
         return new ExerciceRedigeEleve(e.id(), e.version(), e.titre(), e.enonce(), e.coursId(), e.niveau(),
-                e.matiere(), e.slug(), e.echeanceEffective(), cloture, cloture ? e.corrige() : null, null);
+                e.matiere(), e.slug(), e.echeanceEffective(), cloture, cloture ? e.corrige() : null,
+                e.modeCorrection(), e.photoAutorisee(), cloture ? e.copieModele() : null, null);
     }
 
     private static PolynomialFormula formule(String raw) {

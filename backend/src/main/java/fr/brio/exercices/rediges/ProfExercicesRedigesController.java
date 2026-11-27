@@ -1,7 +1,9 @@
 package fr.brio.exercices.rediges;
 
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.CopiePourRevue;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.EcritureExerciceRedige;
 import fr.brio.exercices.rediges.ExercicesRedigesContrats.ExerciceRedigeProf;
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.PublierRetour;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -64,6 +66,30 @@ class ProfExercicesRedigesController {
     ResponseEntity<ExerciceRedigeProf> cloturerExerciceRedige(
             @PathVariable UUID id, @AuthenticationPrincipal UserDetails principal) {
         return prive(service.cloturer(id, auteur(principal)));
+    }
+
+    @GetMapping("/{id}/copies")
+    @Operation(summary = "Liste les copies des classes que l’enseignant est autorisé à relire")
+    ResponseEntity<List<CopiePourRevue>> listerCopiesExerciceRedige(
+            @PathVariable UUID id, @AuthenticationPrincipal UserDetails principal) {
+        return prive(service.listerCopies(id, auteur(principal)));
+    }
+
+    @PutMapping(value = "/{id}/copies/{eleveId}/retour", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Publie le retour personnel de l’enseignant sur une copie")
+    ResponseEntity<CopiePourRevue> publierRetourExerciceRedige(
+            @PathVariable UUID id,
+            @PathVariable UUID eleveId,
+            @Valid @RequestBody PublierRetour retour,
+            @AuthenticationPrincipal UserDetails principal) {
+        return prive(service.publierRetour(id, auteur(principal), eleveId, retour.commentaire()));
+    }
+
+    @GetMapping(value = "/{id}/copies/{eleveId}/photo", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    @Operation(summary = "Charge la photo d’une copie que l’enseignant est autorisé à relire")
+    ResponseEntity<byte[]> lirePhotoExerciceRedigePourRevue(
+            @PathVariable UUID id, @PathVariable UUID eleveId, @AuthenticationPrincipal UserDetails principal) {
+        return ExercicesRedigesController.servirPhoto(service.photoPourRevue(id, auteur(principal), eleveId));
     }
 
     private static UUID auteur(UserDetails principal) {
