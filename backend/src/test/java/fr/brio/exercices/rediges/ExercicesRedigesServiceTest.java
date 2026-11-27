@@ -33,7 +33,7 @@ class ExercicesRedigesServiceTest {
         when(courses.estAuteur(courseId, authorId)).thenReturn(true);
         when(repository.verrouiller(id)).thenReturn(Optional.of(new ExerciceRedige(id, 1, courseId, authorId,
                 null, null, null, "Dérivée", "Calcule la dérivée.", "2x", "La dérivée vaut $2x$.",
-                deadline, now.minusSeconds(60), null)));
+                ExerciceRedige.ModeCorrection.automatique, false, null, deadline, now.minusSeconds(60), null)));
         doAnswer(invocation -> {
             Instant written = invocation.getArgument(1);
             persistedClosure.set(written.plusNanos(500).truncatedTo(ChronoUnit.MICROS));
@@ -41,7 +41,8 @@ class ExercicesRedigesServiceTest {
         }).when(repository).cloturer(eq(id), any(Instant.class));
         when(repository.trouver(id)).thenAnswer(invocation -> Optional.of(new ExerciceRedige(id, 1, courseId, authorId,
                 null, null, null, "Dérivée", "Calcule la dérivée.", "2x", "La dérivée vaut $2x$.",
-                deadline, now.minusSeconds(60), persistedClosure.get())));
+                ExerciceRedige.ModeCorrection.automatique, false, null, deadline, now.minusSeconds(60),
+                persistedClosure.get())));
         var service = new ExercicesRedigesService(courses, mock(ChapitreContentApi.class),
                 mock(CatalogueExercicesRediges.class), repository, Clock.fixed(now, ZoneOffset.UTC));
 
