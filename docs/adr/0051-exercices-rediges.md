@@ -167,6 +167,40 @@ valider le traitement des copies d’élèves selon [l’ADR 0018](0018-base-leg
 et les règles du projet. Le tuteur de chapitre garde son propre rôle
 ([ADR 0015](0015-chapter-tutor-v1.md)).
 
+### 7. Pilote du retour par critères (#473)
+
+Le constructeur propose deux formats fermés pour le pilote, une traduction avec une contrainte
+explicite ou une liste d’éléments attendus. L’auteur fournit le corrigé commun, de un à six
+critères distincts, le minimum attendu et jusqu’à quatre variantes par critère. Il confirme
+que les critères sont vérifiables. Il peut copier un court extrait de la leçon s’il est
+nécessaire. Une dissertation reste en revue enseignant. Pour essayer le parcours avec des
+données fictives, demander « Nomme deux conditions de la concurrence pure et parfaite » et
+utiliser comme critères la libre entrée et sortie et l’homogénéité des produits. Une copie
+partielle peut dire « Les entreprises peuvent entrer et sortir librement. »
+
+La remise valide est confirmée avant de lancer le retour. La file locale accepte trois
+traitements simultanés et six en attente. Le premier enregistrement de la copie déclenche
+au plus un appel. Un rechargement consulte le résultat enregistré. Si la file est saturée,
+si le processus s’arrête ou si la réponse du modèle est invalide, la copie et le corrigé
+restent accessibles et le retour devient indisponible. L’attente expire après 60 secondes.
+Le lot ne relance pas automatiquement un appel vers le prestataire.
+
+Le correcteur envoie l’énoncé (1 500 caractères), la copie (1 200 caractères), la clé et
+l’extrait facultatif (500 caractères). Il limite les sorties à 768 tokens et le délai de
+lecture à 12 secondes. Il contrôle que chaque critère a exactement un état et que tout
+extrait cité figure mot pour mot dans la copie. Il ne transmet aucun identifiant de compte,
+historique ou média. Un filtre bloque les adresses électroniques et numéros de téléphone
+français détectables. Une saisie libre peut néanmoins contenir d’autres données personnelles.
+
+`BRIO_EXERCICES_RETOUR_IA_ACTIF` vaut `false` par défaut. Pour le pilote, effectuer d’abord
+l’évaluation sur copies synthétiques avec `./mvnw test -Peval -Dtest=RetourExerciceLiveEvalTest`
+depuis `backend/`, avec la clé habituelle. Le corpus répète cinq cas et consigne les tokens
+d’entrée et de sortie, le temps et les états. La procédure produit les résultats de test
+dans `backend/target/surefire-reports/`. Vérifier ensuite les coûts sur des entrées proches
+des limites, puis consigner l’autorisation du traitement des copies, le prestataire,
+les durées de rétention et le budget accepté dans #473 avant d’activer. L’évaluation
+fictive et le test avec fournisseur simulé ne valident pas le traitement des copies réelles.
+
 ## Conséquences et ordre de livraison
 
 La première version doit démontrer les deux parcours, automatique et revue par l’enseignant,

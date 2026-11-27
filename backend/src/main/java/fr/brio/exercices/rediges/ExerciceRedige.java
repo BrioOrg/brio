@@ -1,5 +1,6 @@
 package fr.brio.exercices.rediges;
 
+import fr.brio.exercices.rediges.ExercicesRedigesContrats.CleCorrection;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -20,11 +21,13 @@ record ExerciceRedige(
         String copieModele,
         Instant echeance,
         Instant publieAt,
-        Instant clotureAt) {
+        Instant clotureAt,
+        CleCorrection cleCorrection) {
 
     enum ModeCorrection {
         automatique,
-        enseignant
+        enseignant,
+        ia
     }
 
     boolean publie() {

@@ -62,7 +62,7 @@ class CatalogueExercicesRediges {
             PolynomialFormula.parse(reponseAttendue);
             return new ExerciceRedige(id, version, null, null, niveau, matiere, slug, titre, enonce,
                     reponseAttendue, corrige, ExerciceRedige.ModeCorrection.automatique, false, null,
-                    null, null, null);
+                    null, null, null, null);
         }
 
         private static boolean absent(String value) {

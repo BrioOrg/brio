@@ -176,3 +176,49 @@ test('a teacher reviews a written copy with a private photo and publishes person
   await expect(page.getByText(feedback)).toBeVisible()
   await expect(page.getByText('En attente du retour de ton enseignant.')).toHaveCount(0)
 })
+
+test('an author publishes a closed checklist and the student sees the marked criteria after submitting', async ({
+  baseURL,
+  context,
+  page,
+}, testInfo) => {
+  test.setTimeout(60_000)
+  const title = `La concurrence (${testInfo.project.name})`
+  const excerpt = 'entrer et sortir librement'
+  await useSession(context, baseURL, `e2e-enseignant-${randomUUID()}`)
+  await page.goto('/prof/exercices-rediges')
+  await page.getByRole('button', { name: 'Nouvel exercice' }).click()
+  await page.getByLabel('Leçon').selectOption('00000000-0000-4000-8000-00000000c001')
+  await page.getByLabel('Titre', { exact: true }).fill(title)
+  await page
+    .getByLabel('Énoncé', { exact: true })
+    .fill('Nomme deux conditions de la concurrence pure et parfaite.')
+  await page.getByLabel('Mode de correction').selectOption('ia')
+  await page
+    .getByLabel('Corrigé', { exact: true })
+    .fill('On peut citer la libre entrée et l’homogénéité des produits.')
+  await page.getByRole('button', { name: 'Ajouter un critère' }).click()
+  await page.getByLabel('Nombre minimum de critères attendus').fill('2')
+  await page.getByLabel('Élément attendu 1').fill('Libre entrée et sortie')
+  await page.getByLabel('Variantes admises 1', { exact: false }).fill(excerpt)
+  await page.getByLabel('Élément attendu 2').fill('Homogénéité des produits')
+  await page.getByRole('checkbox', { name: /J’ai vérifié le corrigé/ }).check()
+  await page.getByRole('button', { name: 'Enregistrer le brouillon' }).click()
+  await page.getByRole('button', { name: 'Publier', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Exercice publié' })).toBeVisible()
+
+  await useSession(context, baseURL, 'e2e-eleve')
+  await page.goto(TEACHER_COURSE)
+  await page.getByRole('link', { name: title }).click()
+  await expect(page.getByRole('heading', { name: RESULT, exact: true })).toHaveCount(0)
+  await page
+    .getByRole('textbox', { name: 'Ta réponse' })
+    .fill(`Les entreprises peuvent ${excerpt}.`)
+  await page.getByRole('button', { name: 'Remettre ma réponse' }).click()
+  await expect(page.getByRole('heading', { name: RESULT, exact: true })).toBeVisible()
+  await expect(page.getByText('Libre entrée et sortie · Repéré')).toBeVisible()
+  await expect(page.getByText('Homogénéité des produits · Manquant')).toBeVisible()
+  await expect(page.locator('blockquote')).toHaveText(excerpt)
+  await page.reload()
+  await expect(page.getByText('Libre entrée et sortie · Repéré')).toBeVisible()
+})

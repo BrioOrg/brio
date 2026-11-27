@@ -5,7 +5,11 @@ import { useId, useState } from 'react'
 import { RichTextRenderer } from '@/components/blocs/rich-text'
 import { ApercuKatex } from '@/components/maths/apercu-katex'
 import { Panel } from '@/components/ui/panel'
-import { studentWrittenPhotoHref, type WrittenExercise } from '@/lib/exercices-rediges'
+import {
+  studentWrittenPhotoHref,
+  type WrittenExercise,
+  type WrittenCriterionFeedback,
+} from '@/lib/exercices-rediges'
 
 const heading = 'font-display text-lg font-extrabold text-ink'
 const body = 'whitespace-pre-wrap break-words font-prose text-base leading-relaxed text-ink'
@@ -15,6 +19,8 @@ export function WrittenExerciseComparison({ exercise }: { exercise: WrittenExerc
   const solutionId = useId()
   const { soumission, corrige } = exercise
   const reviewed = exercise.modeCorrection === 'enseignant'
+
+  const textAnswer = reviewed || exercise.modeCorrection === 'ia'
 
   if (!soumission && !exercise.cloture) return null
 
@@ -39,7 +45,7 @@ export function WrittenExerciseComparison({ exercise }: { exercise: WrittenExerc
               <h2 id={answerId} className={heading}>
                 Ta réponse
               </h2>
-              {reviewed ? (
+              {textAnswer ? (
                 <>
                   {soumission.reponse && <p className={body}>{soumission.reponse}</p>}
                   {soumission.photo && <SubmissionPhoto key={exercise.id} id={exercise.id} />}
@@ -80,6 +86,7 @@ export function WrittenExerciseComparison({ exercise }: { exercise: WrittenExerc
               <p className={`${body} overflow-x-auto`}>
                 <RichTextRenderer text={corrige} />
               </p>
+              {soumission?.retourIa && <CriterionFeedback feedback={soumission.retourIa} />}
               {reviewed && exercise.copieModele && (
                 <>
                   <h3 className="font-display text-base font-extrabold text-ink">Copie modèle</h3>
@@ -106,6 +113,43 @@ export function WrittenExerciseComparison({ exercise }: { exercise: WrittenExerc
           </section>
         )}
       </div>
+    </div>
+  )
+}
+
+const criterionLabels = {
+  present: 'Repéré',
+  manquant: 'Manquant',
+  incertain: 'À vérifier',
+} as const
+
+function CriterionFeedback({ feedback }: { feedback: WrittenCriterionFeedback }) {
+  return (
+    <div className="space-y-2">
+      <h3 className="font-display text-base font-extrabold text-ink">Retour par critères</h3>
+      {feedback.etat === 'disponible' ? (
+        <>
+          <p className="font-prose text-sm text-ink-muted">
+            Nombre minimum de critères attendus : {feedback.minimum}.
+          </p>
+          <ul className="space-y-2">
+            {feedback.criteres.map((criterion, index) => (
+              <li key={index} className="rounded-md border border-line p-2">
+                <p className="break-words font-prose text-sm font-semibold text-ink">
+                  {criterion.attendu} · {criterionLabels[criterion.etat]}
+                </p>
+                {criterion.extrait && <blockquote className={body}>{criterion.extrait}</blockquote>}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p role="status" className="font-prose text-sm text-ink-muted">
+          {feedback.etat === 'en_attente'
+            ? 'Le retour par critères est en cours.'
+            : 'Le retour par critères est indisponible. Ta réponse est bien remise.'}
+        </p>
+      )}
     </div>
   )
 }
